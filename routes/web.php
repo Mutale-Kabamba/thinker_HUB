@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Models\Course;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -38,11 +39,51 @@ $loadPublicCourses = static function (int $limit = 0) {
     }
 };
 
-Route::get('/', function () use ($loadPublicCourses) {
+$loadHomeStats = static function () {
+    $default = [
+        'tutors' => 0,
+        'students' => 0,
+        'courses' => 0,
+    ];
+
+    try {
+        if (config('database.default') === 'sqlite') {
+            $sqlitePath = (string) config('database.connections.sqlite.database');
+
+            if (! $sqlitePath || ! is_file($sqlitePath)) {
+                return $default;
+            }
+        }
+
+        if (Schema::hasTable('users')) {
+            $default['tutors'] = User::query()->where('role', 'admin')->count();
+
+            $default['students'] = User::query()
+                ->where(function ($query) {
+                    $query->whereNull('role')->orWhere('role', '!=', 'admin');
+                })
+                ->count();
+        }
+
+        if (Schema::hasTable('courses')) {
+            $default['courses'] = Course::query()->where('is_active', true)->count();
+        }
+
+        return $default;
+    } catch (\Throwable $e) {
+        report($e);
+
+        return $default;
+    }
+};
+
+Route::get('/', function () use ($loadPublicCourses, $loadHomeStats) {
     $courses = $loadPublicCourses(6);
+    $stats = $loadHomeStats();
 
     return view('welcome', [
         'courses' => $courses,
+        'stats' => $stats,
     ]);
 })->name('home');
 
