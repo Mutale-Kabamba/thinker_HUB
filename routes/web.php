@@ -6,29 +6,48 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 
-Route::get('/', function () {
-    $courses = Schema::hasTable('courses')
-        ? Course::query()
+$loadPublicCourses = static function (int $limit = 0) {
+    try {
+        if (config('database.default') === 'sqlite') {
+            $sqlitePath = (string) config('database.connections.sqlite.database');
+
+            if (! $sqlitePath || ! is_file($sqlitePath)) {
+                return collect();
+            }
+        }
+
+        if (! Schema::hasTable('courses')) {
+            return collect();
+        }
+
+        $query = Course::query()
             ->where('is_active', true)
             ->withCount('enrollments')
-            ->latest()
-            ->limit(6)
-            ->get()
-        : collect();
+            ->latest();
+
+        if ($limit > 0) {
+            $query->limit($limit);
+        }
+
+        return $query->get();
+    } catch (\Throwable $e) {
+        // If database is unavailable during bootstrap/deploy, avoid hard-failing public pages.
+        report($e);
+
+        return collect();
+    }
+};
+
+Route::get('/', function () use ($loadPublicCourses) {
+    $courses = $loadPublicCourses(6);
 
     return view('welcome', [
         'courses' => $courses,
     ]);
 })->name('home');
 
-Route::get('/courses', function () {
-    $courses = Schema::hasTable('courses')
-        ? Course::query()
-            ->where('is_active', true)
-            ->withCount('enrollments')
-            ->latest()
-            ->get()
-        : collect();
+Route::get('/courses', function () use ($loadPublicCourses) {
+    $courses = $loadPublicCourses();
 
     return view('pages.courses', [
         'courses' => $courses,
