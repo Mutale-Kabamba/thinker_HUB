@@ -1,0 +1,51 @@
+﻿Transaction_ID,Order_Date,Sales_Rep,Location_Code,Sales
+TXN-1001,01/04/2024,Alice Walker,New York-10001,450
+TXN-1002,01/04/2024,Bob Miller,Chicago-60601,625.5
+TXN-1003,02/04/2024,Charlie Davis,Seattle-98101,320
+TXN-1004,02/04/2024,Diana Prince,Austin-73301,815
+TXN-1002,01/04/2024,Bob Miller,Chicago-60601,625.5
+TXN-1005,03/04/2024,Evan Wright,Miami-33101,150
+TXN-1006,03/04/2024,Fiona Gallagher,Boston-02108,550
+TXN-1007,04/04/2024,George Martin,New York-10001,210
+TXN-1008,05/04/2024,Hannah Abbott,Chicago-60601,730
+TXN-1009,05/04/2024,Ian Malcolm,Seattle-98101,480
+TXN-1010,06/04/2024,Julia Child,Austin-73301,900
+TXN-1011,06/04/2024,Kevin Bacon,Miami-33101,290
+TXN-1012,07/04/2024,Laura Palmer,Boston-02108,125
+TXN-1013,08/04/2024,Michael Scott,New York-10001,640
+TXN-1014,08/04/2024,Nina Simone,Chicago-60601,310
+TXN-1009,05/04/2024,Ian Malcolm,Seattle-98101,480
+TXN-1015,09/04/2024,Oscar Martinez,Seattle-98101,850
+TXN-1016,10/04/2024,Pam Beesly,Austin-73301,410
+TXN-1017,10/04/2024,Quincy Jones,Miami-33101,720
+TXN-1018,11/04/2024,Rachel Green,Boston-02108,195
+TXN-1019,12/04/2024,Steve Rogers,New York-10001,580
+TXN-1020,12/04/2024,Tony Stark,Chicago-60601,450
+TXN-1021,13/04/2024,Ursula Buffay,Seattle-98101,360
+TXN-1022,14/04/2024,Victor Hugo,Austin-73301,940
+TXN-1023,14/04/2024,Wanda Maximoff,Miami-33101,215
+TXN-1019,12/04/2024,Steve Rogers,New York-10001,580
+TXN-1024,15/04/2024,Xavier Woods,Boston-02108,610
+TXN-1025,16/04/2024,Yvonne Strahovski,New York-10001,330
+TXN-1026,16/04/2024,Zack Snyder,Chicago-60601,890
+TXN-1027,17/04/2024,Alice Walker,Seattle-98101,420
+TXN-1028,18/04/2024,Bob Miller,Austin-73301,530
+TXN-1029,18/04/2024,Charlie Davis,Miami-33101,175
+TXN-1030,19/04/2024,Diana Prince,Boston-02108,670
+TXN-1031,20/04/2024,Evan Wright,New York-10001,280
+TXN-1032,20/04/2024,Fiona Gallagher,Chicago-60601,490
+TXN-1033,21/04/2024,George Martin,Seattle-98101,750
+TXN-1028,18/04/2024,Bob Miller,Austin-73301,530
+TXN-1034,22/04/2024,Hannah Abbott,Austin-73301,340
+TXN-1035,22/04/2024,Ian Malcolm,Miami-33101,880
+TXN-1036,23/04/2024,Julia Child,Boston-02108,220
+TXN-1037,24/04/2024,Kevin Bacon,New York-10001,600
+TXN-1038,24/04/2024,Laura Palmer,Chicago-60601,390
+TXN-1039,25/04/2024,Michael Scott,Seattle-98101,920
+TXN-1040,26/04/2024,Nina Simone,Austin-73301,470
+TXN-1039,25/04/2024,Michael Scott,Seattle-98101,920
+TXN-1041,26/04/2024,Oscar Martinez,Miami-33101,160
+TXN-1042,27/04/2024,Pam Beesly,Boston-02108,710
+TXN-1043,28/04/2024,Quincy Jones,New York-10001,240
+TXN-1044,28/04/2024,Rachel Green,Chicago-60601,580
+TXN-1045,29/04/2024,Steve Rogers,Seattle-98101,350

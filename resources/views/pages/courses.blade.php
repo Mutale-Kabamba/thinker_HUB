@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Courses | {{ config('app.name', 'Thinker Hub') }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
+
+    <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
+            <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-bold text-white shrink-0">
+                <div class="bg-yellow-400 p-1 rounded-full"><div class="bg-[#0a2d27] w-3 h-3 rounded-full"></div></div>
+                Thinker Hub
+            </a>
+
+            <nav class="hidden md:flex items-center gap-10 text-[13px] font-semibold uppercase tracking-wider text-slate-300">
+                <a href="{{ route('home') }}" class="hover:text-yellow-400 transition-colors">Home</a>
+                <a href="{{ route('landing.courses') }}" class="text-white">Courses</a>
+                <a href="{{ route('landing.instructors') }}" class="hover:text-yellow-400 transition-colors">Instructors</a>
+                <a href="{{ route('landing.contact') }}" class="hover:text-yellow-400 transition-colors">Contact</a>
+            </nav>
+
+            <div class="hidden md:flex items-center gap-6">
+                <a href="{{ route('login') }}" class="text-sm font-bold text-white hover:text-yellow-400">Login</a>
+                <a href="{{ route('enroll') }}" class="rounded-full bg-yellow-400 px-6 py-2.5 text-sm font-bold text-[#0a2d27] hover:bg-white transition-all">Enroll Now</a>
+            </div>
+
+            <button class="md:hidden text-white text-2xl" @click="mobileMenu = !mobileMenu">
+                <i class="fa-solid" :class="mobileMenu ? 'fa-xmark' : 'fa-bars-staggered'"></i>
+            </button>
+        </div>
+
+        <div class="md:hidden bg-[#0a2d27] border-t border-white/10" x-show="mobileMenu" x-transition>
+            <nav class="flex flex-col p-6 gap-4 text-white font-semibold">
+                <a href="{{ route('home') }}">Home</a>
+                <a href="{{ route('landing.courses') }}">Courses</a>
+                <a href="{{ route('landing.instructors') }}">Instructors</a>
+                <a href="{{ route('landing.contact') }}">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="bg-[#0a2d27] relative overflow-hidden py-16 lg:py-20">
+            <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">Learning Catalog</p>
+                <h1 class="mt-4 text-4xl font-black text-white sm:text-5xl">Explore Our Courses</h1>
+                <p class="mx-auto mt-5 max-w-2xl text-slate-300">Choose the track and course that match your goals, then enroll and start learning right away.</p>
+            </div>
+        </section>
+
+        <section class="py-20 lg:py-24">
+            <div class="mx-auto max-w-6xl px-6 lg:px-8">
+                @php
+                    $courseDetails = $courses->mapWithKeys(fn ($course) => [
+                        $course->id => [
+                            'title' => $course->title,
+                            'overview' => $course->overview,
+                            'timeline' => $course->timeline,
+                            'fees' => $course->fees,
+                            'requirements' => $course->requirements,
+                            'level_progression' => $course->level_progression,
+                            'key_outcome' => $course->key_outcome,
+                        ],
+                    ]);
+                @endphp
+                <div
+                    x-data="{
+                        selectedCourseId: null,
+                        details: @js($courseDetails),
+                        lines(value) {
+                            if (!value) return [];
+                            return value.split('\\n').map(line => line.trim()).filter(Boolean);
+                        }
+                    }"
+                    class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
+                >
+                    @forelse ($courses as $course)
+                        <article class="group bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-xl transition-all border border-slate-100">
+                            <div class="relative h-52 overflow-hidden rounded-[1.5rem]">
+                                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Course image">
+                                <div class="absolute top-4 left-4 bg-yellow-400 text-[#0a2d27] text-[11px] font-bold px-4 py-1.5 rounded-full shadow-lg">ACTIVE</div>
+                            </div>
+                            <div class="px-3 py-6">
+                                <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">{{ $course->code }}</p>
+                                <h3 class="mt-2 text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug">{{ $course->title }}</h3>
+                                <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
+                                    <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> Self paced</span>
+                                    <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $course->enrollments_count ?? 0 }} Students</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    @click="selectedCourseId = {{ $course->id }}"
+                                    class="mt-4 inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-teal-500 hover:text-teal-600"
+                                >
+                                    View Details
+                                </button>
+                            </div>
+                        </article>
+                    @empty
+                        <div class="col-span-full py-24 text-center border-2 border-dashed border-slate-200 rounded-[3rem] bg-slate-50/50">
+                            <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-sm mb-4">
+                                <i class="fa-solid fa-book-open text-teal-600 text-2xl"></i>
+                            </div>
+                            <p class="text-slate-500 font-medium">No active courses available yet.</p>
+                        </div>
+                    @endforelse
+
+                    <div
+                        x-show="selectedCourseId"
+                        x-transition.opacity
+                        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+                        style="display: none;"
+                    >
+                        <div class="relative max-h-[88vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl" @click.outside="selectedCourseId = null">
+                            <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+                                <div>
+                                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-teal-600">Course Track Document</p>
+                                    <h3 class="mt-1 text-xl font-bold text-slate-900" x-text="details[selectedCourseId]?.title"></h3>
+                                </div>
+                                <button type="button" @click="selectedCourseId = null" class="rounded-lg border border-slate-200 p-2 text-slate-500 hover:text-slate-800">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+
+                            <div class="max-h-[64vh] overflow-y-auto px-5 py-4 space-y-4 text-sm">
+                                <div class="grid gap-4 md:grid-cols-2">
+                                    <section class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                        <h4 class="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">Overview</h4>
+                                        <p class="mt-2 text-slate-700 leading-relaxed" x-text="details[selectedCourseId]?.overview || 'No overview added yet.'"></p>
+                                    </section>
+                                    <section class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                        <h4 class="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">Timeline</h4>
+                                        <p class="mt-2 font-semibold text-slate-800" x-text="details[selectedCourseId]?.timeline || 'Not specified yet.'"></p>
+                                    </section>
+                                </div>
+
+                                <section class="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
+                                    <h4 class="text-[11px] font-bold uppercase tracking-[0.08em] text-emerald-700">Fees</h4>
+                                    <div class="mt-2">
+                                        <template x-if="lines(details[selectedCourseId]?.fees).length">
+                                            <ul class="space-y-1.5 text-emerald-900">
+                                                <template x-for="line in lines(details[selectedCourseId]?.fees)" :key="line">
+                                                    <li class="rounded-lg border border-emerald-200 bg-white/70 px-3 py-2 font-semibold" x-text="line"></li>
+                                                </template>
+                                            </ul>
+                                        </template>
+                                        <p x-show="!lines(details[selectedCourseId]?.fees).length" class="text-slate-600">No fee details added yet.</p>
+                                    </div>
+                                </section>
+
+                                <div class="grid gap-4 md:grid-cols-2">
+                                    <section class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                        <h4 class="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">Requirements</h4>
+                                        <template x-if="lines(details[selectedCourseId]?.requirements).length">
+                                            <ul class="mt-2 list-disc space-y-1.5 pl-5 text-slate-700">
+                                                <template x-for="line in lines(details[selectedCourseId]?.requirements)" :key="line">
+                                                    <li x-text="line"></li>
+                                                </template>
+                                            </ul>
+                                        </template>
+                                        <p x-show="!lines(details[selectedCourseId]?.requirements).length" class="mt-2 text-slate-600">No requirements added yet.</p>
+                                    </section>
+
+                                    <section class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                        <h4 class="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">Key Outcome</h4>
+                                        <p class="mt-2 text-slate-700 leading-relaxed" x-text="details[selectedCourseId]?.key_outcome || 'No key outcome added yet.'"></p>
+                                    </section>
+                                </div>
+
+                                <section class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                    <h4 class="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">Levels & Progression</h4>
+                                    <template x-if="lines(details[selectedCourseId]?.level_progression).length">
+                                        <div class="mt-2 space-y-2">
+                                            <template x-for="line in lines(details[selectedCourseId]?.level_progression)" :key="line">
+                                                <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700" x-text="line"></div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <p x-show="!lines(details[selectedCourseId]?.level_progression).length" class="mt-2 text-slate-600">No progression details added yet.</p>
+                                </section>
+                            </div>
+
+                            <div class="flex justify-end border-t border-slate-200 px-5 py-3">
+                                <button type="button" @click="selectedCourseId = null" class="rounded-lg bg-teal-600 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-700">
+                                    Close Document
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="max-w-6xl mx-auto px-6 lg:px-8 pb-24">
+            <div class="rounded-[2.5rem] lg:rounded-[4rem] bg-[#0a2d27] p-8 lg:p-16 text-center lg:text-left relative overflow-hidden">
+                <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
+                    <div class="max-w-xl">
+                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Join today to start your journey into a better future.</h2>
+                        <p class="mt-4 text-slate-400">Get access to unlimited resources and expert guidance.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                        <a href="{{ route('register') }}" class="rounded-full bg-yellow-400 px-8 py-4 font-bold text-[#0a2d27] hover:bg-white transition-all text-center">ENROLL NOW</a>
+                        <a href="{{ route('landing.courses') }}" class="rounded-full border border-white/20 px-8 py-4 font-bold text-white hover:bg-white/10 transition-all text-center">Courses</a>
+                    </div>
+                </div>
+                <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 rounded-full -mr-20 -mt-20"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-12 lg:py-16">
+        <div class="mx-auto max-w-6xl px-6 lg:px-8">
+            <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#0a2d27] text-white">
+                                <i class="fa-solid fa-graduation-cap text-sm"></i>
+                            </span>
+                            <p class="text-xl font-bold text-slate-900">Thinker Hub</p>
+                        </div>
+                        <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
+                            Thinker Hub empowers learners with practical, career-focused courses designed to turn knowledge into measurable results.
+                        </p>
+                        <div class="mt-6 flex items-center gap-4 text-slate-500">
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Product</h3>
+                        <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
+                            <li><a href="{{ route('landing.courses') }}" class="transition hover:text-[#0a2d27]">Courses</a></li>
+                            <li><a href="{{ route('register') }}" class="transition hover:text-[#0a2d27]">Enrollment</a></li>
+                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Student Portal</a></li>
+                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Admin Portal</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Resources</h3>
+                        <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
+                            <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Instructors</a></li>
+                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Support</a></li>
+                            <li><a href="#" class="transition hover:text-[#0a2d27]">Learning Guides</a></li>
+                            <li><a href="#" class="transition hover:text-[#0a2d27]">Blog</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Company</h3>
+                        <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
+                            <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">About</a></li>
+                            <li><a href="#" class="transition hover:text-[#0a2d27]">Careers</a></li>
+                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
+                            <li><a href="#" class="transition hover:text-[#0a2d27]">Partners</a></li>
+                        </ul>
+                    </div>
+            </div>
+
+            <div class="mt-8 border-t border-slate-200 pt-5">
+                <div class="flex flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                    <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy Policy</a>
+                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Terms of Service</a>
+                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies Settings</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

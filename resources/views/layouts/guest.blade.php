@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
+        <title>{{ config('app.name', 'Thinker Hub') }}</title>
+
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    </head>
+    <body class="font-sans antialiased text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-950">
+        <div class="relative min-h-screen overflow-hidden">
+            <div class="pointer-events-none absolute inset-0">
+                <div class="absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-teal-200/40 blur-3xl dark:bg-teal-700/20"></div>
+                <div class="absolute bottom-0 right-0 h-48 w-48 rounded-full bg-cyan-200/30 blur-3xl dark:bg-cyan-700/20"></div>
+            </div>
+
+            <div class="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
+                <a href="{{ route('home') }}" class="mx-auto inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200">
+                    <span class="inline-block h-2 w-2 rounded-full bg-teal-500"></span>
+                    Thinker Hub
+                </a>
+
+                <main class="mx-auto mt-6 flex w-full flex-1 items-center justify-center">
+                    {{ $slot }}
+                </main>
+            </div>
+        </div>
+    </body>
+</html>
