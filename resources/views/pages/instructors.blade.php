@@ -97,10 +97,10 @@
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-12 lg:py-16">
-        <div class="mx-auto max-w-6xl px-6 lg:px-8">
-            <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center lg:text-left">
+            <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
                     <div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center justify-center gap-3 lg:justify-start">
                             <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#0a2d27] text-white">
                                 <i class="fa-solid fa-graduation-cap text-sm"></i>
                             </span>
@@ -109,52 +109,43 @@
                         <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
                             Thinker Hub empowers learners with practical, career-focused courses designed to turn knowledge into measurable results.
                         </p>
-                        <div class="mt-6 flex items-center gap-4 text-slate-500">
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+                        <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
+                            <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>
                         </div>
                     </div>
 
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Product</h3>
+                    <div class="hidden lg:block">
+                        <h3 class="text-sm font-bold text-slate-900">Menu</h3>
                         <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
+                            <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">Home</a></li>
                             <li><a href="{{ route('landing.courses') }}" class="transition hover:text-[#0a2d27]">Courses</a></li>
-                            <li><a href="{{ route('register') }}" class="transition hover:text-[#0a2d27]">Enrollment</a></li>
-                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Student Portal</a></li>
-                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Admin Portal</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Resources</h3>
-                        <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
                             <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Instructors</a></li>
-                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Support</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Learning Guides</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Blog</a></li>
+                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
                         </ul>
                     </div>
 
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">Company</h3>
-                        <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
-                            <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">About</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Careers</a></li>
-                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Partners</a></li>
-                        </ul>
+                        <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
+                        <div class="mt-4 space-y-2.5 text-sm text-slate-500">
+                            <p><span class="font-semibold text-slate-700">Phone:</span> +260 977 000 000</p>
+                            <p><span class="font-semibold text-slate-700">Email:</span> support@thinkerhub.com</p>
+                            <p><span class="font-semibold text-slate-700">Address:</span> Lusaka, Zambia</p>
+                        </div>
+                        <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                        </div>
                     </div>
             </div>
 
             <div class="mt-8 border-t border-slate-200 pt-5">
-                <div class="flex flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex flex-col items-center gap-4 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
                     <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
                     <div class="flex flex-wrap items-center gap-4">
-                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy Policy</a>
-                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Terms of Service</a>
-                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies Settings</a>
+                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</a>
+                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</a>
+                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</a>
                     </div>
                 </div>
             </div>

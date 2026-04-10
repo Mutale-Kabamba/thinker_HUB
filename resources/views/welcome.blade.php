@@ -8,7 +8,7 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
+<body class="bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false, videoModal: false }">
 
     <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
         <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
@@ -61,18 +61,18 @@
                         </p>
                         <div class="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
                             <a href="{{ route('register') }}" class="w-full sm:w-auto rounded-full bg-yellow-400 px-10 py-4 font-bold text-[#0a2d27] hover:translate-y-[-2px] transition-all shadow-lg shadow-yellow-400/20">Get Started</a>
-                            <a href="#" class="flex items-center gap-3 text-white font-semibold group">
+                            <button type="button" @click="videoModal = true" class="flex items-center gap-3 text-white font-semibold group">
                                 <span class="flex items-center justify-center w-12 h-12 rounded-full border border-white/30 group-hover:bg-white group-hover:text-[#0a2d27] transition-all">
                                     <i class="fa-solid fa-play ml-1"></i>
                                 </span>
                                 Watch Video
-                            </a>
+                            </button>
                         </div>
                         
                         <div class="mt-16 grid grid-cols-3 gap-4 border-t border-white/10 pt-10 max-w-md mx-auto lg:mx-0">
-                            <div><p class="text-2xl font-bold text-white">260+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Tutors</p></div>
-                            <div><p class="text-2xl font-bold text-white">5k+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Students</p></div>
-                            <div><p class="text-2xl font-bold text-white">200+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Courses</p></div>
+                            <div><p class="text-2xl font-bold text-white">{{ number_format($stats['tutors'] ?? 0) }}+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Tutors</p></div>
+                            <div><p class="text-2xl font-bold text-white">{{ number_format($stats['students'] ?? 0) }}+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Students</p></div>
+                            <div><p class="text-2xl font-bold text-white">{{ number_format($stats['courses'] ?? 0) }}+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Courses</p></div>
                         </div>
                     </div>
 
@@ -265,13 +265,51 @@
                 <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 rounded-full -mr-20 -mt-20"></div>
             </div>
         </section>
+
+        <div
+            x-show="videoModal"
+            x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4"
+            style="display: none;"
+        >
+            <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl" @click.outside="videoModal = false">
+                <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+                    <h3 class="text-sm font-bold text-slate-900">Thinker Hub Intro Video</h3>
+                    <button type="button" @click="videoModal = false" class="rounded-md p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="aspect-video w-full bg-black">
+                    <template x-if="videoModal">
+                        <iframe
+                            class="h-full w-full"
+                            src="https://www.youtube.com/embed/ysz5S6PUM-U?autoplay=1&rel=0"
+                            title="Thinker Hub video"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen
+                        ></iframe>
+                    </template>
+                </div>
+                <div class="flex items-center justify-end border-t border-slate-200 px-4 py-3">
+                    <a
+                        href="https://www.youtube.com/watch?v=ysz5S6PUM-U"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="rounded-lg bg-[#0a2d27] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#11443c]"
+                    >
+                        Visit on YouTube
+                    </a>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-12 lg:py-16">
-        <div class="mx-auto max-w-6xl px-6 lg:px-8">
-            <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center lg:text-left">
+            <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
                     <div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center justify-center gap-3 lg:justify-start">
                             <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#0a2d27] text-white">
                                 <i class="fa-solid fa-graduation-cap text-sm"></i>
                             </span>
@@ -280,52 +318,43 @@
                         <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
                             Thinker Hub empowers learners with practical, career-focused courses designed to turn knowledge into measurable results.
                         </p>
-                        <div class="mt-6 flex items-center gap-4 text-slate-500">
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+                        <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
+                            <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>
                         </div>
                     </div>
 
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Product</h3>
+                    <div class="hidden lg:block">
+                        <h3 class="text-sm font-bold text-slate-900">Menu</h3>
                         <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
+                            <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">Home</a></li>
                             <li><a href="{{ route('landing.courses') }}" class="transition hover:text-[#0a2d27]">Courses</a></li>
-                            <li><a href="{{ route('register') }}" class="transition hover:text-[#0a2d27]">Enrollment</a></li>
-                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Student Portal</a></li>
-                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Admin Portal</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Resources</h3>
-                        <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
                             <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Instructors</a></li>
-                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Support</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Learning Guides</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Blog</a></li>
+                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
                         </ul>
                     </div>
 
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">Company</h3>
-                        <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
-                            <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">About</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Careers</a></li>
-                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Partners</a></li>
-                        </ul>
+                        <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
+                        <div class="mt-4 space-y-2.5 text-sm text-slate-500">
+                            <p><span class="font-semibold text-slate-700">Phone:</span> +260 977 000 000</p>
+                            <p><span class="font-semibold text-slate-700">Email:</span> support@thinkerhub.com</p>
+                            <p><span class="font-semibold text-slate-700">Address:</span> Lusaka, Zambia</p>
+                        </div>
+                        <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                        </div>
                     </div>
             </div>
 
             <div class="mt-8 border-t border-slate-200 pt-5">
-                <div class="flex flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex flex-col items-center gap-4 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
                     <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
                     <div class="flex flex-wrap items-center gap-4">
-                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy Policy</a>
-                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Terms of Service</a>
-                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies Settings</a>
+                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</a>
+                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</a>
+                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</a>
                     </div>
                 </div>
             </div>
