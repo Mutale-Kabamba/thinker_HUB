@@ -56,8 +56,10 @@
         <section class="py-20 lg:py-24">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
                 @php
-                    $courseDetails = $courses->mapWithKeys(fn ($course) => [
-                        $course->id => [
+                    $courseDetails = [];
+
+                    foreach ($courses as $course) {
+                        $courseDetails[$course->id] = [
                             'title' => $course->title,
                             'overview' => $course->overview,
                             'timeline' => $course->timeline,
@@ -65,8 +67,8 @@
                             'requirements' => $course->requirements,
                             'level_progression' => $course->level_progression,
                             'key_outcome' => $course->key_outcome,
-                        ],
-                    ]);
+                        ];
+                    }
                 @endphp
                 <div
                     x-data="{
