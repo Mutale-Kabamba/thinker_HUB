@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Courses | {{ config('app.name', 'Thinker Hub') }}</title>
+    <title>think.er HUB</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logos/icon_green.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -13,13 +14,12 @@
     <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
         <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
             <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-bold text-white shrink-0">
-                <div class="bg-yellow-400 p-1 rounded-full"><div class="bg-[#0a2d27] w-3 h-3 rounded-full"></div></div>
-                Thinker Hub
+                <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
             </a>
 
             <nav class="hidden md:flex items-center gap-10 text-[13px] font-semibold uppercase tracking-wider text-slate-300">
                 <a href="{{ route('home') }}" class="hover:text-yellow-400 transition-colors">Home</a>
-                <a href="{{ route('landing.courses') }}" class="text-white">Courses</a>
+                <a href="{{ route('landing.courses') }}" class="text-yellow-400">Courses</a>
                 <a href="{{ route('landing.instructors') }}" class="hover:text-yellow-400 transition-colors">Instructors</a>
                 <a href="{{ route('landing.contact') }}" class="hover:text-yellow-400 transition-colors">Contact</a>
             </nav>
@@ -37,7 +37,7 @@
         <div class="md:hidden bg-[#0a2d27] border-t border-white/10" x-show="mobileMenu" x-transition>
             <nav class="flex flex-col p-6 gap-4 text-white font-semibold">
                 <a href="{{ route('home') }}">Home</a>
-                <a href="{{ route('landing.courses') }}">Courses</a>
+                <a href="{{ route('landing.courses') }}" class="text-yellow-400">Courses</a>
                 <a href="{{ route('landing.instructors') }}">Instructors</a>
                 <a href="{{ route('landing.contact') }}">Contact</a>
             </nav>
@@ -220,10 +220,7 @@
             <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
                     <div>
                         <div class="flex items-center justify-center gap-3 lg:justify-start">
-                            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#0a2d27] text-white">
-                                <i class="fa-solid fa-graduation-cap text-sm"></i>
-                            </span>
-                            <p class="text-xl font-bold text-slate-900">Thinker Hub</p>
+                            <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
                         </div>
                         <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
                             Thinker Hub empowers learners with practical, career-focused courses designed to turn knowledge into measurable results.

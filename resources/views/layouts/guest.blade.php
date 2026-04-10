@@ -5,7 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Thinker Hub') }}</title>
+        <title>think.er HUB</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/logos/icon_green.png') }}">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -21,8 +22,7 @@
 
             <div class="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
                 <a href="{{ route('home') }}" class="mx-auto inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200">
-                    <span class="inline-block h-2 w-2 rounded-full bg-teal-500"></span>
-                    Thinker Hub
+                    <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
                 </a>
 
                 <main class="mx-auto mt-6 flex w-full flex-1 items-center justify-center">

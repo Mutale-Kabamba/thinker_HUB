@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Thinker Hub') }}</title>
+    <title>think.er HUB</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logos/icon_green.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -13,12 +14,11 @@
     <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
         <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
             <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-bold text-white shrink-0">
-                <div class="bg-yellow-400 p-1 rounded-full"><div class="bg-[#0a2d27] w-3 h-3 rounded-full"></div></div>
-                Thinker Hub
+                <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
             </a>
 
             <nav class="hidden md:flex items-center gap-10 text-[13px] font-semibold uppercase tracking-wider text-slate-300">
-                <a href="{{ route('home') }}" class="text-white">Home</a>
+                <a href="{{ route('home') }}" class="text-yellow-400">Home</a>
                 <a href="{{ route('landing.courses') }}" class="hover:text-yellow-400 transition-colors">Courses</a>
                 <a href="{{ route('landing.instructors') }}" class="hover:text-yellow-400 transition-colors">Instructors</a>
                 <a href="{{ route('landing.contact') }}" class="hover:text-yellow-400 transition-colors">Contact</a>
@@ -36,7 +36,7 @@
 
         <div class="md:hidden bg-[#0a2d27] border-t border-white/10" x-show="mobileMenu" x-transition>
             <nav class="flex flex-col p-6 gap-4 text-white font-semibold">
-                <a href="{{ route('home') }}">Home</a>
+                <a href="{{ route('home') }}" class="text-yellow-400">Home</a>
                 <a href="{{ route('landing.courses') }}">Courses</a>
                 <a href="{{ route('landing.instructors') }}">Instructors</a>
                 <a href="{{ route('landing.contact') }}">Contact</a>
@@ -54,18 +54,18 @@
                 <div class="grid items-center gap-16 lg:grid-cols-2">
                     <div class="text-center lg:text-left order-2 lg:order-1">
                         <h1 class="text-4xl font-extrabold leading-[1.1] text-white sm:text-5xl lg:text-6xl">
-                            Best online <br class="hidden lg:block"> platform for <span class="text-yellow-400 italic">education.</span>
+                            Master the Skills.<br class="hidden lg:block"> Skip the Fluff.
                         </h1>
                         <p class="mt-8 text-lg text-slate-300 leading-relaxed max-w-lg mx-auto lg:mx-0">
-                            Master your skills with the world's leading experts and learn at your own pace today.
+                            Forget traditional theory-heavy classrooms. We offer an 80% practical, hands-on environment designed to turn you into a specialist in weeks, not years.
                         </p>
                         <div class="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
-                            <a href="{{ route('register') }}" class="w-full sm:w-auto rounded-full bg-yellow-400 px-10 py-4 font-bold text-[#0a2d27] hover:translate-y-[-2px] transition-all shadow-lg shadow-yellow-400/20">Get Started</a>
+                            <a href="{{ route('register') }}" class="w-full sm:w-auto rounded-full bg-yellow-400 px-10 py-4 font-bold text-[#0a2d27] hover:translate-y-[-2px] transition-all shadow-lg shadow-yellow-400/20">Start Learning</a>
                             <button type="button" @click="videoModal = true" class="flex items-center gap-3 text-white font-semibold group">
                                 <span class="flex items-center justify-center w-12 h-12 rounded-full border border-white/30 group-hover:bg-white group-hover:text-[#0a2d27] transition-all">
                                     <i class="fa-solid fa-play ml-1"></i>
                                 </span>
-                                Watch Video
+                                See How We Teach
                             </button>
                         </div>
                         
@@ -250,12 +250,33 @@
             </div>
         </section>
 
+        <section class="pb-20 lg:pb-24">
+            <div class="mx-auto max-w-6xl px-6 lg:px-8">
+                <div class="rounded-[2rem] border border-slate-200 bg-white p-8 lg:p-12 shadow-sm">
+                    <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Practical Approach</span>
+                    <h2 class="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">Skills Over Certificates</h2>
+                    <p class="mt-4 max-w-3xl text-slate-600 leading-relaxed">In the real world, nobody asks to see your diploma-they ask to see your work. Our curriculum is built on a simple ratio:</p>
+
+                    <div class="mt-8 grid gap-4 md:grid-cols-2">
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                            <h3 class="text-lg font-bold text-slate-900">20% Theory</h3>
+                            <p class="mt-2 text-sm text-slate-600 leading-relaxed">We give you the mental framework and the "why" behind the tools.</p>
+                        </div>
+                        <div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5">
+                            <h3 class="text-lg font-bold text-slate-900">80% Execution</h3>
+                            <p class="mt-2 text-sm text-slate-700 leading-relaxed">You spend the bulk of your time building, breaking, and fixing real projects under the guidance of expert instructors.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="max-w-6xl mx-auto px-6 lg:px-8 pb-24">
             <div class="rounded-[2.5rem] lg:rounded-[4rem] bg-[#0a2d27] p-8 lg:p-16 text-center lg:text-left relative overflow-hidden">
                 <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
                     <div class="max-w-xl">
-                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Join today to start your journey into a better future.</h2>
-                        <p class="mt-4 text-slate-400">Get access to unlimited resources and expert guidance.</p>
+                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Stop studying. Start doing.</h2>
+                        <p class="mt-4 text-slate-400">Join a community of doers. Gain the confidence to handle any professional task in the digital space.</p>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                         <a href="{{ route('register') }}" class="rounded-full bg-yellow-400 px-8 py-4 font-bold text-[#0a2d27] hover:bg-white transition-all text-center">ENROLL NOW</a>
@@ -310,13 +331,10 @@
             <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
                     <div>
                         <div class="flex items-center justify-center gap-3 lg:justify-start">
-                            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#0a2d27] text-white">
-                                <i class="fa-solid fa-graduation-cap text-sm"></i>
-                            </span>
-                            <p class="text-xl font-bold text-slate-900">Thinker Hub</p>
+                            <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
                         </div>
                         <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
-                            Thinker Hub empowers learners with practical, career-focused courses designed to turn knowledge into measurable results.
+                            Thinker Hub empowers learners with practical, career-focused training designed to turn knowledge into measurable results. We don't just teach software; we build practitioners.
                         </p>
                         <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
                             <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>
