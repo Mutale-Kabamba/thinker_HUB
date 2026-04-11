@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class StudentSubmissionNotification extends Notification
@@ -19,7 +20,22 @@ class StudentSubmissionNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        $channels = ['database'];
+
+        if (filled($notifiable->email ?? null)) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)
+            ->subject('Student Submission Received')
+            ->greeting('Hello '.$notifiable->name.',')
+            ->line($this->studentName.' submitted '.$this->submissionType.': '.$this->itemTitle)
+            ->action('Open Dashboard', route('dashboard'));
     }
 
     public function toArray(object $notifiable): array

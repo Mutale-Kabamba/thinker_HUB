@@ -17,7 +17,6 @@ class PageController extends Controller
 {
     private const TRACKS = ['Beginner', 'Intermediate', 'Advanced'];
     private const SCOPES = ['all', 'level', 'personal'];
-    private const ASSESSMENT_STATUSES = ['Pending', 'Graded', 'Reviewed'];
 
     public function studentOverview(): View
     {
@@ -200,7 +199,6 @@ class PageController extends Controller
             'assessments' => $assessments,
             'students' => $students,
             'courses' => $courses,
-            'assessmentStatuses' => self::ASSESSMENT_STATUSES,
         ]);
     }
 
@@ -404,7 +402,6 @@ class PageController extends Controller
             'user_id' => ['required', 'integer', 'exists:users,id'],
             'course_id' => ['required', 'integer', 'exists:courses,id'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
-            'status' => ['required', Rule::in(self::ASSESSMENT_STATUSES)],
         ]);
 
         $this->assertStudentEnrolledInCourse((int) $data['user_id'], (int) $data['course_id']);
