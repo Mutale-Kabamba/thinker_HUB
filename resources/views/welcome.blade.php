@@ -185,9 +185,194 @@
                     x-data="{
                         selectedCourseId: null,
                         details: @js($courseDetails),
+                        parseStructured(value) {
+                            if (value === null || value === undefined) {
+                                return value;
+                            }
+
+                            if (typeof value !== 'string') {
+                                return value;
+                            }
+
+                            const trimmed = value.trim();
+
+                            if (!trimmed) {
+                                return '';
+                            }
+
+                            if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+                                try {
+                                    return JSON.parse(trimmed);
+                                } catch (error) {
+                                    return value;
+                                }
+                            }
+
+                            return value;
+                        },
                         lines(value) {
-                            if (!value) return [];
-                            return value.split('\\n').map(line => line.trim()).filter(Boolean);
+                            const parsed = this.parseStructured(value);
+
+                            if (Array.isArray(parsed)) {
+                                return parsed
+                                    .map((line) => {
+                                        if (typeof line === 'string') {
+                                            return line.trim();
+                                        }
+
+                                        if (line && typeof line === 'object') {
+                                            const text = [line.level, line.amount, line.duration, line.details]
+                                                .filter(Boolean)
+                                                .join(' - ');
+
+                                            return text.trim();
+                                        }
+
+                                        return '';
+                                    })
+                                    .filter(Boolean);
+                            }
+
+                            if (typeof parsed !== 'string') {
+                                return [];
+                            }
+
+                            return parsed.split('\\n').map(line => line.trim()).filter(Boolean);
+                        },
+                        feeLabel(key) {
+                            if (key === 'one_on_one') {
+                                return 'One-on-One';
+                            }
+
+                            if (key === 'group') {
+                                return 'Group';
+                            }
+
+                            return String(key)
+                                .replace(/_/g, ' ')
+                                .replace(/\b\w/g, char => char.toUpperCase());
+                        },
+                        feeBadge(key) {
+                            if (key === 'one_on_one') {
+                                return '1:1 Focus';
+                            }
+
+                            if (key === 'group') {
+                                return 'Best Value';
+                            }
+
+                            return '';
+                        },
+                        parseFeeRows(rows) {
+                            return (rows || [])
+                                .map((entry) => {
+                                    if (entry && typeof entry === 'object') {
+                                        return {
+                                            level: String(entry.level || '').trim(),
+                                            amount: String(entry.amount || '').trim(),
+                                            duration: String(entry.duration || '').trim(),
+                                        };
+                                    }
+
+                                    const line = String(entry || '').trim();
+
+                                    if (!line) {
+                                        return null;
+                                    }
+
+                                    const simpleMatch = line.match(/^([^:|\\-]+?)\s*[:|\\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?$/);
+
+                                    if (simpleMatch) {
+                                        return {
+                                            level: simpleMatch[1].trim(),
+                                            amount: simpleMatch[2].trim(),
+                                            duration: (simpleMatch[3] || '').trim(),
+                                        };
+                                    }
+
+                                    const parts = line.split('|').map(part => part.trim()).filter(Boolean);
+
+                                    if (parts.length >= 2) {
+                                        return {
+                                            level: parts[0],
+                                            amount: parts[1],
+                                            duration: parts[2] || '',
+                                        };
+                                    }
+
+                                    return {
+                                        level: line,
+                                        amount: '',
+                                        duration: '',
+                                    };
+                                })
+                                .filter(row => row && (row.level || row.amount || row.duration));
+                        },
+                        feeTableSections(value) {
+                            const parsed = this.parseStructured(value);
+
+                            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                                return Object.entries(parsed)
+                                    .map(([key, rows]) => ({
+                                        key,
+                                        label: this.feeLabel(key),
+                                        badge: this.feeBadge(key),
+                                        rows: this.parseFeeRows(Array.isArray(rows) ? rows : this.lines(rows)),
+                                    }))
+                                    .filter(section => section.rows.length);
+                            }
+
+                            const rows = this.parseFeeRows(Array.isArray(parsed) ? parsed : this.lines(parsed));
+
+                            return rows.length
+                                ? [{ key: 'fees', label: 'Fees', badge: '', rows }]
+                                : [];
+                        },
+                        levelProgressions(value) {
+                            const parsed = this.parseStructured(value);
+
+                            if (Array.isArray(parsed)) {
+                                return parsed
+                                    .map((entry) => {
+                                        if (typeof entry === 'string') {
+                                            const parts = entry.split(':');
+
+                                            if (parts.length > 1) {
+                                                return {
+                                                    level: parts.shift().trim(),
+                                                    details: parts.join(':').trim(),
+                                                };
+                                            }
+
+                                            return { level: entry.trim(), details: '' };
+                                        }
+
+                                        if (!entry || typeof entry !== 'object') {
+                                            return null;
+                                        }
+
+                                        return {
+                                            level: String(entry.level || '').trim(),
+                                            details: String(entry.details || '').trim(),
+                                        };
+                                    })
+                                    .filter(item => item && (item.level || item.details));
+                            }
+
+                            return this.lines(parsed)
+                                .map((line) => {
+                                    const parts = line.split(':');
+
+                                    if (parts.length > 1) {
+                                        return {
+                                            level: parts.shift().trim(),
+                                            details: parts.join(':').trim(),
+                                        };
+                                    }
+
+                                    return { level: line, details: '' };
+                                })
+                                .filter(item => item.level || item.details);
                         }
                     }"
                     class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3"
@@ -255,18 +440,82 @@
                                     </section>
                                 </div>
 
-                                <section class="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
+                                <section class="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                                     <h4 class="text-[11px] font-bold uppercase tracking-[0.08em] text-emerald-700">Fees</h4>
-                                    <div class="mt-2">
-                                        <template x-if="lines(details[selectedCourseId]?.fees).length">
-                                            <ul class="space-y-1.5 text-emerald-900">
-                                                <template x-for="line in lines(details[selectedCourseId]?.fees)" :key="line">
-                                                    <li class="rounded-lg border border-emerald-200 bg-white/70 px-3 py-2 font-semibold" x-text="line"></li>
+                                    <div class="mt-3 grid gap-3 md:grid-cols-2">
+                                        <template x-for="section in feeTableSections(details[selectedCourseId]?.fees)" :key="section.key">
+                                            <div>
+                                                <template x-if="section.key === 'one_on_one'">
+                                                    <article class="rounded-2xl border border-indigo-200 bg-indigo-50/45 p-3">
+                                                        <div class="flex items-center justify-between gap-2">
+                                                            <h5 class="text-xs font-black uppercase tracking-[0.08em] text-indigo-800" x-text="section.label"></h5>
+                                                            <span
+                                                                x-show="section.badge"
+                                                                class="rounded-full border border-indigo-300 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-indigo-700"
+                                                                x-text="section.badge"
+                                                            ></span>
+                                                        </div>
+
+                                                        <div class="mt-2 overflow-hidden rounded-xl border border-indigo-200 bg-white">
+                                                            <table class="w-full text-xs text-slate-700">
+                                                                <thead class="bg-indigo-100/70 text-[10px] font-bold uppercase tracking-[0.08em] text-indigo-800">
+                                                                    <tr>
+                                                                        <th class="px-3 py-2 text-left">Level</th>
+                                                                        <th class="px-3 py-2 text-left">Amount</th>
+                                                                        <th class="px-3 py-2 text-left">Duration</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <template x-for="row in section.rows" :key="`${row.level}-${row.amount}-${row.duration}`">
+                                                                        <tr class="border-t border-indigo-100">
+                                                                            <td class="px-3 py-2 font-semibold text-slate-800" x-text="row.level || '-' "></td>
+                                                                            <td class="px-3 py-2 font-bold text-indigo-700" x-text="row.amount || '-' "></td>
+                                                                            <td class="px-3 py-2 text-slate-600" x-text="row.duration || '-' "></td>
+                                                                        </tr>
+                                                                    </template>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </article>
                                                 </template>
-                                            </ul>
+
+                                                <template x-if="section.key !== 'one_on_one'">
+                                                    <article class="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-3">
+                                                        <div class="flex items-center justify-between gap-2">
+                                                            <h5 class="text-xs font-black uppercase tracking-[0.08em] text-emerald-800" x-text="section.label"></h5>
+                                                            <span
+                                                                x-show="section.badge"
+                                                                class="rounded-full border border-emerald-300 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-700"
+                                                                x-text="section.badge"
+                                                            ></span>
+                                                        </div>
+
+                                                        <div class="mt-2 overflow-hidden rounded-xl border border-emerald-200 bg-white">
+                                                            <table class="w-full text-xs text-slate-700">
+                                                                <thead class="bg-emerald-100/70 text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-800">
+                                                                    <tr>
+                                                                        <th class="px-3 py-2 text-left">Level</th>
+                                                                        <th class="px-3 py-2 text-left">Amount</th>
+                                                                        <th class="px-3 py-2 text-left">Duration</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <template x-for="row in section.rows" :key="`${row.level}-${row.amount}-${row.duration}`">
+                                                                        <tr class="border-t border-emerald-100">
+                                                                            <td class="px-3 py-2 font-semibold text-slate-800" x-text="row.level || '-' "></td>
+                                                                            <td class="px-3 py-2 font-bold text-emerald-700" x-text="row.amount || '-' "></td>
+                                                                            <td class="px-3 py-2 text-slate-600" x-text="row.duration || '-' "></td>
+                                                                        </tr>
+                                                                    </template>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </article>
+                                                </template>
+                                            </div>
                                         </template>
-                                        <p x-show="!lines(details[selectedCourseId]?.fees).length" class="text-slate-600">No fee details added yet.</p>
                                     </div>
+                                    <p x-show="!feeTableSections(details[selectedCourseId]?.fees).length" class="mt-2 text-slate-600">No fee details added yet.</p>
                                 </section>
 
                                 <div class="grid gap-4 md:grid-cols-2">
@@ -290,14 +539,17 @@
 
                                 <section class="rounded-xl border border-slate-200 bg-slate-50 p-4">
                                     <h4 class="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">Levels & Progression</h4>
-                                    <template x-if="lines(details[selectedCourseId]?.level_progression).length">
-                                        <div class="mt-2 space-y-2">
-                                            <template x-for="line in lines(details[selectedCourseId]?.level_progression)" :key="line">
-                                                <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700" x-text="line"></div>
+                                    <template x-if="levelProgressions(details[selectedCourseId]?.level_progression).length">
+                                        <div class="mt-3 space-y-2.5">
+                                            <template x-for="item in levelProgressions(details[selectedCourseId]?.level_progression)" :key="`${item.level}-${item.details}`">
+                                                <article class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                                                    <h5 class="text-base font-black text-slate-800" x-text="item.level || 'Level'"></h5>
+                                                    <p class="mt-1 text-sm leading-relaxed text-slate-600" x-text="item.details || 'Details coming soon.'"></p>
+                                                </article>
                                             </template>
                                         </div>
                                     </template>
-                                    <p x-show="!lines(details[selectedCourseId]?.level_progression).length" class="mt-2 text-slate-600">No progression details added yet.</p>
+                                    <p x-show="!levelProgressions(details[selectedCourseId]?.level_progression).length" class="mt-2 text-slate-600">No progression details added yet.</p>
                                 </section>
                             </div>
 
