@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Models\Course;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -173,8 +174,15 @@ Route::get('/sitemap.xml', function () use ($databaseReady, $courseSlug) {
 
     return response()
         ->view('sitemap', ['pages' => $pages])
-        ->header('Content-Type', 'application/xml');
-})->name('sitemap');
+        ->header('Content-Type', 'application/xml; charset=UTF-8')
+        ->header('Cache-Control', 'public, max-age=3600');
+})->withoutMiddleware([
+    \Illuminate\Cookie\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+    \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+])->name('sitemap');
 
 Route::redirect('/enroll', '/register')->name('enroll');
 Route::redirect('/become-student', '/register')->name('become-student');

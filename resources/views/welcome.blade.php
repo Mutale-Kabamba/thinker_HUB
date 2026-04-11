@@ -13,7 +13,42 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false, videoModal: false }">
+<body
+    class="bg-[#f8fcf9] text-slate-900 font-sans antialiased"
+    x-data="{
+        mobileMenu: false,
+        videoModal: false,
+        heroSlideIndex: 0,
+        heroSlides: [
+            {
+                image: '{{ asset('images/hero/office.png') }}',
+                alt: 'Microsoft Office workspace',
+                label: 'MS Office Suite'
+            },
+            {
+                image: '{{ asset('images/hero/design.png') }}',
+                alt: 'Graphic design tools on screen',
+                label: 'Design Tools'
+            },
+            {
+                image: '{{ asset('images/hero/media_ai.png') }}',
+                alt: 'Social media analytics dashboard',
+                label: 'Social Media & AI'
+            },
+            {
+                image: '{{ asset('images/hero/data.png') }}',
+                alt: 'Data analysis dashboard',
+                label: 'Data Analysis'
+            }
+        ],
+        startHeroRotation() {
+            setInterval(() => {
+                this.heroSlideIndex = (this.heroSlideIndex + 1) % this.heroSlides.length;
+            }, 3000);
+        }
+    }"
+    x-init="startHeroRotation()"
+>
 
     <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
         <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
@@ -83,8 +118,15 @@
                     <div class="order-1 lg:order-2 flex justify-center relative">
                         <div class="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-[420px] lg:h-[420px]">
                             <div class="absolute inset-0 rounded-full border-[15px] border-yellow-400/10 scale-110"></div>
-                            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=800" 
-                                 alt="Student" class="rounded-full w-full h-full object-cover border-4 border-white/10 relative z-10">
+                            <template x-for="(slide, index) in heroSlides" :key="slide.image">
+                                <img
+                                    :src="slide.image"
+                                    :alt="slide.alt"
+                                    class="rounded-full w-full h-full object-cover border-4 border-white/10 absolute inset-0 z-10 transition-opacity duration-700"
+                                    :class="heroSlideIndex === index ? 'opacity-100' : 'opacity-0'"
+                                >
+                            </template>
+                            <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/45 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white backdrop-blur-sm" x-text="heroSlides[heroSlideIndex].label"></div>
                             <div class="absolute -bottom-2 -right-4 bg-white p-4 rounded-2xl shadow-2xl z-20 hidden sm:flex items-center gap-3">
                                 <div class="bg-green-100 p-2 rounded-lg text-green-600"><i class="fa-solid fa-certificate"></i></div>
                                 <div><p class="text-xs font-bold text-[#0a2d27]">Verified Platform</p><p class="text-[10px] text-slate-500">Official Certification</p></div>
