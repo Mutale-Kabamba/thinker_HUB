@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 $loadPublicCourses = static function (int $limit = 0) {
     try {
@@ -77,6 +78,24 @@ $loadHomeStats = static function () {
     }
 };
 
+$courseSlug = static function (Course $course): string {
+    $source = trim((string) ($course->title ?: $course->code ?: $course->id));
+
+    return Str::slug($source);
+};
+
+$databaseReady = static function (): bool {
+    if (config('database.default') === 'sqlite') {
+        $sqlitePath = (string) config('database.connections.sqlite.database');
+
+        if (! $sqlitePath || ! is_file($sqlitePath)) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
 Route::get('/', function () use ($loadPublicCourses, $loadHomeStats) {
     $courses = $loadPublicCourses(6);
     $stats = $loadHomeStats();
@@ -95,9 +114,57 @@ Route::get('/courses', function () use ($loadPublicCourses) {
     ]);
 })->name('landing.courses');
 
+Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = null) use ($courseSlug, $databaseReady) {
+    if (! $databaseReady() || ! Schema::hasTable('courses')) {
+        abort(404);
+    }
+
+    $courseModel = Course::query()->where('is_active', true)->findOrFail($course);
+    $canonicalSlug = $courseSlug($courseModel);
+
+    if ($slug !== null && $slug !== $canonicalSlug) {
+        return redirect()->route('landing.courses.show', ['course' => $courseModel->id, 'slug' => $canonicalSlug], 301);
+    }
+
+    return view('pages.course', [
+        'course' => $courseModel,
+        'slug' => $canonicalSlug,
+    ]);
+})->whereNumber('course')->name('landing.courses.show');
+
 Route::view('/instructors', 'pages.instructors')->name('landing.instructors');
 
 Route::view('/contact', 'pages.contact')->name('landing.contact');
+
+Route::get('/sitemap.xml', function () use ($databaseReady, $courseSlug) {
+    $pages = [
+        ['loc' => route('home'), 'lastmod' => now()->toDateString(), 'changefreq' => 'weekly', 'priority' => '1.0'],
+        ['loc' => route('landing.courses'), 'lastmod' => now()->toDateString(), 'changefreq' => 'weekly', 'priority' => '0.9'],
+        ['loc' => route('landing.instructors'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.7'],
+        ['loc' => route('landing.contact'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.6'],
+    ];
+
+    try {
+        if ($databaseReady() && Schema::hasTable('courses')) {
+            $courses = Course::query()->where('is_active', true)->latest('updated_at')->get(['id', 'title', 'code', 'updated_at']);
+
+            foreach ($courses as $course) {
+                $pages[] = [
+                    'loc' => route('landing.courses.show', ['course' => $course->id, 'slug' => $courseSlug($course)]),
+                    'lastmod' => optional($course->updated_at)->toDateString() ?: now()->toDateString(),
+                    'changefreq' => 'weekly',
+                    'priority' => '0.8',
+                ];
+            }
+        }
+    } catch (\Throwable $e) {
+        report($e);
+    }
+
+    return response()
+        ->view('sitemap', ['pages' => $pages])
+        ->header('Content-Type', 'application/xml');
+})->name('sitemap');
 
 Route::redirect('/enroll', '/register')->name('enroll');
 Route::redirect('/become-student', '/register')->name('become-student');

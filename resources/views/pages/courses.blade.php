@@ -3,8 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>think.er HUB</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logos/icon_green.png') }}">
+    @include('partials.seo-meta', [
+        'title' => 'Courses | think.er HUB',
+        'description' => 'Explore practical courses in MS Office, design, social media, data analysis, and digital literacy built for real-world outcomes.',
+        'keywords' => 'courses, ms office, graphic design, data analysis, social media ai',
+        'type' => 'website',
+    ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -101,6 +105,12 @@
                                 >
                                     View Details
                                 </button>
+                                <a
+                                    href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
+                                    class="mt-2 inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#11443c]"
+                                >
+                                    Open Course Page
+                                </a>
                             </div>
                         </article>
                     @empty

@@ -5,8 +5,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>think.er HUB</title>
-        <link rel="icon" type="image/png" href="{{ asset('images/logos/icon_green.png') }}">
+        @include('partials.seo-meta', [
+            'title' => 'Account Access | think.er HUB',
+            'description' => 'Sign in or create your account to access think.er HUB learning panels.',
+            'type' => 'website',
+            'indexable' => false,
+        ])
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />

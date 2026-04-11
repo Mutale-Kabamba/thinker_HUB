@@ -3,8 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>think.er HUB</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logos/icon_green.png') }}">
+    @include('partials.seo-meta', [
+        'title' => 'Contact | think.er HUB',
+        'description' => 'Contact think.er HUB for enrollment support, course guidance, and practical digital training information.',
+        'keywords' => 'contact thinker hub, enrollment support, digital skills training',
+        'type' => 'website',
+    ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
