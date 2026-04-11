@@ -51,7 +51,7 @@ class AssignmentForm
                         $level = $get('target_level');
 
                         $options = [
-                            'all' => 'All students in selected course and level',
+                            'all' => 'All Students',
                         ];
 
                         if (! $courseId || ! $level) {
@@ -73,7 +73,7 @@ class AssignmentForm
                     ->default('all')
                     ->required()
                     ->dehydrateStateUsing(fn (mixed $state): mixed => $state === 'all' ? null : $state)
-                    ->helperText('Choose All to send to all students in the selected course and level.'),
+                    ->helperText('Choose All Students to send to all students in the selected course and level.'),
 
                 FileUpload::make('file_path')
                     ->label('File Upload')

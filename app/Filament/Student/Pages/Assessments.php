@@ -98,9 +98,10 @@ class Assessments extends Page
             ->get()
             ->map(fn (Assessment $item): array => [
                 'id' => $item->id,
+                'name' => $item->name ?: 'Assessment',
                 'course' => $item->course?->title ?? 'Unassigned course',
-                'status' => $item->status,
                 'score' => $item->score ?? '-',
+                'due_date' => $item->due_date?->format('Y-m-d') ?? '-',
                 'updated_at' => $item->updated_at?->format('Y-m-d') ?? '-',
                 'submission_status' => $submissions->get($item->id)?->status ?? 'Not submitted',
                 'submission_content' => $submissions->get($item->id)?->content ?? '',

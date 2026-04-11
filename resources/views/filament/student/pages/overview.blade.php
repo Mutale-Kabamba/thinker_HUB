@@ -149,8 +149,8 @@
             </div>
 
             <section class="hub-card">
-                <h3 class="hub-title">Recent Assessment Status</h3>
-                <p class="hub-copy">High-level assessment performance and submission status.</p>
+                <h3 class="hub-title">Recent Assessments</h3>
+                <p class="hub-copy">High-level assessment performance and submission progress.</p>
                 <div style="overflow:auto;margin-top:0.75rem;">
                     <table class="hub-table">
                         <thead>
@@ -158,7 +158,6 @@
                                 <th>Assessment</th>
                                 <th>Course</th>
                                 <th>Due</th>
-                                <th>Status</th>
                                 <th>Submission</th>
                                 <th>Score</th>
                             </tr>
@@ -169,7 +168,6 @@
                                     <td>{{ $item['name'] ?? 'Assessment' }}</td>
                                     <td>{{ $item['course'] }}</td>
                                     <td>{{ $item['due_date'] ?? '-' }}</td>
-                                    <td>{{ $item['status'] }}</td>
                                     <td>
                                         <span class="hub-chip {{ ($item['submission_status'] ?? '') === 'Submitted' ? 'hub-chip-green' : 'hub-chip-amber' }}">
                                             {{ $item['submission_status'] }}
@@ -179,7 +177,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" style="color:var(--hub-muted);">No assessments yet.</td>
+                                    <td colspan="5" style="color:var(--hub-muted);">No assessments yet.</td>
                                 </tr>
                             @endforelse
                         </tbody>

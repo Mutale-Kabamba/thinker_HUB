@@ -26,7 +26,6 @@ class CreateAssessment extends CreateRecord
             'date_given' => $data['date_given'] ?? null,
             'due_date' => $data['due_date'] ?? null,
             'file_path' => $data['file_path'] ?? null,
-            'status' => $data['status'] ?? 'Pending',
             'score' => null,
         ];
 

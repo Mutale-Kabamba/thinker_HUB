@@ -3,9 +3,11 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class SubmissionGradedNotification extends Notification
+class SubmissionGradedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -19,7 +21,24 @@ class SubmissionGradedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        $channels = ['database'];
+
+        if (filled($notifiable->email ?? null)) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)
+            ->subject('Your Submission Was Reviewed')
+            ->greeting('Hello '.$notifiable->name.',')
+            ->line('Your '.$this->submissionType.' was reviewed: '.$this->itemTitle)
+            ->line('Score/Grade: '.($this->scoreOrGrade !== null ? (string) $this->scoreOrGrade : 'N/A'))
+            ->line('Feedback: '.($this->feedback !== '' ? $this->feedback : 'No feedback provided.'))
+            ->action('Open Dashboard', route('dashboard'));
     }
 
     public function toArray(object $notifiable): array
