@@ -51,7 +51,10 @@
                     <h3 class="hub-title">Assessments</h3>
                     <div class="hub-stack" style="margin-top:0.65rem;">
                         @forelse ($results['assessments'] as $item)
-                            <div style="border:1px solid var(--hub-border);border-radius:10px;padding:0.65rem;">Status: {{ $item['status'] }} | Score: {{ $item['score'] ?? '-' }}</div>
+                            <div style="border:1px solid var(--hub-border);border-radius:10px;padding:0.65rem;">
+                                <p style="margin:0;font-weight:700;">{{ $item['name'] ?? 'Assessment' }}</p>
+                                <p style="margin:0.3rem 0 0;color:var(--hub-muted);font-size:0.78rem;">Due: {{ $item['due_date'] ?? '-' }} | Status: {{ $item['status'] ?? '-' }} | Score: {{ $item['score'] ?? '-' }}</p>
+                            </div>
                         @empty
                             <p class="hub-copy">No matches.</p>
                         @endforelse
