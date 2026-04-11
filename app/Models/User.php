@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\QueuedVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
@@ -106,5 +107,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'student' => ! $this->isAdmin(),
             default => false,
         };
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new QueuedVerifyEmail());
     }
 }

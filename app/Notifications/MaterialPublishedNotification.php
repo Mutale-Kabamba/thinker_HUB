@@ -4,10 +4,11 @@ namespace App\Notifications;
 
 use App\Models\LearningMaterial;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class MaterialPublishedNotification extends Notification
+class MaterialPublishedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
