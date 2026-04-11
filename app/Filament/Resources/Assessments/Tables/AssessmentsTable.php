@@ -14,10 +14,22 @@ class AssessmentsTable
     {
         return $table
             ->columns([
-                TextColumn::make('user.name')
+                TextColumn::make('course.title')
+                    ->label('Course')
                     ->searchable(),
-                TextColumn::make('score')
-                    ->numeric()
+                TextColumn::make('name')
+                    ->searchable(),
+                TextColumn::make('target_level')
+                    ->label('Level')
+                    ->searchable(),
+                TextColumn::make('user.name')
+                    ->label('Target User')
+                    ->searchable(),
+                TextColumn::make('date_given')
+                    ->date()
+                    ->sortable(),
+                TextColumn::make('due_date')
+                    ->date()
                     ->sortable(),
                 TextColumn::make('status')
                     ->searchable(),
@@ -29,8 +41,6 @@ class AssessmentsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('course.title')
-                    ->searchable(),
             ])
             ->filters([
                 //

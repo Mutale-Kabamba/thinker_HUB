@@ -16,15 +16,18 @@ class Assignment extends Model
         'course_id',
         'name',
         'description',
-        'scope',
+        'file_path',
         'target_track',
+        'target_level',
         'target_user_id',
+        'date_given',
         'due_date',
     ];
 
     protected function casts(): array
     {
         return [
+            'date_given' => 'date',
             'due_date' => 'date',
         ];
     }
@@ -51,15 +54,22 @@ class Assignment extends Model
         }
 
         $enrolledCourseIds = $user->courses()->pluck('courses.id');
+        $userTrack = trim((string) $user->track);
 
-        return $query->where(function (Builder $builder) use ($user): void {
-            $builder->where('scope', 'all')
-                ->orWhere(function (Builder $q) use ($user): void {
-                    $q->where('scope', 'level')->where('target_track', $user->track);
-                })
-                ->orWhere(function (Builder $q) use ($user): void {
-                    $q->where('scope', 'personal')->where('target_user_id', $user->id);
-                });
-        })->whereIn('course_id', $enrolledCourseIds);
+        return $query
+            ->whereIn('course_id', $enrolledCourseIds)
+            ->where(function (Builder $builder) use ($userTrack): void {
+                $builder->whereNull('target_level');
+
+                if ($userTrack !== '') {
+                    $builder
+                        ->orWhere('target_level', $userTrack)
+                        ->orWhere('target_track', $userTrack);
+                }
+            })
+            ->where(function (Builder $builder) use ($user): void {
+                $builder->whereNull('target_user_id')
+                    ->orWhere('target_user_id', $user->id);
+            });
     }
 }

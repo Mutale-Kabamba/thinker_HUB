@@ -95,12 +95,20 @@ class Search extends Page
             ->toArray();
 
         $this->results['assessments'] = Assessment::query()
-            ->where('user_id', $user->id)
+            ->visibleTo($user)
             ->where(fn ($q) => $q
-                ->where('status', 'like', "%{$term}%")
+                ->where('name', 'like', "%{$term}%")
+                ->orWhere('description', 'like', "%{$term}%")
+                ->orWhere('status', 'like', "%{$term}%")
                 ->orWhereRaw('CAST(score as CHAR) like ?', ["%{$term}%"]))
             ->limit(8)
-            ->get(['status', 'score'])
+            ->get(['name', 'status', 'score', 'due_date'])
+            ->map(fn (Assessment $assessment): array => [
+                'name' => $assessment->name ?: 'Assessment',
+                'status' => $assessment->status,
+                'score' => $assessment->score,
+                'due_date' => $assessment->due_date?->format('Y-m-d') ?? '-',
+            ])
             ->toArray();
     }
 }

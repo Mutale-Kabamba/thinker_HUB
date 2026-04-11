@@ -59,8 +59,10 @@ class Overview extends Page
 
         $assessmentRecords = Assessment::query()
             ->with('course')
-            ->where('user_id', $user->id)
-            ->latest()
+            ->visibleTo($user)
+            ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('due_date')
+            ->latest('id')
             ->get();
 
         $assessmentSubmissions = AssessmentSubmission::query()
@@ -148,8 +150,10 @@ class Overview extends Page
             'items' => $assessmentRecords
                 ->take(4)
                 ->map(fn (Assessment $item): array => [
+                        'name' => $item->name ?: 'Assessment',
                     'course' => $item->course?->title ?? 'Unassigned course',
                     'status' => $item->status,
+                        'due_date' => $item->due_date?->format('Y-m-d') ?? '-',
                     'score' => $assessmentSubmissions->get($item->id)?->score ?? '-',
                     'submission_status' => $assessmentSubmissions->get($item->id)?->status ?? 'Not submitted',
                 ])

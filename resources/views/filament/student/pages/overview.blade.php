@@ -155,7 +155,9 @@
                     <table class="hub-table">
                         <thead>
                             <tr>
+                                <th>Assessment</th>
                                 <th>Course</th>
+                                <th>Due</th>
                                 <th>Status</th>
                                 <th>Submission</th>
                                 <th>Score</th>
@@ -164,7 +166,9 @@
                         <tbody>
                             @forelse (($assessmentSummary['items'] ?? []) as $item)
                                 <tr>
+                                    <td>{{ $item['name'] ?? 'Assessment' }}</td>
                                     <td>{{ $item['course'] }}</td>
+                                    <td>{{ $item['due_date'] ?? '-' }}</td>
                                     <td>{{ $item['status'] }}</td>
                                     <td>
                                         <span class="hub-chip {{ ($item['submission_status'] ?? '') === 'Submitted' ? 'hub-chip-green' : 'hub-chip-amber' }}">
@@ -175,7 +179,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" style="color:var(--hub-muted);">No assessments yet.</td>
+                                    <td colspan="6" style="color:var(--hub-muted);">No assessments yet.</td>
                                 </tr>
                             @endforelse
                         </tbody>
