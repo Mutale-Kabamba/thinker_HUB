@@ -28,12 +28,12 @@
             {
                 image: '{{ asset('images/hero/design.png') }}',
                 alt: 'Graphic design tools on screen',
-                label: 'Design Tools'
+                label: 'Creative Design'
             },
             {
                 image: '{{ asset('images/hero/media_ai.png') }}',
                 alt: 'Social media analytics dashboard',
-                label: 'Social Media & AI'
+                label: 'Media & AI'
             },
             {
                 image: '{{ asset('images/hero/data.png') }}',
@@ -400,9 +400,16 @@
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
                         <div class="mt-4 space-y-2.5 text-sm text-slate-500">
-                            <p><span class="font-semibold text-slate-700">Phone:</span> +260 977 000 000</p>
-                            <p><span class="font-semibold text-slate-700">Email:</span> support@thinkerhub.com</p>
-                            <p><span class="font-semibold text-slate-700">Address:</span> Lusaka, Zambia</p>
+                            <div class="relative" x-data="{ phoneMenu: false }">
+                                <span class="font-semibold text-slate-700">Phone:</span>
+                                <button type="button" @click="phoneMenu = !phoneMenu" class="ml-1 text-[#0a2d27] underline-offset-2 hover:underline">+260772640546</button>
+                                <div x-show="phoneMenu" x-transition @click.outside="phoneMenu = false" class="absolute left-0 z-20 mt-2 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg" style="display: none;">
+                                    <a href="tel:+260772640546" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-phone text-teal-600"></i>Call</a>
+                                    <a href="https://wa.me/260772640546" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-brands fa-whatsapp text-green-600"></i>WhatsApp</a>
+                                </div>
+                            </div>
+                            <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinker.learn@gmail.com</a></p>
+                            <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
                         </div>
                         <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
                             <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
