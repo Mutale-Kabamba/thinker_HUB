@@ -91,14 +91,61 @@
                 return json_last_error() === JSON_ERROR_NONE ? $decoded : $value;
             };
 
-            $parseFeeRows = static function (mixed $rows) use ($toLines): array {
+            $normalizeFeeSectionKey = static function (string $key): string {
+                $normalized = strtolower(trim(str_replace(['-', ' '], '_', $key)));
+
+                if (in_array($normalized, ['one_on_one', 'one2one', 'one_to_one', 'private', 'private_class'], true)) {
+                    return 'one_on_one';
+                }
+
+                if (in_array($normalized, ['group', 'group_class', 'group_classes', 'class_group'], true)) {
+                    return 'group';
+                }
+
+                return $normalized !== '' ? $normalized : 'fees';
+            };
+
+            $detectFeeMode = static function (string $value): string {
+                $text = strtolower($value);
+
+                if (preg_match('/one\s*[-:]?\s*on\s*[-:]?\s*one|1\s*[:x]\s*1|private/', $text) === 1) {
+                    return 'one_on_one';
+                }
+
+                if (str_contains($text, 'group')) {
+                    return 'group';
+                }
+
+                return 'fees';
+            };
+
+            $cleanFeeToken = static function (string $value): string {
+                return trim((string) preg_replace('/\b(one\s*[-:]?\s*on\s*[-:]?\s*one|1\s*[:x]\s*1|private|group)\b\s*[:\-]?\s*/i', '', preg_replace('/\s{2,}/', ' ', $value) ?? $value));
+            };
+
+            $cleanFeeLevel = static function (string $value) use ($cleanFeeToken): string {
+                return $cleanFeeToken(trim((string) preg_replace('/^level\s*[:\-]\s*/i', '', $value)));
+            };
+
+            $extractFeeModeAndRemainder = static function (string $line) use ($detectFeeMode): array {
+                $mode = $detectFeeMode($line);
+                $remainder = trim((string) preg_replace('/^(one\s*[-\s:]?\s*on\s*[-\s:]?\s*one|1\s*[:x]\s*1|private|group)\s*(?:[:\-|]\s*)?/i', '', $line));
+
+                return [
+                    'mode' => $mode,
+                    'remainder' => $remainder !== '' ? $remainder : trim($line),
+                ];
+            };
+
+            $parseFeeRows = static function (mixed $rows, ?string $forcedMode = null) use ($toLines, $extractFeeModeAndRemainder, $cleanFeeLevel, $cleanFeeToken, $normalizeFeeSectionKey): array {
                 $sourceRows = is_array($rows) ? $rows : $toLines($rows);
                 $normalized = [];
 
                 foreach ($sourceRows as $entry) {
                     if (is_array($entry)) {
-                        $level = trim((string) ($entry['level'] ?? ''));
-                        $amount = trim((string) ($entry['amount'] ?? ''));
+                        $mode = $normalizeFeeSectionKey((string) ($forcedMode ?? ($entry['mode'] ?? $entry['type'] ?? 'fees')));
+                        $level = $cleanFeeLevel((string) ($entry['level'] ?? ''));
+                        $amount = $cleanFeeToken((string) ($entry['amount'] ?? ''));
                         $duration = trim((string) ($entry['duration'] ?? ''));
 
                         if ($level !== '' || $amount !== '' || $duration !== '') {
@@ -106,6 +153,7 @@
                                 'level' => $level,
                                 'amount' => $amount,
                                 'duration' => $duration,
+                                'mode' => $mode,
                             ];
                         }
 
@@ -118,32 +166,64 @@
                         continue;
                     }
 
-                    if (preg_match('/^([^:|\-]+?)\s*[:|\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?$/', $line, $matches) === 1) {
+                    $extracted = $extractFeeModeAndRemainder($line);
+                    $mode = $normalizeFeeSectionKey((string) ($forcedMode ?? $extracted['mode']));
+                    $normalizedLine = (string) $extracted['remainder'];
+                    $compactLine = trim((string) preg_replace('/\s+/', ' ', $normalizedLine));
+
+                    if (preg_match_all('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:Beginner|Intermediate|Advanced)\s*[:\-]|$)/i', $compactLine, $matches, PREG_SET_ORDER) > 0) {
+                        foreach ($matches as $match) {
+                            $normalized[] = [
+                                'level' => $cleanFeeLevel((string) ($match[1] ?? '')),
+                                'amount' => $cleanFeeToken((string) ($match[2] ?? '')),
+                                'duration' => trim((string) ($match[3] ?? '')),
+                                'mode' => $mode,
+                            ];
+                        }
+
+                        continue;
+                    }
+
+                    if (preg_match('/^([^:()|]+?)\s*:\s*([^()]+?)\s*(?:\(([^)]+)\))?$/', $normalizedLine, $matches) === 1) {
                         $normalized[] = [
-                            'level' => trim($matches[1] ?? ''),
-                            'amount' => trim($matches[2] ?? ''),
+                            'level' => $cleanFeeLevel((string) ($matches[1] ?? '')),
+                            'amount' => $cleanFeeToken((string) ($matches[2] ?? '')),
                             'duration' => trim($matches[3] ?? ''),
+                            'mode' => $mode,
                         ];
 
                         continue;
                     }
 
-                    $parts = array_values(array_filter(array_map('trim', explode('|', $line))));
+                    if (preg_match('/^(.+?)\s+-\s+([^()]+?)\s*(?:\(([^)]+)\))?$/', $normalizedLine, $matches) === 1) {
+                        $normalized[] = [
+                            'level' => $cleanFeeLevel((string) ($matches[1] ?? '')),
+                            'amount' => $cleanFeeToken((string) ($matches[2] ?? '')),
+                            'duration' => trim((string) ($matches[3] ?? '')),
+                            'mode' => $mode,
+                        ];
+
+                        continue;
+                    }
+
+                    $parts = array_values(array_filter(array_map('trim', explode('|', $normalizedLine))));
 
                     if (count($parts) >= 2) {
                         $normalized[] = [
-                            'level' => $parts[0] ?? '',
-                            'amount' => $parts[1] ?? '',
+                            'level' => $cleanFeeLevel((string) ($parts[0] ?? '')),
+                            'amount' => $cleanFeeToken((string) ($parts[1] ?? '')),
                             'duration' => $parts[2] ?? '',
+                            'mode' => $mode,
                         ];
 
                         continue;
                     }
 
                     $normalized[] = [
-                        'level' => $line,
+                        'level' => $cleanFeeLevel($normalizedLine),
                         'amount' => '',
                         'duration' => '',
+                        'mode' => $mode,
                     ];
                 }
 
@@ -155,6 +235,7 @@
 
             if (is_array($rawFees) && ! array_is_list($rawFees)) {
                 foreach ($rawFees as $key => $rows) {
+                    $normalizedKey = $normalizeFeeSectionKey((string) $key);
                     $label = match ($key) {
                         'one_on_one' => 'One-on-One',
                         'group' => 'Group',
@@ -167,11 +248,11 @@
                         default => '',
                     };
 
-                    $parsedRows = $parseFeeRows($rows);
+                    $parsedRows = $parseFeeRows($rows, $normalizedKey);
 
                     if ($parsedRows !== []) {
                         $feeSections[] = [
-                            'key' => (string) $key,
+                            'key' => $normalizedKey,
                             'label' => $label,
                             'badge' => $badge,
                             'rows' => $parsedRows,
@@ -182,12 +263,32 @@
                 $fallbackRows = $parseFeeRows($rawFees);
 
                 if ($fallbackRows !== []) {
-                    $feeSections[] = [
-                        'key' => 'fees',
-                        'label' => 'Fees',
-                        'badge' => '',
-                        'rows' => $fallbackRows,
+                    $groupedRows = [
+                        'one_on_one' => array_values(array_filter($fallbackRows, static fn (array $row): bool => ($row['mode'] ?? 'fees') === 'one_on_one')),
+                        'group' => array_values(array_filter($fallbackRows, static fn (array $row): bool => ($row['mode'] ?? 'fees') === 'group')),
+                        'fees' => array_values(array_filter($fallbackRows, static fn (array $row): bool => ! in_array(($row['mode'] ?? 'fees'), ['one_on_one', 'group'], true))),
                     ];
+
+                    foreach (['one_on_one', 'group', 'fees'] as $sectionKey) {
+                        if ($groupedRows[$sectionKey] === []) {
+                            continue;
+                        }
+
+                        $feeSections[] = [
+                            'key' => $sectionKey,
+                            'label' => match ($sectionKey) {
+                                'one_on_one' => 'One-on-One',
+                                'group' => 'Group',
+                                default => 'Fees',
+                            },
+                            'badge' => match ($sectionKey) {
+                                'one_on_one' => '1:1 Focus',
+                                'group' => 'Best Value',
+                                default => '',
+                            },
+                            'rows' => $groupedRows[$sectionKey],
+                        ];
+                    }
                 }
             }
 
@@ -251,6 +352,57 @@
                     }
                 }
             }
+
+            $progressionCards = [];
+            $progressionSourceText = trim(implode("\n", array_map(static fn (array $item): string => trim(($item['level'] !== '' ? $item['level'].': ' : '').($item['details'] ?? '')), $progressionItems)));
+
+            foreach (['Beginner', 'Intermediate', 'Advanced'] as $index => $levelName) {
+                $matched = null;
+
+                foreach ($progressionItems as $item) {
+                    if (str_contains(strtolower((string) ($item['level'] ?? '')), strtolower($levelName)) && trim((string) ($item['details'] ?? '')) !== '') {
+                        $matched = [
+                            'level' => $levelName,
+                            'details' => trim((string) $item['details']),
+                        ];
+                        break;
+                    }
+                }
+
+                if ($matched === null && $progressionSourceText !== '') {
+                    $nextLevel = ['Beginner', 'Intermediate', 'Advanced'][$index + 1] ?? null;
+                    $pattern = $nextLevel !== null
+                        ? '/'.preg_quote($levelName, '/').'\s*[:\-]\s*([\s\S]*?)(?='.preg_quote($nextLevel, '/').'\s*[:\-]|$)/i'
+                        : '/'.preg_quote($levelName, '/').'\s*[:\-]\s*([\s\S]*?)$/i';
+
+                    if (preg_match($pattern, $progressionSourceText, $match) === 1) {
+                        $details = trim((string) ($match[1] ?? ''));
+
+                        if ($details !== '') {
+                            $matched = [
+                                'level' => $levelName,
+                                'details' => $details,
+                            ];
+                        }
+                    }
+                }
+
+                if ($matched === null && count($progressionItems) === 1 && $index === 0) {
+                    $fallback = trim(((string) ($progressionItems[0]['level'] ?? '') !== '' ? (string) $progressionItems[0]['level'].': ' : '').(string) ($progressionItems[0]['details'] ?? ''));
+
+                    if ($fallback !== '') {
+                        $matched = [
+                            'level' => $levelName,
+                            'details' => $fallback,
+                        ];
+                    }
+                }
+
+                $progressionCards[] = $matched ?? [
+                    'level' => $levelName,
+                    'details' => 'Details coming soon.',
+                ];
+            }
         @endphp
 
         <section class="bg-[#0a2d27] py-16 lg:py-20">
@@ -277,8 +429,8 @@
         </section>
 
         <section class="py-16 lg:py-20">
-            <div class="mx-auto grid max-w-6xl gap-6 px-6 lg:grid-cols-3 lg:px-8">
-                <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+            <div class="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-3 lg:px-8">
+                <article class="lg:col-span-2">
                     <h2 class="text-xl font-bold text-slate-900">Course Overview</h2>
                     <p class="mt-3 leading-relaxed text-slate-600">{{ $course->overview ?: 'Overview coming soon.' }}</p>
 
@@ -287,22 +439,13 @@
 
                     <h3 class="mt-8 text-lg font-bold text-slate-900">Fees</h3>
                     @if (! empty($feeSections))
-                        <div class="mt-3 grid gap-3 md:grid-cols-2">
+                        <div class="mt-3 space-y-5">
                             @foreach ($feeSections as $section)
-                                @php
-                                    $isOneOnOne = ($section['key'] ?? '') === 'one_on_one';
-                                @endphp
-                                <article class="rounded-2xl border p-3 {{ $isOneOnOne ? 'border-indigo-200 bg-indigo-50/45' : 'border-emerald-200 bg-emerald-50/40' }}">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <h4 class="text-xs font-black uppercase tracking-[0.08em] {{ $isOneOnOne ? 'text-indigo-800' : 'text-emerald-800' }}">{{ $section['label'] }}</h4>
-                                        @if (! empty($section['badge']))
-                                            <span class="rounded-full border bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] {{ $isOneOnOne ? 'border-indigo-300 text-indigo-700' : 'border-emerald-300 text-emerald-700' }}">{{ $section['badge'] }}</span>
-                                        @endif
-                                    </div>
-
-                                    <div class="mt-2 overflow-hidden rounded-xl border bg-white {{ $isOneOnOne ? 'border-indigo-200' : 'border-emerald-200' }}">
-                                        <table class="w-full text-xs text-slate-700">
-                                            <thead class="text-[10px] font-bold uppercase tracking-[0.08em] {{ $isOneOnOne ? 'bg-indigo-100/70 text-indigo-800' : 'bg-emerald-100/70 text-emerald-800' }}">
+                                <section class="border-t border-slate-200 pt-4 first:border-t-0 first:pt-0">
+                                    <h4 class="text-sm font-semibold text-slate-800">{{ $section['label'] }}</h4>
+                                    <div class="mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white">
+                                        <table class="w-full text-sm text-slate-700">
+                                            <thead class="bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-600">
                                                 <tr>
                                                     <th class="px-3 py-2 text-left">Level</th>
                                                     <th class="px-3 py-2 text-left">Amount</th>
@@ -311,16 +454,16 @@
                                             </thead>
                                             <tbody>
                                                 @foreach ($section['rows'] as $row)
-                                                    <tr class="border-t {{ $isOneOnOne ? 'border-indigo-100' : 'border-emerald-100' }}">
-                                                        <td class="px-3 py-2 font-semibold text-slate-800">{{ $row['level'] !== '' ? $row['level'] : '-' }}</td>
-                                                        <td class="px-3 py-2 font-bold {{ $isOneOnOne ? 'text-indigo-700' : 'text-emerald-700' }}">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</td>
-                                                        <td class="px-3 py-2 text-slate-600">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</td>
+                                                    <tr class="border-t border-slate-200">
+                                                        <td class="px-3 py-2">{{ $row['level'] !== '' ? $row['level'] : '-' }}</td>
+                                                        <td class="px-3 py-2">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</td>
+                                                        <td class="px-3 py-2">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
                                         </table>
                                     </div>
-                                </article>
+                                </section>
                             @endforeach
                         </div>
                     @else
@@ -328,13 +471,13 @@
                     @endif
 
                     <h3 class="mt-8 text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
-                    @if (! empty($progressionItems))
-                        <div class="mt-3 space-y-2.5">
-                            @foreach ($progressionItems as $item)
-                                <article class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                                    <h4 class="text-base font-black text-slate-800">{{ $item['level'] !== '' ? $item['level'] : 'Level' }}</h4>
+                    @if (! empty($progressionCards))
+                        <div class="mt-3 space-y-3">
+                            @foreach ($progressionCards as $item)
+                                <section class="border-t border-slate-200 pt-3 first:border-t-0 first:pt-0">
+                                    <h4 class="text-base font-semibold text-slate-800">{{ $item['level'] !== '' ? $item['level'] : 'Level' }}</h4>
                                     <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $item['details'] !== '' ? $item['details'] : 'Details coming soon.' }}</p>
-                                </article>
+                                </section>
                             @endforeach
                         </div>
                     @else
@@ -342,14 +485,14 @@
                     @endif
                 </article>
 
-                <aside class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <aside class="border-t border-slate-200 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
                     <h2 class="text-lg font-bold text-slate-900">Quick Facts</h2>
                     <dl class="mt-4 space-y-3 text-sm">
-                        <div class="rounded-xl bg-slate-50 p-3">
+                        <div>
                             <dt class="font-semibold text-slate-500">Code</dt>
                             <dd class="mt-1 font-bold text-slate-900">{{ $course->code }}</dd>
                         </div>
-                        <div class="rounded-xl bg-slate-50 p-3">
+                        <div class="border-t border-slate-200 pt-3">
                             <dt class="font-semibold text-slate-500">Timeline</dt>
                             <dd class="mt-1 font-bold text-slate-900">{{ $course->timeline ?: 'Self paced' }}</dd>
                         </div>

@@ -98,7 +98,26 @@ $databaseReady = static function (): bool {
 };
 
 Route::get('/', function () use ($loadPublicCourses, $loadHomeStats) {
-    $courses = $loadPublicCourses(6);
+    $allCourses = $loadPublicCourses();
+    $coursesWithStudents = $allCourses
+        ->filter(fn (Course $course): bool => (int) ($course->enrollments_count ?? 0) > 0)
+        ->sortByDesc(fn (Course $course): int => (int) ($course->enrollments_count ?? 0))
+        ->values();
+
+    $coursesWithoutStudents = $allCourses
+        ->filter(fn (Course $course): bool => (int) ($course->enrollments_count ?? 0) === 0)
+        ->shuffle()
+        ->values();
+
+    $courses = $coursesWithStudents->take(3);
+
+    if ($courses->count() < 3) {
+        $courses = $courses
+            ->concat($coursesWithoutStudents->take(3 - $courses->count()))
+            ->values();
+    }
+
+    $courses = $courses->take(3);
     $stats = $loadHomeStats();
 
     return view('welcome', [
