@@ -229,3 +229,16 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+Route::domain('www.thinker.it.com')->group(function () {
+    Route::get('/{path?}', function (Request $request, ?string $path = '') {
+        $target = 'https://thinker.it.com/' . ltrim((string) $path, '/');
+        $query = $request->getQueryString();
+
+        if ($query) {
+            $target .= '?' . $query;
+        }
+
+        return redirect()->to($target, 301);
+    })->where('path', '.*');
+});
