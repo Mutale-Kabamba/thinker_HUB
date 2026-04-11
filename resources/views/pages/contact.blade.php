@@ -72,28 +72,17 @@
 
                 <div class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
                     <h2 class="text-2xl font-bold text-slate-900">Contact Details</h2>
-                    <div class="mt-6 space-y-6 text-sm text-slate-600">
-                        <div class="flex items-start gap-4">
-                            <span class="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-teal-700"><i class="fa-solid fa-location-dot"></i></span>
-                            <div>
-                                <p class="font-semibold text-slate-900">Office</p>
-                                <p>12 Innovation Avenue, Lagos, Nigeria</p>
+                    <div class="mt-6 space-y-4 text-sm text-slate-500">
+                        <div class="relative" x-data="{ phoneMenu: false }">
+                            <span class="font-semibold text-slate-700">Phone:</span>
+                            <button type="button" @click="phoneMenu = !phoneMenu" class="ml-1 text-[#0a2d27] underline-offset-2 hover:underline">+260772640546</button>
+                            <div x-show="phoneMenu" x-transition @click.outside="phoneMenu = false" class="absolute left-0 z-20 mt-2 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg" style="display: none;">
+                                <a href="tel:+260772640546" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-phone text-teal-600"></i>Call</a>
+                                <a href="https://wa.me/260772640546" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-brands fa-whatsapp text-green-600"></i>WhatsApp</a>
                             </div>
                         </div>
-                        <div class="flex items-start gap-4">
-                            <span class="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-teal-700"><i class="fa-solid fa-envelope"></i></span>
-                            <div>
-                                <p class="font-semibold text-slate-900">Email</p>
-                                <p>support@thinkerhub.test</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-4">
-                            <span class="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-teal-700"><i class="fa-solid fa-phone"></i></span>
-                            <div>
-                                <p class="font-semibold text-slate-900">Phone</p>
-                                <p>+234 800 000 0000</p>
-                            </div>
-                        </div>
+                        <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinker.learn@gmail.com</a></p>
+                        <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
                     </div>
                 </div>
             </div>

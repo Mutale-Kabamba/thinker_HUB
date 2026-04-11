@@ -429,8 +429,8 @@
         </section>
 
         <section class="py-16 lg:py-20">
-            <div class="mx-auto grid max-w-6xl gap-6 px-6 lg:grid-cols-3 lg:px-8">
-                <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+            <div class="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-3 lg:px-8">
+                <article class="lg:col-span-2">
                     <h2 class="text-xl font-bold text-slate-900">Course Overview</h2>
                     <p class="mt-3 leading-relaxed text-slate-600">{{ $course->overview ?: 'Overview coming soon.' }}</p>
 
@@ -439,22 +439,13 @@
 
                     <h3 class="mt-8 text-lg font-bold text-slate-900">Fees</h3>
                     @if (! empty($feeSections))
-                        <div class="mt-3 grid gap-3 md:grid-cols-2">
+                        <div class="mt-3 space-y-5">
                             @foreach ($feeSections as $section)
-                                @php
-                                    $isOneOnOne = ($section['key'] ?? '') === 'one_on_one';
-                                @endphp
-                                <article class="rounded-2xl border p-3 {{ $isOneOnOne ? 'border-indigo-200 bg-indigo-50/45' : 'border-emerald-200 bg-emerald-50/40' }}">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <h4 class="text-xs font-black uppercase tracking-[0.08em] {{ $isOneOnOne ? 'text-indigo-800' : 'text-emerald-800' }}">{{ $section['label'] }}</h4>
-                                        @if (! empty($section['badge']))
-                                            <span class="rounded-full border bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] {{ $isOneOnOne ? 'border-indigo-300 text-indigo-700' : 'border-emerald-300 text-emerald-700' }}">{{ $section['badge'] }}</span>
-                                        @endif
-                                    </div>
-
-                                    <div class="mt-2 overflow-hidden rounded-xl border bg-white {{ $isOneOnOne ? 'border-indigo-200' : 'border-emerald-200' }}">
-                                        <table class="w-full text-xs text-slate-700">
-                                            <thead class="text-[10px] font-bold uppercase tracking-[0.08em] {{ $isOneOnOne ? 'bg-indigo-100/70 text-indigo-800' : 'bg-emerald-100/70 text-emerald-800' }}">
+                                <section class="border-t border-slate-200 pt-4 first:border-t-0 first:pt-0">
+                                    <h4 class="text-sm font-semibold text-slate-800">{{ $section['label'] }}</h4>
+                                    <div class="mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white">
+                                        <table class="w-full text-sm text-slate-700">
+                                            <thead class="bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-600">
                                                 <tr>
                                                     <th class="px-3 py-2 text-left">Level</th>
                                                     <th class="px-3 py-2 text-left">Amount</th>
@@ -463,16 +454,16 @@
                                             </thead>
                                             <tbody>
                                                 @foreach ($section['rows'] as $row)
-                                                    <tr class="border-t {{ $isOneOnOne ? 'border-indigo-100' : 'border-emerald-100' }}">
-                                                        <td class="px-3 py-2 font-semibold text-slate-800">{{ $row['level'] !== '' ? $row['level'] : '-' }}</td>
-                                                        <td class="px-3 py-2 font-bold {{ $isOneOnOne ? 'text-indigo-700' : 'text-emerald-700' }}">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</td>
-                                                        <td class="px-3 py-2 text-slate-600">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</td>
+                                                    <tr class="border-t border-slate-200">
+                                                        <td class="px-3 py-2">{{ $row['level'] !== '' ? $row['level'] : '-' }}</td>
+                                                        <td class="px-3 py-2">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</td>
+                                                        <td class="px-3 py-2">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
                                         </table>
                                     </div>
-                                </article>
+                                </section>
                             @endforeach
                         </div>
                     @else
@@ -481,12 +472,12 @@
 
                     <h3 class="mt-8 text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
                     @if (! empty($progressionCards))
-                        <div class="mt-3 grid gap-3 md:grid-cols-3">
+                        <div class="mt-3 space-y-3">
                             @foreach ($progressionCards as $item)
-                                <article class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                                    <h4 class="text-base font-black text-slate-800">{{ $item['level'] !== '' ? $item['level'] : 'Level' }}</h4>
+                                <section class="border-t border-slate-200 pt-3 first:border-t-0 first:pt-0">
+                                    <h4 class="text-base font-semibold text-slate-800">{{ $item['level'] !== '' ? $item['level'] : 'Level' }}</h4>
                                     <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $item['details'] !== '' ? $item['details'] : 'Details coming soon.' }}</p>
-                                </article>
+                                </section>
                             @endforeach
                         </div>
                     @else
@@ -494,14 +485,14 @@
                     @endif
                 </article>
 
-                <aside class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <aside class="border-t border-slate-200 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
                     <h2 class="text-lg font-bold text-slate-900">Quick Facts</h2>
                     <dl class="mt-4 space-y-3 text-sm">
-                        <div class="rounded-xl bg-slate-50 p-3">
+                        <div>
                             <dt class="font-semibold text-slate-500">Code</dt>
                             <dd class="mt-1 font-bold text-slate-900">{{ $course->code }}</dd>
                         </div>
-                        <div class="rounded-xl bg-slate-50 p-3">
+                        <div class="border-t border-slate-200 pt-3">
                             <dt class="font-semibold text-slate-500">Timeline</dt>
                             <dd class="mt-1 font-bold text-slate-900">{{ $course->timeline ?: 'Self paced' }}</dd>
                         </div>
