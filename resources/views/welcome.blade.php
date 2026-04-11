@@ -21,22 +21,22 @@
         heroSlideIndex: 0,
         heroSlides: [
             {
-                image: 'https://images.unsplash.com/photo-1624377632657-3902bfd35958?auto=format&fit=crop&q=80&w=900',
+                image: '{{ asset('images/hero/office.png') }}',
                 alt: 'Microsoft Office workspace',
                 label: 'MS Office Suite'
             },
             {
-                image: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=900',
+                image: '{{ asset('images/hero/design.png') }}',
                 alt: 'Graphic design tools on screen',
                 label: 'Design Tools'
             },
             {
-                image: 'https://images.unsplash.com/photo-1611162618071-b39a2ec055fb?auto=format&fit=crop&q=80&w=900',
+                image: '{{ asset('images/hero/media_ai.png') }}',
                 alt: 'Social media analytics dashboard',
                 label: 'Social Media & AI'
             },
             {
-                image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=900',
+                image: '{{ asset('images/hero/data.png') }}',
                 alt: 'Data analysis dashboard',
                 label: 'Data Analysis'
             }
