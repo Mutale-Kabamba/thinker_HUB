@@ -9,6 +9,7 @@
         'keywords' => 'digital skills training, practical courses, online learning, thinker hub',
         'type' => 'website',
     ])
+    <link rel="preload" as="image" href="{{ asset('images/hero/office.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -45,9 +46,22 @@
             setInterval(() => {
                 this.heroSlideIndex = (this.heroSlideIndex + 1) % this.heroSlides.length;
             }, 3000);
+        },
+        preloadHeroImages() {
+            setTimeout(() => {
+                this.heroSlides.forEach((slide, index) => {
+                    if (index === 0) {
+                        return;
+                    }
+
+                    const image = new Image();
+                    image.decoding = 'async';
+                    image.src = slide.image;
+                });
+            }, 1200);
         }
     }"
-    x-init="startHeroRotation()"
+    x-init="startHeroRotation(); preloadHeroImages()"
 >
 
     <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
@@ -118,14 +132,16 @@
                     <div class="order-1 lg:order-2 flex justify-center relative">
                         <div class="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-[420px] lg:h-[420px]">
                             <div class="absolute inset-0 rounded-full border-[15px] border-yellow-400/10 scale-110"></div>
-                            <template x-for="(slide, index) in heroSlides" :key="slide.image">
-                                <img
-                                    :src="slide.image"
-                                    :alt="slide.alt"
-                                    class="rounded-full w-full h-full object-cover border-4 border-white/10 absolute inset-0 z-10 transition-opacity duration-700"
-                                    :class="heroSlideIndex === index ? 'opacity-100' : 'opacity-0'"
-                                >
-                            </template>
+                            <img
+                                :src="heroSlides[heroSlideIndex].image"
+                                :alt="heroSlides[heroSlideIndex].alt"
+                                width="840"
+                                height="840"
+                                loading="eager"
+                                fetchpriority="high"
+                                decoding="async"
+                                class="rounded-full w-full h-full object-cover border-4 border-white/10 absolute inset-0 z-10"
+                            >
                             <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/45 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white backdrop-blur-sm" x-text="heroSlides[heroSlideIndex].label"></div>
                             <div class="absolute -bottom-2 -right-4 bg-white p-4 rounded-2xl shadow-2xl z-20 hidden sm:flex items-center gap-3">
                                 <div class="bg-green-100 p-2 rounded-lg text-green-600"><i class="fa-solid fa-certificate"></i></div>
