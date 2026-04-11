@@ -3,7 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Courses | {{ config('app.name', 'Thinker Hub') }}</title>
+    @include('partials.seo-meta', [
+        'title' => 'Courses | think.er HUB',
+        'description' => 'Explore practical courses in MS Office, design, social media, data analysis, and digital literacy built for real-world outcomes.',
+        'keywords' => 'courses, ms office, graphic design, data analysis, social media ai',
+        'type' => 'website',
+    ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -13,13 +18,12 @@
     <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
         <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
             <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-bold text-white shrink-0">
-                <div class="bg-yellow-400 p-1 rounded-full"><div class="bg-[#0a2d27] w-3 h-3 rounded-full"></div></div>
-                Thinker Hub
+                <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
             </a>
 
             <nav class="hidden md:flex items-center gap-10 text-[13px] font-semibold uppercase tracking-wider text-slate-300">
                 <a href="{{ route('home') }}" class="hover:text-yellow-400 transition-colors">Home</a>
-                <a href="{{ route('landing.courses') }}" class="text-white">Courses</a>
+                <a href="{{ route('landing.courses') }}" class="text-yellow-400">Courses</a>
                 <a href="{{ route('landing.instructors') }}" class="hover:text-yellow-400 transition-colors">Instructors</a>
                 <a href="{{ route('landing.contact') }}" class="hover:text-yellow-400 transition-colors">Contact</a>
             </nav>
@@ -37,7 +41,7 @@
         <div class="md:hidden bg-[#0a2d27] border-t border-white/10" x-show="mobileMenu" x-transition>
             <nav class="flex flex-col p-6 gap-4 text-white font-semibold">
                 <a href="{{ route('home') }}">Home</a>
-                <a href="{{ route('landing.courses') }}">Courses</a>
+                <a href="{{ route('landing.courses') }}" class="text-yellow-400">Courses</a>
                 <a href="{{ route('landing.instructors') }}">Instructors</a>
                 <a href="{{ route('landing.contact') }}">Contact</a>
             </nav>
@@ -101,6 +105,12 @@
                                 >
                                     View Details
                                 </button>
+                                <a
+                                    href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
+                                    class="mt-2 inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#11443c]"
+                                >
+                                    Open Course Page
+                                </a>
                             </div>
                         </article>
                     @empty
@@ -216,64 +226,52 @@
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-12 lg:py-16">
-        <div class="mx-auto max-w-6xl px-6 lg:px-8">
-            <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center lg:text-left">
+            <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
                     <div>
-                        <div class="flex items-center gap-3">
-                            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#0a2d27] text-white">
-                                <i class="fa-solid fa-graduation-cap text-sm"></i>
-                            </span>
-                            <p class="text-xl font-bold text-slate-900">Thinker Hub</p>
+                        <div class="flex items-center justify-center gap-3 lg:justify-start">
+                            <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
                         </div>
                         <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
                             Thinker Hub empowers learners with practical, career-focused courses designed to turn knowledge into measurable results.
                         </p>
-                        <div class="mt-6 flex items-center gap-4 text-slate-500">
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+                        <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
+                            <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>
                         </div>
                     </div>
 
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Product</h3>
+                    <div class="hidden lg:block">
+                        <h3 class="text-sm font-bold text-slate-900">Menu</h3>
                         <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
+                            <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">Home</a></li>
                             <li><a href="{{ route('landing.courses') }}" class="transition hover:text-[#0a2d27]">Courses</a></li>
-                            <li><a href="{{ route('register') }}" class="transition hover:text-[#0a2d27]">Enrollment</a></li>
-                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Student Portal</a></li>
-                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Admin Portal</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Resources</h3>
-                        <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
                             <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Instructors</a></li>
-                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Support</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Learning Guides</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Blog</a></li>
+                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
                         </ul>
                     </div>
 
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">Company</h3>
-                        <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
-                            <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">About</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Careers</a></li>
-                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
-                            <li><a href="#" class="transition hover:text-[#0a2d27]">Partners</a></li>
-                        </ul>
+                        <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
+                        <div class="mt-4 space-y-2.5 text-sm text-slate-500">
+                            <p><span class="font-semibold text-slate-700">Phone:</span> +260 977 000 000</p>
+                            <p><span class="font-semibold text-slate-700">Email:</span> support@thinkerhub.com</p>
+                            <p><span class="font-semibold text-slate-700">Address:</span> Lusaka, Zambia</p>
+                        </div>
+                        <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                        </div>
                     </div>
             </div>
 
             <div class="mt-8 border-t border-slate-200 pt-5">
-                <div class="flex flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex flex-col items-center gap-4 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
                     <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
                     <div class="flex flex-wrap items-center gap-4">
-                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy Policy</a>
-                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Terms of Service</a>
-                        <a href="#" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies Settings</a>
+                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</a>
+                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</a>
+                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</a>
                     </div>
                 </div>
             </div>
