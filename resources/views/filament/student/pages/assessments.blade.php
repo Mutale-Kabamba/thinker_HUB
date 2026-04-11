@@ -3,7 +3,7 @@
         <section class="hub-card">
             <p class="hub-eyebrow">Assessment Workspace</p>
             <h2 class="hub-title">Assessments</h2>
-            <p class="hub-copy">Track assessment state and submit your responses with clear feedback status.</p>
+            <p class="hub-copy">Track your assessments and submit your responses with clear feedback.</p>
         </section>
 
         <div class="hub-stack">
@@ -11,8 +11,8 @@
                 <article class="hub-card">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem;flex-wrap:wrap;">
                         <div>
-                            <h3 class="hub-title">{{ $assessment['course'] }}</h3>
-                            <p class="hub-copy">Assessment status: {{ $assessment['status'] }} | Score: {{ $assessment['score'] }}</p>
+                            <h3 class="hub-title">{{ $assessment['name'] ?? 'Assessment' }}</h3>
+                            <p class="hub-copy">Course: {{ $assessment['course'] }} | Due: {{ $assessment['due_date'] ?? '-' }} | Score: {{ $assessment['score'] }}</p>
                         </div>
                         <span class="hub-chip {{ $assessment['submission_status'] === 'Submitted' ? 'hub-chip-green' : 'hub-chip-amber' }}">{{ $assessment['submission_status'] }}</span>
                     </div>

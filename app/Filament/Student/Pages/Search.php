@@ -99,13 +99,11 @@ class Search extends Page
             ->where(fn ($q) => $q
                 ->where('name', 'like', "%{$term}%")
                 ->orWhere('description', 'like', "%{$term}%")
-                ->orWhere('status', 'like', "%{$term}%")
                 ->orWhereRaw('CAST(score as CHAR) like ?', ["%{$term}%"]))
             ->limit(8)
-            ->get(['name', 'status', 'score', 'due_date'])
+            ->get(['name', 'score', 'due_date'])
             ->map(fn (Assessment $assessment): array => [
                 'name' => $assessment->name ?: 'Assessment',
-                'status' => $assessment->status,
                 'score' => $assessment->score,
                 'due_date' => $assessment->due_date?->format('Y-m-d') ?? '-',
             ])

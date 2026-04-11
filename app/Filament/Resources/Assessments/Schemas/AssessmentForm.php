@@ -53,7 +53,7 @@ class AssessmentForm
                         $level = $get('target_level');
 
                         $options = [
-                            'all' => 'All students in selected course and level',
+                            'all' => 'All Students',
                         ];
 
                         if (! $courseId || ! $level) {
@@ -73,7 +73,7 @@ class AssessmentForm
                         return $options + $students;
                     })
                     ->default('all')
-                    ->helperText('Choose All to send to all students in the selected course and level.'),
+                    ->helperText('Choose All Students to send to all students in the selected course and level.'),
 
                 FileUpload::make('file_path')
                     ->label('File Upload')
@@ -100,10 +100,6 @@ class AssessmentForm
                 DatePicker::make('due_date')
                     ->label('Due Date')
                     ->required(),
-
-                TextInput::make('status')
-                    ->required()
-                    ->default('Pending'),
             ]);
     }
 }

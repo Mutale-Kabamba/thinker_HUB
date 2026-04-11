@@ -31,8 +31,6 @@ class AssessmentsTable
                 TextColumn::make('due_date')
                     ->date()
                     ->sortable(),
-                TextColumn::make('status')
-                    ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

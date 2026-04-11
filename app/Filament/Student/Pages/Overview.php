@@ -152,7 +152,6 @@ class Overview extends Page
                 ->map(fn (Assessment $item): array => [
                         'name' => $item->name ?: 'Assessment',
                     'course' => $item->course?->title ?? 'Unassigned course',
-                    'status' => $item->status,
                         'due_date' => $item->due_date?->format('Y-m-d') ?? '-',
                     'score' => $assessmentSubmissions->get($item->id)?->score ?? '-',
                     'submission_status' => $assessmentSubmissions->get($item->id)?->status ?? 'Not submitted',

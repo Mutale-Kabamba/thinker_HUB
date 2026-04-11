@@ -22,7 +22,6 @@ class Assessment extends Model
         'due_date',
         'file_path',
         'score',
-        'status',
     ];
 
     protected function casts(): array
