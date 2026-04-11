@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\Courses\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Str;
 
 class CourseForm
 {
@@ -52,10 +54,60 @@ class CourseForm
                             ->placeholder('6 Weeks'),
                     ])
                     ->columns(4)
-                    ->addActionLabel('Add fee entry')
-                    ->defaultItems(1)
-                    ->formatStateUsing(fn (mixed $state): array => self::parseFeesState($state))
-                    ->dehydrateStateUsing(fn (mixed $state): ?string => self::serializeFeesState($state))
+                    ->itemLabel(fn (array $state): string => trim(sprintf(
+                        '%s - %s (%s)',
+                        ($state['category'] ?? 'one_on_one') === 'group' ? 'Group' : 'One-On-One',
+                        $state['level'] ?? 'Level',
+                        $state['amount'] ?? '-',
+                    )))
+                    ->compact()
+                    ->collapsible()
+                    ->collapsed()
+                    ->reorderable(false)
+                    ->cloneable(false)
+                    ->defaultItems(0)
+                    ->addAction(fn (Action $action): Action => $action
+                        ->label('Add fee entry')
+                        ->icon('heroicon-o-plus')
+                        ->color('primary')
+                        ->modalHeading('Add Fee Entry')
+                        ->modalSubmitActionLabel('Add Entry')
+                        ->form([
+                            Select::make('category')
+                                ->options([
+                                    'one_on_one' => 'One-On-One',
+                                    'group' => 'Group',
+                                ])
+                                ->required(),
+                            Select::make('level')
+                                ->options([
+                                    'Beginner' => 'Beginner',
+                                    'Intermediate' => 'Intermediate',
+                                    'Advanced' => 'Advanced',
+                                ])
+                                ->required(),
+                            TextInput::make('amount')
+                                ->required()
+                                ->placeholder('K450'),
+                            TextInput::make('duration')
+                                ->placeholder('6 Weeks'),
+                        ])
+                        ->action(function (array $data, Repeater $component): void {
+                            $items = $component->getRawState() ?? [];
+                            $items[(string) Str::uuid()] = [
+                                'category' => self::normalizeCategory((string) ($data['category'] ?? 'one_on_one')),
+                                'level' => self::normalizeLevel((string) ($data['level'] ?? '')),
+                                'amount' => trim((string) ($data['amount'] ?? '')),
+                                'duration' => trim((string) ($data['duration'] ?? '')),
+                            ];
+
+                            $component->rawState($items);
+                            $component->callAfterStateUpdated();
+                            $component->partiallyRender();
+                        }))
+                    ->afterStateHydrated(function (Repeater $component, mixed $state): void {
+                        $component->state(self::parseFeesState($state));
+                    })
                     ->columnSpanFull(),
                 Textarea::make('requirements')
                     ->helperText('Add each requirement on a new line.')
@@ -77,10 +129,45 @@ class CourseForm
                             ->required(),
                     ])
                     ->columns(2)
-                    ->addActionLabel('Add level entry')
-                    ->defaultItems(3)
-                    ->formatStateUsing(fn (mixed $state): array => self::parseLevelProgressionState($state))
-                    ->dehydrateStateUsing(fn (mixed $state): ?string => self::serializeLevelProgressionState($state))
+                    ->itemLabel(fn (array $state): string => (string) ($state['level'] ?? 'Level'))
+                    ->compact()
+                    ->collapsible()
+                    ->collapsed()
+                    ->reorderable(false)
+                    ->cloneable(false)
+                    ->defaultItems(0)
+                    ->addAction(fn (Action $action): Action => $action
+                        ->label('Add level entry')
+                        ->icon('heroicon-o-plus')
+                        ->color('primary')
+                        ->modalHeading('Add Level Progression Entry')
+                        ->modalSubmitActionLabel('Add Entry')
+                        ->form([
+                            Select::make('level')
+                                ->options([
+                                    'Beginner' => 'Beginner',
+                                    'Intermediate' => 'Intermediate',
+                                    'Advanced' => 'Advanced',
+                                ])
+                                ->required(),
+                            Textarea::make('details')
+                                ->rows(3)
+                                ->required(),
+                        ])
+                        ->action(function (array $data, Repeater $component): void {
+                            $items = $component->getRawState() ?? [];
+                            $items[(string) Str::uuid()] = [
+                                'level' => self::normalizeLevel((string) ($data['level'] ?? '')),
+                                'details' => trim((string) ($data['details'] ?? '')),
+                            ];
+
+                            $component->rawState($items);
+                            $component->callAfterStateUpdated();
+                            $component->partiallyRender();
+                        }))
+                    ->afterStateHydrated(function (Repeater $component, mixed $state): void {
+                        $component->state(self::parseLevelProgressionState($state));
+                    })
                     ->columnSpanFull(),
                 Textarea::make('key_outcome')
                     ->helperText('Summarize expected learning outcome after completion.')
@@ -89,6 +176,30 @@ class CourseForm
                 Toggle::make('is_active')
                     ->required(),
             ]);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    public static function prepareDataForFill(array $data): array
+    {
+        $data['fees'] = self::parseFeesState($data['fees'] ?? null);
+        $data['level_progression'] = self::parseLevelProgressionState($data['level_progression'] ?? null);
+
+        return $data;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    public static function prepareDataForSave(array $data): array
+    {
+        $data['fees'] = self::serializeFeesState($data['fees'] ?? null);
+        $data['level_progression'] = self::serializeLevelProgressionState($data['level_progression'] ?? null);
+
+        return $data;
     }
 
     /**

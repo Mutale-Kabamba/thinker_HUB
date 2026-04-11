@@ -91,14 +91,61 @@
                 return json_last_error() === JSON_ERROR_NONE ? $decoded : $value;
             };
 
-            $parseFeeRows = static function (mixed $rows) use ($toLines): array {
+            $normalizeFeeSectionKey = static function (string $key): string {
+                $normalized = strtolower(trim(str_replace(['-', ' '], '_', $key)));
+
+                if (in_array($normalized, ['one_on_one', 'one2one', 'one_to_one', 'private', 'private_class'], true)) {
+                    return 'one_on_one';
+                }
+
+                if (in_array($normalized, ['group', 'group_class', 'group_classes', 'class_group'], true)) {
+                    return 'group';
+                }
+
+                return $normalized !== '' ? $normalized : 'fees';
+            };
+
+            $detectFeeMode = static function (string $value): string {
+                $text = strtolower($value);
+
+                if (preg_match('/one\s*[-:]?\s*on\s*[-:]?\s*one|1\s*[:x]\s*1|private/', $text) === 1) {
+                    return 'one_on_one';
+                }
+
+                if (str_contains($text, 'group')) {
+                    return 'group';
+                }
+
+                return 'fees';
+            };
+
+            $cleanFeeToken = static function (string $value): string {
+                return trim((string) preg_replace('/\b(one\s*[-:]?\s*on\s*[-:]?\s*one|1\s*[:x]\s*1|private|group)\b\s*[:\-]?\s*/i', '', preg_replace('/\s{2,}/', ' ', $value) ?? $value));
+            };
+
+            $cleanFeeLevel = static function (string $value) use ($cleanFeeToken): string {
+                return $cleanFeeToken(trim((string) preg_replace('/^level\s*[:\-]\s*/i', '', $value)));
+            };
+
+            $extractFeeModeAndRemainder = static function (string $line) use ($detectFeeMode): array {
+                $mode = $detectFeeMode($line);
+                $remainder = trim((string) preg_replace('/^(one\s*[-\s:]?\s*on\s*[-\s:]?\s*one|1\s*[:x]\s*1|private|group)\s*(?:[:\-|]\s*)?/i', '', $line));
+
+                return [
+                    'mode' => $mode,
+                    'remainder' => $remainder !== '' ? $remainder : trim($line),
+                ];
+            };
+
+            $parseFeeRows = static function (mixed $rows, ?string $forcedMode = null) use ($toLines, $extractFeeModeAndRemainder, $cleanFeeLevel, $cleanFeeToken, $normalizeFeeSectionKey): array {
                 $sourceRows = is_array($rows) ? $rows : $toLines($rows);
                 $normalized = [];
 
                 foreach ($sourceRows as $entry) {
                     if (is_array($entry)) {
-                        $level = trim((string) ($entry['level'] ?? ''));
-                        $amount = trim((string) ($entry['amount'] ?? ''));
+                        $mode = $normalizeFeeSectionKey((string) ($forcedMode ?? ($entry['mode'] ?? $entry['type'] ?? 'fees')));
+                        $level = $cleanFeeLevel((string) ($entry['level'] ?? ''));
+                        $amount = $cleanFeeToken((string) ($entry['amount'] ?? ''));
                         $duration = trim((string) ($entry['duration'] ?? ''));
 
                         if ($level !== '' || $amount !== '' || $duration !== '') {
@@ -106,6 +153,7 @@
                                 'level' => $level,
                                 'amount' => $amount,
                                 'duration' => $duration,
+                                'mode' => $mode,
                             ];
                         }
 
@@ -118,32 +166,64 @@
                         continue;
                     }
 
-                    if (preg_match('/^([^:|\-]+?)\s*[:|\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?$/', $line, $matches) === 1) {
+                    $extracted = $extractFeeModeAndRemainder($line);
+                    $mode = $normalizeFeeSectionKey((string) ($forcedMode ?? $extracted['mode']));
+                    $normalizedLine = (string) $extracted['remainder'];
+                    $compactLine = trim((string) preg_replace('/\s+/', ' ', $normalizedLine));
+
+                    if (preg_match_all('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:Beginner|Intermediate|Advanced)\s*[:\-]|$)/i', $compactLine, $matches, PREG_SET_ORDER) > 0) {
+                        foreach ($matches as $match) {
+                            $normalized[] = [
+                                'level' => $cleanFeeLevel((string) ($match[1] ?? '')),
+                                'amount' => $cleanFeeToken((string) ($match[2] ?? '')),
+                                'duration' => trim((string) ($match[3] ?? '')),
+                                'mode' => $mode,
+                            ];
+                        }
+
+                        continue;
+                    }
+
+                    if (preg_match('/^([^:()|]+?)\s*:\s*([^()]+?)\s*(?:\(([^)]+)\))?$/', $normalizedLine, $matches) === 1) {
                         $normalized[] = [
-                            'level' => trim($matches[1] ?? ''),
-                            'amount' => trim($matches[2] ?? ''),
+                            'level' => $cleanFeeLevel((string) ($matches[1] ?? '')),
+                            'amount' => $cleanFeeToken((string) ($matches[2] ?? '')),
                             'duration' => trim($matches[3] ?? ''),
+                            'mode' => $mode,
                         ];
 
                         continue;
                     }
 
-                    $parts = array_values(array_filter(array_map('trim', explode('|', $line))));
+                    if (preg_match('/^(.+?)\s+-\s+([^()]+?)\s*(?:\(([^)]+)\))?$/', $normalizedLine, $matches) === 1) {
+                        $normalized[] = [
+                            'level' => $cleanFeeLevel((string) ($matches[1] ?? '')),
+                            'amount' => $cleanFeeToken((string) ($matches[2] ?? '')),
+                            'duration' => trim((string) ($matches[3] ?? '')),
+                            'mode' => $mode,
+                        ];
+
+                        continue;
+                    }
+
+                    $parts = array_values(array_filter(array_map('trim', explode('|', $normalizedLine))));
 
                     if (count($parts) >= 2) {
                         $normalized[] = [
-                            'level' => $parts[0] ?? '',
-                            'amount' => $parts[1] ?? '',
+                            'level' => $cleanFeeLevel((string) ($parts[0] ?? '')),
+                            'amount' => $cleanFeeToken((string) ($parts[1] ?? '')),
                             'duration' => $parts[2] ?? '',
+                            'mode' => $mode,
                         ];
 
                         continue;
                     }
 
                     $normalized[] = [
-                        'level' => $line,
+                        'level' => $cleanFeeLevel($normalizedLine),
                         'amount' => '',
                         'duration' => '',
+                        'mode' => $mode,
                     ];
                 }
 
@@ -155,6 +235,7 @@
 
             if (is_array($rawFees) && ! array_is_list($rawFees)) {
                 foreach ($rawFees as $key => $rows) {
+                    $normalizedKey = $normalizeFeeSectionKey((string) $key);
                     $label = match ($key) {
                         'one_on_one' => 'One-on-One',
                         'group' => 'Group',
@@ -167,11 +248,11 @@
                         default => '',
                     };
 
-                    $parsedRows = $parseFeeRows($rows);
+                    $parsedRows = $parseFeeRows($rows, $normalizedKey);
 
                     if ($parsedRows !== []) {
                         $feeSections[] = [
-                            'key' => (string) $key,
+                            'key' => $normalizedKey,
                             'label' => $label,
                             'badge' => $badge,
                             'rows' => $parsedRows,
@@ -182,12 +263,32 @@
                 $fallbackRows = $parseFeeRows($rawFees);
 
                 if ($fallbackRows !== []) {
-                    $feeSections[] = [
-                        'key' => 'fees',
-                        'label' => 'Fees',
-                        'badge' => '',
-                        'rows' => $fallbackRows,
+                    $groupedRows = [
+                        'one_on_one' => array_values(array_filter($fallbackRows, static fn (array $row): bool => ($row['mode'] ?? 'fees') === 'one_on_one')),
+                        'group' => array_values(array_filter($fallbackRows, static fn (array $row): bool => ($row['mode'] ?? 'fees') === 'group')),
+                        'fees' => array_values(array_filter($fallbackRows, static fn (array $row): bool => ! in_array(($row['mode'] ?? 'fees'), ['one_on_one', 'group'], true))),
                     ];
+
+                    foreach (['one_on_one', 'group', 'fees'] as $sectionKey) {
+                        if ($groupedRows[$sectionKey] === []) {
+                            continue;
+                        }
+
+                        $feeSections[] = [
+                            'key' => $sectionKey,
+                            'label' => match ($sectionKey) {
+                                'one_on_one' => 'One-on-One',
+                                'group' => 'Group',
+                                default => 'Fees',
+                            },
+                            'badge' => match ($sectionKey) {
+                                'one_on_one' => '1:1 Focus',
+                                'group' => 'Best Value',
+                                default => '',
+                            },
+                            'rows' => $groupedRows[$sectionKey],
+                        ];
+                    }
                 }
             }
 
@@ -250,6 +351,57 @@
                         ];
                     }
                 }
+            }
+
+            $progressionCards = [];
+            $progressionSourceText = trim(implode("\n", array_map(static fn (array $item): string => trim(($item['level'] !== '' ? $item['level'].': ' : '').($item['details'] ?? '')), $progressionItems)));
+
+            foreach (['Beginner', 'Intermediate', 'Advanced'] as $index => $levelName) {
+                $matched = null;
+
+                foreach ($progressionItems as $item) {
+                    if (str_contains(strtolower((string) ($item['level'] ?? '')), strtolower($levelName)) && trim((string) ($item['details'] ?? '')) !== '') {
+                        $matched = [
+                            'level' => $levelName,
+                            'details' => trim((string) $item['details']),
+                        ];
+                        break;
+                    }
+                }
+
+                if ($matched === null && $progressionSourceText !== '') {
+                    $nextLevel = ['Beginner', 'Intermediate', 'Advanced'][$index + 1] ?? null;
+                    $pattern = $nextLevel !== null
+                        ? '/'.preg_quote($levelName, '/').'\s*[:\-]\s*([\s\S]*?)(?='.preg_quote($nextLevel, '/').'\s*[:\-]|$)/i'
+                        : '/'.preg_quote($levelName, '/').'\s*[:\-]\s*([\s\S]*?)$/i';
+
+                    if (preg_match($pattern, $progressionSourceText, $match) === 1) {
+                        $details = trim((string) ($match[1] ?? ''));
+
+                        if ($details !== '') {
+                            $matched = [
+                                'level' => $levelName,
+                                'details' => $details,
+                            ];
+                        }
+                    }
+                }
+
+                if ($matched === null && count($progressionItems) === 1 && $index === 0) {
+                    $fallback = trim(((string) ($progressionItems[0]['level'] ?? '') !== '' ? (string) $progressionItems[0]['level'].': ' : '').(string) ($progressionItems[0]['details'] ?? ''));
+
+                    if ($fallback !== '') {
+                        $matched = [
+                            'level' => $levelName,
+                            'details' => $fallback,
+                        ];
+                    }
+                }
+
+                $progressionCards[] = $matched ?? [
+                    'level' => $levelName,
+                    'details' => 'Details coming soon.',
+                ];
             }
         @endphp
 
@@ -328,9 +480,9 @@
                     @endif
 
                     <h3 class="mt-8 text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
-                    @if (! empty($progressionItems))
-                        <div class="mt-3 space-y-2.5">
-                            @foreach ($progressionItems as $item)
+                    @if (! empty($progressionCards))
+                        <div class="mt-3 grid gap-3 md:grid-cols-3">
+                            @foreach ($progressionCards as $item)
                                 <article class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                                     <h4 class="text-base font-black text-slate-800">{{ $item['level'] !== '' ? $item['level'] : 'Level' }}</h4>
                                     <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $item['details'] !== '' ? $item['details'] : 'Details coming soon.' }}</p>
