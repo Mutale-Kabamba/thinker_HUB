@@ -234,11 +234,7 @@ class CourseForm
         $entries = [];
 
         foreach (preg_split('/\R+/', $trimmed) ?: [] as $line) {
-            $parsed = self::parseFeeLine((string) $line);
-
-            if ($parsed !== null) {
-                $entries[] = $parsed;
-            }
+            $entries = [...$entries, ...self::parseFeeLineEntries((string) $line)];
         }
 
         return $entries;
@@ -313,11 +309,7 @@ class CourseForm
 
         foreach ($state as $row) {
             if (is_string($row)) {
-                $parsed = self::parseFeeLine($row);
-
-                if ($parsed !== null) {
-                    $entries[] = $parsed;
-                }
+                $entries = [...$entries, ...self::parseFeeLineEntries($row)];
 
                 continue;
             }
@@ -338,44 +330,61 @@ class CourseForm
     }
 
     /**
-     * @return array{category: string, level: string, amount: string, duration: string}|null
+     * @return array<int, array{category: string, level: string, amount: string, duration: string}>
      */
-    private static function parseFeeLine(string $line): ?array
+    private static function parseFeeLineEntries(string $line): array
     {
         $line = trim($line);
 
         if ($line === '') {
-            return null;
+            return [];
         }
 
         $category = str_contains(strtolower($line), 'group') ? 'group' : 'one_on_one';
         $normalizedLine = trim((string) preg_replace('/^(one\s*[-\s:]?\s*on\s*[-\s:]?\s*one|1\s*[:x]\s*1|private|group)\s*(?:[:\-|]\s*)?/i', '', $line));
         $normalizedLine = $normalizedLine === '' ? $line : $normalizedLine;
+        $compactLine = trim((string) preg_replace('/\s+/', ' ', $normalizedLine));
+
+        $multiMatches = [];
+        if (preg_match_all('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:Beginner|Intermediate|Advanced)\s*[:\-]|$)/i', $compactLine, $multiMatches, PREG_SET_ORDER) > 0) {
+            $entries = [];
+
+            foreach ($multiMatches as $match) {
+                $entries[] = [
+                    'category' => $category,
+                    'level' => self::normalizeLevel((string) ($match[1] ?? '')),
+                    'amount' => trim((string) ($match[2] ?? '')),
+                    'duration' => trim((string) ($match[3] ?? '')),
+                ];
+            }
+
+            return array_values(array_filter($entries, fn (array $entry): bool => $entry['level'] !== '' || $entry['amount'] !== '' || $entry['duration'] !== ''));
+        }
 
         if (preg_match('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?$/i', $normalizedLine, $match) === 1) {
-            return [
+            return [[
                 'category' => $category,
                 'level' => self::normalizeLevel((string) ($match[1] ?? '')),
                 'amount' => trim((string) ($match[2] ?? '')),
                 'duration' => trim((string) ($match[3] ?? '')),
-            ];
+            ]];
         }
 
         if (preg_match('/^([^:()|]+?)\s*:\s*([^()]+?)\s*(?:\(([^)]+)\))?$/', $normalizedLine, $match) === 1) {
-            return [
+            return [[
                 'category' => $category,
                 'level' => self::normalizeLevel((string) ($match[1] ?? '')),
                 'amount' => trim((string) ($match[2] ?? '')),
                 'duration' => trim((string) ($match[3] ?? '')),
-            ];
+            ]];
         }
 
-        return [
+        return [[
             'category' => $category,
             'level' => self::normalizeLevel($normalizedLine),
             'amount' => '',
             'duration' => '',
-        ];
+        ]];
     }
 
     /**
@@ -415,6 +424,20 @@ class CourseForm
             $line = trim((string) $line);
 
             if ($line === '') {
+                continue;
+            }
+
+            $compactLine = trim((string) preg_replace('/\s+/', ' ', $line));
+            $multiMatches = [];
+
+            if (preg_match_all('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([\s\S]*?)(?=\s*(?:Beginner|Intermediate|Advanced)\s*[:\-]|$)/i', $compactLine, $multiMatches, PREG_SET_ORDER) > 0) {
+                foreach ($multiMatches as $match) {
+                    $entries[] = [
+                        'level' => self::normalizeLevel((string) ($match[1] ?? '')),
+                        'details' => trim((string) ($match[2] ?? '')),
+                    ];
+                }
+
                 continue;
             }
 
