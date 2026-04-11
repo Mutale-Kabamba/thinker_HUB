@@ -28,12 +28,12 @@
             {
                 image: '{{ asset('images/hero/design.png') }}',
                 alt: 'Graphic design tools on screen',
-                label: 'Design Tools'
+                label: 'Creative Design'
             },
             {
                 image: '{{ asset('images/hero/media_ai.png') }}',
                 alt: 'Social media analytics dashboard',
-                label: 'Social Media & AI'
+                label: 'Media & AI'
             },
             {
                 image: '{{ asset('images/hero/data.png') }}',
