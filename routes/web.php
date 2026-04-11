@@ -121,6 +121,15 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
 
     $courseModel = Course::query()->where('is_active', true)->findOrFail($course);
     $canonicalSlug = $courseSlug($courseModel);
+    $relatedCourses = Course::query()
+        ->where('is_active', true)
+        ->whereKeyNot($courseModel->id)
+        ->latest()
+        ->limit(3)
+        ->get(['id', 'title', 'code', 'overview'])
+        ->each(function (Course $item) use ($courseSlug) {
+            $item->setAttribute('seo_slug', $courseSlug($item));
+        });
 
     if ($slug !== null && $slug !== $canonicalSlug) {
         return redirect()->route('landing.courses.show', ['course' => $courseModel->id, 'slug' => $canonicalSlug], 301);
@@ -129,6 +138,7 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
     return view('pages.course', [
         'course' => $courseModel,
         'slug' => $canonicalSlug,
+        'relatedCourses' => $relatedCourses,
     ]);
 })->whereNumber('course')->name('landing.courses.show');
 

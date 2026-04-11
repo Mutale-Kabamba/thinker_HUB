@@ -51,6 +51,15 @@
     <main>
         <section class="bg-[#0a2d27] py-16 lg:py-20">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
+                <nav aria-label="Breadcrumb" class="text-sm text-slate-300">
+                    <ol class="flex flex-wrap items-center gap-2">
+                        <li><a href="{{ route('home') }}" class="hover:text-yellow-400">Home</a></li>
+                        <li>/</li>
+                        <li><a href="{{ route('landing.courses') }}" class="hover:text-yellow-400">Courses</a></li>
+                        <li>/</li>
+                        <li class="text-white">{{ $course->title }}</li>
+                    </ol>
+                </nav>
                 <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">{{ $course->code }}</p>
                 <h1 class="mt-4 max-w-4xl text-4xl font-black text-white sm:text-5xl">{{ $course->title }}</h1>
                 <p class="mt-5 max-w-3xl text-slate-300">{{ $course->overview ?: $course->description }}</p>
@@ -89,6 +98,25 @@
                 </aside>
             </div>
         </section>
+
+        @if ($relatedCourses->isNotEmpty())
+            <section class="pb-20 lg:pb-24">
+                <div class="mx-auto max-w-6xl px-6 lg:px-8">
+                    <h2 class="text-2xl font-black text-slate-900 sm:text-3xl">Related Courses</h2>
+                    <p class="mt-2 text-slate-600">Explore other practical tracks that can complement this learning path.</p>
+                    <div class="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                        @foreach ($relatedCourses as $relatedCourse)
+                            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-teal-600">{{ $relatedCourse->code }}</p>
+                                <h3 class="mt-2 text-lg font-bold text-slate-900">{{ $relatedCourse->title }}</h3>
+                                <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ \Illuminate\Support\Str::limit($relatedCourse->overview, 120) }}</p>
+                                <a href="{{ route('landing.courses.show', ['course' => $relatedCourse->id, 'slug' => $relatedCourse->seo_slug]) }}" class="mt-4 inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#11443c]">View Course</a>
+                            </article>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-12 lg:py-16">
@@ -141,6 +169,32 @@
                 'sameAs' => url('/'),
             ],
             'url' => route('landing.courses.show', ['course' => $course->id, 'slug' => $slug]),
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+    <script type="application/ld+json">
+        {!! json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Home',
+                    'item' => route('home'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'Courses',
+                    'item' => route('landing.courses'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $course->title,
+                    'item' => route('landing.courses.show', ['course' => $course->id, 'slug' => $slug]),
+                ],
+            ],
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
     </script>
 </body>
