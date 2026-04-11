@@ -3,15 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\LearningMaterial;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class MaterialPublishedNotification extends Notification implements ShouldQueue
+class MaterialPublishedNotification extends Notification
 {
-    use Queueable;
-
     public function __construct(private readonly LearningMaterial $material)
     {
     }
