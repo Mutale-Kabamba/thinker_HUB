@@ -1,0 +1,192 @@
+[
+  {
+    "id": 1,
+    "title": "MS Office Fundamentals",
+    "code": "MS-OFFICE-001",
+    "description": "A comprehensive introduction to the world's most widely used workplace software suite designed to solidify administrative skills.",
+    "overview": "This track focuses on practical, day-to-day applications of Microsoft Word, Excel, and PowerPoint to streamline business operations and improve productivity.",
+    "timeline": "4 Weeks (approx. 4-5 hours per week)",
+    "fees": {
+      "one_on_one": [
+        { "level": "Beginner", "amount": "K350", "duration": "6 Weeks" },
+        { "level": "Intermediate", "amount": "K500", "duration": "8 Weeks" },
+        { "level": "Advanced", "amount": "K750", "duration": "8 Weeks" }
+      ],
+      "group": [
+        { "level": "Beginner", "amount": "K250", "duration": "6 Weeks" },
+        { "level": "Intermediate", "amount": "K300", "duration": "8 Weeks" },
+        { "level": "Advanced", "amount": "K450", "duration": "8 Weeks" }
+      ]
+    },
+    "requirements": [
+      "A reliable laptop (Mandatory)",
+      "Installed Microsoft Office Suite (Word, Excel, PowerPoint) version 2016 or newer"
+    ],
+    "levels_progression": [
+      {
+        "level": "Beginner",
+        "details": "Focuses on interface navigation, basic data entry, simple document formatting, and creating standard presentation slides. Perfect for users with minimal prior experience."
+      },
+      {
+        "level": "Intermediate",
+        "details": "Dives into intermediate formulas (VLOOKUP, IF statements), mail merge for bulk documents, basic PivotTables, and slide master designs for corporate presentations."
+      },
+      {
+        "level": "Advanced",
+        "details": "Covers complex data modeling, automation through basic Macros/VBA, advanced conditional formatting, and creating interactive, data-linked presentations."
+      }
+    ],
+    "key_outcome": "Graduates will be able to handle standard to complex office administration tasks efficiently, reducing time spent on manual formatting and improving the overall professional quality of their digital paperwork."
+  },
+  {
+    "id": 2,
+    "title": "Graphic Design Principles & Practice",
+    "code": "DESIGN-002",
+    "description": "A hands-on exploration of visual communication and brand identity.",
+    "overview": "This course bridges the gap between creative theory and technical execution. Students will learn the foundational rules of design, such as typography, color theory, and composition, and apply them using industry-standard software to elevate brand presence.",
+    "timeline": "8 Weeks (approx. 6-8 hours per week)",
+    "fees": {
+      "one_on_one": [
+        { "level": "Beginner", "amount": "K450", "duration": "6 Weeks" },
+        { "level": "Intermediate", "amount": "K750", "duration": "8 Weeks" },
+        { "level": "Advanced", "amount": "K1450", "duration": "8 Weeks" }
+      ],
+      "group": [
+        { "level": "Beginner", "amount": "K300", "duration": "6 Weeks" },
+        { "level": "Intermediate", "amount": "K550", "duration": "8 Weeks" }
+      ]
+    },
+    "requirements": [
+      "A reliable laptop (Mandatory; minimum 8GB RAM strongly recommended)",
+      "Access to vector/raster design software (e.g., Adobe Creative Cloud, Affinity Suite)",
+      "A dedicated computer mouse"
+    ],
+    "levels_progression": [
+      {
+        "level": "Beginner",
+        "details": "Introduces design theory (color, typography), software basics, and the creation of simple, well-balanced social media graphics and flyers."
+      },
+      {
+        "level": "Intermediate",
+        "details": "Focuses on vector illustration, non-destructive photo manipulation, layout grids, and developing comprehensive brand identity guidelines."
+      },
+      {
+        "level": "Advanced",
+        "details": "Tackles complex compositions, advanced masking techniques, print production preparation, and the fundamentals of UI/UX design for web assets."
+      }
+    ],
+    "key_outcome": "Students will build a foundational portfolio of original work and possess the practical skills to independently design, format, and export professional-grade creative assets."
+  },
+  {
+    "id": 3,
+    "title": "Social Media & AI Integration",
+    "code": "SMAI-003",
+    "description": "Combine modern digital marketing strategies with the power of Artificial Intelligence.",
+    "overview": "This forward-looking course moves beyond basic social media posting to focus on scaling content production, optimizing engagement, and automating workflows while maintaining an authentic brand voice.",
+    "timeline": "6 Weeks (approx. 5 hours per week)",
+    "fees": {
+      "one_on_one": [
+        { "level": "Beginner", "amount": "K250", "duration": "3 Weeks" },
+        { "level": "Intermediate", "amount": "K450", "duration": "4 Weeks" },
+        { "level": "Advanced", "amount": "K650", "duration": "6 Weeks" }
+      ],
+      "group": [
+        { "level": "Beginner", "amount": "K150", "duration": "3 Weeks" },
+        { "level": "Intermediate", "amount": "K350", "duration": "4 Weeks" },
+        { "level": "Advanced", "amount": "K450", "duration": "6 Weeks" }
+      ]
+    },
+    "requirements": [
+      "A reliable laptop (Mandatory)",
+      "Active user accounts on major platforms (Meta, LinkedIn, etc.)",
+      "Access to a foundational AI text generator (e.g., ChatGPT or Claude)"
+    ],
+    "levels_progression": [
+      {
+        "level": "Beginner",
+        "details": "Covers platform optimization, content calendar creation, and basic AI prompting for drafting captions and brainstorming post ideas."
+      },
+      {
+        "level": "Intermediate",
+        "details": "Explores AI-driven image generation, interpreting social media analytics, and using AI to repurpose long-form content into bite-sized social assets."
+      },
+      {
+        "level": "Advanced",
+        "details": "Focuses on building custom AI agents (GPTs) trained on specific brand voices, implementing automated posting workflows (e.g., using Make/Zapier), and advanced, data-driven audience targeting."
+      }
+    ],
+    "key_outcome": "Students will be equipped to operate as modern digital marketers, capable of producing high volumes of targeted, creative content in a fraction of the time by leveraging AI assistants."
+  },
+  {
+    "id": 4,
+    "title": "Practical Data Analysis",
+    "code": "DATA-004",
+    "description": "Extract actionable business insights from raw data.",
+    "overview": "A project-based course designed to demystify data and empower students. This track focuses on the practical journey of data: from acquiring and cleaning messy datasets to performing statistical summaries and building visual dashboards.",
+    "timeline": "8 Weeks (approx. 6 hours per week)",
+    "fees": {
+      "one_on_one": [
+        { "level": "Beginner", "amount": "K1000", "duration": "4 Weeks" },
+        { "level": "Intermediate", "amount": "K1350", "duration": "6 Weeks" },
+        { "level": "Advanced", "amount": "K1650", "duration": "8 Weeks" }
+      ],
+      "group": [
+        { "level": "Beginner", "amount": "K500", "duration": "4 Weeks" },
+        { "level": "Intermediate", "amount": "K750", "duration": "6 Weeks" },
+        { "level": "Advanced", "amount": "K950", "duration": "8 Weeks" }
+      ]
+    },
+    "requirements": [
+      "A reliable laptop (Mandatory)",
+      "Installed spreadsheet software (Microsoft Excel or Google Sheets)"
+    ],
+    "levels_progression": [
+      {
+        "level": "Beginner",
+        "details": "Focuses on data literacy, importing raw data, identifying and cleaning messy datasets (handling duplicates/missing values), and generating basic descriptive charts."
+      },
+      {
+        "level": "Intermediate",
+        "details": "Introduces relational data, fundamental SQL queries, trend analysis, and building interactive visual dashboards using tools like Advanced Excel or basic PowerBI."
+      },
+      {
+        "level": "Advanced",
+        "details": "Explores predictive modeling concepts, advanced statistical summarization, and using data storytelling techniques to present actionable insights to high-level stakeholders."
+      }
+    ],
+    "key_outcome": "Students will be able to take a raw dataset, clean it, analyze it for trends, and present their findings visually to guide strategic business decisions."
+  },
+  {
+    "id": 5,
+    "title": "Computer Basics & Digital Literacy",
+    "code": "COMP-005",
+    "description": "A foundational course designed to give new users total confidence in operating a personal computer.",
+    "overview": "This course goes beyond 'turning it on.' We focus on mastering the OS, efficient file management, hardware maintenance, and staying safe in the digital world through practical, real-world scenarios.",
+    "timeline": "4 Weeks (approx. 4 hours per week)",
+    "fees": {
+      "one_on_one": [
+        { "level": "Beginner", "amount": "K250", "duration": "4 Weeks" },
+        { "level": "Intermediate", "amount": "K400", "duration": "6 Weeks" }
+      ],
+      "group": [
+        { "level": "Beginner", "amount": "K150", "duration": "4 Weeks" },
+        { "level": "Intermediate", "amount": "K250", "duration": "6 Weeks" }
+      ]
+    },
+    "requirements": [
+      "Access to a Desktop or Laptop computer",
+      "Willingness to explore hardware and software components"
+    ],
+    "levels_progression": [
+      {
+        "level": "Beginner",
+        "details": "Covers hardware identification, mouse/keyboard proficiency, Windows/macOS navigation, and basic internet browsing safety."
+      },
+      {
+        "level": "Intermediate",
+        "details": "Focuses on advanced file organization, software installation/uninstallation, cloud storage (Google Drive/OneDrive), and basic troubleshooting of common technical issues."
+      }
+    ],
+    "key_outcome": "Learners will gain the independence to operate a computer for personal or professional use, manage their digital files securely, and troubleshoot basic software errors without assistance."
+  }
+]
