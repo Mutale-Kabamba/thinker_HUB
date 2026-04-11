@@ -156,48 +156,134 @@
 
                             return '';
                         },
+                        normalizeFeeSectionKey(key) {
+                            const normalized = String(key || '')
+                                .trim()
+                                .toLowerCase()
+                                .replace(/[-\s]+/g, '_');
+
+                            if (['one_on_one', 'one2one', 'one_to_one', 'private', 'private_class'].includes(normalized)) {
+                                return 'one_on_one';
+                            }
+
+                            if (['group', 'group_class', 'group_classes', 'class_group'].includes(normalized)) {
+                                return 'group';
+                            }
+
+                            return normalized || 'fees';
+                        },
+                        detectFeeMode(value) {
+                            const text = String(value || '').toLowerCase();
+
+                            if (/one\s*[-:]?\s*on\s*[-:]?\s*one|1\s*[:x]\s*1|private/.test(text)) {
+                                return 'one_on_one';
+                            }
+
+                            if (/group/.test(text)) {
+                                return 'group';
+                            }
+
+                            return 'fees';
+                        },
+                        extractFeeModeAndRemainder(value) {
+                            const mode = this.normalizeFeeSectionKey(this.detectFeeMode(value));
+                            const remainder = String(value || '')
+                                .replace(/^(one\s*[-\s:]?\s*on\s*[-\s:]?\s*one|1\s*[:x]\s*1|private|group)\s*(?:[:\-|]\s*)?/i, '')
+                                .trim();
+
+                            return {
+                                mode,
+                                remainder: remainder || String(value || '').trim(),
+                            };
+                        },
+                        cleanFeeToken(value) {
+                            return String(value || '')
+                                .replace(/\b(one\s*[-:]?\s*on\s*[-:]?\s*one|1\s*[:x]\s*1|private|group)\b\s*[:\-]?\s*/ig, '')
+                                .replace(/\s{2,}/g, ' ')
+                                .trim();
+                        },
+                        cleanLevelText(value) {
+                            return this.cleanFeeToken(String(value || '').replace(/^level\s*[:\-]\s*/i, ''));
+                        },
                         parseFeeRows(rows) {
                             return (rows || [])
-                                .map((entry) => {
+                                .flatMap((entry) => {
                                     if (entry && typeof entry === 'object') {
-                                        return {
-                                            level: String(entry.level || '').trim(),
-                                            amount: String(entry.amount || '').trim(),
+                                        const mode = this.normalizeFeeSectionKey(entry.mode || entry.type || this.detectFeeMode(`${entry.level || ''} ${entry.amount || ''}`));
+                                        return [{
+                                            level: this.cleanLevelText(entry.level || ''),
+                                            amount: this.cleanFeeToken(entry.amount || ''),
                                             duration: String(entry.duration || '').trim(),
-                                        };
+                                            mode,
+                                        }];
                                     }
 
                                     const line = String(entry || '').trim();
 
                                     if (!line) {
-                                        return null;
+                                        return [];
                                     }
 
-                                    const simpleMatch = line.match(/^([^:|\\-]+?)\s*[:|\\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?$/);
+                                    const extracted = this.extractFeeModeAndRemainder(line);
+                                    const normalizedLine = extracted.remainder;
+                                    const mode = extracted.mode;
+                                    const compactLine = normalizedLine.replace(/\s+/g, ' ').trim();
+                                    const levelPattern = /(Beginner|Intermediate|Advanced)\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:Beginner|Intermediate|Advanced)\s*[:\-]|$)/gi;
+                                    const multiRows = [];
+                                    let levelMatch;
+
+                                    while ((levelMatch = levelPattern.exec(compactLine)) !== null) {
+                                        multiRows.push({
+                                            level: this.cleanLevelText(levelMatch[1]),
+                                            amount: this.cleanFeeToken(levelMatch[2]),
+                                            duration: (levelMatch[3] || '').trim(),
+                                            mode,
+                                        });
+                                    }
+
+                                    if (multiRows.length) {
+                                        return multiRows;
+                                    }
+
+                                    const simpleMatch = normalizedLine.match(/^([^:()|]+?)\s*:\s*([^()]+?)\s*(?:\(([^)]+)\))?$/);
 
                                     if (simpleMatch) {
-                                        return {
-                                            level: simpleMatch[1].trim(),
-                                            amount: simpleMatch[2].trim(),
+                                        return [{
+                                            level: this.cleanLevelText(simpleMatch[1]),
+                                            amount: this.cleanFeeToken(simpleMatch[2]),
                                             duration: (simpleMatch[3] || '').trim(),
-                                        };
+                                            mode,
+                                        }];
                                     }
 
-                                    const parts = line.split('|').map(part => part.trim()).filter(Boolean);
+                                    const hyphenMatch = normalizedLine.match(/^(.+?)\s+-\s+([^()]+?)\s*(?:\(([^)]+)\))?$/);
+
+                                    if (hyphenMatch) {
+                                        return [{
+                                            level: this.cleanLevelText(hyphenMatch[1]),
+                                            amount: this.cleanFeeToken(hyphenMatch[2]),
+                                            duration: (hyphenMatch[3] || '').trim(),
+                                            mode,
+                                        }];
+                                    }
+
+                                    const parts = normalizedLine.split('|').map(part => part.trim()).filter(Boolean);
 
                                     if (parts.length >= 2) {
-                                        return {
-                                            level: parts[0],
-                                            amount: parts[1],
+                                        return [{
+                                            level: this.cleanLevelText(parts[0]),
+                                            amount: this.cleanFeeToken(parts[1]),
                                             duration: parts[2] || '',
-                                        };
+                                            mode,
+                                        }];
                                     }
 
-                                    return {
-                                        level: line,
+                                    return [{
+                                        level: this.cleanLevelText(normalizedLine),
                                         amount: '',
                                         duration: '',
-                                    };
+                                        mode,
+                                    }];
                                 })
                                 .filter(row => row && (row.level || row.amount || row.duration));
                         },
@@ -207,9 +293,9 @@
                             if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
                                 return Object.entries(parsed)
                                     .map(([key, rows]) => ({
-                                        key,
-                                        label: this.feeLabel(key),
-                                        badge: this.feeBadge(key),
+                                        key: this.normalizeFeeSectionKey(key),
+                                        label: this.feeLabel(this.normalizeFeeSectionKey(key)),
+                                        badge: this.feeBadge(this.normalizeFeeSectionKey(key)),
                                         rows: this.parseFeeRows(Array.isArray(rows) ? rows : this.lines(rows)),
                                     }))
                                     .filter(section => section.rows.length);
@@ -217,9 +303,21 @@
 
                             const rows = this.parseFeeRows(Array.isArray(parsed) ? parsed : this.lines(parsed));
 
-                            return rows.length
-                                ? [{ key: 'fees', label: 'Fees', badge: '', rows }]
-                                : [];
+                            if (!rows.length) {
+                                return [];
+                            }
+
+                            const groupedRows = {
+                                one_on_one: rows.filter(row => row.mode === 'one_on_one'),
+                                group: rows.filter(row => row.mode === 'group'),
+                                fees: rows.filter(row => !['one_on_one', 'group'].includes(row.mode)),
+                            };
+
+                            return [
+                                { key: 'one_on_one', label: this.feeLabel('one_on_one'), badge: this.feeBadge('one_on_one'), rows: groupedRows.one_on_one },
+                                { key: 'group', label: this.feeLabel('group'), badge: this.feeBadge('group'), rows: groupedRows.group },
+                                { key: 'fees', label: this.feeLabel('fees'), badge: '', rows: groupedRows.fees },
+                            ].filter(section => section.rows.length);
                         },
                         levelProgressions(value) {
                             const parsed = this.parseStructured(value);
@@ -266,6 +364,53 @@
                                     return { level: line, details: '' };
                                 })
                                 .filter(item => item.level || item.details);
+                        },
+                        levelProgressionCards(value) {
+                            const entries = this.levelProgressions(value);
+                            const levels = ['Beginner', 'Intermediate', 'Advanced'];
+                            const sourceText = entries
+                                .map(item => [item.level, item.details].filter(Boolean).join(': '))
+                                .join('\n');
+
+                            return levels.map((level, index) => {
+                                const direct = entries.find(item => String(item.level || '').toLowerCase().includes(level.toLowerCase()));
+
+                                if (direct && direct.details) {
+                                    return {
+                                        level,
+                                        details: direct.details,
+                                    };
+                                }
+
+                                const nextLevel = levels[index + 1] || null;
+                                const boundedPattern = nextLevel
+                                    ? new RegExp(`${level}\\s*[:\\-]\\s*([\\s\\S]*?)(?=${nextLevel}\\s*[:\\-]|$)`, 'i')
+                                    : new RegExp(`${level}\\s*[:\\-]\\s*([\\s\\S]*?)$`, 'i');
+                                const boundedMatch = sourceText.match(boundedPattern);
+
+                                if (boundedMatch && boundedMatch[1] && boundedMatch[1].trim()) {
+                                    return {
+                                        level,
+                                        details: boundedMatch[1].trim(),
+                                    };
+                                }
+
+                                if (entries.length === 1 && index === 0) {
+                                    const fallback = [entries[0].level, entries[0].details].filter(Boolean).join(': ').trim();
+
+                                    if (fallback) {
+                                        return {
+                                            level,
+                                            details: fallback,
+                                        };
+                                    }
+                                }
+
+                                return {
+                                    level,
+                                    details: 'Details coming soon.',
+                                };
+                            });
                         }
                     }"
                     class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
@@ -338,77 +483,40 @@
 
                                 <section class="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                                     <h4 class="text-[11px] font-bold uppercase tracking-[0.08em] text-emerald-700">Fees</h4>
-                                    <div class="mt-3 grid gap-3 md:grid-cols-2">
+                                    <div class="mt-3 space-y-3">
                                         <template x-for="section in feeTableSections(details[selectedCourseId]?.fees)" :key="section.key">
-                                            <div>
-                                                <template x-if="section.key === 'one_on_one'">
-                                                    <article class="rounded-2xl border border-indigo-200 bg-indigo-50/45 p-3">
-                                                        <div class="flex items-center justify-between gap-2">
-                                                            <h5 class="text-xs font-black uppercase tracking-[0.08em] text-indigo-800" x-text="section.label"></h5>
-                                                            <span
-                                                                x-show="section.badge"
-                                                                class="rounded-full border border-indigo-300 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-indigo-700"
-                                                                x-text="section.badge"
-                                                            ></span>
-                                                        </div>
+                                            <article class="rounded-2xl border p-3" :class="section.key === 'group' ? 'border-emerald-200 bg-emerald-50/40' : 'border-indigo-200 bg-indigo-50/45'">
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <h5 class="text-xs font-black uppercase tracking-[0.08em]" :class="section.key === 'group' ? 'text-emerald-800' : 'text-indigo-800'" x-text="section.label"></h5>
+                                                    <span
+                                                        x-show="section.badge"
+                                                        class="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em]"
+                                                        :class="section.key === 'group' ? 'border border-emerald-300 text-emerald-700' : 'border border-indigo-300 text-indigo-700'"
+                                                        x-text="section.badge"
+                                                    ></span>
+                                                </div>
 
-                                                        <div class="mt-2 overflow-hidden rounded-xl border border-indigo-200 bg-white">
-                                                            <table class="w-full text-xs text-slate-700">
-                                                                <thead class="bg-indigo-100/70 text-[10px] font-bold uppercase tracking-[0.08em] text-indigo-800">
-                                                                    <tr>
-                                                                        <th class="px-3 py-2 text-left">Level</th>
-                                                                        <th class="px-3 py-2 text-left">Amount</th>
-                                                                        <th class="px-3 py-2 text-left">Duration</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <template x-for="row in section.rows" :key="`${row.level}-${row.amount}-${row.duration}`">
-                                                                        <tr class="border-t border-indigo-100">
-                                                                            <td class="px-3 py-2 font-semibold text-slate-800" x-text="row.level || '-' "></td>
-                                                                            <td class="px-3 py-2 font-bold text-indigo-700" x-text="row.amount || '-' "></td>
-                                                                            <td class="px-3 py-2 text-slate-600" x-text="row.duration || '-' "></td>
-                                                                        </tr>
-                                                                    </template>
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </article>
-                                                </template>
-
-                                                <template x-if="section.key !== 'one_on_one'">
-                                                    <article class="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-3">
-                                                        <div class="flex items-center justify-between gap-2">
-                                                            <h5 class="text-xs font-black uppercase tracking-[0.08em] text-emerald-800" x-text="section.label"></h5>
-                                                            <span
-                                                                x-show="section.badge"
-                                                                class="rounded-full border border-emerald-300 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-700"
-                                                                x-text="section.badge"
-                                                            ></span>
-                                                        </div>
-
-                                                        <div class="mt-2 overflow-hidden rounded-xl border border-emerald-200 bg-white">
-                                                            <table class="w-full text-xs text-slate-700">
-                                                                <thead class="bg-emerald-100/70 text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-800">
-                                                                    <tr>
-                                                                        <th class="px-3 py-2 text-left">Level</th>
-                                                                        <th class="px-3 py-2 text-left">Amount</th>
-                                                                        <th class="px-3 py-2 text-left">Duration</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <template x-for="row in section.rows" :key="`${row.level}-${row.amount}-${row.duration}`">
-                                                                        <tr class="border-t border-emerald-100">
-                                                                            <td class="px-3 py-2 font-semibold text-slate-800" x-text="row.level || '-' "></td>
-                                                                            <td class="px-3 py-2 font-bold text-emerald-700" x-text="row.amount || '-' "></td>
-                                                                            <td class="px-3 py-2 text-slate-600" x-text="row.duration || '-' "></td>
-                                                                        </tr>
-                                                                    </template>
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </article>
-                                                </template>
-                                            </div>
+                                                <div class="mt-2 overflow-hidden rounded-xl bg-white" :class="section.key === 'group' ? 'border border-emerald-200' : 'border border-indigo-200'">
+                                                    <table class="w-full text-xs text-slate-700">
+                                                        <thead class="text-[10px] font-bold uppercase tracking-[0.08em]" :class="section.key === 'group' ? 'bg-emerald-100/70 text-emerald-800' : 'bg-indigo-100/70 text-indigo-800'">
+                                                            <tr>
+                                                                <th class="px-3 py-2 text-left">Level</th>
+                                                                <th class="px-3 py-2 text-left">Amount</th>
+                                                                <th class="px-3 py-2 text-left">Duration</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <template x-for="row in section.rows" :key="`${section.key}-${row.level}-${row.amount}-${row.duration}`">
+                                                                <tr :class="section.key === 'group' ? 'border-t border-emerald-100' : 'border-t border-indigo-100'">
+                                                                    <td class="px-3 py-2 font-semibold text-slate-800" x-text="row.level || '-' "></td>
+                                                                    <td class="px-3 py-2 font-bold" :class="section.key === 'group' ? 'text-emerald-700' : 'text-indigo-700'" x-text="row.amount || '-' "></td>
+                                                                    <td class="px-3 py-2 text-slate-600" x-text="row.duration || '-' "></td>
+                                                                </tr>
+                                                            </template>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </article>
                                         </template>
                                     </div>
                                     <p x-show="!feeTableSections(details[selectedCourseId]?.fees).length" class="mt-2 text-slate-600">No fee details added yet.</p>
@@ -435,9 +543,9 @@
 
                                 <section class="rounded-xl border border-slate-200 bg-slate-50 p-4">
                                     <h4 class="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">Levels & Progression</h4>
-                                    <template x-if="levelProgressions(details[selectedCourseId]?.level_progression).length">
+                                    <template x-if="levelProgressionCards(details[selectedCourseId]?.level_progression).length">
                                         <div class="mt-3 space-y-2.5">
-                                            <template x-for="item in levelProgressions(details[selectedCourseId]?.level_progression)" :key="`${item.level}-${item.details}`">
+                                            <template x-for="item in levelProgressionCards(details[selectedCourseId]?.level_progression)" :key="`${item.level}-${item.details}`">
                                                 <article class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
                                                     <h5 class="text-base font-black text-slate-800" x-text="item.level || 'Level'"></h5>
                                                     <p class="mt-1 text-sm leading-relaxed text-slate-600" x-text="item.details || 'Details coming soon.'"></p>
@@ -445,7 +553,7 @@
                                             </template>
                                         </div>
                                     </template>
-                                    <p x-show="!levelProgressions(details[selectedCourseId]?.level_progression).length" class="mt-2 text-slate-600">No progression details added yet.</p>
+                                    <p x-show="!levelProgressionCards(details[selectedCourseId]?.level_progression).length" class="mt-2 text-slate-600">No progression details added yet.</p>
                                 </section>
                             </div>
 
