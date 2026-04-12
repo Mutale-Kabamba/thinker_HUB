@@ -39,7 +39,27 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
+            'scheme' => (function (): ?string {
+                $scheme = strtolower((string) env('MAIL_SCHEME', ''));
+
+                if ($scheme === 'smtps' || $scheme === 'ssl') {
+                    return 'smtps';
+                }
+
+                if ($scheme === 'smtp') {
+                    return 'smtp';
+                }
+
+                // Compatibility: many setups still use MAIL_ENCRYPTION=tls/ssl.
+                $encryption = strtolower((string) env('MAIL_ENCRYPTION', ''));
+
+                if ($encryption === 'ssl') {
+                    return 'smtps';
+                }
+
+                // null lets Symfony use STARTTLS automatically on port 587.
+                return null;
+            })(),
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', '127.0.0.1'),
             'port' => env('MAIL_PORT', 2525),
