@@ -2,11 +2,15 @@
 
 namespace App\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class SubmissionGradedNotification extends Notification
+class SubmissionGradedNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(
         private readonly string $submissionType,
         private readonly string $itemTitle,
@@ -29,12 +33,14 @@ class SubmissionGradedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Your Submission Was Reviewed')
-            ->greeting('Hello '.$notifiable->name.',')
-            ->line('Your '.$this->submissionType.' was reviewed: '.$this->itemTitle)
-            ->line('Score/Grade: '.($this->scoreOrGrade !== null ? (string) $this->scoreOrGrade : 'N/A'))
-            ->line('Feedback: '.($this->feedback !== '' ? $this->feedback : 'No feedback provided.'))
-            ->action('Open Dashboard', route('dashboard'));
+            ->subject('✅ Submission Reviewed: '.$this->itemTitle)
+            ->markdown('emails.submission-graded', [
+                'submissionType' => $this->submissionType,
+                'itemTitle' => $this->itemTitle,
+                'scoreOrGrade' => $this->scoreOrGrade,
+                'feedback' => $this->feedback,
+                'notifiable' => $notifiable,
+            ]);
     }
 
     public function toArray(object $notifiable): array
