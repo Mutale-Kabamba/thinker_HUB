@@ -69,11 +69,33 @@
                             'images/courses/data.png',
                             'images/courses/media_ai.png',
                         ];
+
+                        $courseImageKeywords = [
+                            'images/courses/office.png' => ['office', 'excel', 'word', 'powerpoint'],
+                            'images/courses/design.png' => ['design', 'graphics', 'ui', 'ux', 'canva', 'photoshop'],
+                            'images/courses/data.png' => ['data', 'analytics', 'analysis', 'sql', 'power bi', 'tableau'],
+                            'images/courses/media_ai.png' => ['social', 'media', 'marketing', 'content', 'ai'],
+                            'images/courses/computer.png' => ['computer', 'digital', 'ict', 'literacy', 'fundamentals'],
+                        ];
+
+                        $resolveCourseImage = static function ($course) use ($courseImages, $courseImageKeywords): string {
+                            $searchText = strtolower(trim((string) ($course->title.' '.$course->code)));
+
+                            foreach ($courseImageKeywords as $imagePath => $keywords) {
+                                foreach ($keywords as $keyword) {
+                                    if (str_contains($searchText, $keyword)) {
+                                        return $imagePath;
+                                    }
+                                }
+                            }
+
+                            return $courseImages[abs(crc32((string) $course->id)) % count($courseImages)];
+                        };
                     @endphp
 
                     @forelse ($courses as $course)
                         @php
-                            $courseImage = $courseImages[$loop->index % count($courseImages)];
+                            $courseImage = $resolveCourseImage($course);
                         @endphp
                         <article class="group bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-xl transition-all border border-slate-100">
                             <div class="relative h-52 overflow-hidden rounded-[1.5rem]">
