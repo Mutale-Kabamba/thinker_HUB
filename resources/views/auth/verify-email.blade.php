@@ -20,6 +20,12 @@
         </div>
     @endif
 
+    @if ($errors->has('email'))
+        <div style="max-width: 780px; margin: 1rem auto 0; border: 1px solid #f2b7b7; background: #fff1f1; color: #9c1e1e; border-radius: 12px; padding: 0.85rem 1rem; font-size: 0.92rem; font-weight: 600;">
+            {{ $errors->first('email') }}
+        </div>
+    @endif
+
     <div style="max-width: 780px; margin: 1rem auto 0; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
         <form method="POST" action="{{ route('verification.send') }}" style="margin:0;">
             @csrf
