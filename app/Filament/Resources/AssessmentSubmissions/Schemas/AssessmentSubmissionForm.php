@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\AssessmentSubmissions\Schemas;
 
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
@@ -15,7 +16,7 @@ class AssessmentSubmissionForm
             ->components([
                 Placeholder::make('assessment.id')
                     ->label('Assessment')
-                    ->content(fn ($record): string => 'Assessment #'.(string) ($record?->assessment?->id ?? '-')),
+                    ->content(fn ($record): string => ($record?->assessment?->name ?? '') . ' (#' . (string) ($record?->assessment?->id ?? '-') . ')'),
                 Placeholder::make('user.name')
                     ->label('Student')
                     ->content(fn ($record): string => (string) ($record?->user?->name ?? '-')),
@@ -26,7 +27,26 @@ class AssessmentSubmissionForm
                     ->label('Submission Content')
                     ->rows(6)
                     ->disabled(),
-                TextInput::make('status')
+                Placeholder::make('submission_file')
+                    ->label('Uploaded File')
+                    ->content(fn ($record): string => $record?->file_path ? '<a href="' . asset('storage/' . $record->file_path) . '" target="_blank" style="color:#0e7490;text-decoration:underline;">View / Download</a>' : 'None')
+                    ->html(),
+                Placeholder::make('submission_link')
+                    ->label('Link')
+                    ->content(fn ($record): string => $record?->link ? '<a href="' . e($record->link) . '" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">' . e(\Illuminate\Support\Str::limit($record->link, 60)) . '</a>' : 'None')
+                    ->html(),
+                Placeholder::make('submission_video')
+                    ->label('Video URL')
+                    ->content(fn ($record): string => $record?->video_url ? '<a href="' . e($record->video_url) . '" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">' . e(\Illuminate\Support\Str::limit($record->video_url, 60)) . '</a>' : 'None')
+                    ->html(),
+                Select::make('status')
+                    ->label('Status')
+                    ->options([
+                        'Submitted' => 'Submitted',
+                        'Graded' => 'Graded',
+                        'Checked' => 'Checked',
+                        'Returned' => 'Returned',
+                    ])
                     ->required(),
                 TextInput::make('score')
                     ->numeric()
