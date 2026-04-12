@@ -59,7 +59,10 @@ class Assignment extends Model
         return $query
             ->whereIn('course_id', $enrolledCourseIds)
             ->where(function (Builder $builder) use ($userTrack): void {
-                $builder->whereNull('target_level');
+                $builder->where(function (Builder $q): void {
+                    $q->whereNull('target_level')
+                        ->whereNull('target_track');
+                });
 
                 if ($userTrack !== '') {
                     $builder
