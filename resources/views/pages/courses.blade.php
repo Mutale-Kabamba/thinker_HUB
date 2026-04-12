@@ -61,10 +61,45 @@
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
                 <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
                 >
+                    @php
+                        $courseImages = [
+                            'images/courses/computer.png',
+                            'images/courses/office.png',
+                            'images/courses/design.png',
+                            'images/courses/data.png',
+                            'images/courses/media_ai.png',
+                        ];
+
+                        $courseImageKeywords = [
+                            'images/courses/office.png' => ['office', 'excel', 'word', 'powerpoint'],
+                            'images/courses/design.png' => ['design', 'graphics', 'ui', 'ux', 'canva', 'photoshop'],
+                            'images/courses/data.png' => ['data', 'analytics', 'analysis', 'sql', 'power bi', 'tableau'],
+                            'images/courses/media_ai.png' => ['social', 'media', 'marketing', 'content', 'ai'],
+                            'images/courses/computer.png' => ['computer', 'digital', 'ict', 'literacy', 'fundamentals'],
+                        ];
+
+                        $resolveCourseImage = static function ($course) use ($courseImages, $courseImageKeywords): string {
+                            $searchText = strtolower(trim((string) ($course->title.' '.$course->code)));
+
+                            foreach ($courseImageKeywords as $imagePath => $keywords) {
+                                foreach ($keywords as $keyword) {
+                                    if (str_contains($searchText, $keyword)) {
+                                        return $imagePath;
+                                    }
+                                }
+                            }
+
+                            return $courseImages[abs(crc32((string) $course->id)) % count($courseImages)];
+                        };
+                    @endphp
+
                     @forelse ($courses as $course)
+                        @php
+                            $courseImage = $resolveCourseImage($course);
+                        @endphp
                         <article class="group bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-xl transition-all border border-slate-100">
                             <div class="relative h-52 overflow-hidden rounded-[1.5rem]">
-                                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Course image">
+                                <img src="{{ asset($courseImage) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="{{ $course->title }} image">
                                 <div class="absolute top-4 left-4 bg-yellow-400 text-[#0a2d27] text-[11px] font-bold px-4 py-1.5 rounded-full shadow-lg">ACTIVE</div>
                             </div>
                             <div class="px-3 py-6">
