@@ -3,11 +3,15 @@
 namespace App\Notifications;
 
 use App\Models\LearningMaterial;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class MaterialPublishedNotification extends Notification
+class MaterialPublishedNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(private readonly LearningMaterial $material)
     {
     }
@@ -26,10 +30,11 @@ class MaterialPublishedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('New Learning Material Available')
-            ->greeting('Hello '.$notifiable->name.',')
-            ->line('New learning material has been published: '.$this->material->title)
-            ->action('Open Dashboard', route('dashboard'));
+            ->subject('📚 New Material: '.$this->material->title)
+            ->markdown('emails.material-published', [
+                'material' => $this->material,
+                'notifiable' => $notifiable,
+            ]);
     }
 
     public function toArray(object $notifiable): array

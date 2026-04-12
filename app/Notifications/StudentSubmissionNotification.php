@@ -2,11 +2,15 @@
 
 namespace App\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class StudentSubmissionNotification extends Notification
+class StudentSubmissionNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(
         private readonly string $studentName,
         private readonly string $submissionType,
@@ -29,10 +33,13 @@ class StudentSubmissionNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Student Submission Received')
-            ->greeting('Hello '.$notifiable->name.',')
-            ->line($this->studentName.' submitted '.$this->submissionType.': '.$this->itemTitle)
-            ->action('Open Dashboard', route('dashboard'));
+            ->subject('📬 New Submission from '.$this->studentName)
+            ->markdown('emails.student-submission', [
+                'studentName' => $this->studentName,
+                'submissionType' => $this->submissionType,
+                'itemTitle' => $this->itemTitle,
+                'notifiable' => $notifiable,
+            ]);
     }
 
     public function toArray(object $notifiable): array
