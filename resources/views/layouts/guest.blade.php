@@ -25,8 +25,8 @@
             </div>
 
             <div class="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
-                <a href="{{ route('home') }}" class="mx-auto inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200">
-                    <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
+                <a href="{{ route('home') }}" class="mx-auto inline-flex items-center" aria-label="think.er HUB home">
+                    <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-16 w-auto">
                 </a>
 
                 <main class="mx-auto mt-6 flex w-full flex-1 items-center justify-center">
