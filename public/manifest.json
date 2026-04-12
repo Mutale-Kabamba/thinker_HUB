@@ -1,0 +1,22 @@
+{
+  "name": "Thinker HUB",
+  "short_name": "ThinkerHUB",
+  "description": "Learning platform for students and instructors.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0fdfa",
+  "theme_color": "#0e7490",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/images/logos/green_white.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/logos/green_white.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

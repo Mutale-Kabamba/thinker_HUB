@@ -21,14 +21,25 @@
                         </div>
                     </div>
 
-                    <div style="margin-top:0.75rem;">
-                        <textarea wire:model="submissionDrafts.{{ $assignment['id'] }}" class="hub-textarea" placeholder="Write your submission..."></textarea>
-                    </div>
+                    <!-- Assignment File View/Download -->
+                    @if (!empty($assignment['file_path']))
+                        <div style="margin-top:0.5rem;display:flex;gap:0.5rem;align-items:center;">
+                            <a href="{{ asset('storage/' . $assignment['file_path']) }}" target="_blank" class="hub-btn hub-btn-secondary">View</a>
+                            <a href="{{ asset('storage/' . $assignment['file_path']) }}" download class="hub-btn hub-btn-secondary">Download</a>
+                        </div>
+                    @endif
 
-                    <div style="margin-top:0.75rem;display:flex;gap:0.55rem;flex-wrap:wrap;">
-                        <button type="button" wire:click="submit({{ $assignment['id'] }})" class="hub-btn hub-btn-primary">Save / Submit</button>
-                        <button type="button" wire:click="removeSubmission({{ $assignment['id'] }})" class="hub-btn hub-btn-danger">Delete Submission</button>
-                    </div>
+                    <!-- Robust Submission Form -->
+                    <form wire:submit.prevent="submit({{ $assignment['id'] }})" enctype="multipart/form-data" style="margin-top:0.75rem;">
+                        <textarea wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.text" class="hub-textarea" placeholder="Write your submission..."></textarea>
+                        <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.link" class="hub-input" placeholder="Paste a link (optional)" style="margin-top:0.5rem;" />
+                        <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.video" class="hub-input" placeholder="Paste a video URL (optional)" style="margin-top:0.5rem;" />
+                        <input type="file" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.file" class="hub-input" style="margin-top:0.5rem;" accept=".pdf,.doc,.docx,.txt,.csv,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif" />
+                        <div style="margin-top:0.75rem;display:flex;gap:0.55rem;flex-wrap:wrap;">
+                            <button type="submit" class="hub-btn hub-btn-primary">Save / Submit</button>
+                            <button type="button" wire:click="removeSubmission({{ $assignment['id'] }})" class="hub-btn hub-btn-danger">Delete Submission</button>
+                        </div>
+                    </form>
                 </article>
             @empty
                 <section class="hub-card">
