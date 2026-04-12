@@ -19,6 +19,7 @@ use App\Policies\EnrollmentPolicy;
 use App\Policies\LearningMaterialPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -45,5 +46,42 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Assignment::class, AssignmentPolicy::class);
         Gate::policy(LearningMaterial::class, LearningMaterialPolicy::class);
         Gate::policy(Assessment::class, AssessmentPolicy::class);
+
+        $this->configureMailSslPeerName();
+    }
+
+    /**
+     * Override the SMTP transport SSL peer name when the hosting certificate
+     * does not match the mail hostname (common on Namecheap shared hosting).
+     */
+    private function configureMailSslPeerName(): void
+    {
+        $peerName = config('mail.mailers.smtp.tls.peer_name');
+
+        if (! $peerName) {
+            return;
+        }
+
+        $this->app->afterResolving('mail.manager', function ($manager) use ($peerName) {
+            try {
+                $transport = $manager->mailer('smtp')->getSymfonyTransport();
+
+                if (method_exists($transport, 'getStream')) {
+                    $stream = $transport->getStream();
+
+                    if (method_exists($stream, 'setStreamOptions')) {
+                        $stream->setStreamOptions([
+                            'ssl' => [
+                                'verify_peer' => true,
+                                'verify_peer_name' => true,
+                                'peer_name' => $peerName,
+                            ],
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Silently skip if transport not yet available.
+            }
+        });
     }
 }
