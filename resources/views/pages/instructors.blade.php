@@ -18,7 +18,7 @@
     <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
         <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
             <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-bold text-white shrink-0">
-                <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-16 w-auto">
+                <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
             </a>
 
             <nav class="hidden md:flex items-center gap-10 text-[13px] font-semibold uppercase tracking-wider text-slate-300">
@@ -105,7 +105,7 @@
             <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
                     <div>
                         <div class="flex items-center justify-center gap-3 lg:justify-start">
-                            <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-16 w-auto">
+                            <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
                         </div>
                         <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
                             Thinker Hub empowers learners with practical, career-focused courses designed to turn knowledge into measurable results.
