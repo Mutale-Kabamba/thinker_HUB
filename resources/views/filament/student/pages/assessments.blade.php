@@ -131,8 +131,8 @@
     </div>
 
     {{-- File Viewer Modal --}}
-    <div x-show="viewerOpen" x-cloak x-transition.opacity style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);" @keydown.escape.window="closeViewer()">
-        <div @click.away="closeViewer()" style="background:#fff;border-radius:12px;width:90vw;max-width:900px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+    <div x-show="viewerOpen" x-cloak x-transition.opacity style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,0.7);" @keydown.escape.window="closeViewer()">
+        <div @click.away="closeViewer()" style="background:#fff;border-radius:12px;width:90vw;max-width:900px;max-height:90vh;margin:auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;border-bottom:1px solid #e5e7eb;">
                 <p style="margin:0;font-size:0.9rem;font-weight:600;color:#1f2937;" x-text="viewerName"></p>
                 <button @click="closeViewer()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#6b7280;line-height:1;" title="Close">&times;</button>
