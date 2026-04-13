@@ -56,7 +56,7 @@
                     @if (!empty($assessment['file_path']))
                         <div style="margin-top:0.65rem;padding:0.65rem 0.85rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:10px;display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;">
                             <span style="font-size:0.82rem;font-weight:600;color:var(--hub-ink);">📎 Assessment File:</span>
-                            <button type="button" @click="openViewer(@js(Storage::disk('public')->url($assessment['file_path'])), @js($assessment['name'] . '.' . pathinfo($assessment['file_path'], PATHINFO_EXTENSION)))" class="hub-btn hub-btn-secondary" style="font-size:0.78rem;padding:0.3rem 0.75rem;">View</button>
+                            <button type="button" @click="openViewer(@js('/storage/' . $assessment['file_path']), @js($assessment['name'] . '.' . pathinfo($assessment['file_path'], PATHINFO_EXTENSION)))" class="hub-btn hub-btn-secondary" style="font-size:0.78rem;padding:0.3rem 0.75rem;">View</button>
                             <button type="button" wire:click="downloadFile({{ $assessment['id'] }})" class="hub-btn hub-btn-secondary" style="font-size:0.78rem;padding:0.3rem 0.75rem;">Download</button>
                         </div>
                     @endif
@@ -91,7 +91,7 @@
                             <div style="margin-top:0.65rem;padding:0.65rem 0.85rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:10px;">
                                 <p style="margin:0 0 0.35rem;font-size:0.8rem;font-weight:600;color:var(--hub-ink);">Your Submitted Attachments</p>
                                 @if (!empty($assessment['submission']['file']))
-                                    <p style="margin:0.2rem 0;font-size:0.8rem;">📄 <a href="#" @click.prevent="openViewer(@js(Storage::disk('public')->url($assessment['submission']['file'])), @js('Submission.' . pathinfo($assessment['submission']['file'], PATHINFO_EXTENSION)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">View uploaded file</a></p>
+                                    <p style="margin:0.2rem 0;font-size:0.8rem;">📄 <a href="#" @click.prevent="openViewer(@js('/storage/' . $assessment['submission']['file']), @js('Submission.' . pathinfo($assessment['submission']['file'], PATHINFO_EXTENSION)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">View uploaded file</a></p>
                                 @endif
                                 @if (!empty($assessment['submission']['link']))
                                     <p style="margin:0.2rem 0;font-size:0.8rem;">🔗 <a href="{{ $assessment['submission']['link'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assessment['submission']['link'], 60) }}</a></p>
