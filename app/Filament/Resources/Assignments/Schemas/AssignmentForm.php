@@ -7,8 +7,8 @@ use App\Models\User;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
 class AssignmentForm
@@ -77,6 +77,7 @@ class AssignmentForm
 
                 FileUpload::make('file_path')
                     ->label('File Upload')
+                    ->disk('public')
                     ->directory('assignments')
                     ->acceptedFileTypes([
                         'application/pdf',
