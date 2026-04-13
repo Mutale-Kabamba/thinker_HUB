@@ -9,10 +9,13 @@ use App\Notifications\StudentSubmissionNotification;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Assignments extends Page
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
     protected static ?int $navigationSort = 3;
 
@@ -36,6 +39,7 @@ class Assignments extends Page
         $assignment = Assignment::query()->visibleTo($user)->whereKey($assignmentId)->first();
         if (! $assignment) {
             Notification::make()->title('Assignment not available.')->danger()->send();
+
             return;
         }
         $draft = $this->submissionDrafts[$assignmentId] ?? [];
@@ -85,6 +89,36 @@ class Assignments extends Page
 
         Notification::make()->title('Submission deleted.')->success()->send();
         $this->refreshAssignments();
+    }
+
+    public function downloadFile(int $assignmentId): ?StreamedResponse
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        $assignment = Assignment::query()->visibleTo($user)->whereKey($assignmentId)->first();
+
+        if (! $assignment || empty($assignment->file_path)) {
+            Notification::make()->title('File not available.')->danger()->send();
+
+            return null;
+        }
+
+        $disk = Storage::disk('public');
+
+        if (! $disk->exists($assignment->file_path)) {
+            Notification::make()->title('File not found.')->danger()->send();
+
+            return null;
+        }
+
+        $extension = pathinfo($assignment->file_path, PATHINFO_EXTENSION);
+        $downloadName = Str::slug($assignment->name) . '.' . $extension;
+
+        return $disk->download($assignment->file_path, $downloadName);
     }
 
     protected function refreshAssignments(): void

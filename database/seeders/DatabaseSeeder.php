@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Course;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -16,12 +17,24 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'role' => 'admin',
+            'track' => 'Beginner',
+        ]);
+
+        User::factory()->create([
+            'name' => 'Student User',
+            'email' => 'student@example.com',
             'role' => 'student',
             'track' => 'Intermediate',
         ]);
 
-        $this->call(DemoDataSeeder::class);
+        Course::create([
+            'title' => 'Introduction to Web Development',
+            'code' => 'WEB101',
+            'description' => 'A beginner-friendly course covering HTML, CSS, and JavaScript fundamentals.',
+            'is_active' => true,
+        ]);
     }
 }
