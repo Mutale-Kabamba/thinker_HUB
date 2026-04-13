@@ -295,4 +295,80 @@
         color: #fca5a5;
         border-color: #7f1d1d;
     }
+
+    /* ============================================================ */
+    /* GLOBAL MOBILE RESPONSIVE UTILITIES                           */
+    /* ============================================================ */
+    .hub-desktop-only { display: block; }
+    .hub-mobile-only  { display: none; }
+
+    @media (max-width: 768px) {
+        .hub-desktop-only { display: none !important; }
+        .hub-mobile-only  { display: block !important; }
+
+        /* Stack grid items vertically on mobile */
+        .hub-grid-3 > .hub-card[style*="grid-column: span 2"] {
+            grid-column: span 1 !important;
+        }
+
+        /* Make hub-table scroll horizontal on mobile */
+        .hub-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        /* Tighter padding on cards */
+        .hub-card { padding: 0.65rem 0.75rem; }
+
+        /* Hub links wrap nicely */
+        .hub-links { gap: 0.3rem; }
+        .hub-links .hub-btn { font-size: 0.7rem; padding: 0.35rem 0.55rem; }
+
+        /* Calendar day cells */
+        .hub-day { font-size: 0.62rem; padding: 0.22rem 0; }
+    }
+
+    /* Mobile card for replacing tables on small screens */
+    .hub-mobile-card {
+        border: 1px solid var(--hub-border);
+        border-radius: 10px;
+        padding: 0.7rem 0.85rem;
+        background: var(--hub-card);
+        margin-bottom: 0.5rem;
+    }
+
+    .hub-mobile-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .hub-mobile-card-meta {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.4rem;
+        font-size: 0.78rem;
+        flex-wrap: wrap;
+    }
+
+    .hub-mobile-card-actions {
+        display: flex;
+        gap: 0.35rem;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .hub-action-btn {
+        background: none;
+        border: 1px solid var(--hub-border);
+        border-radius: 6px;
+        padding: 0.3rem 0.65rem;
+        font-size: 0.75rem;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .hub-span-2 { grid-column: span 2; }
+
+    @media (max-width: 768px) {
+        .hub-span-2 { grid-column: span 1 !important; }
+    }
 </style>

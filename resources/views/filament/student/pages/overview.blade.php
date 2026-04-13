@@ -67,7 +67,7 @@
             </div>
 
             <div class="hub-grid hub-grid-3">
-                <section class="hub-card" style="grid-column: span 2;">
+                <section class="hub-card hub-span-2">
                     <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">
                         <h3 class="hub-title">Upcoming Timeline</h3>
                         <span class="hub-chip hub-chip-amber">Next Due: {{ $stats['next_due'] ?? '-' }}</span>
@@ -293,7 +293,7 @@
                     </div>
                     <a href="{{ route('filament.student.pages.assessments') }}" class="hub-btn hub-btn-primary" style="font-size:0.8rem;">View All Assessments</a>
                 </div>
-                <div style="overflow:auto;margin-top:0.75rem;">
+                <div class="hub-desktop-only" style="overflow:auto;margin-top:0.75rem;">
                     <table class="hub-table">
                         <thead>
                             <tr>
@@ -325,6 +325,25 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="hub-mobile-only" style="margin-top:0.75rem;">
+                    @forelse (($assessmentSummary['items'] ?? []) as $item)
+                        <a href="{{ route('filament.student.pages.assessments') }}" class="hub-mobile-card" style="text-decoration:none;display:block;">
+                            <div class="hub-mobile-card-row">
+                                <div style="flex:1;min-width:0;">
+                                    <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $item['name'] ?? 'Assessment' }}</p>
+                                    <p style="margin:0.1rem 0 0;font-size:0.74rem;color:var(--hub-muted);">{{ $item['course'] }}</p>
+                                </div>
+                                <span class="hub-chip {{ ($item['submission_status'] ?? '') === 'Submitted' ? 'hub-chip-green' : 'hub-chip-amber' }}" style="font-size:0.68rem;flex-shrink:0;">{{ $item['submission_status'] }}</span>
+                            </div>
+                            <div class="hub-mobile-card-meta">
+                                <span style="color:var(--hub-muted);"><strong>Due:</strong> {{ $item['due_date'] ?? '-' }}</span>
+                                <span style="color:var(--hub-muted);"><strong>Score:</strong> {{ $item['score'] }}</span>
+                            </div>
+                        </a>
+                    @empty
+                        <p class="hub-copy">No assessments yet.</p>
+                    @endforelse
+                </div>
             </section>
         </section>
 
@@ -338,7 +357,7 @@
                     </div>
                     <a href="{{ route('filament.student.pages.materials') }}" class="hub-btn hub-btn-primary" style="font-size:0.8rem;">View All Materials</a>
                 </div>
-                <div style="overflow:auto;margin-top:0.75rem;">
+                <div class="hub-desktop-only" style="overflow:auto;margin-top:0.75rem;">
                     <table class="hub-table">
                         <thead>
                             <tr>
@@ -361,6 +380,21 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="hub-mobile-only" style="margin-top:0.75rem;">
+                    @forelse ($materials as $item)
+                        <a href="{{ route('filament.student.pages.materials') }}" class="hub-mobile-card" style="text-decoration:none;display:block;">
+                            <div class="hub-mobile-card-row">
+                                <div style="flex:1;min-width:0;">
+                                    <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $item['name'] }}</p>
+                                    <p style="margin:0.1rem 0 0;font-size:0.74rem;color:var(--hub-muted);">{{ $item['course'] }}</p>
+                                </div>
+                                <span class="hub-chip hub-chip-primary" style="font-size:0.68rem;flex-shrink:0;">{{ $item['type'] }}</span>
+                            </div>
+                        </a>
+                    @empty
+                        <p class="hub-copy">No materials yet.</p>
+                    @endforelse
                 </div>
             </section>
         </section>
