@@ -157,6 +157,7 @@ class Assignments extends Page
                 'status' => $submissions->get($item->id)?->status ?? 'Not submitted',
                 'submitted_at' => optional($submissions->get($item->id)?->submitted_at)?->format('Y-m-d H:i') ?: '-',
                 'submission' => [
+                    'id' => $submissions->get($item->id)?->id,
                     'text' => $submissions->get($item->id)?->content ?? '',
                     'file' => $submissions->get($item->id)?->file_path ?? null,
                     'link' => $submissions->get($item->id)?->link ?? null,

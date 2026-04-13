@@ -253,6 +253,34 @@ Route::middleware('auth')->group(function () {
         Route::redirect('/assessments', '/manage/assessments')->name('assessments');
         Route::redirect('/materials', '/manage/learning-materials')->name('materials');
     });
+
+    // Serve files from storage without requiring the storage:link symlink.
+    Route::get('/file/view/{type}/{id}', function (string $type, int $id) {
+        $user = Auth::user();
+        if (! $user) {
+            abort(403);
+        }
+
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+
+        if ($type === 'assignment') {
+            $assignment = \App\Models\Assignment::query()->visibleTo($user)->findOrFail($id);
+            $path = $assignment->file_path;
+        } elseif ($type === 'submission') {
+            $submission = \App\Models\AssignmentSubmission::query()
+                ->where('user_id', $user->id)
+                ->findOrFail($id);
+            $path = $submission->file_path;
+        } else {
+            abort(404);
+        }
+
+        if (! $path || ! $disk->exists($path)) {
+            abort(404);
+        }
+
+        return $disk->response($path);
+    })->name('file.view');
 });
 
 require __DIR__.'/auth.php';
