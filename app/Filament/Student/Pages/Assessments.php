@@ -9,10 +9,12 @@ use App\Notifications\StudentSubmissionNotification;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Assessments extends Page
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-check-badge';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-check-badge';
 
     protected static ?int $navigationSort = 4;
 
@@ -36,6 +38,7 @@ class Assessments extends Page
         $assessment = Assessment::query()->where('user_id', $user->id)->whereKey($assessmentId)->first();
         if (! $assessment) {
             Notification::make()->title('Assessment not available.')->danger()->send();
+
             return;
         }
         $draft = $this->submissionDrafts[$assessmentId] ?? [];
@@ -85,6 +88,33 @@ class Assessments extends Page
 
         Notification::make()->title('Submission deleted.')->success()->send();
         $this->refreshAssessments();
+    }
+
+    public function downloadFile(int $assessmentId): ?StreamedResponse
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        $assessment = Assessment::query()->where('user_id', $user->id)->whereKey($assessmentId)->first();
+
+        if (! $assessment || empty($assessment->file_path)) {
+            Notification::make()->title('File not available.')->danger()->send();
+
+            return null;
+        }
+
+        $disk = Storage::disk('public');
+
+        if (! $disk->exists($assessment->file_path)) {
+            Notification::make()->title('File not found.')->danger()->send();
+
+            return null;
+        }
+
+        return $disk->download($assessment->file_path);
     }
 
     protected function refreshAssessments(): void
