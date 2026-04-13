@@ -61,6 +61,16 @@ class AssignmentSubmissionsTable
 
                         return 'gray';
                     }),
+                TextColumn::make('attachments_indicator')
+                    ->label('Attachments')
+                    ->getStateUsing(function ($record): string {
+                        $parts = [];
+                        if ($record->file_path) { $parts[] = '📄 File'; }
+                        if ($record->link) { $parts[] = '🔗 Link'; }
+                        if ($record->video_url) { $parts[] = '🎬 Video'; }
+                        return $parts ? implode(', ', $parts) : '-';
+                    })
+                    ->toggleable(),
                 TextColumn::make('grade')
                     ->numeric()
                     ->sortable(),

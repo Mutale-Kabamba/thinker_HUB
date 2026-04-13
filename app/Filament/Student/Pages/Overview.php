@@ -28,6 +28,8 @@ class Overview extends Page
 
     public array $calendar = [];
 
+    public array $calendarEvents = [];
+
     public array $upcoming = [];
 
     public array $assignmentSummary = [];
@@ -160,27 +162,117 @@ class Overview extends Page
                 ->all(),
         ];
 
-        $monthStart = $today->copy()->startOfMonth();
+        $this->loadCalendar(Carbon::today());
+    }
+
+    public function navigateCalendar(int $year, int $month): void
+    {
+        $date = Carbon::createFromDate($year, $month, 1);
+        $this->loadCalendar($date);
+    }
+
+    protected function loadCalendar(Carbon $reference): void
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $monthStart = $reference->copy()->startOfMonth();
+        $monthEnd = $reference->copy()->endOfMonth();
         $daysInMonth = $monthStart->daysInMonth;
-        $dueMap = $visibleAssignments
-            ->filter(fn (Assignment $item): bool => (bool) $item->due_date && $item->due_date->isSameMonth($today))
-            ->groupBy(fn (Assignment $item): string => $item->due_date->format('Y-m-d'));
+        $today = Carbon::today();
+
+        $visibleAssignments = Assignment::query()
+            ->with('course')
+            ->visibleTo($user)
+            ->get();
+
+        $assessmentRecords = Assessment::query()
+            ->with('course')
+            ->visibleTo($user)
+            ->get();
+
+        $assignmentSubmissions = AssignmentSubmission::query()
+            ->where('user_id', $user->id)
+            ->get()
+            ->keyBy('assignment_id');
+
+        $assessmentSubmissions = AssessmentSubmission::query()
+            ->where('user_id', $user->id)
+            ->get()
+            ->keyBy('assessment_id');
+
+        $assignmentDueMap = $visibleAssignments
+            ->filter(fn (Assignment $a): bool => (bool) $a->due_date && $a->due_date->between($monthStart, $monthEnd))
+            ->groupBy(fn (Assignment $a): string => $a->due_date->format('Y-m-d'));
+
+        $assessmentDueMap = $assessmentRecords
+            ->filter(fn (Assessment $a): bool => (bool) $a->due_date && $a->due_date->between($monthStart, $monthEnd))
+            ->groupBy(fn (Assessment $a): string => $a->due_date->format('Y-m-d'));
 
         $days = [];
+        $events = [];
 
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $date = $monthStart->copy()->day($day);
             $key = $date->format('Y-m-d');
+
+            $dayAssignments = $assignmentDueMap->get($key, collect());
+            $dayAssessments = $assessmentDueMap->get($key, collect());
+            $hasItems = $dayAssignments->isNotEmpty() || $dayAssessments->isNotEmpty();
+
             $days[] = [
                 'day' => $day,
+                'date' => $key,
                 'is_today' => $date->isToday(),
-                'has_due' => $dueMap->has($key),
+                'is_past' => $date->lt($today),
+                'has_due' => $hasItems,
+                'assignment_count' => $dayAssignments->count(),
+                'assessment_count' => $dayAssessments->count(),
+                'due_names' => $dayAssignments->pluck('name')->merge($dayAssessments->pluck('name'))->filter()->values()->all(),
             ];
+
+            if ($hasItems) {
+                $items = [];
+
+                foreach ($dayAssignments as $a) {
+                    $sub = $assignmentSubmissions->get($a->id);
+                    $items[] = [
+                        'type' => 'Assignment',
+                        'name' => $a->name,
+                        'course' => $a->course?->title ?? 'Unassigned',
+                        'status' => $sub?->status ?? 'Not submitted',
+                        'grade' => $sub?->grade,
+                    ];
+                }
+
+                foreach ($dayAssessments as $a) {
+                    $sub = $assessmentSubmissions->get($a->id);
+                    $items[] = [
+                        'type' => 'Assessment',
+                        'name' => $a->name ?: 'Assessment',
+                        'course' => $a->course?->title ?? 'Unassigned',
+                        'status' => $sub?->status ?? 'Not submitted',
+                        'grade' => $sub?->score,
+                    ];
+                }
+
+                $events[$key] = $items;
+            }
         }
 
         $this->calendar = [
-            'month' => $today->format('F Y'),
+            'month' => $reference->format('F Y'),
+            'month_num' => (int) $reference->format('m'),
+            'year' => (int) $reference->format('Y'),
+            'start_day' => $monthStart->dayOfWeek,
             'days' => $days,
+            'prev' => ['year' => (int) $reference->copy()->subMonth()->format('Y'), 'month' => (int) $reference->copy()->subMonth()->format('m')],
+            'next' => ['year' => (int) $reference->copy()->addMonth()->format('Y'), 'month' => (int) $reference->copy()->addMonth()->format('m')],
         ];
+
+        $this->calendarEvents = $events;
     }
 }

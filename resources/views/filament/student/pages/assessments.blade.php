@@ -4,6 +4,8 @@
         viewerUrl: '',
         viewerName: '',
         viewerType: '',
+        expanded: null,
+        panel: null,
         openViewer(url, name) {
             this.viewerUrl = url;
             this.viewerName = name;
@@ -14,125 +16,160 @@
             else this.viewerType = 'other';
             this.viewerOpen = true;
         },
-        closeViewer() {
-            this.viewerOpen = false;
-            this.viewerUrl = '';
+        closeViewer() { this.viewerOpen = false; this.viewerUrl = ''; },
+        toggle(id, p) {
+            if (this.expanded === id && this.panel === p) { this.expanded = null; this.panel = null; }
+            else { this.expanded = id; this.panel = p; }
         }
     }">
     <div class="hub-shell">
-        <section class="hub-card">
+        <section class="hub-card" style="padding:0.75rem 1rem;">
             <p class="hub-eyebrow">Assessment Workspace</p>
-            <h2 class="hub-title">Assessments</h2>
-            <p class="hub-copy">View assessment details, download files, submit your responses, and review grades &amp; feedback.</p>
+            <h2 class="hub-title" style="font-size:1.05rem;">Assessments</h2>
+            <p class="hub-copy" style="margin-top:0.2rem;">View details, download files, submit responses, and review grades.</p>
         </section>
 
-        <div class="hub-stack">
-            @forelse ($assessments as $assessment)
-                <article class="hub-card">
-                    {{-- Header --}}
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem;flex-wrap:wrap;">
-                        <div>
-                            <h3 class="hub-title">{{ $assessment['name'] }}</h3>
-                            <p class="hub-copy">Course: {{ $assessment['course'] }} | Due: {{ $assessment['due_date'] }}</p>
-                        </div>
-                        <div style="text-align:right;">
-                            <span class="hub-chip
-                                @if(in_array($assessment['submission_status'], ['Graded','Checked'])) hub-chip-green
-                                @elseif($assessment['submission_status'] === 'Submitted') hub-chip-blue
-                                @else hub-chip-amber @endif
-                            ">{{ $assessment['submission_status'] }}</span>
-                        </div>
-                    </div>
+        {{-- Compact Table --}}
+        <div class="hub-card" style="padding:0;overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+                <thead>
+                    <tr style="background:var(--hub-surface);border-bottom:2px solid var(--hub-border);">
+                        <th style="padding:0.6rem 0.75rem;text-align:left;font-weight:700;color:var(--hub-ink);font-size:0.74rem;text-transform:uppercase;letter-spacing:0.04em;">Assessment</th>
+                        <th style="padding:0.6rem 0.5rem;text-align:left;font-weight:700;color:var(--hub-ink);font-size:0.74rem;text-transform:uppercase;letter-spacing:0.04em;">Due</th>
+                        <th style="padding:0.6rem 0.5rem;text-align:center;font-weight:700;color:var(--hub-ink);font-size:0.74rem;text-transform:uppercase;letter-spacing:0.04em;">Status</th>
+                        <th style="padding:0.6rem 0.5rem;text-align:center;font-weight:700;color:var(--hub-ink);font-size:0.74rem;text-transform:uppercase;letter-spacing:0.04em;">Score</th>
+                        <th style="padding:0.6rem 0.75rem;text-align:right;font-weight:700;color:var(--hub-ink);font-size:0.74rem;text-transform:uppercase;letter-spacing:0.04em;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($assessments as $assessment)
+                        {{-- Table Row --}}
+                        <tr style="border-bottom:1px solid var(--hub-border);transition:background 0.1s;" onmouseover="this.style.background='var(--hub-surface)'" onmouseout="this.style.background=''">
+                            <td style="padding:0.55rem 0.75rem;">
+                                <p style="margin:0;font-weight:600;color:var(--hub-ink);">{{ $assessment['name'] }}</p>
+                                <p style="margin:0.15rem 0 0;font-size:0.74rem;color:var(--hub-muted);">{{ $assessment['course'] }}</p>
+                            </td>
+                            <td style="padding:0.55rem 0.5rem;color:var(--hub-muted);white-space:nowrap;">{{ $assessment['due_date'] }}</td>
+                            <td style="padding:0.55rem 0.5rem;text-align:center;">
+                                <span class="hub-chip {{ in_array($assessment['submission_status'], ['Graded','Checked']) ? 'hub-chip-green' : ($assessment['submission_status'] === 'Submitted' ? 'hub-chip-blue' : 'hub-chip-amber') }}" style="font-size:0.7rem;">{{ $assessment['submission_status'] }}</span>
+                            </td>
+                            <td style="padding:0.55rem 0.5rem;text-align:center;font-weight:700;color:{{ ($assessment['score'] !== null && $assessment['score'] !== '-') ? '#15803d' : 'var(--hub-muted)' }};">{{ ($assessment['score'] !== null && $assessment['score'] !== '-') ? $assessment['score'] . '%' : '-' }}</td>
+                            <td style="padding:0.55rem 0.75rem;text-align:right;">
+                                <div style="display:flex;gap:0.35rem;justify-content:flex-end;flex-wrap:wrap;">
+                                    @if (!empty($assessment['file_path']))
+                                        <button type="button" @click="openViewer(@js('/storage/' . $assessment['file_path']), @js($assessment['name'] . '.' . pathinfo($assessment['file_path'], PATHINFO_EXTENSION)))" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View file">View</button>
+                                        <button type="button" wire:click="downloadFile({{ $assessment['id'] }})" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#6d28d9;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Download file">Download</button>
+                                    @endif
+                                    <button type="button" @click="toggle({{ $assessment['id'] }}, 'submit')" :style="expanded === {{ $assessment['id'] }} && panel === 'submit' ? 'background:#0d9488;color:#fff;border-color:#0d9488;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0d9488;font-weight:600;transition:all 0.15s;" title="Submit work">Submit</button>
+                                    <button type="button" @click="toggle({{ $assessment['id'] }}, 'details')" :style="expanded === {{ $assessment['id'] }} && panel === 'details' ? 'background:#475569;color:#fff;border-color:#475569;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#475569;font-weight:600;transition:all 0.15s;" title="View details">Details</button>
+                                </div>
+                            </td>
+                        </tr>
 
-                    {{-- Description --}}
-                    @if (!empty($assessment['description']))
-                        <div style="margin-top:0.65rem;padding:0.65rem 0.85rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:10px;">
-                            <p style="margin:0;font-size:0.84rem;font-weight:600;color:var(--hub-ink);">Description</p>
-                            <p style="margin:0.3rem 0 0;font-size:0.82rem;color:var(--hub-muted);white-space:pre-line;">{{ $assessment['description'] }}</p>
-                        </div>
-                    @endif
-
-                    {{-- Assessment File: View / Download --}}
-                    @if (!empty($assessment['file_path']))
-                        <div style="margin-top:0.65rem;padding:0.65rem 0.85rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:10px;display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;">
-                            <span style="font-size:0.82rem;font-weight:600;color:var(--hub-ink);">📎 Assessment File:</span>
-                            <button type="button" @click="openViewer(@js(Storage::disk('public')->url($assessment['file_path'])), @js($assessment['name'] . '.' . pathinfo($assessment['file_path'], PATHINFO_EXTENSION)))" class="hub-btn hub-btn-secondary" style="font-size:0.78rem;padding:0.3rem 0.75rem;">View</button>
-                            <button type="button" wire:click="downloadFile({{ $assessment['id'] }})" class="hub-btn hub-btn-secondary" style="font-size:0.78rem;padding:0.3rem 0.75rem;">Download</button>
-                        </div>
-                    @endif
-
-                    {{-- Score & Feedback --}}
-                    @if (in_array($assessment['submission_status'], ['Graded', 'Checked']))
-                        <div style="margin-top:0.65rem;padding:0.75rem 0.85rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;">
-                            <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;">
-                                @if ($assessment['score'] !== null && $assessment['score'] !== '-')
-                                    <div>
-                                        <p style="margin:0;font-size:0.76rem;font-weight:600;color:#166534;text-transform:uppercase;letter-spacing:0.05em;">Score</p>
-                                        <p style="margin:0.15rem 0 0;font-size:1.3rem;font-weight:800;color:#15803d;">{{ $assessment['score'] }}%</p>
+                        {{-- Expandable Details Panel --}}
+                        <tr x-show="expanded === {{ $assessment['id'] }} && panel === 'details'" x-cloak x-collapse>
+                            <td colspan="5" style="padding:0;">
+                                <div style="padding:0.85rem 1rem;background:var(--hub-surface);border-bottom:2px solid var(--hub-border);">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                                        <h4 style="margin:0;font-size:0.88rem;font-weight:700;color:var(--hub-ink);">{{ $assessment['name'] }}</h4>
+                                        <button @click="expanded = null; panel = null;" style="background:none;border:none;cursor:pointer;color:var(--hub-muted);font-size:1.1rem;line-height:1;" title="Close">&times;</button>
                                     </div>
-                                @endif
-                                <div>
-                                    <p style="margin:0;font-size:0.76rem;font-weight:600;color:#166534;text-transform:uppercase;letter-spacing:0.05em;">Status</p>
-                                    <p style="margin:0.15rem 0 0;font-size:0.9rem;font-weight:600;color:#15803d;">{{ $assessment['submission_status'] }}</p>
-                                </div>
-                            </div>
-                            @if (!empty($assessment['feedback']))
-                                <div style="margin-top:0.6rem;border-top:1px solid #bbf7d0;padding-top:0.6rem;">
-                                    <p style="margin:0;font-size:0.76rem;font-weight:600;color:#166534;text-transform:uppercase;letter-spacing:0.05em;">Instructor Feedback</p>
-                                    <p style="margin:0.3rem 0 0;font-size:0.84rem;color:#14532d;white-space:pre-line;">{{ $assessment['feedback'] }}</p>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
 
-                    {{-- Previous Submission Info --}}
-                    @if ($assessment['submission_status'] !== 'Not submitted')
-                        @if (!empty($assessment['submission']['file']) || !empty($assessment['submission']['link']) || !empty($assessment['submission']['video']))
-                            <div style="margin-top:0.65rem;padding:0.65rem 0.85rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:10px;">
-                                <p style="margin:0 0 0.35rem;font-size:0.8rem;font-weight:600;color:var(--hub-ink);">Your Submitted Attachments</p>
-                                @if (!empty($assessment['submission']['file']))
-                                    <p style="margin:0.2rem 0;font-size:0.8rem;">📄 <a href="#" @click.prevent="openViewer(@js(Storage::disk('public')->url($assessment['submission']['file'])), @js('Submission.' . pathinfo($assessment['submission']['file'], PATHINFO_EXTENSION)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">View uploaded file</a></p>
-                                @endif
-                                @if (!empty($assessment['submission']['link']))
-                                    <p style="margin:0.2rem 0;font-size:0.8rem;">🔗 <a href="{{ $assessment['submission']['link'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assessment['submission']['link'], 60) }}</a></p>
-                                @endif
-                                @if (!empty($assessment['submission']['video']))
-                                    <p style="margin:0.2rem 0;font-size:0.8rem;">🎬 <a href="{{ $assessment['submission']['video'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assessment['submission']['video'], 60) }}</a></p>
-                                @endif
-                            </div>
-                        @endif
-                    @endif
+                                    @if (!empty($assessment['description']))
+                                        <div style="padding:0.55rem 0.75rem;background:#fff;border:1px solid var(--hub-border);border-radius:8px;margin-bottom:0.5rem;">
+                                            <p style="margin:0;font-size:0.76rem;font-weight:600;color:var(--hub-ink);text-transform:uppercase;letter-spacing:0.03em;">Description</p>
+                                            <p style="margin:0.25rem 0 0;font-size:0.82rem;color:var(--hub-muted);white-space:pre-line;">{{ $assessment['description'] }}</p>
+                                        </div>
+                                    @endif
 
-                    {{-- Submission Form (submit / resubmit) --}}
-                    <div style="margin-top:0.75rem;border-top:1px solid var(--hub-border);padding-top:0.75rem;">
-                        <p style="margin:0 0 0.5rem;font-size:0.82rem;font-weight:700;color:var(--hub-ink);">
-                            {{ $assessment['submission_status'] === 'Not submitted' ? 'Submit Your Work' : 'Resubmit / Update' }}
-                        </p>
-                        <textarea wire:model.defer="submissionDrafts.{{ $assessment['id'] }}.text" class="hub-textarea" placeholder="Write your assessment response..."></textarea>
-                        <input type="url" wire:model.defer="submissionDrafts.{{ $assessment['id'] }}.link" class="hub-input" placeholder="Paste a link (optional)" style="margin-top:0.5rem;" />
-                        <input type="url" wire:model.defer="submissionDrafts.{{ $assessment['id'] }}.video" class="hub-input" placeholder="Paste a video URL — YouTube, Vimeo, etc. (optional)" style="margin-top:0.5rem;" />
-                        <input type="file" wire:model="submissionDrafts.{{ $assessment['id'] }}.file" class="hub-input" style="margin-top:0.5rem;" accept=".pdf,.doc,.docx,.txt,.csv,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif,.pptx,.xlsx" />
-                        <div style="margin-top:0.75rem;display:flex;gap:0.55rem;flex-wrap:wrap;">
-                            <button type="button" wire:click="submit({{ $assessment['id'] }})" class="hub-btn hub-btn-primary">
-                                {{ $assessment['submission_status'] === 'Not submitted' ? 'Submit' : 'Resubmit' }}
-                            </button>
-                            @if ($assessment['submission_status'] !== 'Not submitted')
-                                <button type="button" wire:click="removeSubmission({{ $assessment['id'] }})" class="hub-btn hub-btn-danger">Delete Submission</button>
-                            @endif
-                        </div>
-                    </div>
-                </article>
-            @empty
-                <section class="hub-card">
-                    <p class="hub-copy">No assessments available.</p>
-                </section>
-            @endforelse
+                                    {{-- Score & Feedback --}}
+                                    @if (in_array($assessment['submission_status'], ['Graded', 'Checked']))
+                                        <div style="padding:0.55rem 0.75rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:0.5rem;">
+                                            <div style="display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap;">
+                                                @if ($assessment['score'] !== null && $assessment['score'] !== '-')
+                                                    <div>
+                                                        <p style="margin:0;font-size:0.7rem;font-weight:600;color:#166534;text-transform:uppercase;">Score</p>
+                                                        <p style="margin:0;font-size:1.15rem;font-weight:800;color:#15803d;">{{ $assessment['score'] }}%</p>
+                                                    </div>
+                                                @endif
+                                                <div>
+                                                    <p style="margin:0;font-size:0.7rem;font-weight:600;color:#166534;text-transform:uppercase;">Status</p>
+                                                    <p style="margin:0;font-size:0.84rem;font-weight:600;color:#15803d;">{{ $assessment['submission_status'] }}</p>
+                                                </div>
+                                            </div>
+                                            @if (!empty($assessment['feedback']))
+                                                <div style="margin-top:0.45rem;border-top:1px solid #bbf7d0;padding-top:0.45rem;">
+                                                    <p style="margin:0;font-size:0.7rem;font-weight:600;color:#166534;text-transform:uppercase;">Feedback</p>
+                                                    <p style="margin:0.2rem 0 0;font-size:0.82rem;color:#14532d;white-space:pre-line;">{{ $assessment['feedback'] }}</p>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                    {{-- Submitted Attachments --}}
+                                    @if ($assessment['submission_status'] !== 'Not submitted')
+                                        @if (!empty($assessment['submission']['file']) || !empty($assessment['submission']['link']) || !empty($assessment['submission']['video']))
+                                            <div style="padding:0.55rem 0.75rem;background:#fff;border:1px solid var(--hub-border);border-radius:8px;margin-bottom:0.5rem;">
+                                                <p style="margin:0 0 0.3rem;font-size:0.76rem;font-weight:600;color:var(--hub-ink);text-transform:uppercase;letter-spacing:0.03em;">Your Submission</p>
+                                                @if (!empty($assessment['submission']['file']))
+                                                    <p style="margin:0.15rem 0;font-size:0.8rem;">📄 <a href="#" @click.prevent="openViewer(@js('/storage/' . $assessment['submission']['file']), @js('Submission.' . pathinfo($assessment['submission']['file'], PATHINFO_EXTENSION)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">View uploaded file</a></p>
+                                                @endif
+                                                @if (!empty($assessment['submission']['link']))
+                                                    <p style="margin:0.15rem 0;font-size:0.8rem;">🔗 <a href="{{ $assessment['submission']['link'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assessment['submission']['link'], 60) }}</a></p>
+                                                @endif
+                                                @if (!empty($assessment['submission']['video']))
+                                                    <p style="margin:0.15rem 0;font-size:0.8rem;">🎬 <a href="{{ $assessment['submission']['video'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assessment['submission']['video'], 60) }}</a></p>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+
+                        {{-- Expandable Submit Panel --}}
+                        <tr x-show="expanded === {{ $assessment['id'] }} && panel === 'submit'" x-cloak x-collapse>
+                            <td colspan="5" style="padding:0;">
+                                <div style="padding:0.85rem 1rem;background:var(--hub-surface);border-bottom:2px solid var(--hub-border);">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                                        <h4 style="margin:0;font-size:0.88rem;font-weight:700;color:var(--hub-ink);">
+                                            {{ $assessment['submission_status'] === 'Not submitted' ? 'Submit Work' : 'Resubmit / Update' }} — {{ $assessment['name'] }}
+                                        </h4>
+                                        <button @click="expanded = null; panel = null;" style="background:none;border:none;cursor:pointer;color:var(--hub-muted);font-size:1.1rem;line-height:1;" title="Close">&times;</button>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;gap:0.45rem;">
+                                        <textarea wire:model.defer="submissionDrafts.{{ $assessment['id'] }}.text" class="hub-textarea" placeholder="Write your assessment response..." style="min-height:80px;font-size:0.82rem;"></textarea>
+                                        <input type="url" wire:model.defer="submissionDrafts.{{ $assessment['id'] }}.link" class="hub-input" placeholder="Paste a link (optional)" style="font-size:0.82rem;" />
+                                        <input type="url" wire:model.defer="submissionDrafts.{{ $assessment['id'] }}.video" class="hub-input" placeholder="Paste a video URL — YouTube, Vimeo, etc. (optional)" style="font-size:0.82rem;" />
+                                        <input type="file" wire:model="submissionDrafts.{{ $assessment['id'] }}.file" class="hub-input" style="font-size:0.82rem;" accept=".pdf,.doc,.docx,.txt,.csv,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif,.pptx,.xlsx" />
+                                    </div>
+                                    <div style="margin-top:0.6rem;display:flex;gap:0.45rem;flex-wrap:wrap;">
+                                        <button type="button" wire:click="submit({{ $assessment['id'] }})" class="hub-btn hub-btn-primary" style="font-size:0.8rem;padding:0.35rem 1rem;">
+                                            {{ $assessment['submission_status'] === 'Not submitted' ? 'Submit' : 'Resubmit' }}
+                                        </button>
+                                        @if ($assessment['submission_status'] !== 'Not submitted')
+                                            <button type="button" wire:click="removeSubmission({{ $assessment['id'] }})" class="hub-btn hub-btn-danger" style="font-size:0.8rem;padding:0.35rem 1rem;">Delete Submission</button>
+                                        @endif
+                                        <button type="button" @click="expanded = null; panel = null;" class="hub-btn hub-btn-secondary" style="font-size:0.8rem;padding:0.35rem 1rem;">Cancel</button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" style="padding:1.5rem;text-align:center;">
+                                <p class="hub-copy">No assessments available.</p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
     {{-- File Viewer Modal --}}
-    <div x-show="viewerOpen" x-cloak x-transition.opacity style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);" @keydown.escape.window="closeViewer()">
-        <div @click.away="closeViewer()" style="background:#fff;border-radius:12px;width:90vw;max-width:900px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+    <div x-show="viewerOpen" x-cloak x-transition.opacity style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,0.7);" @keydown.escape.window="closeViewer()">
+        <div @click.away="closeViewer()" style="background:#fff;border-radius:12px;width:90vw;max-width:900px;max-height:90vh;margin:auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;border-bottom:1px solid #e5e7eb;">
                 <p style="margin:0;font-size:0.9rem;font-weight:600;color:#1f2937;" x-text="viewerName"></p>
                 <button @click="closeViewer()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#6b7280;line-height:1;" title="Close">&times;</button>

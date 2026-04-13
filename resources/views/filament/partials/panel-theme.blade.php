@@ -233,6 +233,9 @@
 
     .hub-day-today { background: #0f766e; color: #fff; border-color: #115e59; }
     .hub-day-due { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+    .hub-day-past { opacity: 0.45; }
+    .hub-day-selected { outline: 2px solid #3b82f6; outline-offset: 1px; border-radius: 8px; }
+    .hub-day:hover { background: var(--hub-surface); }
 
     /* Keep admin data tables denser and closer to Filament compact layout. */
     .fi-panel-admin .hub-table {
