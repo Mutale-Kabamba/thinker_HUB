@@ -266,8 +266,16 @@ Route::middleware('auth')->group(function () {
         if ($type === 'assignment') {
             $assignment = \App\Models\Assignment::query()->visibleTo($user)->findOrFail($id);
             $path = $assignment->file_path;
+        } elseif ($type === 'assessment') {
+            $assessment = \App\Models\Assessment::query()->where('user_id', $user->id)->findOrFail($id);
+            $path = $assessment->file_path;
         } elseif ($type === 'submission') {
             $submission = \App\Models\AssignmentSubmission::query()
+                ->where('user_id', $user->id)
+                ->findOrFail($id);
+            $path = $submission->file_path;
+        } elseif ($type === 'assessment-submission') {
+            $submission = \App\Models\AssessmentSubmission::query()
                 ->where('user_id', $user->id)
                 ->findOrFail($id);
             $path = $submission->file_path;

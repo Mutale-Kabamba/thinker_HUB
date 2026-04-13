@@ -1,12 +1,4 @@
 <x-filament-panels::page>
-    <style>
-        .assign-desktop { display: block; }
-        .assign-mobile { display: none; }
-        @media (max-width: 768px) {
-            .assign-desktop { display: none !important; }
-            .assign-mobile { display: block !important; }
-        }
-    </style>
 
     <div x-data="{
         viewerOpen: false,
@@ -41,7 +33,7 @@
         {{-- ============================================================ --}}
         {{-- DESKTOP TABLE (hidden on mobile) --}}
         {{-- ============================================================ --}}
-        <div class="hub-card assign-desktop" style="padding:0;overflow:hidden;">
+        <div class="hub-card hub-desktop-only" style="padding:0;overflow:hidden;">
             <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
                 <thead>
                     <tr style="background:var(--hub-surface);border-bottom:2px solid var(--hub-border);">
@@ -182,7 +174,7 @@
         {{-- ============================================================ --}}
         {{-- MOBILE CARDS (hidden on desktop) --}}
         {{-- ============================================================ --}}
-        <div class="assign-mobile">
+        <div class="hub-mobile-only">
             @forelse ($assignments as $assignment)
                 <div class="hub-card" style="padding:0.75rem 1rem;margin-bottom:0.65rem;">
                     {{-- Header: name + status chip --}}

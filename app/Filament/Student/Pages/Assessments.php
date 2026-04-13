@@ -147,6 +147,8 @@ class Assessments extends Page
                 'updated_at' => $item->updated_at?->format('Y-m-d') ?? '-',
                 'submission_status' => $submissions->get($item->id)?->status ?? 'Not submitted',
                 'submission' => [
+                    'id' => $submissions->get($item->id)?->id,
+                    'id' => $submissions->get($item->id)?->id,
                     'text' => $submissions->get($item->id)?->content ?? '',
                     'file' => $submissions->get($item->id)?->file_path ?? null,
                     'link' => $submissions->get($item->id)?->link ?? null,
