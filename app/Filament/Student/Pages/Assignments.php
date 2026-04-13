@@ -10,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Assignments extends Page
@@ -114,7 +115,10 @@ class Assignments extends Page
             return null;
         }
 
-        return $disk->download($assignment->file_path);
+        $extension = pathinfo($assignment->file_path, PATHINFO_EXTENSION);
+        $downloadName = Str::slug($assignment->name) . '.' . $extension;
+
+        return $disk->download($assignment->file_path, $downloadName);
     }
 
     protected function refreshAssignments(): void
