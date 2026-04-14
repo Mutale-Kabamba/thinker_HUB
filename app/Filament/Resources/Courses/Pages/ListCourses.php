@@ -33,6 +33,7 @@ class ListCourses extends ListRecords
                         ->disk('local')
                         ->directory('imports/courses')
                         ->acceptedFileTypes(['application/json', 'text/json'])
+                        ->maxSize(2048)
                         ->required(),
                 ])
                 ->action(function (array $data): void {

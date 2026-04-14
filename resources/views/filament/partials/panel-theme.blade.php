@@ -334,10 +334,12 @@
     /* ============================================================ */
     /* GLOBAL MOBILE RESPONSIVE UTILITIES                           */
     /* ============================================================ */
-    .hub-desktop-only { display: none !important; }
-    .hub-mobile-only  { display: block !important; }
+    .hub-desktop-only { display: block !important; }
+    .hub-mobile-only  { display: none !important; }
 
     @media (max-width: 768px) {
+        .hub-desktop-only { display: none !important; }
+        .hub-mobile-only  { display: block !important; }
 
         /* Stack grid items vertically on mobile */
         .hub-grid-3 > .hub-card[style*="grid-column: span 2"] {
@@ -356,6 +358,56 @@
 
         /* Calendar day cells */
         .hub-day { font-size: 0.62rem; padding: 0.22rem 0; }
+
+        /* Material filters: stack vertically on mobile */
+        .hub-filter-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.5rem !important;
+        }
+
+        .hub-filter-row select {
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        /* Mobile card improvements */
+        .hub-mobile-card {
+            padding: 0.85rem 1rem;
+        }
+
+        .hub-mobile-card-actions {
+            gap: 0.25rem;
+        }
+
+        .hub-action-btn {
+            font-size: 0.7rem;
+            padding: 0.28rem 0.5rem;
+        }
+
+        /* Admin stat widgets responsive */
+        .hub-stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.5rem !important;
+        }
+
+        .hub-stats-grid .hub-card {
+            padding: 0.6rem 0.7rem;
+        }
+
+        .hub-metric {
+            font-size: 1.1rem;
+        }
+
+        /* Filament built-in table responsiveness */
+        .fi-ta-table {
+            font-size: 0.72rem;
+        }
+
+        .fi-ta-header-cell,
+        .fi-ta-cell {
+            padding: 0.35rem 0.4rem !important;
+        }
     }
 
     /* Mobile card for replacing tables on small screens */
@@ -404,7 +456,6 @@
     @media (max-width: 768px) {
         .hub-span-2 { grid-column: span 1 !important; }
     }
-
     /* ============================================================ */
     /* NOTIFICATION BELL                                             */
     /* ============================================================ */

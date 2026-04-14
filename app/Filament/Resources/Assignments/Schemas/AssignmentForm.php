@@ -79,6 +79,7 @@ class AssignmentForm
                     ->label('File Upload')
                     ->disk('public')
                     ->directory('assignments')
+                    ->maxSize(10240)
                     ->acceptedFileTypes([
                         'application/pdf',
                         'application/msword',

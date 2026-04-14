@@ -132,7 +132,7 @@ class Assessments extends Page
         $submissions = AssessmentSubmission::query()->where('user_id', $user->id)->get()->keyBy('assessment_id');
 
         $this->assessments = Assessment::query()
-            ->with('course')
+            ->with(['course', 'quiz'])
             ->where('user_id', $user->id)
             ->latest()
             ->get()
@@ -146,8 +146,9 @@ class Assessments extends Page
                 'due_date' => $item->due_date?->format('Y-m-d') ?? '-',
                 'updated_at' => $item->updated_at?->format('Y-m-d') ?? '-',
                 'submission_status' => $submissions->get($item->id)?->status ?? 'Not submitted',
+                'has_quiz' => $item->quiz !== null && $item->quiz->is_active,
+                'quiz_id' => $item->quiz?->id,
                 'submission' => [
-                    'id' => $submissions->get($item->id)?->id,
                     'id' => $submissions->get($item->id)?->id,
                     'text' => $submissions->get($item->id)?->content ?? '',
                     'file' => $submissions->get($item->id)?->file_path ?? null,
