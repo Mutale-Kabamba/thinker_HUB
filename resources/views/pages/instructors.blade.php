@@ -60,27 +60,35 @@
 
         <section class="py-20 lg:py-24">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
-                <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                    @foreach ([
-                        ['name' => 'Grace Ibekwe', 'specialty' => 'Frontend Engineering', 'image' => 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=800'],
-                        ['name' => 'Daniel Moyo', 'specialty' => 'Data Analytics', 'image' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=800'],
-                        ['name' => 'Amara Bassey', 'specialty' => 'Product Design', 'image' => 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&q=80&w=800'],
-                        ['name' => 'Ifeoma Nnadi', 'specialty' => 'Cloud Foundations', 'image' => 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&q=80&w=800'],
-                        ['name' => 'Kola Adeyemi', 'specialty' => 'Backend Development', 'image' => 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=800'],
-                        ['name' => 'Miriam Okafor', 'specialty' => 'Digital Marketing', 'image' => 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=800'],
-                    ] as $instructor)
-                        <article class="group bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-xl transition-all border border-slate-100">
-                            <div class="relative h-64 overflow-hidden rounded-[1.5rem]">
-                                <img src="{{ $instructor['image'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="{{ $instructor['name'] }}">
-                            </div>
-                            <div class="px-3 py-6">
-                                <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">Instructor</p>
-                                <h3 class="mt-2 text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors">{{ $instructor['name'] }}</h3>
-                                <p class="mt-3 text-sm text-slate-600">{{ $instructor['specialty'] }}</p>
-                            </div>
-                        </article>
-                    @endforeach
-                </div>
+                @if ($instructors->isNotEmpty())
+                    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                        @foreach ($instructors as $instructor)
+                            <article class="group bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-xl transition-all border border-slate-100">
+                                <div class="relative h-64 overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-teal-50 to-slate-100 flex items-center justify-center">
+                                    @if ($instructor->profile_photo_path)
+                                        <img src="{{ asset('storage/' . $instructor->profile_photo_path) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="{{ $instructor->name }}">
+                                    @else
+                                        <div class="w-24 h-24 rounded-full bg-teal-100 flex items-center justify-center">
+                                            <span class="text-3xl font-bold text-teal-600">{{ strtoupper(substr($instructor->name, 0, 2)) }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="px-3 py-6">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">Instructor</p>
+                                    <h3 class="mt-2 text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors">{{ $instructor->name }}</h3>
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-12">
+                        <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-chalkboard-user text-2xl text-slate-400"></i>
+                        </div>
+                        <p class="text-slate-500 font-medium">Our instructor team is being assembled.</p>
+                        <p class="mt-2 text-sm text-slate-400">Want to be the first? Apply below!</p>
+                    </div>
+                @endif
             </div>
         </section>
 
@@ -93,7 +101,7 @@
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                         <a href="{{ route('register') }}" class="rounded-full bg-yellow-400 px-8 py-4 font-bold text-[#0a2d27] hover:bg-white transition-all text-center">ENROLL NOW</a>
-                        <a href="{{ route('landing.courses') }}" class="rounded-full border border-white/20 px-8 py-4 font-bold text-white hover:bg-white/10 transition-all text-center">Courses</a>
+                        <a href="{{ route('landing.instructors.apply') }}" class="rounded-full border border-white/20 px-8 py-4 font-bold text-white hover:bg-white/10 transition-all text-center">Apply as Instructor</a>
                     </div>
                 </div>
                 <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 rounded-full -mr-20 -mt-20"></div>

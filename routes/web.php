@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\InstructorApplicationController;
 use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -162,7 +163,23 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
     ]);
 })->whereNumber('course')->name('landing.courses.show');
 
-Route::view('/instructors', 'pages.instructors')->name('landing.instructors');
+Route::get('/instructors', function () {
+    $instructors = collect();
+    try {
+        if (Schema::hasTable('users')) {
+            $instructors = User::query()
+                ->where('role', 'instructor')
+                ->get(['id', 'name', 'profile_photo_path']);
+        }
+    } catch (\Throwable $e) {
+        report($e);
+    }
+
+    return view('pages.instructors', ['instructors' => $instructors]);
+})->name('landing.instructors');
+
+Route::get('/instructors/apply', [InstructorApplicationController::class, 'create'])->name('landing.instructors.apply');
+Route::post('/instructors/apply', [InstructorApplicationController::class, 'store'])->name('landing.instructors.apply.store');
 
 Route::view('/contact', 'pages.contact')->name('landing.contact');
 
