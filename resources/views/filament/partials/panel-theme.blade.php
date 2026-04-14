@@ -170,7 +170,7 @@
     .hub-stack { display: grid; gap: 0.55rem; }
 
     .hub-top-search {
-        width: 220px;
+        width: 100%;
         border: 1px solid var(--hub-border);
         border-radius: 999px;
         padding: 0.38rem 0.68rem;
@@ -179,20 +179,55 @@
         color: var(--hub-ink);
     }
 
-    .hub-top-search-wrap { display: none; }
+    /* Combined search + notification group */
+    .hub-top-bar-group {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.5rem;
+    }
 
+    .hub-top-search-form {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Mobile: search+notif centered, profile pushed right */
+    @media (max-width: 899px) {
+        .hub-top-bar-group {
+            flex: 1;
+            min-width: 0;
+            gap: 0.25rem;
+            padding: 0 0.25rem;
+        }
+
+        .hub-top-search {
+            width: 100%;
+            font-size: 0.72rem;
+            padding: 0.32rem 0.55rem;
+        }
+
+        /* Reorder: push profile (fi-topbar-end) to the far right */
+        .fi-topbar > .fi-topbar-end {
+            order: 99;
+            margin-inline-start: 0;
+            flex-shrink: 0;
+        }
+    }
+
+    /* Desktop: centre the group in the topbar */
     @media (min-width: 900px) {
         .fi-topbar {
             position: relative;
         }
 
-        .hub-top-search-wrap {
-            display: block;
+        .hub-top-bar-group {
             position: absolute;
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
             z-index: 20;
+            padding: 0;
         }
 
         .hub-top-search {
@@ -299,12 +334,10 @@
     /* ============================================================ */
     /* GLOBAL MOBILE RESPONSIVE UTILITIES                           */
     /* ============================================================ */
-    .hub-desktop-only { display: block; }
-    .hub-mobile-only  { display: none; }
+    .hub-desktop-only { display: none !important; }
+    .hub-mobile-only  { display: block !important; }
 
     @media (max-width: 768px) {
-        .hub-desktop-only { display: none !important; }
-        .hub-mobile-only  { display: block !important; }
 
         /* Stack grid items vertically on mobile */
         .hub-grid-3 > .hub-card[style*="grid-column: span 2"] {
@@ -370,5 +403,65 @@
 
     @media (max-width: 768px) {
         .hub-span-2 { grid-column: span 1 !important; }
+    }
+
+    /* ============================================================ */
+    /* NOTIFICATION BELL                                             */
+    /* ============================================================ */
+    .hub-notif-bell:hover { color: var(--hub-ink); }
+    .hub-notif-bell:focus { outline: 2px solid var(--hub-primary); outline-offset: 2px; border-radius: 6px; }
+
+    /* Close button row — hidden on desktop */
+    .hub-notif-close-row { display: none; }
+
+    /* Desktop: overlay is just a positioner, no backdrop */
+    .hub-notif-overlay {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        z-index: 100;
+    }
+
+    .hub-notif-panel {
+        width: 340px;
+        max-height: 420px;
+        background: var(--hub-card);
+        border: 1px solid var(--hub-border);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Mobile: overlay becomes fullscreen backdrop with centered panel */
+    @media (max-width: 899px) {
+        .hub-notif-close-row {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0.5rem 0.75rem 0;
+        }
+
+        .hub-notif-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.45);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hub-notif-panel {
+            width: calc(100% - 2rem);
+            max-width: 380px;
+            max-height: 75vh;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+            z-index: 9999;
+        }
     }
 </style>
