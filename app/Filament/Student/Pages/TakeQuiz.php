@@ -57,6 +57,15 @@ class TakeQuiz extends Page
             return;
         }
 
+        // Verify the student has access to this quiz's assessment
+        $assessment = $quiz->assessment;
+        if (! $assessment || $assessment->user_id !== $user->id) {
+            Notification::make()->title('You are not authorized to take this quiz.')->danger()->send();
+            $this->redirect(route('filament.student.pages.assessments'));
+
+            return;
+        }
+
         // Check if user has an existing completed attempt
         $existingAttempt = QuizAttempt::query()
             ->where('quiz_id', $quiz->id)

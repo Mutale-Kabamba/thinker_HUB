@@ -229,9 +229,15 @@ Route::get('/dashboard', function () {
     $email = strtolower((string) $user?->email);
     $isAdmin = $user?->role === 'admin' || $email === $adminEmail;
 
-    return $isAdmin
-    ? redirect()->route('filament.admin.pages.dashboard')
-        : redirect()->route('filament.student.pages.overview');
+    if ($isAdmin) {
+        return redirect()->route('filament.admin.pages.dashboard');
+    }
+
+    if ($user?->role === 'instructor') {
+        return redirect('/teach/instructor-overview');
+    }
+
+    return redirect()->route('filament.student.pages.overview');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -287,7 +293,11 @@ Route::middleware('auth')->group(function () {
             $assignment = \App\Models\Assignment::query()->visibleTo($user)->findOrFail($id);
             $path = $assignment->file_path;
         } elseif ($type === 'assessment') {
-            $assessment = \App\Models\Assessment::query()->where('user_id', $user->id)->findOrFail($id);
+            if ($user->isAdmin()) {
+                $assessment = \App\Models\Assessment::query()->findOrFail($id);
+            } else {
+                $assessment = \App\Models\Assessment::query()->where('user_id', $user->id)->findOrFail($id);
+            }
             $path = $assessment->file_path;
         } elseif ($type === 'submission') {
             $submission = \App\Models\AssignmentSubmission::query()

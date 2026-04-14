@@ -79,6 +79,7 @@ class AssessmentForm
                     ->label('File Upload')
                     ->disk('public')
                     ->directory('assessments')
+                    ->maxSize(10240)
                     ->acceptedFileTypes([
                         'application/pdf',
                         'application/msword',
