@@ -1,22 +1,39 @@
+const CACHE_NAME = 'thinkerhub-v2';
+const PRECACHE_URLS = [
+  '/',
+  '/manifest.json',
+  '/images/logos/green_white.png',
+  '/images/logos/icon_green.png',
+];
+
 self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE_URLS))
+  );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.open('thinkerhub-v1').then(cache => {
-      return cache.match(event.request).then(response => {
-        return response || fetch(event.request).then(networkResponse => {
-          if (event.request.method === 'GET' && networkResponse.status === 200) {
-            cache.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
-        });
-      });
-    })
+    fetch(event.request)
+      .then(response => {
+        if (response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request).then(r => r || caches.match('/')))
   );
 });

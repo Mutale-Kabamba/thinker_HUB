@@ -53,6 +53,10 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => view('filament.partials.panel-theme')->render(),
             )
             ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => view('partials.pwa-register')->render(),
+            )
+            ->renderHook(
                 PanelsRenderHook::TOPBAR_END,
                 fn (): string => view('filament.partials.top-search', [
                     'action' => route('filament.admin.pages.search'),
