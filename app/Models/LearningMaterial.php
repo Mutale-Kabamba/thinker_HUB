@@ -14,12 +14,16 @@ class LearningMaterial extends Model
     protected $fillable = [
         'course_id',
         'title',
+        'category',
+        'description',
         'material_type',
         'scope',
         'target_track',
         'target_user_id',
         'link_url',
+        'video_url',
         'file_name',
+        'file_path',
     ];
 
     public function targetUser(): BelongsTo

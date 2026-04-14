@@ -263,7 +263,10 @@ Route::middleware('auth')->group(function () {
 
         $disk = \Illuminate\Support\Facades\Storage::disk('public');
 
-        if ($type === 'assignment') {
+        if ($type === 'material') {
+            $material = \App\Models\LearningMaterial::query()->visibleTo($user)->findOrFail($id);
+            $path = $material->file_path;
+        } elseif ($type === 'assignment') {
             $assignment = \App\Models\Assignment::query()->visibleTo($user)->findOrFail($id);
             $path = $assignment->file_path;
         } elseif ($type === 'assessment') {
