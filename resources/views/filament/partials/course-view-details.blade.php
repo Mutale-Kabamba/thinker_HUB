@@ -26,25 +26,14 @@
                     @endif
                 </div>
 
-                <div class="mt-3 overflow-hidden rounded-xl border border-indigo-200 bg-white">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-indigo-100/80 text-indigo-800">
-                            <tr>
-                                <th class="px-3 py-2 font-semibold uppercase tracking-wide">Level</th>
-                                <th class="px-3 py-2 font-semibold uppercase tracking-wide">Amount</th>
-                                <th class="px-3 py-2 font-semibold uppercase tracking-wide">Duration</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($section['rows'] as $row)
-                                <tr class="border-t border-indigo-100">
-                                    <td class="px-3 py-2 font-medium text-gray-800">{{ $row['level'] !== '' ? $row['level'] : '-' }}</td>
-                                    <td class="px-3 py-2 font-semibold text-indigo-700">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</td>
-                                    <td class="px-3 py-2 text-gray-600">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <div class="mt-3 space-y-2">
+                    @foreach ($section['rows'] as $row)
+                        <div class="flex items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-white px-3 py-2">
+                            <span class="text-xs font-medium text-gray-800">{{ $row['level'] !== '' ? $row['level'] : '-' }}</span>
+                            <span class="text-xs font-semibold text-indigo-700">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</span>
+                            <span class="text-xs text-gray-600">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</span>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         @empty

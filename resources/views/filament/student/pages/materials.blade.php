@@ -34,6 +34,7 @@
                 <select wire:model.live="filterCategory" class="hub-input" style="max-width:180px;font-size:0.8rem;padding:0.3rem 0.5rem;">
                     <option value="">All Categories</option>
                     <option value="Curriculum">Curriculum</option>
+                    <option value="Study Material">Study Material</option>
                     <option value="Rules">Rules</option>
                     <option value="General Notices">General Notices</option>
                 </select>

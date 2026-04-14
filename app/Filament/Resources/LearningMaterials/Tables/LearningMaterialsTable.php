@@ -26,6 +26,7 @@ class LearningMaterialsTable
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'Curriculum' => 'primary',
+                        'Study Material' => 'success',
                         'Rules' => 'danger',
                         'General Notices' => 'warning',
                         default => 'gray',
@@ -68,6 +69,7 @@ class LearningMaterialsTable
                 SelectFilter::make('category')
                     ->options([
                         'Curriculum' => 'Curriculum',
+                        'Study Material' => 'Study Material',
                         'Rules' => 'Rules',
                         'General Notices' => 'General Notices',
                     ]),

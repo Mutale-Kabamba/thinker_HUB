@@ -25,6 +25,7 @@ class LearningMaterialForm
                     ->required()
                     ->options([
                         'Curriculum' => 'Curriculum',
+                        'Study Material' => 'Study Material',
                         'Rules' => 'Rules',
                         'General Notices' => 'General Notices',
                     ])
