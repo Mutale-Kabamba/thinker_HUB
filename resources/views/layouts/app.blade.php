@@ -16,6 +16,7 @@
     <link href="https://fonts.bunny.net/css?family=sora:400,500,600,700,800|space-grotesk:500,700&display=swap" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.pwa-register')
 </head>
 <body class="font-sans antialiased bg-slate-100 text-slate-900">
     @php
