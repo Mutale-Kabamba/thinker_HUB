@@ -47,6 +47,7 @@ class StudentSubmissionNotification extends Notification
             'message' => $this->studentName.' submitted '.$this->submissionType.': '.$this->itemTitle,
             'submission_type' => $this->submissionType,
             'item_id' => $this->itemId,
+            'url' => '/teach/instructor-overview',
         ];
     }
 }
