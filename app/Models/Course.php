@@ -74,4 +74,19 @@ class Course extends Model
     {
         return $this->hasMany(CourseSession::class);
     }
+
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(CourseRating::class);
+    }
+
+    public function averageRating(): float
+    {
+        return round((float) $this->ratings()->avg('rating'), 1);
+    }
+
+    public function ratingsCount(): int
+    {
+        return (int) $this->ratings()->count();
+    }
 }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InstructorApplicationController;
 use App\Models\Course;
+use App\Models\CourseRating;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +28,8 @@ $loadPublicCourses = static function (int $limit = 0) {
         $query = Course::query()
             ->where('is_active', true)
             ->withCount('enrollments')
+            ->withAvg('ratings', 'rating')
+            ->withCount('ratings')
             ->latest();
 
         if ($limit > 0) {
@@ -141,6 +144,11 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
     }
 
     $courseModel = Course::query()->where('is_active', true)->findOrFail($course);
+    $courseModel->loadAvg('ratings', 'rating');
+    $courseModel->loadCount('ratings');
+    $courseModel->load(['ratings' => function ($q) {
+        $q->with('user:id,name,profile_photo_path')->latest()->limit(10);
+    }]);
     $canonicalSlug = $courseSlug($courseModel);
     $relatedCourses = Course::query()
         ->where('is_active', true)
@@ -162,6 +170,30 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
         'relatedCourses' => $relatedCourses,
     ]);
 })->whereNumber('course')->name('landing.courses.show');
+
+Route::post('/courses/{course}/rate', function (Request $request, int $course) use ($databaseReady) {
+    if (! $databaseReady()) {
+        abort(404);
+    }
+
+    $courseModel = Course::query()->where('is_active', true)->findOrFail($course);
+    $user = auth()->user();
+
+    abort_unless($user, 403);
+    abort_unless($user->courses()->where('courses.id', $courseModel->id)->exists(), 403, 'You must be enrolled to rate this course.');
+
+    $validated = $request->validate([
+        'rating' => 'required|integer|min:1|max:5',
+        'review' => 'nullable|string|max:1000',
+    ]);
+
+    CourseRating::updateOrCreate(
+        ['course_id' => $courseModel->id, 'user_id' => $user->id],
+        ['rating' => $validated['rating'], 'review' => $validated['review']],
+    );
+
+    return redirect()->back()->with('success', 'Your review has been saved!');
+})->middleware('auth')->name('course.rate');
 
 Route::get('/instructors', function () {
     $instructors = collect();
