@@ -30,6 +30,20 @@ class InstructorApplicationsTable
                         default => 'gray',
                     })
                     ->sortable(),
+                TextColumn::make('proposal_type')
+                    ->label('Proposal')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'new' => 'info',
+                        'existing' => 'success',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'new' => 'New Course',
+                        'existing' => 'Existing Course',
+                        default => 'Legacy',
+                    })
+                    ->sortable(),
                 TextColumn::make('preferredCourse.title')
                     ->label('Preferred Course')
                     ->placeholder('Not specified')

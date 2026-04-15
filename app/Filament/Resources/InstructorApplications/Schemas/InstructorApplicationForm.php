@@ -55,18 +55,76 @@ class InstructorApplicationForm
                     ]),
 
                 Section::make('Course Proposal')
+                    ->columns(2)
                     ->schema([
+                        TextInput::make('proposal_type')
+                            ->label('Proposal Type')
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->formatStateUsing(fn ($state) => $state === 'new' ? 'New Course' : 'Existing Course'),
+
+                        // Existing course fields
+                        TextInput::make('preferredCourse.title')
+                            ->label('Selected Course')
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposal_type === 'existing'),
+
+                        Textarea::make('motivation_note')
+                            ->label('Motivation Note')
+                            ->disabled()
+                            ->rows(5)
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposal_type === 'existing'),
+
+                        Textarea::make('competence_note')
+                            ->label('Competence Note')
+                            ->disabled()
+                            ->rows(5)
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposal_type === 'existing'),
+
+                        TextInput::make('roadmap_path')
+                            ->label('Roadmap PDF')
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposal_type === 'existing' && $record?->roadmap_path),
+
+                        // New course fields
+                        TextInput::make('proposed_course_name')
+                            ->label('Proposed Course Name')
+                            ->disabled()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new'),
+
+                        TextInput::make('teaching_location')
+                            ->label('Teaching Location')
+                            ->disabled()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new'),
+
+                        TextInput::make('full_roadmap_path')
+                            ->label('Full Roadmap PDF')
+                            ->disabled()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new' && $record?->full_roadmap_path),
+
+                        TextInput::make('curriculum_path')
+                            ->label('Curriculum PDF')
+                            ->disabled()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new' && $record?->curriculum_path),
+
+                        // Legacy fields (for older applications)
                         Textarea::make('course_concept_note')
                             ->label('Concept Note')
                             ->disabled()
                             ->rows(5)
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->course_concept_note && !$record?->proposal_type),
 
                         Textarea::make('proposed_curriculum')
                             ->label('Proposed Curriculum / Roadmap')
                             ->disabled()
                             ->rows(5)
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposed_curriculum && !$record?->proposal_type),
                     ]),
 
                 Section::make('Review Decision')

@@ -145,26 +145,92 @@
                         </div>
 
                         {{-- Course Proposal --}}
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100" x-data="{ proposalType: '{{ old('proposal_type', '') }}' }">
                             <h2 class="text-lg font-bold text-slate-900 mb-4"><i class="fa-solid fa-lightbulb text-teal-600 mr-2"></i>Course Proposal</h2>
                             <div class="space-y-4">
+
+                                {{-- Proposal Type Selection --}}
                                 <div>
-                                    <label for="preferred_course_id" class="block text-sm font-semibold text-slate-700 mb-1">Preferred Course (if existing)</label>
-                                    <select id="preferred_course_id" name="preferred_course_id" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500">
-                                        <option value="">-- Select or propose a new course --</option>
-                                        @foreach ($courses as $id => $title)
-                                            <option value="{{ $id }}" {{ old('preferred_course_id') == $id ? 'selected' : '' }}>{{ $title }}</option>
-                                        @endforeach
-                                    </select>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Proposal Type *</label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <label class="relative flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all"
+                                               :class="proposalType === 'existing' ? 'border-teal-500 bg-teal-50 text-teal-700' : 'border-slate-200 hover:border-slate-300'">
+                                            <input type="radio" name="proposal_type" value="existing" x-model="proposalType" class="sr-only">
+                                            <i class="fa-solid fa-book text-sm"></i>
+                                            <span class="text-sm font-semibold">Existing Course</span>
+                                        </label>
+                                        <label class="relative flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all"
+                                               :class="proposalType === 'new' ? 'border-teal-500 bg-teal-50 text-teal-700' : 'border-slate-200 hover:border-slate-300'">
+                                            <input type="radio" name="proposal_type" value="new" x-model="proposalType" class="sr-only">
+                                            <i class="fa-solid fa-plus text-sm"></i>
+                                            <span class="text-sm font-semibold">New Course</span>
+                                        </label>
+                                    </div>
+                                    @error('proposal_type') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                                 </div>
-                                <div>
-                                    <label for="course_concept_note" class="block text-sm font-semibold text-slate-700 mb-1">Course Concept Note / Roadmap *</label>
-                                    <textarea id="course_concept_note" name="course_concept_note" rows="6" required class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Describe your course concept, learning objectives, target audience, and teaching methodology...">{{ old('course_concept_note') }}</textarea>
-                                </div>
-                                <div>
-                                    <label for="proposed_curriculum" class="block text-sm font-semibold text-slate-700 mb-1">Proposed Curriculum *</label>
-                                    <textarea id="proposed_curriculum" name="proposed_curriculum" rows="6" required class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Outline the weekly curriculum (Week 1: ..., Week 2: ...) or module breakdown...">{{ old('proposed_curriculum') }}</textarea>
-                                </div>
+
+                                {{-- EXISTING COURSE FIELDS --}}
+                                <template x-if="proposalType === 'existing'">
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="preferred_course_id" class="block text-sm font-semibold text-slate-700 mb-1">Select Course *</label>
+                                            <select id="preferred_course_id" name="preferred_course_id" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500">
+                                                <option value="">-- Choose a course --</option>
+                                                @foreach ($courses as $id => $title)
+                                                    <option value="{{ $id }}" {{ old('preferred_course_id') == $id ? 'selected' : '' }}>{{ $title }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('preferred_course_id') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                        </div>
+                                        <div>
+                                            <label for="motivation_note" class="block text-sm font-semibold text-slate-700 mb-1">Motivation Note * <span class="font-normal text-slate-400">(max 250 words)</span></label>
+                                            <textarea id="motivation_note" name="motivation_note" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Explain why you want to teach this course and what motivates you...">{{ old('motivation_note') }}</textarea>
+                                            @error('motivation_note') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                        </div>
+                                        <div>
+                                            <label for="competence_note" class="block text-sm font-semibold text-slate-700 mb-1">Competence Note * <span class="font-normal text-slate-400">(max 250 words)</span></label>
+                                            <textarea id="competence_note" name="competence_note" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Describe your competence and expertise relevant to this course...">{{ old('competence_note') }}</textarea>
+                                            @error('competence_note') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                        </div>
+                                        <div>
+                                            <label for="roadmap" class="block text-sm font-semibold text-slate-700 mb-1">Course Roadmap (PDF, max 2 pages) *</label>
+                                            <input type="file" id="roadmap" name="roadmap" accept=".pdf" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                                            <p class="mt-1 text-xs text-slate-500">Upload a 2-page PDF roadmap for the selected course. Max 5MB.</p>
+                                            @error('roadmap') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                        </div>
+                                    </div>
+                                </template>
+
+                                {{-- NEW COURSE FIELDS --}}
+                                <template x-if="proposalType === 'new'">
+                                    <div class="space-y-4">
+                                        <div class="grid gap-4 sm:grid-cols-2">
+                                            <div>
+                                                <label for="proposed_course_name" class="block text-sm font-semibold text-slate-700 mb-1">Proposed Course Name *</label>
+                                                <input type="text" id="proposed_course_name" name="proposed_course_name" value="{{ old('proposed_course_name') }}" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="e.g. Advanced Data Science with Python">
+                                                @error('proposed_course_name') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                            </div>
+                                            <div>
+                                                <label for="teaching_location" class="block text-sm font-semibold text-slate-700 mb-1">Teaching Location *</label>
+                                                <input type="text" id="teaching_location" name="teaching_location" value="{{ old('teaching_location') }}" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="e.g. Online, Lusaka, Hybrid">
+                                                @error('teaching_location') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label for="full_roadmap" class="block text-sm font-semibold text-slate-700 mb-1">Full Course Roadmap (PDF) *</label>
+                                            <input type="file" id="full_roadmap" name="full_roadmap" accept=".pdf" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                                            <p class="mt-1 text-xs text-slate-500">Upload a detailed course roadmap as PDF. Max 10MB.</p>
+                                            @error('full_roadmap') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                        </div>
+                                        <div>
+                                            <label for="curriculum" class="block text-sm font-semibold text-slate-700 mb-1">Detailed Curriculum (PDF) *</label>
+                                            <input type="file" id="curriculum" name="curriculum" accept=".pdf" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                                            <p class="mt-1 text-xs text-slate-500">Upload a detailed curriculum breakdown as PDF. Max 10MB.</p>
+                                            @error('curriculum') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                        </div>
+                                    </div>
+                                </template>
+
                             </div>
                         </div>
 
