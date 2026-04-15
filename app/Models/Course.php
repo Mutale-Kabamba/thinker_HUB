@@ -31,6 +31,15 @@ class Course extends Model
         ];
     }
 
+    public function getTimelineAttribute($value): ?string
+    {
+        if (! $value) {
+            return $value;
+        }
+
+        return trim(preg_replace('/\s*\(.*\)/', '', $value));
+    }
+
     public function enrolledUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'enrollments')->withTimestamps();
