@@ -60,4 +60,9 @@ class Course extends Model
     {
         return $this->belongsToMany(User::class, 'course_instructor')->withTimestamps();
     }
+
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(CourseSession::class);
+    }
 }

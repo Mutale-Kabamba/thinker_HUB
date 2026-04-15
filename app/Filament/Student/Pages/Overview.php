@@ -6,6 +6,7 @@ use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\Assessment;
 use App\Models\AssessmentSubmission;
+use App\Models\CourseSession;
 use App\Models\LearningMaterial;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
@@ -212,6 +213,28 @@ class Overview extends Page
             ->filter(fn (Assessment $a): bool => (bool) $a->due_date && $a->due_date->between($monthStart, $monthEnd))
             ->groupBy(fn (Assessment $a): string => $a->due_date->format('Y-m-d'));
 
+        $courseIds = $user->courses()->pluck('courses.id')->all();
+        $sessions = CourseSession::query()
+            ->with('course')
+            ->where(function ($q) use ($courseIds, $user) {
+                $q->whereIn('course_id', $courseIds)
+                    ->where(function ($q2) use ($user) {
+                        $q2->where('type', 'group')
+                            ->orWhere('student_id', $user->id);
+                    });
+            })
+            ->whereIn('status', ['scheduled', 'rescheduled'])
+            ->get();
+
+        $sessionDateMap = [];
+        foreach ($sessions as $s) {
+            $effectiveDate = $s->getEffectiveDate();
+            if ($effectiveDate->between($monthStart, $monthEnd)) {
+                $key = $effectiveDate->format('Y-m-d');
+                $sessionDateMap[$key][] = $s;
+            }
+        }
+
         $days = [];
         $events = [];
 
@@ -221,7 +244,10 @@ class Overview extends Page
 
             $dayAssignments = $assignmentDueMap->get($key, collect());
             $dayAssessments = $assessmentDueMap->get($key, collect());
-            $hasItems = $dayAssignments->isNotEmpty() || $dayAssessments->isNotEmpty();
+            $daySessions = $sessionDateMap[$key] ?? [];
+            $hasItems = $dayAssignments->isNotEmpty() || $dayAssessments->isNotEmpty() || count($daySessions) > 0;
+
+            $sessionNames = collect($daySessions)->map(fn ($s) => ($s->title ?: $s->course?->title ?? 'Session').' @ '.Carbon::parse($s->getEffectiveStartTime())->format('g:i A'));
 
             $days[] = [
                 'day' => $day,
@@ -231,7 +257,8 @@ class Overview extends Page
                 'has_due' => $hasItems,
                 'assignment_count' => $dayAssignments->count(),
                 'assessment_count' => $dayAssessments->count(),
-                'due_names' => $dayAssignments->pluck('name')->merge($dayAssessments->pluck('name'))->filter()->values()->all(),
+                'session_count' => count($daySessions),
+                'due_names' => $dayAssignments->pluck('name')->merge($dayAssessments->pluck('name'))->merge($sessionNames)->filter()->values()->all(),
             ];
 
             if ($hasItems) {
@@ -256,6 +283,18 @@ class Overview extends Page
                         'course' => $a->course?->title ?? 'Unassigned',
                         'status' => $sub?->status ?? 'Not submitted',
                         'grade' => $sub?->score,
+                    ];
+                }
+
+                foreach ($daySessions as $s) {
+                    $items[] = [
+                        'type' => 'Session',
+                        'name' => $s->title ?: ($s->course?->title ?? 'Session'),
+                        'course' => $s->course?->title ?? 'Unassigned',
+                        'status' => ucfirst($s->status),
+                        'grade' => null,
+                        'time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A').' – '.Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
+                        'session_type' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
                     ];
                 }
 
