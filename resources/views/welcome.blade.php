@@ -213,9 +213,27 @@
                                 <div class="absolute top-4 left-4 bg-yellow-400 text-[#0a2d27] text-[11px] font-bold px-4 py-1.5 rounded-full shadow-lg">BEST SELLER</div>
                             </div>
                             <div class="px-3 py-6">
-                                <div class="flex items-center gap-1 text-yellow-500 text-[10px] mb-3">
-                                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                                    <span class="text-slate-400 font-semibold ml-2">(120 Reviews)</span>
+                                @php
+                                    $avgRating = round((float) ($course->ratings_avg_rating ?? 0), 1);
+                                    $ratingCount = (int) ($course->ratings_count ?? 0);
+                                @endphp
+                                <div class="flex items-center gap-1 text-[10px] mb-3">
+                                    @for ($star = 1; $star <= 5; $star++)
+                                        @if ($star <= floor($avgRating))
+                                            <i class="fa-solid fa-star text-yellow-500"></i>
+                                        @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
+                                            <i class="fa-solid fa-star-half-stroke text-yellow-500"></i>
+                                        @else
+                                            <i class="fa-regular fa-star text-slate-300"></i>
+                                        @endif
+                                    @endfor
+                                    <span class="text-slate-400 font-semibold ml-2">
+                                        @if ($ratingCount > 0)
+                                            {{ $avgRating }} ({{ $ratingCount }} {{ Str::plural('review', $ratingCount) }})
+                                        @else
+                                            No reviews yet
+                                        @endif
+                                    </span>
                                 </div>
                                 <h3 class="text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug">{{ $course->title }}</h3>
                                 <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
@@ -297,7 +315,7 @@
                     <template x-if="videoModal">
                         <iframe
                             class="h-full w-full"
-                            src="https://www.youtube.com/embed/ysz5S6PUM-U?autoplay=1&rel=0"
+                            src="https://www.youtube.com/embed/p6QZvXzwLdw?autoplay=1&rel=0"
                             title="Thinker Hub video"
                             frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -307,7 +325,7 @@
                 </div>
                 <div class="flex items-center justify-end border-t border-slate-200 px-4 py-3">
                     <a
-                        href="https://www.youtube.com/watch?v=ysz5S6PUM-U"
+                        href="https://www.youtube.com/watch?v=p6QZvXzwLdw"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="rounded-lg bg-[#0a2d27] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#11443c]"

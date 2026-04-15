@@ -105,6 +105,28 @@
                             </div>
                             <div class="px-3 py-6">
                                 <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">{{ $course->code }}</p>
+                                @php
+                                    $avgRating = round((float) ($course->ratings_avg_rating ?? 0), 1);
+                                    $ratingCount = (int) ($course->ratings_count ?? 0);
+                                @endphp
+                                <div class="flex items-center gap-1 text-[10px] mt-2 mb-1">
+                                    @for ($star = 1; $star <= 5; $star++)
+                                        @if ($star <= floor($avgRating))
+                                            <i class="fa-solid fa-star text-yellow-500"></i>
+                                        @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
+                                            <i class="fa-solid fa-star-half-stroke text-yellow-500"></i>
+                                        @else
+                                            <i class="fa-regular fa-star text-slate-300"></i>
+                                        @endif
+                                    @endfor
+                                    <span class="text-slate-400 font-semibold ml-2">
+                                        @if ($ratingCount > 0)
+                                            {{ $avgRating }} ({{ $ratingCount }})
+                                        @else
+                                            No reviews
+                                        @endif
+                                    </span>
+                                </div>
                                 <h3 class="mt-2 text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug">{{ $course->title }}</h3>
                                 <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ $course->timeline ?: 'Self paced' }}</span>

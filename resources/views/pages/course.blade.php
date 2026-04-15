@@ -420,6 +420,25 @@
                 <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">{{ $course->code }}</p>
                 <h1 class="mt-4 max-w-4xl text-4xl font-black text-white sm:text-5xl">{{ $course->title }}</h1>
                 <p class="mt-5 max-w-3xl text-slate-300">{{ $course->overview ?: $course->description }}</p>
+                @php
+                    $avgRating = round((float) ($course->ratings_avg_rating ?? 0), 1);
+                    $ratingCount = (int) ($course->ratings_count ?? 0);
+                @endphp
+                <div class="mt-4 flex items-center gap-2">
+                    <div class="flex items-center gap-1 text-sm">
+                        @for ($star = 1; $star <= 5; $star++)
+                            @if ($star <= floor($avgRating))
+                                <i class="fa-solid fa-star text-yellow-400"></i>
+                            @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
+                                <i class="fa-solid fa-star-half-stroke text-yellow-400"></i>
+                            @else
+                                <i class="fa-regular fa-star text-slate-500"></i>
+                            @endif
+                        @endfor
+                    </div>
+                    <span class="text-sm font-semibold text-white">{{ $avgRating > 0 ? $avgRating : '' }}</span>
+                    <span class="text-sm text-slate-400">({{ $ratingCount }} {{ Str::plural('review', $ratingCount) }})</span>
+                </div>
                 <div class="mt-8">
                     <a href="{{ route('landing.courses') }}" class="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
                         <i class="fa-solid fa-arrow-left"></i>
@@ -488,7 +507,140 @@
                         </div>
                     </dl>
                     <a href="{{ route('enroll') }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] hover:bg-yellow-300">Enroll in This Track</a>
+
+                    <div class="mt-6 border-t border-slate-200 pt-4">
+                        <h3 class="text-sm font-bold text-slate-900">Rating</h3>
+                        <div class="mt-2 flex items-center gap-1 text-sm">
+                            @for ($star = 1; $star <= 5; $star++)
+                                @if ($star <= floor($avgRating))
+                                    <i class="fa-solid fa-star text-yellow-500"></i>
+                                @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
+                                    <i class="fa-solid fa-star-half-stroke text-yellow-500"></i>
+                                @else
+                                    <i class="fa-regular fa-star text-slate-300"></i>
+                                @endif
+                            @endfor
+                            <span class="ml-1 text-sm font-semibold text-slate-700">{{ $avgRating > 0 ? $avgRating.'/5' : 'N/A' }}</span>
+                        </div>
+                        <p class="mt-1 text-xs text-slate-500">{{ $ratingCount }} {{ Str::plural('review', $ratingCount) }}</p>
+                    </div>
                 </aside>
+            </div>
+        </section>
+
+        {{-- Reviews Section --}}
+        <section class="py-12 lg:py-16 border-t border-slate-100">
+            <div class="mx-auto max-w-6xl px-6 lg:px-8">
+                <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-900 sm:text-3xl">Reviews</h2>
+                        <p class="mt-1 text-slate-600">What students say about this course.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl font-black text-slate-900">{{ $avgRating > 0 ? $avgRating : '—' }}</span>
+                        <div>
+                            <div class="flex items-center gap-0.5">
+                                @for ($star = 1; $star <= 5; $star++)
+                                    @if ($star <= floor($avgRating))
+                                        <i class="fa-solid fa-star text-yellow-500 text-sm"></i>
+                                    @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
+                                        <i class="fa-solid fa-star-half-stroke text-yellow-500 text-sm"></i>
+                                    @else
+                                        <i class="fa-regular fa-star text-slate-300 text-sm"></i>
+                                    @endif
+                                @endfor
+                            </div>
+                            <p class="text-xs text-slate-500 mt-0.5">{{ $ratingCount }} {{ Str::plural('review', $ratingCount) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Rating Form (logged-in enrolled students only) --}}
+                @auth
+                    @php
+                        $isEnrolled = auth()->user()->courses()->where('courses.id', $course->id)->exists();
+                        $existingRating = $isEnrolled ? \App\Models\CourseRating::where('course_id', $course->id)->where('user_id', auth()->id())->first() : null;
+                    @endphp
+                    @if ($isEnrolled)
+                        <div class="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" x-data="{ rating: {{ $existingRating?->rating ?? 0 }}, hover: 0, review: '{{ addslashes($existingRating?->review ?? '') }}', submitted: false }">
+                            <h3 class="text-lg font-bold text-slate-900 mb-4">{{ $existingRating ? 'Update Your Review' : 'Rate This Course' }}</h3>
+                            <form method="POST" action="{{ route('course.rate', $course->id) }}" @submit="submitted = true">
+                                @csrf
+                                <input type="hidden" name="rating" :value="rating">
+                                <div class="flex items-center gap-1 mb-4">
+                                    @for ($star = 1; $star <= 5; $star++)
+                                        <button type="button"
+                                            @click="rating = {{ $star }}"
+                                            @mouseenter="hover = {{ $star }}"
+                                            @mouseleave="hover = 0"
+                                            class="text-2xl transition-transform hover:scale-110 focus:outline-none"
+                                        >
+                                            <i :class="(hover || rating) >= {{ $star }} ? 'fa-solid fa-star text-yellow-500' : 'fa-regular fa-star text-slate-300'"></i>
+                                        </button>
+                                    @endfor
+                                    <span class="ml-2 text-sm text-slate-500" x-text="rating > 0 ? rating + '/5' : 'Click to rate'"></span>
+                                </div>
+                                <textarea
+                                    name="review"
+                                    x-model="review"
+                                    rows="3"
+                                    placeholder="Share your experience with this course (optional)..."
+                                    class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                                ></textarea>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <button
+                                        type="submit"
+                                        :disabled="rating === 0 || submitted"
+                                        class="inline-flex items-center rounded-full bg-[#0a2d27] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#11443c] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {{ $existingRating ? 'Update Review' : 'Submit Review' }}
+                                    </button>
+                                    @if ($existingRating)
+                                        <span class="text-xs text-slate-500">You rated this {{ $existingRating->rating }}/5 on {{ $existingRating->updated_at->format('M j, Y') }}</span>
+                                    @endif
+                                </div>
+                            </form>
+                        </div>
+                    @endif
+                @endauth
+
+                {{-- Reviews List --}}
+                @if ($course->ratings->isNotEmpty())
+                    <div class="space-y-5">
+                        @foreach ($course->ratings as $rating)
+                            <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="flex items-center gap-3">
+                                        @if ($rating->user?->profile_photo_path)
+                                            <img src="{{ asset('storage/'.$rating->user->profile_photo_path) }}" alt="" class="h-9 w-9 rounded-full object-cover">
+                                        @else
+                                            <div class="h-9 w-9 rounded-full bg-teal-100 flex items-center justify-center text-sm font-bold text-teal-700">
+                                                {{ strtoupper(substr($rating->user?->name ?? '?', 0, 1)) }}
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <p class="font-semibold text-slate-900 text-sm">{{ $rating->user?->name ?? 'Student' }}</p>
+                                            <p class="text-xs text-slate-500">{{ $rating->created_at->diffForHumans() }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-0.5">
+                                        @for ($star = 1; $star <= 5; $star++)
+                                            <i class="{{ $star <= $rating->rating ? 'fa-solid fa-star text-yellow-500' : 'fa-regular fa-star text-slate-300' }} text-xs"></i>
+                                        @endfor
+                                    </div>
+                                </div>
+                                @if ($rating->review)
+                                    <p class="mt-3 text-sm leading-relaxed text-slate-600">{{ $rating->review }}</p>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-12 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50">
+                        <i class="fa-regular fa-star text-slate-300 text-3xl mb-3"></i>
+                        <p class="text-slate-500 font-medium">No reviews yet. Be the first to share your experience!</p>
+                    </div>
+                @endif
             </div>
         </section>
 
