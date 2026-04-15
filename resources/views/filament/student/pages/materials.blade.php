@@ -30,7 +30,7 @@
 
         {{-- ======================== FILTERS ======================== --}}
         <section class="hub-card" style="padding:0.65rem 1rem;">
-            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+            <div class="hub-filter-row" style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
                 <select wire:model.live="filterCategory" class="hub-input" style="max-width:180px;font-size:0.8rem;padding:0.3rem 0.5rem;">
                     <option value="">All Categories</option>
                     <option value="Curriculum">Curriculum</option>

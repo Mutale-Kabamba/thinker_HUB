@@ -55,4 +55,14 @@ class Course extends Model
     {
         return $this->hasMany(Assessment::class);
     }
+
+    public function instructors(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'course_instructor')->withTimestamps();
+    }
+
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(CourseSession::class);
+    }
 }

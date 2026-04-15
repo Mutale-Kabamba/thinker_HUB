@@ -42,6 +42,7 @@ class MaterialPublishedNotification extends Notification
             'message' => $this->material->title,
             'material_id' => $this->material->id,
             'course_id' => $this->material->course_id,
+            'url' => '/learn/materials',
         ];
     }
 }

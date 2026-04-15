@@ -141,8 +141,14 @@
                                     {{ $day['day'] }}
                                     @if ($day['has_due'])
                                         <span style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);display:flex;gap:2px;">
-                                            @for ($dot = 0; $dot < min($day['assignment_count'] + $day['assessment_count'], 3); $dot++)
-                                                <span style="width:4px;height:4px;border-radius:50%;background:{{ $dot < $day['assignment_count'] ? '#f59e0b' : '#6366f1' }};"></span>
+                                            @for ($dot = 0; $dot < min($day['assignment_count'], 2); $dot++)
+                                                <span style="width:4px;height:4px;border-radius:50%;background:#f59e0b;"></span>
+                                            @endfor
+                                            @for ($dot = 0; $dot < min($day['assessment_count'], 2); $dot++)
+                                                <span style="width:4px;height:4px;border-radius:50%;background:#6366f1;"></span>
+                                            @endfor
+                                            @for ($dot = 0; $dot < min($day['session_count'] ?? 0, 2); $dot++)
+                                                <span style="width:4px;height:4px;border-radius:50%;background:#10b981;"></span>
                                             @endfor
                                         </span>
                                     @endif
@@ -156,6 +162,7 @@
                         <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> Today</span>
                         <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Assignment due</span>
                         <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#6366f1;display:inline-block;"></span> Assessment due</span>
+                        <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span> Session</span>
                     </div>
 
                     {{-- Selected Day Detail Panel --}}
@@ -173,16 +180,27 @@
                                             <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;">
                                                 <span x-show="item.type === 'Assignment'" style="font-size:0.68rem;font-weight:700;padding:0.15rem 0.45rem;border-radius:6px;background:#fef3c7;color:#92400e;">Assignment</span>
                                                 <span x-show="item.type === 'Assessment'" style="font-size:0.68rem;font-weight:700;padding:0.15rem 0.45rem;border-radius:6px;background:#e0e7ff;color:#3730a3;">Assessment</span>
+                                                <span x-show="item.type === 'Session'" style="font-size:0.68rem;font-weight:700;padding:0.15rem 0.45rem;border-radius:6px;background:#d1fae5;color:#065f46;">Session</span>
                                                 <p style="margin:0;font-size:0.82rem;font-weight:600;color:var(--hub-ink);" x-text="item.name"></p>
                                             </div>
                                             <p style="margin:0.2rem 0 0;font-size:0.74rem;color:var(--hub-muted);" x-text="item.course"></p>
+                                            <template x-if="item.time">
+                                                <p style="margin:0.15rem 0 0;font-size:0.72rem;color:var(--hub-muted);">
+                                                    <span x-text="item.time"></span>
+                                                    <template x-if="item.session_type">
+                                                        <span style="margin-left:0.3rem;font-size:0.65rem;font-weight:600;padding:0.1rem 0.3rem;border-radius:4px;background:#e0f2fe;color:#0c4a6e;" x-text="item.session_type"></span>
+                                                    </template>
+                                                </p>
+                                            </template>
                                         </div>
                                         <div style="text-align:right;flex-shrink:0;">
                                             <span
                                                 style="font-size:0.72rem;font-weight:600;padding:0.2rem 0.5rem;border-radius:6px;"
-                                                :style="item.status === 'Not submitted'
-                                                    ? 'background:#fef3c7;color:#92400e;'
-                                                    : (item.status === 'Submitted' ? 'background:#dbeafe;color:#1e40af;' : 'background:#dcfce7;color:#166534;')"
+                                                :style="item.type === 'Session'
+                                                    ? 'background:#d1fae5;color:#065f46;'
+                                                    : (item.status === 'Not submitted'
+                                                        ? 'background:#fef3c7;color:#92400e;'
+                                                        : (item.status === 'Submitted' ? 'background:#dbeafe;color:#1e40af;' : 'background:#dcfce7;color:#166534;'))"
                                                 x-text="item.status"
                                             ></span>
                                             <template x-if="item.grade !== null && item.grade !== undefined">

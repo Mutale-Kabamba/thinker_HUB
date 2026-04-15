@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\InstructorApplicationController;
 use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -162,7 +163,23 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
     ]);
 })->whereNumber('course')->name('landing.courses.show');
 
-Route::view('/instructors', 'pages.instructors')->name('landing.instructors');
+Route::get('/instructors', function () {
+    $instructors = collect();
+    try {
+        if (Schema::hasTable('users')) {
+            $instructors = User::query()
+                ->where('role', 'instructor')
+                ->get(['id', 'name', 'profile_photo_path']);
+        }
+    } catch (\Throwable $e) {
+        report($e);
+    }
+
+    return view('pages.instructors', ['instructors' => $instructors]);
+})->name('landing.instructors');
+
+Route::get('/instructors/apply', [InstructorApplicationController::class, 'create'])->name('landing.instructors.apply');
+Route::post('/instructors/apply', [InstructorApplicationController::class, 'store'])->name('landing.instructors.apply.store');
 
 Route::view('/contact', 'pages.contact')->name('landing.contact');
 
@@ -212,9 +229,15 @@ Route::get('/dashboard', function () {
     $email = strtolower((string) $user?->email);
     $isAdmin = $user?->role === 'admin' || $email === $adminEmail;
 
-    return $isAdmin
-    ? redirect()->route('filament.admin.pages.dashboard')
-        : redirect()->route('filament.student.pages.overview');
+    if ($isAdmin) {
+        return redirect()->route('filament.admin.pages.dashboard');
+    }
+
+    if ($user?->role === 'instructor') {
+        return redirect('/teach/instructor-overview');
+    }
+
+    return redirect()->route('filament.student.pages.overview');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -270,7 +293,11 @@ Route::middleware('auth')->group(function () {
             $assignment = \App\Models\Assignment::query()->visibleTo($user)->findOrFail($id);
             $path = $assignment->file_path;
         } elseif ($type === 'assessment') {
-            $assessment = \App\Models\Assessment::query()->where('user_id', $user->id)->findOrFail($id);
+            if ($user->isAdmin()) {
+                $assessment = \App\Models\Assessment::query()->findOrFail($id);
+            } else {
+                $assessment = \App\Models\Assessment::query()->where('user_id', $user->id)->findOrFail($id);
+            }
             $path = $assessment->file_path;
         } elseif ($type === 'submission') {
             $submission = \App\Models\AssignmentSubmission::query()

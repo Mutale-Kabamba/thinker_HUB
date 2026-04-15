@@ -123,7 +123,7 @@
                         $isUnread = is_null($notification->read_at);
                     @endphp
                     <div
-                        wire:click="markAsRead('{{ $notification->id }}')"
+                        wire:click="goToNotification('{{ $notification->id }}')"
                         style="
                             padding:0.6rem 0.85rem;
                             border-bottom:1px solid var(--hub-border);

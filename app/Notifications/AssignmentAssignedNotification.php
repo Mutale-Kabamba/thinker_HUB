@@ -43,6 +43,7 @@ class AssignmentAssignedNotification extends Notification
             'assignment_id' => $this->assignment->id,
             'course_id' => $this->assignment->course_id,
             'due_date' => $this->assignment->due_date?->format('Y-m-d'),
+            'url' => '/learn/assignments',
         ];
     }
 }

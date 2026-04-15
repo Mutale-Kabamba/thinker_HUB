@@ -11,7 +11,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
@@ -89,9 +88,34 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasMany(AssessmentSubmission::class);
     }
 
+    public function quizAttempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
+
+    public function instructorCourses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_instructor')->withTimestamps();
+    }
+
+    public function instructorApplication(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(InstructorApplication::class);
+    }
+
+    public function courseSessions(): HasMany
+    {
+        return $this->hasMany(CourseSession::class, 'student_id');
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function isInstructor(): bool
+    {
+        return $this->role === 'instructor';
     }
 
     public function isEnrolledInCourse(int $courseId): bool
@@ -103,9 +127,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     {
         return match ($panel->getId()) {
             'admin' => $this->isAdmin(),
-            'student' => ! $this->isAdmin(),
+            'student' => ! $this->isAdmin() && ! $this->isInstructor(),
+            'instructor' => $this->isInstructor(),
             default => false,
         };
     }
-
 }

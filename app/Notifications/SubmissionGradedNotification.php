@@ -49,6 +49,7 @@ class SubmissionGradedNotification extends Notification
             'submission_type' => $this->submissionType,
             'score_or_grade' => $this->scoreOrGrade,
             'feedback' => $this->feedback,
+            'url' => '/learn/assessments',
         ];
     }
 }

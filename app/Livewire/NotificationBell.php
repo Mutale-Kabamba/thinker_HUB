@@ -47,6 +47,33 @@ class NotificationBell extends Component
         }
     }
 
+    public function goToNotification(string $notificationId): mixed
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        $notification = $user->notifications()->where('id', $notificationId)->first();
+
+        if (! $notification) {
+            return null;
+        }
+
+        $url = $notification->data['url'] ?? null;
+
+        $notification->delete();
+
+        $this->open = false;
+
+        if ($url) {
+            return $this->redirect($url);
+        }
+
+        return null;
+    }
+
     public function markAllAsRead(): void
     {
         $user = auth()->user();
