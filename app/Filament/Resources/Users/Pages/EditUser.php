@@ -16,4 +16,13 @@ class EditUser extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (($data['role'] ?? '') === 'instructor') {
+            $data['track'] = null;
+        }
+
+        return $data;
+    }
 }

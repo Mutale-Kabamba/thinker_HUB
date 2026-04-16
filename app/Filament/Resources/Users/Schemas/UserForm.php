@@ -36,7 +36,7 @@ class UserForm
                     ->default('student')
                     ->live(),
                 TextInput::make('track')
-                    ->required()
+                    ->required(fn (callable $get): bool => $get('role') !== 'instructor')
                     ->default('Beginner')
                     ->visible(fn (callable $get): bool => $get('role') !== 'instructor'),
                 Select::make('instructorCourses')
