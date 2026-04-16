@@ -26,6 +26,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'email',
         'password',
         'role',
+        'is_active',
         'track',
         'profile_photo_path',
     ];
@@ -50,6 +51,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -128,7 +130,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return match ($panel->getId()) {
             'admin' => $this->isAdmin(),
             'student' => ! $this->isAdmin() && ! $this->isInstructor(),
-            'instructor' => $this->isInstructor(),
+            'instructor' => $this->isInstructor() && $this->is_active,
             default => false,
         };
     }

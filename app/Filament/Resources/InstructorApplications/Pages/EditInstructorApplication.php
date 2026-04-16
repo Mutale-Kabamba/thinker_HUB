@@ -4,11 +4,8 @@ namespace App\Filament\Resources\InstructorApplications\Pages;
 
 use App\Filament\Resources\InstructorApplications\InstructorApplicationResource;
 use App\Models\InstructorApplication;
-use App\Models\User;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class EditInstructorApplication extends EditRecord
 {
@@ -19,35 +16,30 @@ class EditInstructorApplication extends EditRecord
         /** @var InstructorApplication $application */
         $application = $this->record;
 
-        if ($application->status === 'approved' && $application->user_id === null) {
-            $existingUser = User::query()->where('email', $application->email)->first();
+        if ($application->status === 'approved') {
+            $user = $application->user;
 
-            if ($existingUser) {
-                $existingUser->update(['role' => 'instructor']);
-                $application->update([
-                    'user_id' => $existingUser->id,
-                    'reviewed_by' => auth()->id(),
-                    'reviewed_at' => now(),
-                ]);
-            } else {
-                $user = User::query()->create([
-                    'name' => $application->name,
-                    'email' => $application->email,
-                    'password' => Hash::make(Str::random(16)),
+            if ($user) {
+                $user->update([
                     'role' => 'instructor',
-                    'email_verified_at' => now(),
+                    'is_active' => true,
+                    'email_verified_at' => $user->email_verified_at ?? now(),
                 ]);
 
-                $application->update([
-                    'user_id' => $user->id,
-                    'reviewed_by' => auth()->id(),
-                    'reviewed_at' => now(),
-                ]);
+                // Assign the preferred course if it's an existing course application
+                if ($application->proposal_type === 'existing' && $application->preferred_course_id) {
+                    $user->instructorCourses()->syncWithoutDetaching([$application->preferred_course_id]);
+                }
             }
 
+            $application->update([
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+            ]);
+
             Notification::make()
-                ->title('Instructor account created')
-                ->body("Instructor account for {$application->name} has been created.")
+                ->title('Instructor approved')
+                ->body("Instructor account for {$application->name} has been activated.")
                 ->success()
                 ->send();
         } elseif ($application->status === 'rejected') {
@@ -55,6 +47,20 @@ class EditInstructorApplication extends EditRecord
                 'reviewed_by' => auth()->id(),
                 'reviewed_at' => now(),
             ]);
+
+            // Deactivate the user if they have no other approved applications
+            $user = $application->user;
+            if ($user) {
+                $hasOtherApproved = InstructorApplication::query()
+                    ->where('user_id', $user->id)
+                    ->where('id', '!=', $application->id)
+                    ->where('status', 'approved')
+                    ->exists();
+
+                if (! $hasOtherApproved) {
+                    $user->update(['is_active' => false]);
+                }
+            }
 
             Notification::make()
                 ->title('Application rejected')

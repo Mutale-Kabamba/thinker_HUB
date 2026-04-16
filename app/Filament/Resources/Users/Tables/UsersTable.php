@@ -5,7 +5,9 @@ namespace App\Filament\Resources\Users\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class UsersTable
@@ -31,12 +33,27 @@ class UsersTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('role')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'admin' => 'danger',
+                        'instructor' => 'info',
+                        default => 'success',
+                    })
                     ->searchable(),
                 TextColumn::make('track')
                     ->searchable(),
+                IconColumn::make('is_active')
+                    ->label('Active')
+                    ->boolean()
+                    ->sortable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('role')
+                    ->options([
+                        'student' => 'Student',
+                        'instructor' => 'Instructor',
+                        'admin' => 'Admin',
+                    ]),
             ])
             ->recordActions([
                 EditAction::make(),
