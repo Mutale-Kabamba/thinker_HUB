@@ -109,6 +109,11 @@ class StudentResource extends Resource
                 TextColumn::make('courses_count')
                     ->label('Courses')
                     ->counts('courses')
+                    ->formatStateUsing(function ($state, $record) {
+                        $codes = $record->courses()->pluck('code')->filter()->implode(', ');
+
+                        return $codes ? "{$state} ({$codes})" : (string) $state;
+                    })
                     ->badge()
                     ->color('primary')
                     ->sortable(),

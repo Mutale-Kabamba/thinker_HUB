@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Quizzes\Pages;
 
+use App\Filament\Actions\ImportQuizzesAction;
 use App\Filament\Resources\Quizzes\QuizResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
@@ -14,6 +15,7 @@ class ListQuizzes extends ListRecords
     {
         return [
             CreateAction::make(),
+            ImportQuizzesAction::make(),
         ];
     }
 }
