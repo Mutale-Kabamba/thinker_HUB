@@ -64,11 +64,7 @@ $loadHomeStats = static function () {
         if (Schema::hasTable('users')) {
             $default['tutors'] = User::query()->where('role', 'admin')->count();
 
-            $default['students'] = User::query()
-                ->where(function ($query) {
-                    $query->whereNull('role')->orWhere('role', '!=', 'admin');
-                })
-                ->count();
+            $default['students'] = User::query()->where('role', 'student')->count();
         }
 
         if (Schema::hasTable('courses')) {
