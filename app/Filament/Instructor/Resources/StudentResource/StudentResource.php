@@ -7,10 +7,8 @@ use App\Filament\Instructor\Resources\StudentResource\Pages\ListStudents;
 use App\Filament\Instructor\Resources\StudentResource\Pages\ViewStudent;
 use App\Models\User;
 use BackedEnum;
-use Filament\Infolists\Components\IconEntry;
-use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Infolists\Infolist;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -55,7 +53,21 @@ class StudentResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            TextInput::make('name')->disabled(),
+            TextInput::make('email')->disabled(),
+            TextInput::make('track')->label('Level')->disabled(),
+            Placeholder::make('email_verified_at')
+                ->label('Email Verified')
+                ->content(fn ($record): string => $record?->email_verified_at
+                    ? $record->email_verified_at->format('M d, Y h:i A')
+                    : 'Not verified'),
+            Placeholder::make('created_at')
+                ->label('Joined')
+                ->content(fn ($record): string => $record?->created_at
+                    ? $record->created_at->format('M d, Y h:i A')
+                    : '—'),
+        ]);
     }
 
     public static function table(Table $table): Table
@@ -147,38 +159,6 @@ class StudentResource extends Resource
                     }),
             ])
             ->defaultSort('name');
-    }
-
-    public static function infolist(Infolist $infolist): Infolist
-    {
-        return $infolist
-            ->schema([
-                Section::make('Student Information')
-                    ->columns(3)
-                    ->schema([
-                        TextEntry::make('name'),
-                        TextEntry::make('email'),
-                        TextEntry::make('track')
-                            ->label('Level')
-                            ->badge()
-                            ->color(fn (?string $state): string => match ($state) {
-                                'Beginner' => 'info',
-                                'Intermediate' => 'warning',
-                                'Advanced' => 'success',
-                                default => 'gray',
-                            }),
-                        IconEntry::make('is_active')
-                            ->label('Active')
-                            ->boolean(),
-                        TextEntry::make('email_verified_at')
-                            ->label('Email Verified')
-                            ->dateTime()
-                            ->placeholder('Not verified'),
-                        TextEntry::make('created_at')
-                            ->label('Joined')
-                            ->dateTime(),
-                    ]),
-            ]);
     }
 
     public static function getRelations(): array
