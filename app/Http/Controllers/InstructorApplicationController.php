@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\InstructorApplication;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class InstructorApplicationController extends Controller
@@ -58,6 +61,29 @@ class InstructorApplicationController extends Controller
             'curriculum' => ['required_if:proposal_type,new', 'nullable', 'file', 'mimes:pdf', 'max:10240'],
         ]);
 
+        // Enforce max 2 pending/approved applications per email
+        $applicationCount = InstructorApplication::query()
+            ->where('email', $validated['email'])
+            ->whereIn('status', ['pending', 'approved'])
+            ->count();
+
+        if ($applicationCount >= 2) {
+            return back()->with('warning', 'You can apply for a maximum of 2 courses. You already have ' . $applicationCount . ' active application(s).');
+        }
+
+        // Check for duplicate pending application for the same course
+        if ($validated['proposal_type'] === 'existing' && $validated['preferred_course_id']) {
+            $duplicateCourse = InstructorApplication::query()
+                ->where('email', $validated['email'])
+                ->where('preferred_course_id', $validated['preferred_course_id'])
+                ->where('status', 'pending')
+                ->exists();
+
+            if ($duplicateCourse) {
+                return back()->with('warning', 'You already have a pending application for this course.');
+            }
+        }
+
         $cvPath = null;
         if ($request->hasFile('cv')) {
             $cvPath = $request->file('cv')->store('instructor-cvs', 'public');
@@ -78,14 +104,17 @@ class InstructorApplicationController extends Controller
             $curriculumPath = $request->file('curriculum')->store('instructor-curricula', 'public');
         }
 
-        // Check for existing pending application
-        $existing = InstructorApplication::query()
-            ->where('email', $validated['email'])
-            ->where('status', 'pending')
-            ->first();
+        // Create or find the instructor user account (inactive until approved)
+        $user = User::query()->where('email', $validated['email'])->first();
 
-        if ($existing) {
-            return back()->with('warning', 'You already have a pending application. Please wait for review.');
+        if (! $user) {
+            $user = User::query()->create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make(Str::random(16)),
+                'role' => 'instructor',
+                'is_active' => false,
+            ]);
         }
 
         // Remove file upload objects before mass assignment
@@ -93,12 +122,13 @@ class InstructorApplicationController extends Controller
 
         InstructorApplication::query()->create([
             ...$validated,
+            'user_id' => $user->id,
             'cv_path' => $cvPath,
             'roadmap_path' => $roadmapPath,
             'full_roadmap_path' => $fullRoadmapPath,
             'curriculum_path' => $curriculumPath,
         ]);
 
-        return back()->with('success', 'Your instructor application has been submitted successfully! We will review it and get back to you.');
+        return back()->with('success', 'Your instructor application has been submitted successfully! An account has been created for you and will be activated once your application is approved.');
     }
 }
