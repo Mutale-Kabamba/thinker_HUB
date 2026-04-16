@@ -92,6 +92,11 @@ class InstructorResource extends Resource
                 TextColumn::make('instructor_courses_count')
                     ->label('Courses')
                     ->counts('instructorCourses')
+                    ->formatStateUsing(function ($state, $record) {
+                        $codes = $record->instructorCourses()->pluck('code')->filter()->implode(', ');
+
+                        return $codes ? "{$state} ({$codes})" : (string) $state;
+                    })
                     ->badge()
                     ->color('primary')
                     ->sortable(),
