@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Models\Course;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -32,11 +33,19 @@ class UserForm
                         'admin' => 'Admin',
                     ])
                     ->required()
-                    ->default('student'),
+                    ->default('student')
+                    ->live(),
                 TextInput::make('track')
-                    ->required()
+                    ->required(fn (callable $get): bool => $get('role') !== 'instructor')
                     ->default('Beginner')
                     ->visible(fn (callable $get): bool => $get('role') !== 'instructor'),
+                Select::make('instructorCourses')
+                    ->label('Assigned Courses')
+                    ->relationship('instructorCourses', 'title')
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (callable $get): bool => $get('role') === 'instructor'),
                 Toggle::make('is_active')
                     ->label('Active')
                     ->default(true)
