@@ -3,15 +3,15 @@
 namespace App\Filament\Instructor\Resources\StudentResource\Pages;
 
 use App\Filament\Instructor\Resources\StudentResource\StudentResource;
-use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\DeleteAction;
+use Filament\Resources\Pages\EditRecord;
 
-class ListStudents extends ListRecords
+class EditStudent extends EditRecord
 {
     protected static string $resource = StudentResource::class;
 
     protected function getHeaderActions(): array
     {
-        return [CreateAction::make()];
+        return [DeleteAction::make()];
     }
 }

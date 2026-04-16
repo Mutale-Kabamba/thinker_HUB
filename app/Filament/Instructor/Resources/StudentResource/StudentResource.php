@@ -3,12 +3,17 @@
 namespace App\Filament\Instructor\Resources\StudentResource;
 
 use App\Filament\Instructor\Concerns\ScopedToInstructor;
+use App\Filament\Instructor\Resources\StudentResource\Pages\CreateStudent;
+use App\Filament\Instructor\Resources\StudentResource\Pages\EditStudent;
 use App\Filament\Instructor\Resources\StudentResource\Pages\ListStudents;
 use App\Filament\Instructor\Resources\StudentResource\Pages\ViewStudent;
 use App\Models\User;
 use BackedEnum;
-use Filament\Forms\Components\Placeholder;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -36,37 +41,46 @@ class StudentResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-    public static function canCreate(): bool
-    {
-        return false;
-    }
-
-    public static function canDelete($record): bool
-    {
-        return false;
-    }
-
-    public static function canDeleteAny(): bool
-    {
-        return false;
-    }
-
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('name')->disabled(),
-            TextInput::make('email')->disabled(),
-            TextInput::make('track')->label('Level')->disabled(),
-            Placeholder::make('email_verified_at')
-                ->label('Email Verified')
-                ->content(fn ($record): string => $record?->email_verified_at
-                    ? $record->email_verified_at->format('M d, Y h:i A')
-                    : 'Not verified'),
-            Placeholder::make('created_at')
-                ->label('Joined')
-                ->content(fn ($record): string => $record?->created_at
-                    ? $record->created_at->format('M d, Y h:i A')
-                    : '—'),
+            TextInput::make('name')
+                ->required()
+                ->maxLength(255),
+
+            TextInput::make('email')
+                ->label('Email address')
+                ->email()
+                ->required()
+                ->unique(ignoreRecord: true),
+
+            TextInput::make('password')
+                ->password()
+                ->required(fn (string $operation): bool => $operation === 'create')
+                ->dehydrated(fn (?string $state): bool => filled($state))
+                ->minLength(8),
+
+            Select::make('track')
+                ->label('Level / Track')
+                ->options([
+                    'Beginner' => 'Beginner',
+                    'Intermediate' => 'Intermediate',
+                    'Advanced' => 'Advanced',
+                ])
+                ->required()
+                ->default('Beginner'),
+
+            Select::make('courses')
+                ->label('Enrol in My Courses')
+                ->relationship('courses', 'title')
+                ->multiple()
+                ->searchable()
+                ->preload()
+                ->options(fn (): array => static::instructorCourseOptions()),
+
+            Toggle::make('is_active')
+                ->label('Active')
+                ->default(true),
         ]);
     }
 
@@ -158,7 +172,11 @@ class StudentResource extends Resource
                         return $query->whereHas('enrollments', fn (Builder $q) => $q->where('course_id', $data['value']));
                     }),
             ])
-            ->defaultSort('name');
+            ->defaultSort('name')
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make(),
+            ]);
     }
 
     public static function getRelations(): array
@@ -175,7 +193,9 @@ class StudentResource extends Resource
     {
         return [
             'index' => ListStudents::route('/'),
+            'create' => CreateStudent::route('/create'),
             'view' => ViewStudent::route('/{record}'),
+            'edit' => EditStudent::route('/{record}/edit'),
         ];
     }
 }

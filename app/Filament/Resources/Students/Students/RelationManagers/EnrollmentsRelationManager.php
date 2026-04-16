@@ -1,21 +1,20 @@
 <?php
 
-namespace App\Filament\Instructor\Resources\StudentResource\StudentResource\RelationManagers;
+namespace App\Filament\Resources\Students\Students\RelationManagers;
 
-use App\Filament\Instructor\Concerns\ScopedToInstructor;
+use App\Models\Course;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class EnrollmentsRelationManager extends RelationManager
 {
-    use ScopedToInstructor;
-
     protected static string $relationship = 'enrollments';
 
     protected static ?string $title = 'Course Enrollments';
@@ -25,7 +24,7 @@ class EnrollmentsRelationManager extends RelationManager
         return $schema->components([
             Select::make('course_id')
                 ->label('Course')
-                ->options(fn (): array => static::instructorCourseOptions())
+                ->options(fn (): array => Course::query()->where('is_active', true)->orderBy('title')->pluck('title', 'id')->toArray())
                 ->required()
                 ->searchable(),
         ]);
@@ -45,15 +44,17 @@ class EnrollmentsRelationManager extends RelationManager
                     ->dateTime()
                     ->sortable(),
             ])
-            ->modifyQueryUsing(
-                fn (Builder $query) => $query->whereIn('course_id', static::instructorCourseIds())
-            )
             ->defaultSort('created_at', 'desc')
             ->headerActions([
                 CreateAction::make()->label('Enrol in Course'),
             ])
             ->recordActions([
                 DeleteAction::make()->label('Unenrol'),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()->label('Unenrol Selected'),
+                ]),
             ]);
     }
 }
