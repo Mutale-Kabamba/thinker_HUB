@@ -88,6 +88,9 @@ class InstructorApplicationController extends Controller
             return back()->with('warning', 'You already have a pending application. Please wait for review.');
         }
 
+        // Remove file upload objects before mass assignment
+        unset($validated['cv'], $validated['roadmap'], $validated['full_roadmap'], $validated['curriculum']);
+
         InstructorApplication::query()->create([
             ...$validated,
             'cv_path' => $cvPath,
