@@ -342,7 +342,14 @@ Route::middleware('auth')->group(function () {
         }
 
         if (! $path || ! $disk->exists($path)) {
-            abort(404);
+            return response(
+                '<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:#6b7280;background:#f9fafb;">'
+                .'<div style="text-align:center;padding:2rem;"><svg xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;margin:0 auto 1rem;color:#d1d5db;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>'
+                .'<p style="margin:0 0 0.5rem;font-size:1rem;font-weight:600;">File not found</p>'
+                .'<p style="margin:0;font-size:0.85rem;">The file may have been removed or is not yet available.</p></div></body></html>',
+                404,
+                ['Content-Type' => 'text/html']
+            );
         }
 
         return $disk->response($path);
