@@ -112,6 +112,7 @@ class Courses extends Page
         $this->enrolledCount = count($enrolledCourseIds);
 
         $this->courses = Course::query()
+            ->with('instructors')
             ->orderBy('title')
             ->get()
             ->map(fn (Course $course): array => [
@@ -122,6 +123,15 @@ class Courses extends Page
                 'description' => $course->description ?: 'No full description available.',
                 'is_active' => $course->is_active,
                 'enrolled' => in_array($course->id, $enrolledCourseIds, true),
+                'instructors' => $course->instructors->map(fn ($instructor): array => [
+                    'name' => $instructor->name,
+                    'proficiency' => $instructor->proficiency,
+                    'occupation' => $instructor->occupation,
+                    'whatsapp' => $instructor->whatsapp,
+                    'linkedin_url' => $instructor->linkedin_url,
+                    'facebook_url' => $instructor->facebook_url,
+                    'photo' => $instructor->profile_photo_path,
+                ])->all(),
             ])
             ->all();
     }

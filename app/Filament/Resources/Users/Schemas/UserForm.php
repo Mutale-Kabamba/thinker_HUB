@@ -46,6 +46,26 @@ class UserForm
                     ->searchable()
                     ->preload()
                     ->visible(fn (callable $get): bool => $get('role') === 'instructor'),
+                TextInput::make('proficiency')
+                    ->placeholder('e.g. Data Analytics, Python, SQL')
+                    ->visible(fn (callable $get): bool => $get('role') === 'instructor'),
+                TextInput::make('occupation')
+                    ->placeholder('e.g. Senior Data Analyst')
+                    ->visible(fn (callable $get): bool => $get('role') === 'instructor'),
+                TextInput::make('whatsapp')
+                    ->label('WhatsApp number')
+                    ->placeholder('+260...')
+                    ->visible(fn (callable $get): bool => $get('role') === 'instructor'),
+                TextInput::make('linkedin_url')
+                    ->label('LinkedIn URL')
+                    ->url()
+                    ->placeholder('https://linkedin.com/in/...')
+                    ->visible(fn (callable $get): bool => $get('role') === 'instructor'),
+                TextInput::make('facebook_url')
+                    ->label('Facebook URL')
+                    ->url()
+                    ->placeholder('https://facebook.com/...')
+                    ->visible(fn (callable $get): bool => $get('role') === 'instructor'),
                 Toggle::make('is_active')
                     ->label('Active')
                     ->default(true)
