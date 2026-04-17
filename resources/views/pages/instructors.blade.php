@@ -44,6 +44,36 @@
                                 <div class="px-3 py-6">
                                     <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">Instructor</p>
                                     <h3 class="mt-2 text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors">{{ $instructor->name }}</h3>
+
+                                    @if ($instructor->occupation)
+                                        <p class="mt-1 text-sm text-slate-500">{{ $instructor->occupation }}</p>
+                                    @endif
+
+                                    @if ($instructor->proficiency)
+                                        <div class="mt-3">
+                                            <span class="inline-block rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700 border border-teal-200">{{ $instructor->proficiency }}</span>
+                                        </div>
+                                    @endif
+
+                                    @if ($instructor->whatsapp || $instructor->linkedin_url || $instructor->facebook_url)
+                                        <div class="mt-4 flex items-center gap-3">
+                                            @if ($instructor->whatsapp)
+                                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $instructor->whatsapp) }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600 hover:bg-green-100 transition" title="WhatsApp">
+                                                    <i class="fa-brands fa-whatsapp text-lg"></i>
+                                                </a>
+                                            @endif
+                                            @if ($instructor->linkedin_url)
+                                                <a href="{{ $instructor->linkedin_url }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-700 hover:bg-blue-100 transition" title="LinkedIn">
+                                                    <i class="fa-brands fa-linkedin-in text-lg"></i>
+                                                </a>
+                                            @endif
+                                            @if ($instructor->facebook_url)
+                                                <a href="{{ $instructor->facebook_url }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition" title="Facebook">
+                                                    <i class="fa-brands fa-facebook-f text-lg"></i>
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             </article>
                         @endforeach
