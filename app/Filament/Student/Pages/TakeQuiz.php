@@ -38,16 +38,16 @@ class TakeQuiz extends Page
         $this->quizId = (int) request()->query('quiz');
 
         if (! $this->quizId) {
-            $this->redirect(route('filament.student.pages.assessments'));
+            $this->redirect(route('filament.student.pages.quizzes'));
 
             return;
         }
 
-        $quiz = Quiz::with(['questions.options', 'assessment.course'])->find($this->quizId);
+        $quiz = Quiz::with(['questions.options', 'course'])->find($this->quizId);
 
         if (! $quiz || ! $quiz->is_active) {
             Notification::make()->title('Quiz not available.')->danger()->send();
-            $this->redirect(route('filament.student.pages.assessments'));
+            $this->redirect(route('filament.student.pages.quizzes'));
 
             return;
         }
@@ -57,11 +57,10 @@ class TakeQuiz extends Page
             return;
         }
 
-        // Verify the student has access to this quiz's assessment
-        $assessment = $quiz->assessment;
-        if (! $assessment || $assessment->user_id !== $user->id) {
+        // Verify the student is enrolled in the quiz's course
+        if (! $user->isEnrolledIn($quiz->course_id)) {
             Notification::make()->title('You are not authorized to take this quiz.')->danger()->send();
-            $this->redirect(route('filament.student.pages.assessments'));
+            $this->redirect(route('filament.student.pages.quizzes'));
 
             return;
         }
@@ -115,8 +114,7 @@ class TakeQuiz extends Page
             'time_limit' => $quiz->time_limit_minutes,
             'pass_percentage' => $quiz->pass_percentage,
             'show_results' => $quiz->show_results,
-            'assessment' => $quiz->assessment?->name ?? 'Quiz',
-            'course' => $quiz->assessment?->course?->title ?? '',
+            'course' => $quiz->course?->title ?? '',
         ];
 
         $questions = $quiz->shuffle_questions ? $quiz->questions->shuffle() : $quiz->questions;
@@ -211,8 +209,7 @@ class TakeQuiz extends Page
             'time_limit' => $quiz->time_limit_minutes,
             'pass_percentage' => $quiz->pass_percentage,
             'show_results' => $quiz->show_results,
-            'assessment' => $quiz->assessment?->name ?? 'Quiz',
-            'course' => $quiz->assessment?->course?->title ?? '',
+            'course' => $quiz->course?->title ?? '',
         ];
 
         $this->results = [
