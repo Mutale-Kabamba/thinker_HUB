@@ -21,7 +21,7 @@ class QuizAttemptsRelationManager extends RelationManager
                     ->label('Quiz')
                     ->searchable()
                     ->limit(40),
-                TextColumn::make('quiz.assessment.course.title')
+                TextColumn::make('quiz.course.title')
                     ->label('Course'),
                 TextColumn::make('score')
                     ->numeric()
