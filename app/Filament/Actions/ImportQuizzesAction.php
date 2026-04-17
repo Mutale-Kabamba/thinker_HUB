@@ -2,7 +2,6 @@
 
 namespace App\Filament\Actions;
 
-use App\Models\Assessment;
 use App\Models\Course;
 use App\Models\Quiz;
 use App\Models\QuizOption;
@@ -47,8 +46,7 @@ class ImportQuizzesAction
             ->color('warning')
             ->modalHeading('Import Quizzes from JSON')
             ->modalDescription(
-                'Upload a JSON file with an array of quizzes. Each quiz needs a course_code (or assessment_name + course_code). '
-                . 'If the assessment doesn\'t exist it will be auto-created. '
+                'Upload a JSON file with an array of quizzes. Each quiz needs a course_code. '
                 . 'Supports multiple_choice, theory, and practical question types.'
             )
             ->form([
@@ -155,10 +153,10 @@ class ImportQuizzesAction
             throw new \RuntimeException('Missing required field: title');
         }
 
-        // Resolve (or auto-create) the assessment
-        $assessment = static::resolveAssessment($row, $courseIds);
+        // Resolve course
+        $course = static::resolveCourse($row, $courseIds);
 
-        if (! $assessment) {
+        if (! $course) {
             $triedCode = static::pickString($row, ['course_code', 'courseCode', 'course']);
             $hint = $triedCode !== ''
                 ? "Course code '{$triedCode}' not found in database."
@@ -176,7 +174,7 @@ class ImportQuizzesAction
         static::validateQuestions($questions);
 
         $quizPayload = [
-            'assessment_id' => $assessment->id,
+            'course_id' => $course->id,
             'title' => $title,
             'description' => static::nullableString(Arr::get($row, 'description')),
             'time_limit_minutes' => static::nullablePositiveInt(Arr::get($row, 'time_limit_minutes')),
@@ -186,9 +184,10 @@ class ImportQuizzesAction
             'is_active' => (bool) Arr::get($row, 'is_active', true),
         ];
 
-        return DB::transaction(function () use ($assessment, $quizPayload, $questions, $replaceQuestions): string {
+        return DB::transaction(function () use ($course, $title, $quizPayload, $questions, $replaceQuestions): string {
             $existing = Quiz::query()
-                ->where('assessment_id', $assessment->id)
+                ->where('course_id', $course->id)
+                ->where('title', $title)
                 ->first();
 
             if ($existing) {
@@ -205,110 +204,19 @@ class ImportQuizzesAction
             $quiz = Quiz::query()->create($quizPayload);
             static::createQuestions($quiz, $questions);
 
+            Log::info('Quiz import: created quiz.', [
+                'quiz_id' => $quiz->id,
+                'title' => $title,
+                'course' => $course->code,
+            ]);
+
             return 'created';
         });
     }
 
     // ---------------------------------------------------------------
-    //  Assessment & course resolution
+    //  Course resolution
     // ---------------------------------------------------------------
-
-    private static function resolveAssessment(array $row, ?array $courseIds): ?Assessment
-    {
-        // 1. Try direct assessment_id
-        $assessmentId = Arr::get($row, 'assessment_id');
-
-        if ($assessmentId) {
-            $query = Assessment::query()->where('id', $assessmentId);
-
-            if ($courseIds !== null) {
-                $query->whereIn('course_id', $courseIds);
-            }
-
-            $result = $query->first();
-
-            if ($result) {
-                return $result;
-            }
-
-            Log::warning('Quiz import: assessment_id not found.', ['assessment_id' => $assessmentId]);
-        }
-
-        // 2. Gather flexible field names
-        $assessmentName = static::pickString($row, ['assessment_name', 'assessment', 'assessmentName']);
-        $courseCode = static::pickString($row, ['course_code', 'courseCode', 'course']);
-
-        // 3. Try by assessment name + course code
-        if ($assessmentName !== '' && $courseCode !== '') {
-            $result = Assessment::query()
-                ->whereRaw('LOWER(name) = ?', [mb_strtolower($assessmentName)])
-                ->whereHas('course', fn ($q) => $q->whereRaw('LOWER(code) = ?', [mb_strtolower($courseCode)]))
-                ->when($courseIds !== null, fn ($q) => $q->whereIn('course_id', $courseIds))
-                ->first();
-
-            if ($result) {
-                return $result;
-            }
-        }
-
-        // 4. Try by assessment name only
-        if ($assessmentName !== '') {
-            $result = Assessment::query()
-                ->whereRaw('LOWER(name) = ?', [mb_strtolower($assessmentName)])
-                ->when($courseIds !== null, fn ($q) => $q->whereIn('course_id', $courseIds))
-                ->first();
-
-            if ($result) {
-                return $result;
-            }
-        }
-
-        // 5. Try by course code — pick first assessment without a quiz
-        if ($courseCode !== '') {
-            $result = Assessment::query()
-                ->whereHas('course', fn ($q) => $q->whereRaw('LOWER(code) = ?', [mb_strtolower($courseCode)]))
-                ->whereDoesntHave('quiz')
-                ->when($courseIds !== null, fn ($q) => $q->whereIn('course_id', $courseIds))
-                ->orderBy('name')
-                ->first();
-
-            if ($result) {
-                return $result;
-            }
-        }
-
-        // 6. Auto-create assessment if we can resolve the course
-        $course = static::resolveCourse($row, $courseIds);
-
-        if ($course) {
-            $name = $assessmentName !== ''
-                ? $assessmentName
-                : trim((string) Arr::get($row, 'title', 'Imported Assessment'));
-
-            $assessment = Assessment::query()->create([
-                'name' => $name,
-                'course_id' => $course->id,
-                'user_id' => auth()->id(),
-                'description' => 'Auto-created during quiz import.',
-            ]);
-
-            Log::info('Quiz import: auto-created assessment.', [
-                'id' => $assessment->id,
-                'name' => $name,
-                'course' => $course->code,
-            ]);
-
-            return $assessment;
-        }
-
-        Log::warning('Quiz import: no assessment or course resolved.', [
-            'keys' => array_keys($row),
-            'assessment_name' => $assessmentName,
-            'course_code' => $courseCode,
-        ]);
-
-        return null;
-    }
 
     private static function resolveCourse(array $row, ?array $courseIds): ?Course
     {

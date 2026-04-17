@@ -75,6 +75,11 @@ class Course extends Model
         return $this->hasMany(CourseSession::class);
     }
 
+    public function quizzes(): HasMany
+    {
+        return $this->hasMany(Quiz::class);
+    }
+
     public function ratings(): HasMany
     {
         return $this->hasMany(CourseRating::class);

@@ -6,7 +6,7 @@ use App\Filament\Instructor\Concerns\ScopedToInstructor;
 use App\Filament\Instructor\Resources\QuizResource\Pages\CreateQuiz;
 use App\Filament\Instructor\Resources\QuizResource\Pages\EditQuiz;
 use App\Filament\Instructor\Resources\QuizResource\Pages\ListQuizzes;
-use App\Models\Assessment;
+use App\Models\Course;
 use App\Models\Quiz;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -49,22 +49,21 @@ class QuizResource extends Resource
                 Section::make('Quiz Details')
                     ->columns(2)
                     ->schema([
-                        Select::make('assessment_id')
-                            ->label('Assessment')
+                        Select::make('course_id')
+                            ->label('Course')
                             ->required()
                             ->searchable()
                             ->options(
-                                fn (): array => Assessment::query()
-                                    ->whereIn('course_id', $courseIds)
-                                    ->whereDoesntHave('quiz')
-                                    ->orderBy('name')
+                                fn (): array => Course::query()
+                                    ->whereIn('id', $courseIds)
+                                    ->orderBy('title')
                                     ->get()
-                                    ->mapWithKeys(fn (Assessment $a) => [
-                                        $a->id => $a->name . ' (' . ($a->course?->title ?? 'No Course') . ')',
+                                    ->mapWithKeys(fn (Course $c) => [
+                                        $c->id => $c->title . ' (' . $c->code . ')',
                                     ])
                                     ->toArray()
                             )
-                            ->helperText('Only assessments in your assigned courses without a quiz are shown.')
+                            ->helperText('Only your assigned courses are shown.')
                             ->columnSpanFull(),
 
                         TextInput::make('title')
@@ -180,13 +179,10 @@ class QuizResource extends Resource
                 TextColumn::make('title')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('assessment.name')
-                    ->label('Assessment')
+                TextColumn::make('course.title')
+                    ->label('Course')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('assessment.course.title')
-                    ->label('Course')
-                    ->searchable(),
                 TextColumn::make('questions_count')
                     ->label('Questions')
                     ->counts('questions')
@@ -212,10 +208,7 @@ class QuizResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->modifyQueryUsing(
-                fn (Builder $query) => $query->whereHas(
-                    'assessment',
-                    fn (Builder $q) => $q->whereIn('course_id', static::instructorCourseIds())
-                )
+                fn (Builder $query) => $query->whereIn('course_id', static::instructorCourseIds())
             )
             ->recordActions([
                 EditAction::make(),
