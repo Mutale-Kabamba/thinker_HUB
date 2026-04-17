@@ -17,7 +17,7 @@
                     @endif
                 </div>
 
-                <p style="font-size:0.9rem;color:var(--hub-muted);margin:0 0 1rem;">{{ $quiz['assessment'] }} &middot; {{ $quiz['course'] }}</p>
+                <p style="font-size:0.9rem;color:var(--hub-muted);margin:0 0 1rem;">{{ $quiz['course'] }}</p>
 
                 <div style="display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:1rem;">
                     <div>
@@ -87,7 +87,7 @@
             @endif
 
             <div style="text-align:center;padding:1rem 0;">
-                <a href="{{ route('filament.student.pages.assessments') }}" class="hub-btn hub-btn-primary" style="font-size:0.85rem;text-decoration:none;">Back to Assessments</a>
+                <a href="{{ route('filament.student.pages.quizzes') }}" class="hub-btn hub-btn-primary" style="font-size:0.85rem;text-decoration:none;">Back to Quizzes</a>
             </div>
 
         @elseif (!empty($questions))
@@ -200,7 +200,7 @@
         @else
             <section class="hub-card" style="text-align:center;padding:2rem;">
                 <p class="hub-copy">No quiz available or quiz has already been completed.</p>
-                <a href="{{ route('filament.student.pages.assessments') }}" class="hub-btn hub-btn-primary" style="margin-top:1rem;font-size:0.85rem;text-decoration:none;">Back to Assessments</a>
+                <a href="{{ route('filament.student.pages.quizzes') }}" class="hub-btn hub-btn-primary" style="margin-top:1rem;font-size:0.85rem;text-decoration:none;">Back to Quizzes</a>
             </section>
         @endif
     </div>
