@@ -108,13 +108,13 @@ class DemoDataSeeder extends Seeder
         );
 
         Assessment::query()->updateOrCreate(
-            ['user_id' => $beginner->id, 'status' => 'Graded'],
-            ['score' => 78]
+            ['user_id' => $beginner->id],
+            ['name' => 'Beginner Assessment', 'score' => 78]
         );
 
         Assessment::query()->updateOrCreate(
-            ['user_id' => $advanced->id, 'status' => 'Pending'],
-            ['score' => null]
+            ['user_id' => $advanced->id],
+            ['name' => 'Advanced Assessment', 'score' => null]
         );
     }
 }

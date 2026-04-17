@@ -55,9 +55,7 @@
                             <td style="padding:0.55rem 0.5rem;text-align:center;font-weight:700;color:{{ ($assessment['score'] !== null && $assessment['score'] !== '-') ? '#15803d' : 'var(--hub-muted)' }};">{{ ($assessment['score'] !== null && $assessment['score'] !== '-') ? $assessment['score'] . '%' : '-' }}</td>
                             <td style="padding:0.55rem 0.75rem;text-align:right;">
                                 <div style="display:flex;gap:0.35rem;justify-content:flex-end;flex-wrap:wrap;">
-                                    @if (!empty($assessment['has_quiz']))
-                                        <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $assessment['quiz_id']]) }}" style="background:#7c3aed;color:#fff;border:1px solid #7c3aed;border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;font-weight:600;text-decoration:none;transition:background 0.15s;display:inline-flex;align-items:center;gap:0.25rem;" onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'" title="Take Quiz">🧩 Take Quiz</a>
-                                    @endif
+
                                     @if (!empty($assessment['file_path']))
                                         <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assessment', 'id' => $assessment['id']])), @js($assessment['name'] . '.' . pathinfo($assessment['file_path'], PATHINFO_EXTENSION)))" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View file">View</button>
                                         <button type="button" wire:click="downloadFile({{ $assessment['id'] }})" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#6d28d9;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Download file">Download</button>
@@ -113,9 +111,7 @@
 
                     {{-- Action buttons --}}
                     <div class="hub-mobile-card-actions">
-                        @if (!empty($assessment['has_quiz']))
-                            <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $assessment['quiz_id']]) }}" class="hub-action-btn" style="color:#7c3aed;font-weight:700;text-decoration:none;">🧩 Quiz</a>
-                        @endif
+
                         @if (!empty($assessment['file_path']))
                             <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assessment', 'id' => $assessment['id']])), @js($assessment['name'] . '.' . pathinfo($assessment['file_path'], PATHINFO_EXTENSION)))" class="hub-action-btn" style="color:#0e7490;">View</button>
                             <button type="button" wire:click="downloadFile({{ $assessment['id'] }})" class="hub-action-btn" style="color:#6d28d9;">Download</button>
