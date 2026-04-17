@@ -197,7 +197,7 @@ Route::get('/instructors', function () {
         if (Schema::hasTable('users')) {
             $instructors = User::query()
                 ->where('role', 'instructor')
-                ->get(['id', 'name', 'profile_photo_path']);
+                ->get(['id', 'name', 'profile_photo_path', 'proficiency', 'occupation', 'whatsapp', 'linkedin_url', 'facebook_url']);
         }
     } catch (\Throwable $e) {
         report($e);

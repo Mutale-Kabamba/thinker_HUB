@@ -10,44 +10,12 @@
         'type' => 'website',
     ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
 </head>
 <body class="bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
 
-    <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
-        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
-            <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-bold text-white shrink-0">
-                <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
-            </a>
-
-            <nav class="hidden md:flex items-center gap-10 text-[13px] font-semibold uppercase tracking-wider text-slate-300">
-                <a href="{{ route('home') }}" class="hover:text-yellow-400 transition-colors">Home</a>
-                <a href="{{ route('landing.courses') }}" class="hover:text-yellow-400 transition-colors">Courses</a>
-                <a href="{{ route('landing.instructors') }}" class="text-yellow-400">Instructors</a>
-                <a href="{{ route('landing.contact') }}" class="hover:text-yellow-400 transition-colors">Contact</a>
-            </nav>
-
-            <div class="hidden md:flex items-center gap-6">
-                <a href="{{ route('login') }}" class="text-sm font-bold text-white hover:text-yellow-400">Login</a>
-                <a href="{{ route('enroll') }}" class="rounded-full bg-yellow-400 px-6 py-2.5 text-sm font-bold text-[#0a2d27] hover:bg-white transition-all">Enroll Now</a>
-            </div>
-
-            <button class="md:hidden text-white text-2xl" @click="mobileMenu = !mobileMenu">
-                <i class="fa-solid" :class="mobileMenu ? 'fa-xmark' : 'fa-bars-staggered'"></i>
-            </button>
-        </div>
-
-        <div class="md:hidden bg-[#0a2d27] border-t border-white/10" x-show="mobileMenu" x-transition>
-            <nav class="flex flex-col p-6 gap-4 text-white font-semibold">
-                <a href="{{ route('home') }}">Home</a>
-                <a href="{{ route('landing.courses') }}">Courses</a>
-                <a href="{{ route('landing.instructors') }}" class="text-yellow-400">Instructors</a>
-                <a href="{{ route('landing.contact') }}">Contact</a>
-            </nav>
-        </div>
-    </header>
+    @include('partials.public-header')
 
     <main>
         <section class="bg-[#0a2d27] relative overflow-hidden py-16 lg:py-20">
@@ -76,6 +44,36 @@
                                 <div class="px-3 py-6">
                                     <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">Instructor</p>
                                     <h3 class="mt-2 text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors">{{ $instructor->name }}</h3>
+
+                                    @if ($instructor->occupation)
+                                        <p class="mt-1 text-sm text-slate-500">{{ $instructor->occupation }}</p>
+                                    @endif
+
+                                    @if ($instructor->proficiency)
+                                        <div class="mt-3">
+                                            <span class="inline-block rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700 border border-teal-200">{{ $instructor->proficiency }}</span>
+                                        </div>
+                                    @endif
+
+                                    @if ($instructor->whatsapp || $instructor->linkedin_url || $instructor->facebook_url)
+                                        <div class="mt-4 flex items-center gap-3">
+                                            @if ($instructor->whatsapp)
+                                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $instructor->whatsapp) }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600 hover:bg-green-100 transition" title="WhatsApp">
+                                                    <i class="fa-brands fa-whatsapp text-lg"></i>
+                                                </a>
+                                            @endif
+                                            @if ($instructor->linkedin_url)
+                                                <a href="{{ $instructor->linkedin_url }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-700 hover:bg-blue-100 transition" title="LinkedIn">
+                                                    <i class="fa-brands fa-linkedin-in text-lg"></i>
+                                                </a>
+                                            @endif
+                                            @if ($instructor->facebook_url)
+                                                <a href="{{ $instructor->facebook_url }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition" title="Facebook">
+                                                    <i class="fa-brands fa-facebook-f text-lg"></i>
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             </article>
                         @endforeach

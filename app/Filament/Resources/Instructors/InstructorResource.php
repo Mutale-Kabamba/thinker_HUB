@@ -73,6 +73,33 @@ class InstructorResource extends Resource
                     ->searchable()
                     ->preload(),
 
+                TextInput::make('proficiency')
+                    ->label('Proficiency / Expertise')
+                    ->maxLength(255)
+                    ->placeholder('e.g. Data Analytics, Web Development'),
+
+                TextInput::make('occupation')
+                    ->label('Occupation')
+                    ->maxLength(255)
+                    ->placeholder('e.g. Software Engineer'),
+
+                TextInput::make('whatsapp')
+                    ->label('WhatsApp Number')
+                    ->maxLength(255)
+                    ->placeholder('e.g. 260772640546'),
+
+                TextInput::make('linkedin_url')
+                    ->label('LinkedIn URL')
+                    ->url()
+                    ->maxLength(500)
+                    ->placeholder('https://linkedin.com/in/...'),
+
+                TextInput::make('facebook_url')
+                    ->label('Facebook URL')
+                    ->url()
+                    ->maxLength(500)
+                    ->placeholder('https://facebook.com/...'),
+
                 Toggle::make('is_active')
                     ->label('Active')
                     ->default(true),

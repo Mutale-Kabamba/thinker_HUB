@@ -29,6 +29,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'is_active',
         'track',
         'profile_photo_path',
+        'proficiency',
+        'occupation',
+        'whatsapp',
+        'linkedin_url',
+        'facebook_url',
     ];
 
     /**
