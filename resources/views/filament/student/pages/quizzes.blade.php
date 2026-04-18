@@ -54,7 +54,7 @@
         </div>
 
         {{-- ======================== MOBILE CARDS ======================== --}}
-        <div class="hub-mobile-only">
+        <div class="hub-mobile-only hub-quiz-listing">
             @forelse ($quizzes as $quiz)
                 <div class="hub-mobile-card">
                     {{-- Header: Title + Status --}}
