@@ -18,7 +18,7 @@
             <section class="hub-card" style="padding:0.75rem 1rem;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;gap:0.25rem;">
                     <button wire:click="previousMonth" class="hub-btn hub-btn-muted" style="font-size:0.65rem;padding:0.2rem 0.4rem;flex-shrink:0;">←</button>
-                    <h3 style="font-weight:700;font-size:0.95rem;color:var(--hub-ink);text-align:center;">
+                    <h3 style="font-weight:700;font-size:0.95rem;color:var(--hub-ink);text-align:center;white-space:nowrap;overflow:hidden;min-width:0;">
                         {{ \Carbon\Carbon::createFromDate($calendarYear, $calendarMonth, 1)->format('F Y') }}
                     </h3>
                     <button wire:click="nextMonth" class="hub-btn hub-btn-muted" style="font-size:0.65rem;padding:0.2rem 0.4rem;flex-shrink:0;">→</button>

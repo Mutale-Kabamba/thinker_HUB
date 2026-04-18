@@ -42,7 +42,7 @@
 
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;gap:0.25rem;">
                 <button wire:click="previousMonth" class="hub-btn hub-btn-muted" style="font-size:0.65rem;padding:0.2rem 0.4rem;flex-shrink:0;">←</button>
-                <span style="font-weight:700;font-size:0.88rem;color:var(--hub-ink);text-align:center;">
+                <span style="font-weight:700;font-size:0.88rem;color:var(--hub-ink);text-align:center;white-space:nowrap;overflow:hidden;min-width:0;">
                     {{ \Carbon\Carbon::createFromDate($calendarYear, $calendarMonth, 1)->format('F Y') }}
                 </span>
                 <button wire:click="nextMonth" class="hub-btn hub-btn-muted" style="font-size:0.65rem;padding:0.2rem 0.4rem;flex-shrink:0;">→</button>
