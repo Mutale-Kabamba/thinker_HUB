@@ -44,6 +44,12 @@ class InstructorPanelProvider extends PanelProvider
                 PanelsRenderHook::HEAD_END,
                 fn (): string => view('partials.pwa-register')->render(),
             )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_END,
+                fn (): string => view('filament.partials.top-search', [
+                    'action' => route('filament.instructor.pages.search'),
+                ])->render(),
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

@@ -40,12 +40,12 @@
                 <a href="{{ route('filament.instructor.pages.schedule') }}" class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;text-decoration:none;white-space:nowrap;">View Full Schedule →</a>
             </div>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-                <button wire:click="previousMonth" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.25rem 0.5rem;">← Prev</button>
-                <span style="font-weight:700;font-size:0.88rem;color:var(--hub-ink);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;gap:0.25rem;">
+                <button wire:click="previousMonth" class="hub-btn hub-btn-muted" style="font-size:0.65rem;padding:0.2rem 0.4rem;flex-shrink:0;">←</button>
+                <span style="font-weight:700;font-size:0.88rem;color:var(--hub-ink);text-align:center;">
                     {{ \Carbon\Carbon::createFromDate($calendarYear, $calendarMonth, 1)->format('F Y') }}
                 </span>
-                <button wire:click="nextMonth" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.25rem 0.5rem;">Next →</button>
+                <button wire:click="nextMonth" class="hub-btn hub-btn-muted" style="font-size:0.65rem;padding:0.2rem 0.4rem;flex-shrink:0;">→</button>
             </div>
 
             <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
