@@ -1,9 +1,9 @@
 <x-filament-panels::page>
     <div class="hub-shell">
-        <section class="hub-card" style="padding:0.75rem 1rem;">
+        <section class="hub-card" style="padding:0.75rem 1rem;overflow:hidden;">
             <p class="hub-eyebrow">Quiz Centre</p>
             <h2 class="hub-title" style="font-size:1.05rem;">Quizzes</h2>
-            <p class="hub-copy" style="margin-top:0.2rem;">View available quizzes, track your progress, and test your knowledge.</p>
+            <p class="hub-copy" style="margin-top:0.2rem;word-wrap:break-word;">View available quizzes, track your progress, and test your knowledge.</p>
         </section>
 
         {{-- ======================== DESKTOP TABLE ======================== --}}
@@ -59,32 +59,32 @@
                 <div class="hub-mobile-card">
                     {{-- Header: Title + Status --}}
                     <div class="hub-mobile-card-row">
-                        <div style="flex:1;min-width:0;">
-                            <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $quiz['title'] }}</p>
-                            <p style="margin:0.1rem 0 0;font-size:0.74rem;color:var(--hub-muted);">{{ $quiz['course'] }}</p>
+                        <div style="flex:1;min-width:0;overflow:hidden;">
+                            <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $quiz['title'] }}</p>
+                            <p style="margin:0.1rem 0 0;font-size:0.73rem;color:var(--hub-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $quiz['course'] }}</p>
                         </div>
-                        <span class="hub-chip {{ $quiz['status'] === 'completed' ? ($quiz['passed'] ? 'hub-chip-green' : 'hub-chip-red') : ($quiz['status'] === 'in_progress' ? 'hub-chip-blue' : 'hub-chip-amber') }}" style="font-size:0.68rem;flex-shrink:0;">{{ $quiz['status_label'] }}</span>
+                        <span class="hub-chip {{ $quiz['status'] === 'completed' ? ($quiz['passed'] ? 'hub-chip-green' : 'hub-chip-red') : ($quiz['status'] === 'in_progress' ? 'hub-chip-blue' : 'hub-chip-amber') }}" style="font-size:0.65rem;flex-shrink:0;margin-left:0.35rem;">{{ $quiz['status_label'] }}</span>
                     </div>
 
                     {{-- Meta row --}}
-                    <div class="hub-mobile-card-meta">
-                        <span style="color:var(--hub-muted);"><strong>Questions:</strong> {{ $quiz['question_count'] }}</span>
-                        <span style="color:var(--hub-muted);"><strong>Time:</strong> {{ $quiz['time_limit'] ? $quiz['time_limit'] . ' min' : 'No limit' }}</span>
-                        <span style="font-weight:700;color:{{ $quiz['score'] !== null ? ($quiz['passed'] ? '#15803d' : '#dc2626') : 'var(--hub-muted)' }};"><strong>Score:</strong> {{ $quiz['score'] !== null ? $quiz['score'] . '%' : '-' }}</span>
+                    <div class="hub-mobile-card-meta" style="margin-top:0.4rem;">
+                        <span style="color:var(--hub-muted);font-size:0.76rem;"><strong>Qs:</strong> {{ $quiz['question_count'] }}</span>
+                        <span style="color:var(--hub-muted);font-size:0.76rem;"><strong>Time:</strong> {{ $quiz['time_limit'] ? $quiz['time_limit'] . 'm' : '∞' }}</span>
+                        <span style="font-weight:700;font-size:0.76rem;color:{{ $quiz['score'] !== null ? ($quiz['passed'] ? '#15803d' : '#dc2626') : 'var(--hub-muted)' }};"><strong>Score:</strong> {{ $quiz['score'] !== null ? $quiz['score'] . '%' : '-' }}</span>
                     </div>
 
                     @if (!empty($quiz['description']))
-                        <p style="margin:0.25rem 0 0;font-size:0.78rem;color:var(--hub-muted);line-height:1.4;">{{ Str::limit($quiz['description'], 120) }}</p>
+                        <p style="margin:0.3rem 0 0;font-size:0.76rem;color:var(--hub-muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ $quiz['description'] }}</p>
                     @endif
 
                     {{-- Action --}}
-                    <div class="hub-mobile-card-actions">
+                    <div class="hub-mobile-card-actions" style="margin-top:0.55rem;">
                         @if ($quiz['status'] === 'completed')
-                            <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-action-btn" style="color:#475569;text-decoration:none;">Review</a>
+                            <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-action-btn" style="color:#94a3b8;text-decoration:none;flex:1;text-align:center;">Review</a>
                         @elseif ($quiz['status'] === 'in_progress')
-                            <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-action-btn" style="color:#0d9488;text-decoration:none;">Continue</a>
+                            <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-action-btn" style="color:#0d9488;border-color:#0d9488;text-decoration:none;flex:1;text-align:center;">Continue</a>
                         @else
-                            <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-action-btn" style="background:#0d9488;color:#fff;border-color:#0d9488;text-decoration:none;">Start Quiz</a>
+                            <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-action-btn" style="background:#0d9488;color:#fff;border-color:#0d9488;text-decoration:none;flex:1;text-align:center;">Start Quiz</a>
                         @endif
                     </div>
                 </div>
