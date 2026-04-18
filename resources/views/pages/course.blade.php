@@ -12,6 +12,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
+    <style>
+        @media (max-width: 640px) {
+            .hub-fee-row {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 0.25rem !important;
+            }
+        }
+    </style>
 </head>
 <body class="bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
 
@@ -433,7 +442,7 @@
                                     <h4 class="text-sm font-semibold text-slate-800">{{ $section['label'] }}</h4>
                                     <div class="mt-2 space-y-2">
                                         @foreach ($section['rows'] as $row)
-                                            <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
+                                            <div class="hub-fee-row flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
                                                 <span class="text-sm font-medium text-slate-800">{{ $row['level'] !== '' ? $row['level'] : '-' }}</span>
                                                 <span class="text-sm font-semibold text-slate-900">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</span>
                                                 <span class="text-sm text-slate-600">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</span>
@@ -642,6 +651,9 @@
                     <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
                         Thinker Hub empowers learners with practical, career-focused training designed to turn knowledge into measurable results.
                     </p>
+                    <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
+                        <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>
+                    </div>
                 </div>
 
                 <div class="hidden lg:block">
@@ -668,11 +680,23 @@
                         <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinker.learn@gmail.com</a></p>
                         <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
                     </div>
+                    <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
                 </div>
             </div>
 
-            <div class="mt-8 border-t border-slate-200 pt-5 text-xs text-slate-500">
-                <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
+            <div class="mt-8 border-t border-slate-200 pt-5">
+                <div class="flex flex-col items-center gap-4 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+                    <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button type="button" @click="$dispatch('open-legal', 'privacy')" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</button>
+                        <button type="button" @click="$dispatch('open-legal', 'cookies')" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</button>
+                        <button type="button" @click="$dispatch('open-legal', 'terms')" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</button>
+                    </div>
+                </div>
             </div>
         </div>
     </footer>

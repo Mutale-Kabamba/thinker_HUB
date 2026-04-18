@@ -150,7 +150,8 @@
                         <p>Cookies are small text files stored on your device when you visit a website. They help us provide a functional and personalised experience.</p>
 
                         <h3 class="mt-4 text-base font-bold text-slate-900">2. Cookies We Use</h3>
-                        <table class="w-full mt-2 text-xs border border-slate-200 rounded-lg overflow-hidden">
+                        <div class="hub-legal-table-wrap mt-2 overflow-x-auto">
+                        <table class="w-full text-xs border border-slate-200 rounded-lg overflow-hidden">
                             <thead class="bg-slate-50">
                                 <tr>
                                     <th class="px-3 py-2 text-left font-semibold text-slate-700">Cookie</th>
@@ -176,6 +177,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
 
                         <h3 class="mt-4 text-base font-bold text-slate-900">3. Managing Cookies</h3>
                         <p>You can control cookies through your browser settings. Disabling essential cookies may prevent parts of the platform from functioning correctly.</p>

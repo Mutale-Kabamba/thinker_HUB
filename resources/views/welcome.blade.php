@@ -87,10 +87,10 @@
                             </button>
                         </div>
                         
-                        <div class="mt-16 grid grid-cols-3 gap-4 border-t border-white/10 pt-10 max-w-md mx-auto lg:mx-0">
-                            <div><p class="text-2xl font-bold text-white">{{ number_format($stats['tutors'] ?? 0) }}+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Tutors</p></div>
-                            <div><p class="text-2xl font-bold text-white">{{ number_format($stats['students'] ?? 0) }}+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Students</p></div>
-                            <div><p class="text-2xl font-bold text-white">{{ number_format($stats['courses'] ?? 0) }}+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Courses</p></div>
+                        <div class="mt-16 grid grid-cols-3 gap-3 sm:gap-4 border-t border-white/10 pt-10 max-w-md mx-auto lg:mx-0">
+                            <div class="text-center lg:text-left"><p class="text-xl sm:text-2xl font-bold text-white">{{ number_format($stats['tutors'] ?? 0) }}+</p><p class="text-[10px] sm:text-xs uppercase tracking-tighter text-slate-400">Tutors</p></div>
+                            <div class="text-center lg:text-left"><p class="text-xl sm:text-2xl font-bold text-white">{{ number_format($stats['students'] ?? 0) }}+</p><p class="text-[10px] sm:text-xs uppercase tracking-tighter text-slate-400">Students</p></div>
+                            <div class="text-center lg:text-left"><p class="text-xl sm:text-2xl font-bold text-white">{{ number_format($stats['courses'] ?? 0) }}+</p><p class="text-[10px] sm:text-xs uppercase tracking-tighter text-slate-400">Courses</p></div>
                         </div>
                     </div>
 
