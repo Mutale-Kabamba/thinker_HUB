@@ -743,6 +743,56 @@
     }
 
     /* ============================================================ */
+    /* INSTRUCTOR PANEL MOBILE ENHANCEMENTS                          */
+    /* ============================================================ */
+    @media (max-width: 768px) {
+        /* Instructor overview: course cards stack in single column */
+        .fi-panel-instructor .hub-grid-2 {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* Filament sidebar toggle button — ensure visible and tappable */
+        .fi-layout-sidebar-toggle-btn-ctn {
+            padding: 0.5rem !important;
+        }
+
+        /* Instructor resource tables: enable horizontal scroll */
+        .fi-panel-instructor .fi-ta-ctn {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Session list action buttons: stack on small screens */
+        .fi-panel-instructor .hub-card > div:last-child > .hub-btn {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+        }
+
+        /* Filament header title sizing on mobile */
+        .fi-panel-instructor .fi-header-heading {
+            font-size: 1.25rem !important;
+        }
+
+        /* Filament account widget: compact on mobile */
+        .fi-panel-instructor .fi-account-widget {
+            padding: 0.5rem !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        /* Extra-small: full-width buttons in instructor session cards */
+        .fi-panel-instructor .hub-card .hub-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .fi-panel-instructor .hub-card .hub-btn + .hub-btn {
+            width: 100%;
+        }
+    }
+
+    /* ============================================================ */
     /* NOTIFICATION BELL                                             */
     /* ============================================================ */
     .hub-notif-bell:hover { color: var(--hub-ink); }

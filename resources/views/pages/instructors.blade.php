@@ -34,7 +34,7 @@
                             <article class="group bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-xl transition-all border border-slate-100">
                                 <div class="relative h-64 overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-teal-50 to-slate-100 flex items-center justify-center">
                                     @if ($instructor->profile_photo_path)
-                                        <img src="{{ asset('storage/' . $instructor->profile_photo_path) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="{{ $instructor->name }}">
+                                        <img src="{{ Storage::disk('public')->url($instructor->profile_photo_path) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="{{ $instructor->name }}" onerror="this.parentElement.innerHTML='<div class=\'w-24 h-24 rounded-full bg-teal-100 flex items-center justify-center\'><span class=\'text-3xl font-bold text-teal-600\'>{{ strtoupper(substr($instructor->name, 0, 2)) }}</span></div>'">
                                     @else
                                         <div class="w-24 h-24 rounded-full bg-teal-100 flex items-center justify-center">
                                             <span class="text-3xl font-bold text-teal-600">{{ strtoupper(substr($instructor->name, 0, 2)) }}</span>
