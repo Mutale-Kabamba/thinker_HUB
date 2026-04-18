@@ -41,11 +41,11 @@
             </div>
 
             <div style="display:flex;align-items:center;justify-content:center;margin-bottom:0.5rem;gap:0.5rem;word-break:normal;">
-                <button wire:click="previousMonth" class="hub-btn hub-btn-muted" style="font-size:0.65rem;padding:0.2rem 0.4rem;flex-shrink:0;">←</button>
+                <button wire:click="previousMonth" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--hub-muted);padding:0.15rem;line-height:1;flex-shrink:0;">&#8249;</button>
                 <span style="font-weight:700;font-size:0.88rem;color:var(--hub-ink);text-align:center;white-space:nowrap;flex-shrink:0;">
                     {{ \Carbon\Carbon::createFromDate($calendarYear, $calendarMonth, 1)->format('F Y') }}
                 </span>
-                <button wire:click="nextMonth" class="hub-btn hub-btn-muted" style="font-size:0.65rem;padding:0.2rem 0.4rem;flex-shrink:0;">→</button>
+                <button wire:click="nextMonth" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--hub-muted);padding:0.15rem;line-height:1;flex-shrink:0;">&#8250;</button>
             </div>
 
             <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
