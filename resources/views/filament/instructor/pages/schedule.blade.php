@@ -25,7 +25,7 @@
                 </div>
 
                 <div style="overflow-x:auto;">
-                    <table style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:500px;">
+                    <table class="hub-calendar-table" style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:500px;">
                         <thead>
                             <tr>
                                 @foreach (['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $day)
@@ -45,11 +45,11 @@
                                             {{ ! $day['in_month'] ? 'opacity:0.35;' : '' }}
                                             {{ $day['is_today'] ? 'background:var(--hub-primary-soft);' : '' }}
                                         ">
-                                            <div style="font-size:0.7rem;font-weight:{{ $day['is_today'] ? '800' : '600' }};color:{{ $day['is_today'] ? 'var(--hub-primary)' : 'var(--hub-ink)' }};margin-bottom:0.2rem;">
+                                            <div class="hub-calendar-day-num" style="font-size:0.7rem;font-weight:{{ $day['is_today'] ? '800' : '600' }};color:{{ $day['is_today'] ? 'var(--hub-primary)' : 'var(--hub-ink)' }};margin-bottom:0.2rem;">
                                                 {{ $day['date'] }}
                                             </div>
                                             @foreach ($day['sessions'] as $calSession)
-                                                <div style="
+                                                <div class="hub-calendar-session" style="
                                                     margin-bottom:0.15rem;
                                                     padding:0.15rem 0.25rem;
                                                     border-radius:4px;
@@ -84,7 +84,7 @@
                     </table>
                 </div>
 
-                <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.6rem;font-size:0.65rem;color:var(--hub-muted);">
+                <div class="hub-legend" style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.6rem;font-size:0.65rem;color:var(--hub-muted);">
                     <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e0f2fe;margin-right:3px;"></span> Scheduled</span>
                     <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#dcfce7;margin-right:3px;"></span> Completed</span>
                     <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fef3c7;margin-right:3px;"></span> Rescheduled</span>
@@ -95,7 +95,7 @@
 
         {{-- Filters --}}
         <section class="hub-card" style="padding:0.75rem 1rem;">
-            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+            <div class="hub-schedule-filters" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
                 <div>
                     <label style="font-size:0.72rem;font-weight:600;color:var(--hub-muted);">Status</label>
                     <select wire:model.live="filterStatus" style="display:block;margin-top:0.15rem;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
@@ -114,7 +114,7 @@
                         <option value="one_on_one">One-On-One</option>
                     </select>
                 </div>
-                <div style="margin-left:auto;align-self:flex-end;">
+                <div class="hub-filter-count" style="margin-left:auto;align-self:flex-end;">
                     <span class="hub-chip hub-chip-primary">{{ count($sessions) }} sessions</span>
                 </div>
             </div>
@@ -140,7 +140,7 @@
                         </div>
                     </div>
 
-                    <div style="margin-top:0.5rem;display:flex;gap:1.2rem;flex-wrap:wrap;font-size:0.78rem;color:var(--hub-muted);">
+                    <div class="hub-session-meta" style="margin-top:0.5rem;display:flex;gap:1.2rem;flex-wrap:wrap;font-size:0.78rem;color:var(--hub-muted);">
                         <span>📅 {{ $session['session_date'] }}</span>
                         <span>🕐 {{ $session['start_time'] }} – {{ $session['end_time'] }}</span>
                         @if ($session['student_name'])
@@ -176,7 +176,7 @@
                     @if ($rescheduleSessionId === $session['id'])
                         <div style="margin-top:0.6rem;padding:0.7rem;border:1px solid var(--hub-border);border-radius:8px;background:var(--hub-surface-soft);">
                             <p style="font-weight:700;font-size:0.8rem;color:var(--hub-ink);margin-bottom:0.5rem;">Reschedule Session</p>
-                            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                            <div class="hub-form-row" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
                                 <div>
                                     <label style="font-size:0.7rem;font-weight:600;color:var(--hub-muted);">New Date</label>
                                     <input type="date" wire:model="rescheduleDate" style="display:block;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">

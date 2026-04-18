@@ -4,15 +4,27 @@
         viewerUrl: '',
         viewerName: '',
         viewerType: '',
+        viewerDocUrl: '',
         expanded: null,
         panel: null,
-        openViewer(url, name) {
+        async openViewer(url, name) {
             this.viewerUrl = url;
             this.viewerName = name;
+            this.viewerDocUrl = '';
             const ext = name.split('.').pop().toLowerCase();
             if (ext === 'pdf') this.viewerType = 'pdf';
             else if (['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) this.viewerType = 'image';
             else if (['mp4','webm','ogg'].includes(ext)) this.viewerType = 'video';
+            else if (['doc','docx','ppt','pptx','xls','xlsx'].includes(ext)) {
+                this.viewerType = 'document';
+                try {
+                    const signedRoute = url.replace('/file/view/', '/file/signed/');
+                    const resp = await fetch(signedRoute, { credentials: 'same-origin' });
+                    const data = await resp.json();
+                    this.viewerDocUrl = 'https://docs.google.com/gview?url=' + encodeURIComponent(data.url) + '&embedded=true';
+                } catch (e) { this.viewerType = 'other'; }
+            }
+            else if (['txt','csv'].includes(ext)) this.viewerType = 'text';
             else this.viewerType = 'other';
             this.viewerOpen = true;
         },
@@ -154,6 +166,12 @@
                 </template>
                 <template x-if="viewerType === 'video'">
                     <video :src="viewerUrl" controls style="max-width:100%;max-height:75vh;"></video>
+                </template>
+                <template x-if="viewerType === 'document'">
+                    <iframe :src="viewerDocUrl" style="width:100%;height:75vh;border:none;"></iframe>
+                </template>
+                <template x-if="viewerType === 'text'">
+                    <iframe :src="viewerUrl" style="width:100%;height:75vh;border:none;"></iframe>
                 </template>
                 <template x-if="viewerType === 'other'">
                     <div style="text-align:center;padding:2rem;">

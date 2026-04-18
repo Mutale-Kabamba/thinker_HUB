@@ -354,7 +354,74 @@ Route::middleware('auth')->group(function () {
 
         return $disk->response($path);
     })->name('file.view');
+
+    // Signed URL route for viewing Office documents via Google Docs Viewer.
+    // Generates a temporary signed URL that doesn't require authentication.
+    Route::get('/file/signed/{type}/{id}', function (string $type, int $id) {
+        $user = Auth::user();
+        if (! $user) {
+            abort(403);
+        }
+
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+
+        if ($type === 'material') {
+            $material = \App\Models\LearningMaterial::query()->visibleTo($user)->findOrFail($id);
+            $path = $material->file_path;
+        } elseif ($type === 'assignment') {
+            $assignment = \App\Models\Assignment::query()->visibleTo($user)->findOrFail($id);
+            $path = $assignment->file_path;
+        } elseif ($type === 'assessment') {
+            if ($user->isAdmin()) {
+                $assessment = \App\Models\Assessment::query()->findOrFail($id);
+            } else {
+                $assessment = \App\Models\Assessment::query()->where('user_id', $user->id)->findOrFail($id);
+            }
+            $path = $assessment->file_path;
+        } elseif ($type === 'submission') {
+            $submission = \App\Models\AssignmentSubmission::query()
+                ->where('user_id', $user->id)
+                ->findOrFail($id);
+            $path = $submission->file_path;
+        } elseif ($type === 'assessment-submission') {
+            $submission = \App\Models\AssessmentSubmission::query()
+                ->where('user_id', $user->id)
+                ->findOrFail($id);
+            $path = $submission->file_path;
+        } else {
+            abort(404);
+        }
+
+        if (! $path || ! $disk->exists($path)) {
+            abort(404);
+        }
+
+        $signedUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'file.public',
+            now()->addMinutes(30),
+            ['path' => $path]
+        );
+
+        return response()->json(['url' => $signedUrl]);
+    })->name('file.signed');
 });
+
+// Publicly accessible signed route for Google Docs Viewer to fetch the file.
+Route::get('/file/public', function (\Illuminate\Http\Request $request) {
+    if (! $request->hasValidSignature()) {
+        abort(403);
+    }
+
+    $path = $request->query('path');
+    $disk = \Illuminate\Support\Facades\Storage::disk('public');
+
+    // Prevent path traversal attacks.
+    if (! $path || str_contains($path, '..') || ! $disk->exists($path)) {
+        abort(404);
+    }
+
+    return $disk->response($path);
+})->name('file.public');
 
 require __DIR__.'/auth.php';
 

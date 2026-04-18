@@ -133,7 +133,7 @@
 
                 {{-- Timer Bar --}}
                 @if ($quiz['time_limit'])
-                    <div style="position:sticky;top:0;z-index:50;background:white;padding:0.5rem 1rem;border-bottom:1px solid var(--hub-border);display:flex;justify-content:space-between;align-items:center;border-radius:12px;margin-bottom:0.5rem;">
+                    <div class="hub-quiz-timer-bar" style="position:sticky;top:0;z-index:50;background:white;padding:0.5rem 1rem;border-bottom:1px solid var(--hub-border);display:flex;justify-content:space-between;align-items:center;border-radius:12px;margin-bottom:0.5rem;">
                         <span style="font-size:0.8rem;font-weight:600;color:var(--hub-ink);">Question <span x-text="currentQuestion + 1"></span> of {{ count($questions) }}</span>
                         <span style="font-size:0.85rem;font-weight:700;padding:0.25rem 0.75rem;border-radius:20px;" :style="timeRemaining <= 60 ? 'background:#fef2f2;color:#dc2626;' : 'background:#f0fdf4;color:#15803d;'" x-text="formatTime(timeRemaining)"></span>
                     </div>
@@ -146,7 +146,7 @@
 
                 {{-- Questions --}}
                 @foreach ($questions as $index => $question)
-                    <div x-show="currentQuestion === {{ $index }}" x-cloak class="hub-card" style="padding:1.25rem;">
+                    <div x-show="currentQuestion === {{ $index }}" x-cloak class="hub-card hub-quiz-question-card" style="padding:1.25rem;">
                         <div style="display:flex;gap:0.5rem;align-items:flex-start;margin-bottom:1rem;">
                             <span style="background:var(--hub-primary);color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0;">{{ $index + 1 }}</span>
                             <div style="flex:1;">
@@ -158,7 +158,7 @@
                         @if ($question['type'] === 'multiple_choice')
                             <div style="display:flex;flex-direction:column;gap:0.5rem;">
                                 @foreach ($question['options'] as $option)
-                                    <label style="display:flex;align-items:center;gap:0.6rem;padding:0.65rem 0.85rem;border:2px solid var(--hub-border);border-radius:10px;cursor:pointer;transition:all 0.15s;font-size:0.88rem;" :style="$wire.answers[{{ $question['id'] }}] == '{{ $option['id'] }}' ? 'border-color:var(--hub-primary);background:#f0fdfa;' : ''" onmouseover="if(!this.querySelector('input').checked)this.style.borderColor='#94a3b8'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--hub-border)'">
+                                    <label class="hub-quiz-option" style="display:flex;align-items:center;gap:0.6rem;padding:0.65rem 0.85rem;border:2px solid var(--hub-border);border-radius:10px;cursor:pointer;transition:all 0.15s;font-size:0.88rem;" :style="$wire.answers[{{ $question['id'] }}] == '{{ $option['id'] }}' ? 'border-color:var(--hub-primary);background:#f0fdfa;' : ''" onmouseover="if(!this.querySelector('input').checked)this.style.borderColor='#94a3b8'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--hub-border)'">
                                         <input type="radio" name="question_{{ $question['id'] }}" value="{{ $option['id'] }}" wire:model="answers.{{ $question['id'] }}" style="accent-color:var(--hub-primary);width:18px;height:18px;flex-shrink:0;">
                                         <span style="color:var(--hub-ink);">{{ $option['text'] }}</span>
                                     </label>
@@ -191,7 +191,7 @@
                 @endforeach
 
                 {{-- Question Navigation Dots --}}
-                <div style="display:flex;justify-content:center;gap:0.35rem;flex-wrap:wrap;padding:0.75rem 0;">
+                <div class="hub-quiz-nav-dots" style="display:flex;justify-content:center;gap:0.35rem;flex-wrap:wrap;padding:0.75rem 0;">
                     @foreach ($questions as $index => $question)
                         <button @click="currentQuestion = {{ $index }}" type="button" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--hub-border);font-size:0.7rem;font-weight:700;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;" :style="currentQuestion === {{ $index }} ? 'background:var(--hub-primary);color:white;border-color:var(--hub-primary);' : ($wire.answers[{{ $question['id'] }}] ? 'background:#dcfce7;color:#15803d;border-color:#86efac;' : '')">{{ $index + 1 }}</button>
                     @endforeach
