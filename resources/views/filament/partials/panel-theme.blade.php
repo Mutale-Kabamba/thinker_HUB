@@ -100,6 +100,7 @@
     }
 
     .hub-chip-primary { background: var(--hub-primary-soft); color: #0f766e; border-color: #5eead4; }
+    .hub-chip-blue { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
     .hub-chip-amber { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
     .hub-chip-green { background: #dcfce7; color: #166534; border-color: #86efac; }
     .hub-chip-red { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
@@ -307,6 +308,12 @@
         border-color: #134e4a;
     }
 
+    .dark .hub-chip-blue {
+        background: #1e2a4a;
+        color: #93c5fd;
+        border-color: #1e3a5f;
+    }
+
     .dark .hub-chip-gray {
         background: #1f2937;
         color: #cbd5e1;
@@ -455,6 +462,108 @@
 
     @media (max-width: 768px) {
         .hub-span-2 { grid-column: span 1 !important; }
+
+        /* ---- Quiz take-quiz page ---- */
+        .hub-quiz-timer-bar {
+            padding: 0.4rem 0.65rem !important;
+            font-size: 0.75rem !important;
+            border-radius: 8px !important;
+        }
+
+        .hub-quiz-nav-dots {
+            gap: 0.25rem !important;
+        }
+
+        .hub-quiz-nav-dots button {
+            width: 24px !important;
+            height: 24px !important;
+            font-size: 0.62rem !important;
+        }
+
+        .hub-quiz-option label {
+            padding: 0.5rem 0.65rem !important;
+            font-size: 0.82rem !important;
+        }
+
+        .hub-quiz-question-card {
+            padding: 0.85rem !important;
+        }
+
+        /* ---- Schedule calendar ---- */
+        .hub-calendar-table {
+            min-width: 320px !important;
+        }
+
+        .hub-calendar-table td {
+            height: 3.5rem !important;
+            padding: 0.15rem !important;
+        }
+
+        .hub-calendar-table th {
+            font-size: 0.6rem !important;
+            padding: 0.25rem 0.1rem !important;
+        }
+
+        .hub-calendar-session {
+            font-size: 0.5rem !important;
+            padding: 0.1rem 0.15rem !important;
+        }
+
+        .hub-calendar-day-num {
+            font-size: 0.6rem !important;
+        }
+
+        /* Schedule legend */
+        .hub-legend {
+            gap: 0.5rem !important;
+            font-size: 0.6rem !important;
+        }
+
+        /* Schedule/reschedule forms: stack inputs */
+        .hub-form-row {
+            flex-direction: column !important;
+            gap: 0.4rem !important;
+        }
+
+        .hub-form-row > div {
+            width: 100% !important;
+        }
+
+        .hub-form-row input[type="date"],
+        .hub-form-row input[type="time"] {
+            width: 100% !important;
+        }
+
+        /* Schedule filter row */
+        .hub-schedule-filters {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.4rem !important;
+        }
+
+        .hub-schedule-filters > div {
+            width: 100% !important;
+        }
+
+        .hub-schedule-filters select {
+            width: 100% !important;
+        }
+
+        .hub-schedule-filters .hub-filter-count {
+            margin-left: 0 !important;
+            align-self: flex-start !important;
+        }
+
+        /* Session cards meta row */
+        .hub-session-meta {
+            gap: 0.5rem !important;
+            font-size: 0.72rem !important;
+        }
+
+        /* Course progress grid */
+        .hub-progress-grid {
+            grid-template-columns: 1fr !important;
+        }
     }
     /* ============================================================ */
     /* NOTIFICATION BELL                                             */
