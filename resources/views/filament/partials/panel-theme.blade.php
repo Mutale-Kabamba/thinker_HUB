@@ -350,11 +350,16 @@
     .hub-desktop-only { display: block !important; }
     .hub-mobile-only  { display: none !important; }
 
+    /* Stats grid: 4 columns on desktop by default */
+    .hub-stats-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
     @media (max-width: 768px) {
         .hub-desktop-only { display: none !important; }
         .hub-mobile-only  { display: block !important; }
 
-        /* Filament v5 layout: prevent horizontal overflow on mobile */
+        /* Filament layout: prevent horizontal overflow on mobile */
         .fi-layout,
         .fi-main-ctn,
         .fi-main,
@@ -406,6 +411,7 @@
         .hub-filter-row select {
             width: 100% !important;
             min-width: 0 !important;
+            max-width: 100% !important;
         }
 
         /* Mobile card improvements */
@@ -420,9 +426,13 @@
         .hub-action-btn {
             font-size: 0.7rem;
             padding: 0.28rem 0.5rem;
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Admin stat widgets responsive */
+        /* Admin/instructor stat widgets: 2 columns on tablet */
         .hub-stats-grid {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 0.5rem !important;
@@ -444,6 +454,38 @@
         .fi-ta-header-cell,
         .fi-ta-cell {
             padding: 0.35rem 0.4rem !important;
+        }
+
+        /* Filament action modals: full width on mobile */
+        .fi-modal-window {
+            max-width: calc(100vw - 1rem) !important;
+            margin: 0.5rem !important;
+        }
+
+        /* Filament form components: prevent overflow */
+        .fi-fo-field-wrp,
+        .fi-fo-component-ctn {
+            max-width: 100% !important;
+            overflow-x: hidden;
+        }
+
+        /* Filament action buttons in table rows */
+        .fi-ta-actions {
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        /* Fee row stacking on mobile (public course detail page) */
+        .hub-fee-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.25rem !important;
+        }
+
+        /* Cookie table scroll on mobile */
+        .hub-legal-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
     }
 
@@ -659,11 +701,22 @@
         .hub-action-btn {
             font-size: 0.68rem;
             padding: 0.25rem 0.45rem;
+            min-height: 36px;
         }
 
         .hub-chip {
             font-size: 0.6rem !important;
             padding: 0.15rem 0.4rem !important;
+        }
+
+        /* Stats grid stacks to 1 column on very small screens */
+        .hub-stats-grid {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* All hub buttons get touch-friendly minimum height */
+        .hub-btn {
+            min-height: 36px;
         }
 
         /* Quiz centre: stack meta vertically on very small screens */
