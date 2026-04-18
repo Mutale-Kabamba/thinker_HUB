@@ -2,7 +2,7 @@
     <x-filament::section>
         <x-slot name="heading">Overview</x-slot>
 
-        <div class="hub-grid hub-stats-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+        <div class="hub-grid hub-stats-grid">
             <section class="hub-card">
                 <p class="hub-eyebrow">Registered Students</p>
                 <p class="hub-metric">{{ $registeredStudents }}</p>

@@ -7,7 +7,7 @@
         </section>
 
         {{-- Stats --}}
-        <div class="hub-grid hub-stats-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+        <div class="hub-grid hub-stats-grid">
             <section class="hub-card">
                 <p class="hub-eyebrow">My Courses</p>
                 <p class="hub-metric">{{ count($courses) }}</p>
