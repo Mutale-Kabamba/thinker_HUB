@@ -59,9 +59,15 @@ class ProfileController extends Controller
                 ->with('status', 'profile-updated');
         }
 
-        return $targetUser->isAdmin()
-            ? Redirect::route('filament.admin.pages.settings')->with('status', 'profile-updated')
-            : Redirect::route('filament.student.pages.settings')->with('status', 'profile-updated');
+        if ($targetUser->isAdmin()) {
+            return Redirect::route('filament.admin.pages.settings')->with('status', 'profile-updated');
+        }
+
+        if ($targetUser->isInstructor()) {
+            return Redirect::route('filament.instructor.pages.settings')->with('status', 'profile-updated');
+        }
+
+        return Redirect::route('filament.student.pages.settings')->with('status', 'profile-updated');
     }
 
     /**
