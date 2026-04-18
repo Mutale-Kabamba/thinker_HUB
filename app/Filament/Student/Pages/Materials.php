@@ -3,6 +3,7 @@
 namespace App\Filament\Student\Pages;
 
 use App\Models\LearningMaterial;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Url;
@@ -60,17 +61,22 @@ class Materials extends Page
             ->findOrFail($materialId);
 
         if (! $material->file_path) {
+            Notification::make()->title('File not available.')->danger()->send();
+
             return null;
         }
 
         $disk = Storage::disk('public');
         if (! $disk->exists($material->file_path)) {
+            Notification::make()->title('File not found.')->danger()->send();
+
             return null;
         }
 
-        return response()->streamDownload(function () use ($disk, $material): void {
-            echo $disk->get($material->file_path);
-        }, $material->title . '.' . pathinfo($material->file_path, PATHINFO_EXTENSION));
+        $extension = pathinfo($material->file_path, PATHINFO_EXTENSION);
+        $downloadName = \Illuminate\Support\Str::slug($material->title) . '.' . $extension;
+
+        return $disk->download($material->file_path, $downloadName);
     }
 
     private function loadMaterials(): void
