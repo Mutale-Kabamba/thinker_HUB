@@ -2,6 +2,7 @@
 
 namespace App\Filament\Instructor\Pages;
 
+use App\Filament\Actions\ImportSessionsAction;
 use App\Models\CourseSession;
 use App\Models\User;
 use App\Notifications\SessionRescheduledNotification;
@@ -42,6 +43,16 @@ class Schedule extends Page
     public ?string $rescheduleStartTime = null;
 
     public ?string $rescheduleEndTime = null;
+
+    protected function getHeaderActions(): array
+    {
+        $user = auth()->user();
+        $courseIds = $user ? $user->instructorCourses()->pluck('courses.id') : collect();
+
+        return [
+            ImportSessionsAction::makeForInstructor($courseIds, $user?->id ?? 0),
+        ];
+    }
 
     public function mount(): void
     {
