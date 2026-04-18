@@ -359,28 +359,40 @@
         .hub-desktop-only { display: none !important; }
         .hub-mobile-only  { display: block !important; }
 
-        /* Filament layout: prevent horizontal overflow on mobile */
-        .fi-layout,
-        .fi-main-ctn,
-        .fi-main,
-        .fi-page,
-        .fi-page-header-main-ctn,
-        .fi-page-main,
-        .fi-page-content {
-            max-width: 100vw !important;
+        /* ── Filament v5 mobile overflow fix ──────────────────────
+           .fi-main-ctn uses w-screen (100vw) which includes the
+           scrollbar width and overflows. Override to 100%. */
+        .fi-main-ctn {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .fi-layout {
             overflow-x: hidden !important;
+        }
+
+        .fi-main {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+            max-width: 100% !important;
             box-sizing: border-box !important;
         }
 
-        /* Override Filament max-width utility on mobile */
-        .fi-main[class*="fi-width-"] {
-            max-width: 100% !important;
+        /* Reduce Filament page vertical spacing on mobile */
+        .fi-page-header-main-ctn {
+            padding-top: 1rem !important;
+            padding-bottom: 0 !important;
+            gap: 0.75rem !important;
+        }
+
+        .fi-page-content {
+            gap: 0.5rem !important;
         }
 
         /* Constrain Filament page header padding */
         .fi-header {
-            padding-left: 0.75rem !important;
-            padding-right: 0.75rem !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
         }
 
         /* Stack grid items vertically on mobile */
