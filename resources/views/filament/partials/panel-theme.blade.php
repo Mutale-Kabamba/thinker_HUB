@@ -28,6 +28,8 @@
     .hub-shell {
         display: grid;
         gap: 0.75rem;
+        max-width: 100%;
+        overflow-x: hidden;
     }
 
     .hub-grid {
@@ -348,6 +350,9 @@
         .hub-desktop-only { display: none !important; }
         .hub-mobile-only  { display: block !important; }
 
+        /* Filament content area: prevent horizontal overflow */
+        .fi-page { max-width: 100vw; overflow-x: hidden; }
+
         /* Stack grid items vertically on mobile */
         .hub-grid-3 > .hub-card[style*="grid-column: span 2"] {
             grid-column: span 1 !important;
@@ -463,6 +468,39 @@
     @media (max-width: 768px) {
         .hub-span-2 { grid-column: span 1 !important; }
 
+        /* ---- Quiz Centre listing ---- */
+        .hub-quiz-listing .hub-mobile-card {
+            padding: 0.75rem 0.85rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-row {
+            align-items: center;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-meta {
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-meta span {
+            white-space: nowrap;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-actions {
+            margin-top: 0.6rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-actions .hub-action-btn {
+            flex: 1;
+            text-align: center;
+            padding: 0.45rem 0.5rem;
+            font-size: 0.78rem;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* ---- Quiz take-quiz page ---- */
         .hub-quiz-timer-bar {
             padding: 0.4rem 0.65rem !important;
@@ -565,6 +603,52 @@
             grid-template-columns: 1fr !important;
         }
     }
+
+    /* Extra-small screens (≤ 480px) */
+    @media (max-width: 480px) {
+        .hub-shell { gap: 0.5rem; }
+
+        .hub-card { padding: 0.55rem 0.65rem; }
+
+        .hub-eyebrow { font-size: 0.58rem; }
+        .hub-title { font-size: 0.95rem !important; }
+        .hub-copy { font-size: 0.76rem; }
+
+        .hub-mobile-card {
+            padding: 0.65rem 0.75rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .hub-mobile-card-row p:first-child {
+            font-size: 0.82rem !important;
+        }
+
+        .hub-mobile-card-meta {
+            gap: 0.35rem;
+            font-size: 0.72rem;
+        }
+
+        .hub-action-btn {
+            font-size: 0.68rem;
+            padding: 0.25rem 0.45rem;
+        }
+
+        .hub-chip {
+            font-size: 0.6rem !important;
+            padding: 0.15rem 0.4rem !important;
+        }
+
+        /* Quiz centre: stack meta vertically on very small screens */
+        .hub-quiz-listing .hub-mobile-card-meta {
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-actions .hub-action-btn {
+            width: 100%;
+        }
+    }
+
     /* ============================================================ */
     /* NOTIFICATION BELL                                             */
     /* ============================================================ */
