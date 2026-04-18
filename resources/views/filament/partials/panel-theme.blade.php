@@ -30,6 +30,8 @@
         gap: 0.75rem;
         max-width: 100%;
         overflow-x: hidden;
+        box-sizing: border-box;
+        word-break: break-word;
     }
 
     .hub-grid {
@@ -53,6 +55,8 @@
         border-radius: 12px;
         padding: 0.8rem;
         box-shadow: none;
+        box-sizing: border-box;
+        max-width: 100%;
     }
 
     .hub-card-dark {
@@ -350,8 +354,29 @@
         .hub-desktop-only { display: none !important; }
         .hub-mobile-only  { display: block !important; }
 
-        /* Filament content area: prevent horizontal overflow */
-        .fi-page { max-width: 100vw; overflow-x: hidden; }
+        /* Filament v5 layout: prevent horizontal overflow on mobile */
+        .fi-layout,
+        .fi-main-ctn,
+        .fi-main,
+        .fi-page,
+        .fi-page-header-main-ctn,
+        .fi-page-main,
+        .fi-page-content {
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Override Filament max-width utility on mobile */
+        .fi-main[class*="fi-width-"] {
+            max-width: 100% !important;
+        }
+
+        /* Constrain Filament page header padding */
+        .fi-header {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+        }
 
         /* Stack grid items vertically on mobile */
         .hub-grid-3 > .hub-card[style*="grid-column: span 2"] {
@@ -429,6 +454,9 @@
         padding: 0.7rem 0.85rem;
         background: var(--hub-card);
         margin-bottom: 0.5rem;
+        box-sizing: border-box;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .hub-mobile-card-row {
