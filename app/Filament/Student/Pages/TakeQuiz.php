@@ -58,7 +58,7 @@ class TakeQuiz extends Page
         }
 
         // Verify the student is enrolled in the quiz's course
-        if (! $user->isEnrolledIn($quiz->course_id)) {
+        if (! $user->isEnrolledInCourse($quiz->course_id)) {
             Notification::make()->title('You are not authorized to take this quiz.')->danger()->send();
             $this->redirect(route('filament.student.pages.quizzes'));
 
