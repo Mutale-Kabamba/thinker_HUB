@@ -32,12 +32,12 @@
 
         {{-- Session Calendar --}}
         <section class="hub-card" style="padding:1rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.4rem;">
                 <div>
                     <h3 class="hub-title" style="font-size:1rem;">Session Calendar</h3>
                     <p class="hub-copy" style="margin-top:0.1rem;">{{ $upcomingSessionCount }} upcoming session{{ $upcomingSessionCount !== 1 ? 's' : '' }}</p>
                 </div>
-                <a href="{{ route('filament.instructor.pages.schedule') }}" class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;text-decoration:none;">View Full Schedule →</a>
+                <a href="{{ route('filament.instructor.pages.schedule') }}" class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;text-decoration:none;white-space:nowrap;">View Full Schedule →</a>
             </div>
 
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
@@ -48,8 +48,8 @@
                 <button wire:click="nextMonth" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.25rem 0.5rem;">Next →</button>
             </div>
 
-            <div style="overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:480px;">
+            <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+                <table class="hub-calendar-table" style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:320px;">
                     <thead>
                         <tr>
                             @foreach (['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $day)
@@ -69,11 +69,11 @@
                                         {{ ! $dayCell['in_month'] ? 'opacity:0.3;' : '' }}
                                         {{ $dayCell['is_today'] ? 'background:var(--hub-primary-soft);' : '' }}
                                     ">
-                                        <div style="font-size:0.68rem;font-weight:{{ $dayCell['is_today'] ? '800' : '600' }};color:{{ $dayCell['is_today'] ? 'var(--hub-primary)' : 'var(--hub-ink)' }};margin-bottom:0.15rem;">
+                                        <div class="hub-calendar-day-num" style="font-size:0.68rem;font-weight:{{ $dayCell['is_today'] ? '800' : '600' }};color:{{ $dayCell['is_today'] ? 'var(--hub-primary)' : 'var(--hub-ink)' }};margin-bottom:0.15rem;">
                                             {{ $dayCell['date'] }}
                                         </div>
                                         @foreach ($dayCell['sessions'] as $calSession)
-                                            <div style="
+                                            <div class="hub-calendar-session" style="
                                                 margin-bottom:0.1rem;
                                                 padding:0.1rem 0.2rem;
                                                 border-radius:3px;

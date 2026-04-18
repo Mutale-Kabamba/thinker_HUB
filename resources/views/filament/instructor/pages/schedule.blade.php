@@ -24,8 +24,8 @@
                     <button wire:click="nextMonth" class="hub-btn hub-btn-muted" style="font-size:0.78rem;padding:0.3rem 0.6rem;">Next →</button>
                 </div>
 
-                <div style="overflow-x:auto;">
-                    <table class="hub-calendar-table" style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:500px;">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+                    <table class="hub-calendar-table" style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:320px;">
                         <thead>
                             <tr>
                                 @foreach (['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $day)

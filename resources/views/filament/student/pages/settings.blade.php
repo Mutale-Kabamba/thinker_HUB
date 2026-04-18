@@ -35,7 +35,7 @@
                     <div>
                         <label for="student_settings_profile_photo" class="hub-eyebrow">Profile Picture</label>
                         @if ($user->profile_photo_path)
-                            <img src="{{ asset('storage/'.$user->profile_photo_path) }}" alt="Profile photo" style="margin:0.45rem 0;height:4.2rem;width:4.2rem;border-radius:999px;object-fit:cover;border:1px solid var(--hub-border);">
+                            <img src="{{ Storage::disk('public')->url($user->profile_photo_path) }}" alt="Profile photo" style="margin:0.45rem 0;height:4.2rem;width:4.2rem;border-radius:999px;object-fit:cover;border:1px solid var(--hub-border);" onerror="this.style.display='none'">
                         @endif
                         <input id="student_settings_profile_photo" name="profile_photo" type="file" accept="image/*" class="hub-input">
                         @error('profile_photo')

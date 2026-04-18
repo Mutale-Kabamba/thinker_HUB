@@ -50,7 +50,7 @@
         <div>
             <x-input-label for="profile_photo" :value="__('Profile Picture')" />
             @if ($user->profile_photo_path)
-                <img src="{{ asset('storage/'.$user->profile_photo_path) }}" alt="Profile photo" class="mt-2 h-16 w-16 rounded-full object-cover">
+                <img src="{{ Storage::disk('public')->url($user->profile_photo_path) }}" alt="Profile photo" class="mt-2 h-16 w-16 rounded-full object-cover" onerror="this.style.display='none'">
             @endif
             <input id="profile_photo" name="profile_photo" type="file" accept="image/*" class="mt-2 block w-full text-sm text-gray-600">
             <x-input-error class="mt-2" :messages="$errors->get('profile_photo')" />

@@ -134,7 +134,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->profile_photo_path
-            ? asset('storage/' . $this->profile_photo_path)
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->profile_photo_path)
             : null;
     }
 
