@@ -62,7 +62,7 @@ $loadHomeStats = static function () {
         }
 
         if (Schema::hasTable('users')) {
-            $default['tutors'] = User::query()->where('role', 'admin')->count();
+            $default['tutors'] = User::query()->whereIn('role', ['admin', 'instructor'])->where('is_active', true)->count();
 
             $default['students'] = User::query()->where('role', 'student')->count();
         }
