@@ -91,7 +91,8 @@ class AssessmentForm
                         'text/plain',
                         'text/csv',
                     ])
-                    ->required()
+                    ->required(fn (string $operation): bool => $operation === 'create')
+                    ->dehydrated(fn (?string $state): bool => filled($state))
                     ->columnSpanFull(),
 
                 DatePicker::make('date_given')
