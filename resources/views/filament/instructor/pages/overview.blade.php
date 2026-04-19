@@ -10,22 +10,22 @@
         <div class="hub-grid hub-stats-grid">
             <section class="hub-card">
                 <p class="hub-eyebrow">My Courses</p>
-                <p class="hub-metric">{{ count($courses) }}</p>
+                <p class="hub-metric">{{ count($courses) < 10 ? count($courses) : '10+' }}</p>
                 <p class="hub-copy">Assigned courses</p>
             </section>
             <section class="hub-card">
                 <p class="hub-eyebrow">Total Students</p>
-                <p class="hub-metric">{{ $totalStudents }}</p>
+                <p class="hub-metric">{{ $totalStudents < 10 ? $totalStudents : '10+' }}</p>
                 <p class="hub-copy">Across all courses</p>
             </section>
             <section class="hub-card">
                 <p class="hub-eyebrow">Assessments</p>
-                <p class="hub-metric">{{ $totalAssessments }}</p>
+                <p class="hub-metric">{{ $totalAssessments < 10 ? $totalAssessments : '10+' }}</p>
                 <p class="hub-copy">In my courses</p>
             </section>
             <section class="hub-card">
                 <p class="hub-eyebrow">Upcoming Sessions</p>
-                <p class="hub-metric">{{ $upcomingSessionCount }}</p>
+                <p class="hub-metric">{{ $upcomingSessionCount < 10 ? $upcomingSessionCount : '10+' }}</p>
                 <p class="hub-copy">Scheduled</p>
             </section>
         </div>

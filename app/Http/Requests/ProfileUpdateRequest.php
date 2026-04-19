@@ -20,8 +20,9 @@ class ProfileUpdateRequest extends FormRequest
         $ignoreUserId = $targetUser instanceof User ? $targetUser->id : $this->user()->id;
 
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => [
+                'sometimes',
                 'required',
                 'string',
                 'lowercase',
