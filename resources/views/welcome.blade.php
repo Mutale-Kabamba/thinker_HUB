@@ -11,7 +11,6 @@
     ])
     <link rel="preload" as="image" href="{{ asset('images/hero/office.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
 </head>
@@ -65,42 +64,7 @@
     x-init="startHeroRotation(); preloadHeroImages()"
 >
 
-    <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
-        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
-            <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-bold text-white shrink-0">
-                <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
-            </a>
-
-            <nav class="hidden md:flex items-center gap-10 text-[13px] font-semibold uppercase tracking-wider text-slate-300">
-                <a href="{{ route('home') }}" class="text-yellow-400">Home</a>
-                <a href="{{ route('landing.courses') }}" class="hover:text-yellow-400 transition-colors">Courses</a>
-                <a href="{{ route('landing.instructors') }}" class="hover:text-yellow-400 transition-colors">Instructors</a>
-                <a href="{{ route('landing.contact') }}" class="hover:text-yellow-400 transition-colors">Contact</a>
-            </nav>
-
-            <div class="hidden md:flex items-center gap-6">
-                <a href="{{ route('login') }}" class="text-sm font-bold text-white hover:text-yellow-400">Login</a>
-                <a href="{{ route('enroll') }}" class="rounded-full bg-yellow-400 px-6 py-2.5 text-sm font-bold text-[#0a2d27] hover:bg-white transition-all">Enroll Now</a>
-            </div>
-
-            <button class="md:hidden text-white text-2xl" @click="mobileMenu = !mobileMenu">
-                <i class="fa-solid" :class="mobileMenu ? 'fa-xmark' : 'fa-bars-staggered'"></i>
-            </button>
-        </div>
-
-        <div class="md:hidden bg-[#0a2d27] border-t border-white/10" x-show="mobileMenu" x-transition>
-            <nav class="flex flex-col p-6 gap-4 text-white font-semibold">
-                <a href="{{ route('home') }}" class="text-yellow-400">Home</a>
-                <a href="{{ route('landing.courses') }}">Courses</a>
-                <a href="{{ route('landing.instructors') }}">Instructors</a>
-                <a href="{{ route('landing.contact') }}">Contact</a>
-                <div class="pt-4 flex gap-4">
-                    <a href="{{ route('login') }}" class="flex-1 text-center py-3 border border-white/20 rounded-xl">Login</a>
-                    <a href="{{ route('register') }}" class="flex-1 text-center py-3 bg-yellow-400 text-[#0a2d27] rounded-xl">Join</a>
-                </div>
-            </nav>
-        </div>
-    </header>
+    @include('partials.public-header')
 
     <main>
         <section class="bg-[#0a2d27] relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-32">
@@ -123,10 +87,10 @@
                             </button>
                         </div>
                         
-                        <div class="mt-16 grid grid-cols-3 gap-4 border-t border-white/10 pt-10 max-w-md mx-auto lg:mx-0">
-                            <div><p class="text-2xl font-bold text-white">{{ number_format($stats['tutors'] ?? 0) }}+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Tutors</p></div>
-                            <div><p class="text-2xl font-bold text-white">{{ number_format($stats['students'] ?? 0) }}+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Students</p></div>
-                            <div><p class="text-2xl font-bold text-white">{{ number_format($stats['courses'] ?? 0) }}+</p><p class="text-xs uppercase tracking-tighter text-slate-400">Courses</p></div>
+                        <div class="mt-16 grid grid-cols-3 gap-3 sm:gap-4 border-t border-white/10 pt-10 max-w-md mx-auto lg:mx-0">
+                            <div class="text-center lg:text-left"><p class="text-xl sm:text-2xl font-bold text-white">{{ ($stats['tutors'] ?? 0) < 10 ? ($stats['tutors'] ?? 0) : '10+' }}</p><p class="text-[10px] sm:text-xs uppercase tracking-tighter text-slate-400">Tutors</p></div>
+                            <div class="text-center lg:text-left"><p class="text-xl sm:text-2xl font-bold text-white">{{ ($stats['students'] ?? 0) < 10 ? ($stats['students'] ?? 0) : '10+' }}</p><p class="text-[10px] sm:text-xs uppercase tracking-tighter text-slate-400">Students</p></div>
+                            <div class="text-center lg:text-left"><p class="text-xl sm:text-2xl font-bold text-white">{{ ($stats['courses'] ?? 0) < 10 ? ($stats['courses'] ?? 0) : '10+' }}</p><p class="text-[10px] sm:text-xs uppercase tracking-tighter text-slate-400">Courses</p></div>
                         </div>
                     </div>
 
@@ -213,14 +177,36 @@
                                 <div class="absolute top-4 left-4 bg-yellow-400 text-[#0a2d27] text-[11px] font-bold px-4 py-1.5 rounded-full shadow-lg">BEST SELLER</div>
                             </div>
                             <div class="px-3 py-6">
-                                <div class="flex items-center gap-1 text-yellow-500 text-[10px] mb-3">
-                                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                                    <span class="text-slate-400 font-semibold ml-2">(120 Reviews)</span>
+                                @php
+                                    $avgRating = round((float) ($course->ratings_avg_rating ?? 0), 1);
+                                    $ratingCount = (int) ($course->ratings_count ?? 0);
+                                    $studentsCount = (int) ($course->enrollments_count ?? 0);
+                                    if ($studentsCount === 0) {
+                                        $studentsCount = (int) ($course->selected_participants_count ?? 0);
+                                    }
+                                @endphp
+                                <div class="flex items-center gap-1 text-[10px] mb-3">
+                                    @for ($star = 1; $star <= 5; $star++)
+                                        @if ($star <= floor($avgRating))
+                                            <i class="fa-solid fa-star text-yellow-500"></i>
+                                        @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
+                                            <i class="fa-solid fa-star-half-stroke text-yellow-500"></i>
+                                        @else
+                                            <i class="fa-regular fa-star text-slate-300"></i>
+                                        @endif
+                                    @endfor
+                                    <span class="text-slate-400 font-semibold ml-2">
+                                        @if ($ratingCount > 0)
+                                            {{ $avgRating }} ({{ $ratingCount }} {{ Str::plural('review', $ratingCount) }})
+                                        @else
+                                            No reviews yet
+                                        @endif
+                                    </span>
                                 </div>
                                 <h3 class="text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug">{{ $course->title }}</h3>
                                 <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ $course->timeline ?: 'Self paced' }}</span>
-                                    <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $course->enrollments_count ?? 0 }} Students</span>
+                                    <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $studentsCount }} Students</span>
                                 </div>
                                 <a
                                     href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
@@ -297,7 +283,7 @@
                     <template x-if="videoModal">
                         <iframe
                             class="h-full w-full"
-                            src="https://www.youtube.com/embed/ysz5S6PUM-U?autoplay=1&rel=0"
+                            src="https://www.youtube.com/embed/p6QZvXzwLdw?autoplay=1&rel=0"
                             title="Thinker Hub video"
                             frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -307,7 +293,7 @@
                 </div>
                 <div class="flex items-center justify-end border-t border-slate-200 px-4 py-3">
                     <a
-                        href="https://www.youtube.com/watch?v=ysz5S6PUM-U"
+                        href="https://www.youtube.com/watch?v=p6QZvXzwLdw"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="rounded-lg bg-[#0a2d27] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#11443c]"

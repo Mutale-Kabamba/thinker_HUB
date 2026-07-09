@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Quizzes\Schemas;
 
-use App\Models\Assessment;
+use App\Models\Course;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Repeater;
 use Filament\Schemas\Components\Section;
@@ -21,21 +21,12 @@ class QuizForm
                 Section::make('Quiz Details')
                     ->columns(2)
                     ->schema([
-                        Select::make('assessment_id')
-                            ->label('Assessment')
+                        Select::make('course_id')
+                            ->label('Course')
                             ->required()
                             ->searchable()
-                            ->options(
-                                fn (): array => Assessment::query()
-                                    ->whereDoesntHave('quiz')
-                                    ->orderBy('name')
-                                    ->get()
-                                    ->mapWithKeys(fn (Assessment $a) => [
-                                        $a->id => $a->name . ' (' . ($a->course?->title ?? 'No Course') . ')',
-                                    ])
-                                    ->toArray()
-                            )
-                            ->helperText('Only assessments without a quiz are shown.')
+                            ->relationship('course', 'title')
+                            ->helperText('Select the course this quiz belongs to.')
                             ->columnSpanFull(),
 
                         TextInput::make('title')

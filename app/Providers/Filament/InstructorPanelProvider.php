@@ -30,8 +30,7 @@ class InstructorPanelProvider extends PanelProvider
             ->login(SharedLogin::class)
             ->colors([
                 'primary' => Color::Teal,
-            ])
-            ->discoverResources(in: app_path('Filament/Instructor/Resources'), for: 'App\Filament\Instructor\Resources')
+            ])            ->sidebarCollapsibleOnDesktop()            ->discoverResources(in: app_path('Filament/Instructor/Resources'), for: 'App\Filament\Instructor\Resources')
             ->discoverPages(in: app_path('Filament/Instructor/Pages'), for: 'App\Filament\Instructor\Pages')
             ->discoverWidgets(in: app_path('Filament/Instructor/Widgets'), for: 'App\Filament\Instructor\Widgets')
             ->widgets([
@@ -44,6 +43,12 @@ class InstructorPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => view('partials.pwa-register')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_END,
+                fn (): string => view('filament.partials.top-search', [
+                    'action' => route('filament.instructor.pages.search'),
+                ])->render(),
             )
             ->middleware([
                 EncryptCookies::class,

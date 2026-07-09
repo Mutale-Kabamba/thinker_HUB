@@ -12,7 +12,7 @@ class Quiz extends Model
     use HasFactory;
 
     protected $fillable = [
-        'assessment_id',
+        'course_id',
         'title',
         'description',
         'time_limit_minutes',
@@ -33,9 +33,9 @@ class Quiz extends Model
         ];
     }
 
-    public function assessment(): BelongsTo
+    public function course(): BelongsTo
     {
-        return $this->belongsTo(Assessment::class);
+        return $this->belongsTo(Course::class);
     }
 
     public function questions(): HasMany
@@ -56,5 +56,53 @@ class Quiz extends Model
     public function getQuestionCountAttribute(): int
     {
         return $this->questions()->count();
+    }
+
+    /**
+     * Grade a completed attempt: auto-score MCQ, tally points, calculate percentage.
+     */
+    public function gradeAttempt(QuizAttempt $attempt): QuizAttempt
+    {
+        $totalPoints = 0;
+        $earnedPoints = 0;
+
+        foreach ($attempt->answers()->with('question', 'option')->get() as $answer) {
+            $question = $answer->question;
+
+            if (! $question) {
+                continue;
+            }
+
+            $totalPoints += $question->points;
+
+            if ($question->isMultipleChoice()) {
+                $correct = $answer->option?->is_correct ?? false;
+                $points = $correct ? $question->points : 0;
+
+                $answer->update([
+                    'is_correct' => $correct,
+                    'points_earned' => $points,
+                ]);
+
+                $earnedPoints += $points;
+            } else {
+                // Theory/practical answers keep their manually assigned points
+                $earnedPoints += (int) $answer->points_earned;
+            }
+        }
+
+        $percentage = $totalPoints > 0
+            ? (int) round(($earnedPoints / $totalPoints) * 100)
+            : 0;
+
+        $attempt->update([
+            'score' => $earnedPoints,
+            'total_points' => $totalPoints,
+            'percentage' => $percentage,
+            'passed' => $percentage >= $this->pass_percentage,
+            'completed_at' => $attempt->completed_at ?? now(),
+        ]);
+
+        return $attempt->refresh();
     }
 }

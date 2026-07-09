@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\LearningMaterials\Pages;
 
 use App\Filament\Resources\LearningMaterials\LearningMaterialResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\BaseCreateRecord;
 
-class CreateLearningMaterial extends CreateRecord
+class CreateLearningMaterial extends BaseCreateRecord
 {
     protected static string $resource = LearningMaterialResource::class;
 

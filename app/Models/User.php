@@ -5,13 +5,14 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-class User extends Authenticatable implements FilamentUser, MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -24,10 +25,17 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
+        'firebase_uid',
         'password',
         'role',
+        'is_active',
         'track',
         'profile_photo_path',
+        'proficiency',
+        'occupation',
+        'whatsapp',
+        'linkedin_url',
+        'facebook_url',
     ];
 
     /**
@@ -50,6 +58,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -123,12 +132,19 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->courses()->where('courses.id', $courseId)->exists();
     }
 
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->profile_photo_path
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->profile_photo_path)
+            : null;
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return match ($panel->getId()) {
             'admin' => $this->isAdmin(),
             'student' => ! $this->isAdmin() && ! $this->isInstructor(),
-            'instructor' => $this->isInstructor(),
+            'instructor' => $this->isInstructor() && $this->is_active,
             default => false,
         };
     }

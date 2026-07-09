@@ -18,13 +18,10 @@ class QuizzesTable
                 TextColumn::make('title')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('assessment.name')
-                    ->label('Assessment')
+                TextColumn::make('course.title')
+                    ->label('Course')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('assessment.course.title')
-                    ->label('Course')
-                    ->searchable(),
                 TextColumn::make('questions_count')
                     ->label('Questions')
                     ->counts('questions')

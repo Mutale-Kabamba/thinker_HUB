@@ -21,7 +21,7 @@ class QuizResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPuzzlePiece;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Assessments';
+    protected static string|UnitEnum|null $navigationGroup = 'Learning';
 
     protected static ?int $navigationSort = 2;
 

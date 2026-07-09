@@ -5,11 +5,11 @@ namespace App\Filament\Resources\Assessments\Pages;
 use App\Filament\Resources\Assessments\AssessmentResource;
 use App\Models\Assessment;
 use App\Models\User;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\BaseCreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 
-class CreateAssessment extends CreateRecord
+class CreateAssessment extends BaseCreateRecord
 {
     protected static string $resource = AssessmentResource::class;
 

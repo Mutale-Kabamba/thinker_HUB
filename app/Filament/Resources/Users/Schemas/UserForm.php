@@ -2,8 +2,11 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Models\Course;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class UserForm
@@ -21,13 +24,32 @@ class UserForm
                 DateTimePicker::make('email_verified_at'),
                 TextInput::make('password')
                     ->password()
-                    ->required(),
-                TextInput::make('role')
+                    ->required(fn (string $operation): bool => $operation === 'create')
+                    ->dehydrated(fn (?string $state): bool => filled($state)),
+                Select::make('role')
+                    ->options([
+                        'student' => 'Student',
+                        'instructor' => 'Instructor',
+                        'admin' => 'Admin',
+                    ])
                     ->required()
-                    ->default('student'),
+                    ->default('student')
+                    ->live(),
                 TextInput::make('track')
-                    ->required()
-                    ->default('Beginner'),
+                    ->required(fn (callable $get): bool => $get('role') !== 'instructor')
+                    ->default('Beginner')
+                    ->visible(fn (callable $get): bool => $get('role') !== 'instructor'),
+                Select::make('instructorCourses')
+                    ->label('Assigned Courses')
+                    ->relationship('instructorCourses', 'title')
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (callable $get): bool => $get('role') === 'instructor'),
+                Toggle::make('is_active')
+                    ->label('Active')
+                    ->default(true)
+                    ->helperText('Inactive instructor accounts cannot access the instructor panel.'),
             ]);
     }
 }

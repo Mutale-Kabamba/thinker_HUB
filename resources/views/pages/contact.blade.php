@@ -10,44 +10,12 @@
         'type' => 'website',
     ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
 </head>
 <body class="bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
 
-    <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
-        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
-            <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-bold text-white shrink-0">
-                <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
-            </a>
-
-            <nav class="hidden md:flex items-center gap-10 text-[13px] font-semibold uppercase tracking-wider text-slate-300">
-                <a href="{{ route('home') }}" class="hover:text-yellow-400 transition-colors">Home</a>
-                <a href="{{ route('landing.courses') }}" class="hover:text-yellow-400 transition-colors">Courses</a>
-                <a href="{{ route('landing.instructors') }}" class="hover:text-yellow-400 transition-colors">Instructors</a>
-                <a href="{{ route('landing.contact') }}" class="text-yellow-400">Contact</a>
-            </nav>
-
-            <div class="hidden md:flex items-center gap-6">
-                <a href="{{ route('login') }}" class="text-sm font-bold text-white hover:text-yellow-400">Login</a>
-                <a href="{{ route('enroll') }}" class="rounded-full bg-yellow-400 px-6 py-2.5 text-sm font-bold text-[#0a2d27] hover:bg-white transition-all">Enroll Now</a>
-            </div>
-
-            <button class="md:hidden text-white text-2xl" @click="mobileMenu = !mobileMenu">
-                <i class="fa-solid" :class="mobileMenu ? 'fa-xmark' : 'fa-bars-staggered'"></i>
-            </button>
-        </div>
-
-        <div class="md:hidden bg-[#0a2d27] border-t border-white/10" x-show="mobileMenu" x-transition>
-            <nav class="flex flex-col p-6 gap-4 text-white font-semibold">
-                <a href="{{ route('home') }}">Home</a>
-                <a href="{{ route('landing.courses') }}">Courses</a>
-                <a href="{{ route('landing.instructors') }}">Instructors</a>
-                <a href="{{ route('landing.contact') }}" class="text-yellow-400">Contact</a>
-            </nav>
-        </div>
-    </header>
+    @include('partials.public-header')
 
     <main>
         <section class="bg-[#0a2d27] relative overflow-hidden py-16 lg:py-20">

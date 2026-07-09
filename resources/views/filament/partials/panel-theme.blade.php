@@ -28,6 +28,10 @@
     .hub-shell {
         display: grid;
         gap: 0.75rem;
+        max-width: 100%;
+        overflow-x: hidden;
+        box-sizing: border-box;
+        word-break: break-word;
     }
 
     .hub-grid {
@@ -51,6 +55,8 @@
         border-radius: 12px;
         padding: 0.8rem;
         box-shadow: none;
+        box-sizing: border-box;
+        max-width: 100%;
     }
 
     .hub-card-dark {
@@ -100,6 +106,7 @@
     }
 
     .hub-chip-primary { background: var(--hub-primary-soft); color: #0f766e; border-color: #5eead4; }
+    .hub-chip-blue { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
     .hub-chip-amber { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
     .hub-chip-green { background: #dcfce7; color: #166534; border-color: #86efac; }
     .hub-chip-red { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
@@ -307,6 +314,12 @@
         border-color: #134e4a;
     }
 
+    .dark .hub-chip-blue {
+        background: #1e2a4a;
+        color: #93c5fd;
+        border-color: #1e3a5f;
+    }
+
     .dark .hub-chip-gray {
         background: #1f2937;
         color: #cbd5e1;
@@ -337,9 +350,50 @@
     .hub-desktop-only { display: block !important; }
     .hub-mobile-only  { display: none !important; }
 
+    /* Stats grid: 4 columns on desktop by default */
+    .hub-stats-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
     @media (max-width: 768px) {
         .hub-desktop-only { display: none !important; }
         .hub-mobile-only  { display: block !important; }
+
+        /* ── Filament v5 mobile overflow fix ──────────────────────
+           .fi-main-ctn uses w-screen (100vw) which includes the
+           scrollbar width and overflows. Override to 100%. */
+        .fi-main-ctn {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .fi-layout {
+            overflow-x: hidden !important;
+        }
+
+        .fi-main {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Reduce Filament page vertical spacing on mobile */
+        .fi-page-header-main-ctn {
+            padding-top: 1rem !important;
+            padding-bottom: 0 !important;
+            gap: 0.75rem !important;
+        }
+
+        .fi-page-content {
+            gap: 0.5rem !important;
+        }
+
+        /* Constrain Filament page header padding */
+        .fi-header {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
 
         /* Stack grid items vertically on mobile */
         .hub-grid-3 > .hub-card[style*="grid-column: span 2"] {
@@ -369,6 +423,7 @@
         .hub-filter-row select {
             width: 100% !important;
             min-width: 0 !important;
+            max-width: 100% !important;
         }
 
         /* Mobile card improvements */
@@ -383,9 +438,13 @@
         .hub-action-btn {
             font-size: 0.7rem;
             padding: 0.28rem 0.5rem;
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Admin stat widgets responsive */
+        /* Admin/instructor stat widgets: 2 columns on tablet */
         .hub-stats-grid {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 0.5rem !important;
@@ -408,6 +467,38 @@
         .fi-ta-cell {
             padding: 0.35rem 0.4rem !important;
         }
+
+        /* Filament action modals: full width on mobile */
+        .fi-modal-window {
+            max-width: calc(100vw - 1rem) !important;
+            margin: 0.5rem !important;
+        }
+
+        /* Filament form components: prevent overflow */
+        .fi-fo-field-wrp,
+        .fi-fo-component-ctn {
+            max-width: 100% !important;
+            overflow-x: hidden;
+        }
+
+        /* Filament action buttons in table rows */
+        .fi-ta-actions {
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        /* Fee row stacking on mobile (public course detail page) */
+        .hub-fee-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.25rem !important;
+        }
+
+        /* Cookie table scroll on mobile */
+        .hub-legal-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
     }
 
     /* Mobile card for replacing tables on small screens */
@@ -417,6 +508,9 @@
         padding: 0.7rem 0.85rem;
         background: var(--hub-card);
         margin-bottom: 0.5rem;
+        box-sizing: border-box;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .hub-mobile-card-row {
@@ -455,7 +549,249 @@
 
     @media (max-width: 768px) {
         .hub-span-2 { grid-column: span 1 !important; }
+
+        /* ---- Quiz Centre listing ---- */
+        .hub-quiz-listing .hub-mobile-card {
+            padding: 0.75rem 0.85rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-row {
+            align-items: center;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-meta {
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-meta span {
+            white-space: nowrap;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-actions {
+            margin-top: 0.6rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-actions .hub-action-btn {
+            flex: 1;
+            text-align: center;
+            padding: 0.45rem 0.5rem;
+            font-size: 0.78rem;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ---- Quiz take-quiz page ---- */
+        .hub-quiz-timer-bar {
+            padding: 0.4rem 0.65rem !important;
+            font-size: 0.75rem !important;
+            border-radius: 8px !important;
+        }
+
+        .hub-quiz-nav-dots {
+            gap: 0.25rem !important;
+        }
+
+        .hub-quiz-nav-dots button {
+            width: 24px !important;
+            height: 24px !important;
+            font-size: 0.62rem !important;
+        }
+
+        .hub-quiz-option label {
+            padding: 0.5rem 0.65rem !important;
+            font-size: 0.82rem !important;
+        }
+
+        .hub-quiz-question-card {
+            padding: 0.85rem !important;
+        }
+
+        /* ---- Schedule calendar ---- */
+        .hub-calendar-table {
+            min-width: 320px !important;
+        }
+
+        .hub-calendar-table td {
+            height: 3.5rem !important;
+            padding: 0.15rem !important;
+        }
+
+        .hub-calendar-table th {
+            font-size: 0.6rem !important;
+            padding: 0.25rem 0.1rem !important;
+        }
+
+        .hub-calendar-session {
+            font-size: 0.5rem !important;
+            padding: 0.1rem 0.15rem !important;
+        }
+
+        .hub-calendar-day-num {
+            font-size: 0.6rem !important;
+        }
+
+        /* Schedule legend */
+        .hub-legend {
+            gap: 0.5rem !important;
+            font-size: 0.6rem !important;
+        }
+
+        /* Schedule/reschedule forms: stack inputs */
+        .hub-form-row {
+            flex-direction: column !important;
+            gap: 0.4rem !important;
+        }
+
+        .hub-form-row > div {
+            width: 100% !important;
+        }
+
+        .hub-form-row input[type="date"],
+        .hub-form-row input[type="time"] {
+            width: 100% !important;
+        }
+
+        /* Schedule filter row */
+        .hub-schedule-filters {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.4rem !important;
+        }
+
+        .hub-schedule-filters > div {
+            width: 100% !important;
+        }
+
+        .hub-schedule-filters select {
+            width: 100% !important;
+        }
+
+        .hub-schedule-filters .hub-filter-count {
+            margin-left: 0 !important;
+            align-self: flex-start !important;
+        }
+
+        /* Session cards meta row */
+        .hub-session-meta {
+            gap: 0.5rem !important;
+            font-size: 0.72rem !important;
+        }
+
+        /* Course progress grid */
+        .hub-progress-grid {
+            grid-template-columns: 1fr !important;
+        }
     }
+
+    /* Extra-small screens (≤ 480px) */
+    @media (max-width: 480px) {
+        .hub-shell { gap: 0.5rem; }
+
+        .hub-card { padding: 0.55rem 0.65rem; }
+
+        .hub-eyebrow { font-size: 0.58rem; }
+        .hub-title { font-size: 0.95rem !important; }
+        .hub-copy { font-size: 0.76rem; }
+
+        .hub-mobile-card {
+            padding: 0.65rem 0.75rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .hub-mobile-card-row p:first-child {
+            font-size: 0.82rem !important;
+        }
+
+        .hub-mobile-card-meta {
+            gap: 0.35rem;
+            font-size: 0.72rem;
+        }
+
+        .hub-action-btn {
+            font-size: 0.68rem;
+            padding: 0.25rem 0.45rem;
+            min-height: 36px;
+        }
+
+        .hub-chip {
+            font-size: 0.6rem !important;
+            padding: 0.15rem 0.4rem !important;
+        }
+
+        /* Stats grid stacks to 1 column on very small screens */
+        .hub-stats-grid {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* All hub buttons get touch-friendly minimum height */
+        .hub-btn {
+            min-height: 36px;
+        }
+
+        /* Quiz centre: stack meta vertically on very small screens */
+        .hub-quiz-listing .hub-mobile-card-meta {
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-actions .hub-action-btn {
+            width: 100%;
+        }
+    }
+
+    /* ============================================================ */
+    /* INSTRUCTOR PANEL MOBILE ENHANCEMENTS                          */
+    /* ============================================================ */
+    @media (max-width: 768px) {
+        /* Instructor overview: course cards stack in single column */
+        .fi-panel-instructor .hub-grid-2 {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* Filament sidebar toggle button — ensure visible and tappable */
+        .fi-layout-sidebar-toggle-btn-ctn {
+            padding: 0.5rem !important;
+        }
+
+        /* Instructor resource tables: enable horizontal scroll */
+        .fi-panel-instructor .fi-ta-ctn {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Session list action buttons: stack on small screens */
+        .fi-panel-instructor .hub-card > div:last-child > .hub-btn {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+        }
+
+        /* Filament header title sizing on mobile */
+        .fi-panel-instructor .fi-header-heading {
+            font-size: 1.25rem !important;
+        }
+
+        /* Filament account widget: compact on mobile */
+        .fi-panel-instructor .fi-account-widget {
+            padding: 0.5rem !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        /* Extra-small: full-width buttons in instructor session cards */
+        .fi-panel-instructor .hub-card .hub-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .fi-panel-instructor .hub-card .hub-btn + .hub-btn {
+            width: 100%;
+        }
+    }
+
     /* ============================================================ */
     /* NOTIFICATION BELL                                             */
     /* ============================================================ */

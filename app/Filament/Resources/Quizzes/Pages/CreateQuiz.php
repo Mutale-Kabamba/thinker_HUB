@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Quizzes\Pages;
 
 use App\Filament\Resources\Quizzes\QuizResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\BaseCreateRecord;
 
-class CreateQuiz extends CreateRecord
+class CreateQuiz extends BaseCreateRecord
 {
     protected static string $resource = QuizResource::class;
 

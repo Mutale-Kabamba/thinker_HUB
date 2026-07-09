@@ -5,8 +5,10 @@ namespace App\Filament\Student\Pages;
 use App\Models\CourseSession;
 use App\Models\User;
 use App\Notifications\RescheduleRequestNotification;
+use App\Notifications\RescheduleRequestSubmittedNotification;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Carbon;
 
 class Schedule extends Page
@@ -43,6 +45,10 @@ class Schedule extends Page
 
     public ?string $reschedulePreferredTime = null;
 
+    public array $rescheduleRequests = [];
+
+    public bool $showRequestHistory = false;
+
     public function mount(): void
     {
         $now = Carbon::now();
@@ -54,6 +60,17 @@ class Schedule extends Page
     public function updatedFilterStatus(): void
     {
         $this->loadData();
+    }
+
+    public function updatedShowRequestHistory(): void
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $this->loadRescheduleRequests($user);
     }
 
     public function previousMonth(): void
@@ -122,6 +139,7 @@ class Schedule extends Page
         $recipients->unique('id')->each(fn (User $recipient) => $recipient->notify(
             new RescheduleRequestNotification(
                 session: $session,
+                studentId: $user->id,
                 studentName: $user->name,
                 reason: trim($this->rescheduleRequestReason),
                 preferredDate: $this->reschedulePreferredDate,
@@ -129,8 +147,16 @@ class Schedule extends Page
             )
         ));
 
+        $user->notify(new RescheduleRequestSubmittedNotification(
+            session: $session,
+            reason: trim($this->rescheduleRequestReason),
+            preferredDate: $this->reschedulePreferredDate,
+            preferredTime: $this->reschedulePreferredTime,
+        ));
+
         $this->rescheduleRequestSessionId = null;
         Notification::make()->title('Reschedule request sent to instructor.')->success()->send();
+        $this->loadData();
     }
 
     protected function loadData(): void
@@ -139,6 +165,8 @@ class Schedule extends Page
         if (! $user) {
             return;
         }
+
+        $this->loadRescheduleRequests($user);
 
         $enrolledCourseIds = $user->courses()->pluck('courses.id')->all();
 
@@ -210,6 +238,38 @@ class Schedule extends Page
                 'percentage' => $total > 0 ? round(($completed / $total) * 100) : 0,
             ];
         }
+    }
+
+    protected function loadRescheduleRequests(User $user): void
+    {
+        $notifications = $user->notifications()
+            ->where('type', RescheduleRequestSubmittedNotification::class)
+            ->latest()
+            ->take(30)
+            ->get()
+            ->map(function (DatabaseNotification $notification): array {
+                $data = $notification->data ?? [];
+
+                return [
+                    'id' => $notification->id,
+                    'session_id' => (int) ($data['session_id'] ?? 0),
+                    'message' => (string) ($data['message'] ?? ''),
+                    'reason' => (string) ($data['reason'] ?? ''),
+                    'preferred_date' => $data['preferred_date'] ?? null,
+                    'preferred_time' => $data['preferred_time'] ?? null,
+                    'decision_status' => (string) ($data['decision_status'] ?? 'pending'),
+                    'created_at' => $notification->created_at?->diffForHumans(),
+                ];
+            });
+
+        if (! $this->showRequestHistory) {
+            $notifications = $notifications->filter(fn (array $request): bool => $request['decision_status'] === 'pending');
+        }
+
+        $this->rescheduleRequests = $notifications
+            ->take(10)
+            ->values()
+            ->all();
     }
 
     protected function buildCalendar($allSessions): void

@@ -47,15 +47,7 @@ class Assessment extends Model
         return $this->hasMany(AssessmentSubmission::class);
     }
 
-    public function quiz(): \Illuminate\Database\Eloquent\Relations\HasOne
-    {
-        return $this->hasOne(Quiz::class);
-    }
 
-    public function hasQuiz(): bool
-    {
-        return $this->quiz()->exists();
-    }
 
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {

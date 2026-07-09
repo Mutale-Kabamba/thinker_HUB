@@ -23,6 +23,8 @@
                             <span class="hub-chip hub-chip-gray">Inactive</span>
                         @elseif ($course['enrolled'])
                             <span class="hub-chip hub-chip-green">Enrolled</span>
+                        @elseif (! $course['is_open_enrollment'])
+                            <span class="hub-chip hub-chip-gray">Locked</span>
                         @else
                             <span class="hub-chip hub-chip-amber">Open</span>
                         @endif
@@ -40,6 +42,8 @@
                             <button type="button" disabled class="hub-btn hub-btn-muted" style="opacity:0.6;cursor:not-allowed;">Unavailable</button>
                         @elseif ($course['enrolled'])
                             <button type="button" wire:click="unenroll({{ $course['id'] }})" class="hub-btn hub-btn-danger">Unenroll</button>
+                        @elseif (! $course['can_enroll'])
+                            <button type="button" disabled class="hub-btn hub-btn-muted" style="opacity:0.6;cursor:not-allowed;">Locked</button>
                         @else
                             <button type="button" wire:click="enroll({{ $course['id'] }})" class="hub-btn hub-btn-primary">Enroll Now</button>
                         @endif

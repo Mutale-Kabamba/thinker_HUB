@@ -13,19 +13,47 @@
             </div>
         </section>
 
+        @if (count($pendingRescheduleRequests) > 0)
+            <section class="hub-card" style="padding:0.75rem 1rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                    <div>
+                        <p class="hub-eyebrow">Incoming Requests</p>
+                        <h3 class="hub-title" style="font-size:0.95rem;">Reschedule Requests Awaiting Decision</h3>
+                    </div>
+                    <span class="hub-chip hub-chip-amber">{{ count($pendingRescheduleRequests) }} pending</span>
+                </div>
+
+                <div style="margin-top:0.65rem;display:grid;gap:0.5rem;">
+                    @foreach ($pendingRescheduleRequests as $request)
+                        <article style="border:1px solid var(--hub-border);border-radius:10px;padding:0.55rem 0.65rem;background:var(--hub-surface-soft);">
+                            <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                                <div>
+                                    <p style="font-size:0.75rem;font-weight:700;color:var(--hub-ink);">{{ $request['student_name'] }}</p>
+                                    <p style="font-size:0.7rem;color:var(--hub-muted);margin-top:0.1rem;">Session #{{ $request['session_id'] }} @if ($request['created_at']) • {{ $request['created_at'] }} @endif</p>
+                                </div>
+                                <button wire:click="openDecisionWizard('{{ $request['id'] }}')" class="hub-btn hub-btn-primary" style="font-size:0.72rem;padding:0.3rem 0.6rem;">
+                                    Open Wizard
+                                </button>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
         {{-- ===== CALENDAR VIEW ===== --}}
         @if ($viewMode === 'calendar')
             <section class="hub-card" style="padding:0.75rem 1rem;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
-                    <button wire:click="previousMonth" class="hub-btn hub-btn-muted" style="font-size:0.78rem;padding:0.3rem 0.6rem;">← Prev</button>
-                    <h3 style="font-weight:700;font-size:0.95rem;color:var(--hub-ink);">
+                <div style="display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem;gap:0.5rem;word-break:normal;">
+                    <button wire:click="previousMonth" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--hub-muted);padding:0.15rem;line-height:1;flex-shrink:0;">&#8249;</button>
+                    <h3 style="font-weight:700;font-size:0.95rem;color:var(--hub-ink);text-align:center;white-space:nowrap;flex-shrink:0;margin:0;">
                         {{ \Carbon\Carbon::createFromDate($calendarYear, $calendarMonth, 1)->format('F Y') }}
                     </h3>
-                    <button wire:click="nextMonth" class="hub-btn hub-btn-muted" style="font-size:0.78rem;padding:0.3rem 0.6rem;">Next →</button>
+                    <button wire:click="nextMonth" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--hub-muted);padding:0.15rem;line-height:1;flex-shrink:0;">&#8250;</button>
                 </div>
 
-                <div style="overflow-x:auto;">
-                    <table style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:500px;">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+                    <table class="hub-calendar-table" style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:320px;">
                         <thead>
                             <tr>
                                 @foreach (['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $day)
@@ -45,11 +73,11 @@
                                             {{ ! $day['in_month'] ? 'opacity:0.35;' : '' }}
                                             {{ $day['is_today'] ? 'background:var(--hub-primary-soft);' : '' }}
                                         ">
-                                            <div style="font-size:0.7rem;font-weight:{{ $day['is_today'] ? '800' : '600' }};color:{{ $day['is_today'] ? 'var(--hub-primary)' : 'var(--hub-ink)' }};margin-bottom:0.2rem;">
+                                            <div class="hub-calendar-day-num" style="font-size:0.7rem;font-weight:{{ $day['is_today'] ? '800' : '600' }};color:{{ $day['is_today'] ? 'var(--hub-primary)' : 'var(--hub-ink)' }};margin-bottom:0.2rem;">
                                                 {{ $day['date'] }}
                                             </div>
                                             @foreach ($day['sessions'] as $calSession)
-                                                <div style="
+                                                <div class="hub-calendar-session" style="
                                                     margin-bottom:0.15rem;
                                                     padding:0.15rem 0.25rem;
                                                     border-radius:4px;
@@ -84,7 +112,7 @@
                     </table>
                 </div>
 
-                <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.6rem;font-size:0.65rem;color:var(--hub-muted);">
+                <div class="hub-legend" style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.6rem;font-size:0.65rem;color:var(--hub-muted);">
                     <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e0f2fe;margin-right:3px;"></span> Scheduled</span>
                     <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#dcfce7;margin-right:3px;"></span> Completed</span>
                     <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fef3c7;margin-right:3px;"></span> Rescheduled</span>
@@ -95,7 +123,7 @@
 
         {{-- Filters --}}
         <section class="hub-card" style="padding:0.75rem 1rem;">
-            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+            <div class="hub-schedule-filters" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
                 <div>
                     <label style="font-size:0.72rem;font-weight:600;color:var(--hub-muted);">Status</label>
                     <select wire:model.live="filterStatus" style="display:block;margin-top:0.15rem;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
@@ -114,7 +142,7 @@
                         <option value="one_on_one">One-On-One</option>
                     </select>
                 </div>
-                <div style="margin-left:auto;align-self:flex-end;">
+                <div class="hub-filter-count" style="margin-left:auto;align-self:flex-end;">
                     <span class="hub-chip hub-chip-primary">{{ count($sessions) }} sessions</span>
                 </div>
             </div>
@@ -140,7 +168,7 @@
                         </div>
                     </div>
 
-                    <div style="margin-top:0.5rem;display:flex;gap:1.2rem;flex-wrap:wrap;font-size:0.78rem;color:var(--hub-muted);">
+                    <div class="hub-session-meta" style="margin-top:0.5rem;display:flex;gap:1.2rem;flex-wrap:wrap;font-size:0.78rem;color:var(--hub-muted);">
                         <span>📅 {{ $session['session_date'] }}</span>
                         <span>🕐 {{ $session['start_time'] }} – {{ $session['end_time'] }}</span>
                         @if ($session['student_name'])
@@ -176,7 +204,7 @@
                     @if ($rescheduleSessionId === $session['id'])
                         <div style="margin-top:0.6rem;padding:0.7rem;border:1px solid var(--hub-border);border-radius:8px;background:var(--hub-surface-soft);">
                             <p style="font-weight:700;font-size:0.8rem;color:var(--hub-ink);margin-bottom:0.5rem;">Reschedule Session</p>
-                            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                            <div class="hub-form-row" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
                                 <div>
                                     <label style="font-size:0.7rem;font-weight:600;color:var(--hub-muted);">New Date</label>
                                     <input type="date" wire:model="rescheduleDate" style="display:block;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
@@ -202,6 +230,76 @@
                     <p class="hub-copy">No sessions found. Sessions are created by the admin from the Session Timetable.</p>
                 </section>
             @endforelse
+        @endif
+
+        @if ($decisionNotificationId)
+            <div style="position:fixed;inset:0;background:rgba(15,23,42,0.45);display:flex;align-items:center;justify-content:center;padding:1rem;z-index:60;">
+                <div style="width:min(100%,680px);max-height:90vh;overflow:auto;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:14px;padding:1rem;box-shadow:0 20px 45px rgba(2,6,23,0.28);">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
+                        <div>
+                            <p class="hub-eyebrow">Reschedule Decision Wizard</p>
+                            <h3 class="hub-title" style="font-size:1rem;">Request From {{ $decisionStudentName }}</h3>
+                        </div>
+                        <button wire:click="closeDecisionWizard" class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;">Close</button>
+                    </div>
+
+                    @if ($decisionStep === 'review')
+                        <div style="margin-top:0.75rem;border:1px solid var(--hub-border);border-radius:10px;padding:0.7rem;background:var(--hub-surface-soft);">
+                            <p style="font-size:0.74rem;color:var(--hub-muted);">Session ID: {{ $decisionSessionId }}</p>
+                            <p style="font-size:0.8rem;color:var(--hub-ink);margin-top:0.3rem;"><strong>Reason:</strong> {{ $decisionReason ?: 'No reason provided.' }}</p>
+                            <p style="font-size:0.78rem;color:var(--hub-ink);margin-top:0.35rem;"><strong>Preferred:</strong>
+                                {{ $decisionPreferredDate ?: 'No preferred date' }}
+                                @if ($decisionPreferredTime)
+                                    at {{ $decisionPreferredTime }}
+                                @endif
+                            </p>
+                        </div>
+
+                        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                            <button wire:click="setDecisionStep('accept')" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Accept Request</button>
+                            <button wire:click="setDecisionStep('decline')" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Decline Request</button>
+                        </div>
+                    @endif
+
+                    @if ($decisionStep === 'accept')
+                        <div style="margin-top:0.75rem;border:1px solid var(--hub-border);border-radius:10px;padding:0.7rem;background:var(--hub-surface-soft);">
+                            <p style="font-weight:700;font-size:0.82rem;color:var(--hub-ink);">Accept and Apply New Time</p>
+                            <div style="margin-top:0.55rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                                <div>
+                                    <label style="font-size:0.7rem;font-weight:600;color:var(--hub-muted);">Rescheduled Date</label>
+                                    <input type="date" wire:model="decisionDate" style="display:block;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.7rem;font-weight:600;color:var(--hub-muted);">Start Time</label>
+                                    <input type="time" wire:model="decisionStartTime" style="display:block;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.7rem;font-weight:600;color:var(--hub-muted);">End Time</label>
+                                    <input type="time" wire:model="decisionEndTime" style="display:block;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                            <button wire:click="acceptRescheduleRequest" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Confirm Accept</button>
+                            <button wire:click="setDecisionStep('review')" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Back</button>
+                        </div>
+                    @endif
+
+                    @if ($decisionStep === 'decline')
+                        <div style="margin-top:0.75rem;border:1px solid var(--hub-border);border-radius:10px;padding:0.7rem;background:var(--hub-surface-soft);">
+                            <p style="font-weight:700;font-size:0.82rem;color:var(--hub-ink);">Decline Request</p>
+                            <label style="display:block;font-size:0.7rem;font-weight:600;color:var(--hub-muted);margin-top:0.45rem;">Optional message to student</label>
+                            <textarea wire:model="declineReason" rows="3" style="display:block;width:100%;margin-top:0.2rem;padding:0.45rem 0.55rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);resize:vertical;" placeholder="Add context for the student"></textarea>
+                        </div>
+
+                        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                            <button wire:click="declineRescheduleRequest" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Confirm Decline</button>
+                            <button wire:click="setDecisionStep('review')" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Back</button>
+                        </div>
+                    @endif
+                </div>
+            </div>
         @endif
     </div>
 </x-filament-panels::page>

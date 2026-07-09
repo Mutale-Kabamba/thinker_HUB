@@ -10,44 +10,21 @@
         'type' => 'article',
     ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
+    <style>
+        @media (max-width: 640px) {
+            .hub-fee-row {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 0.25rem !important;
+            }
+        }
+    </style>
 </head>
 <body class="bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
 
-    <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
-        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
-            <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-bold text-white shrink-0">
-                <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
-            </a>
-
-            <nav class="hidden md:flex items-center gap-10 text-[13px] font-semibold uppercase tracking-wider text-slate-300">
-                <a href="{{ route('home') }}" class="hover:text-yellow-400 transition-colors">Home</a>
-                <a href="{{ route('landing.courses') }}" class="text-yellow-400">Courses</a>
-                <a href="{{ route('landing.instructors') }}" class="hover:text-yellow-400 transition-colors">Instructors</a>
-                <a href="{{ route('landing.contact') }}" class="hover:text-yellow-400 transition-colors">Contact</a>
-            </nav>
-
-            <div class="hidden md:flex items-center gap-6">
-                <a href="{{ route('login') }}" class="text-sm font-bold text-white hover:text-yellow-400">Login</a>
-                <a href="{{ route('enroll') }}" class="rounded-full bg-yellow-400 px-6 py-2.5 text-sm font-bold text-[#0a2d27] hover:bg-white transition-all">Enroll Now</a>
-            </div>
-
-            <button class="md:hidden text-white text-2xl" @click="mobileMenu = !mobileMenu">
-                <i class="fa-solid" :class="mobileMenu ? 'fa-xmark' : 'fa-bars-staggered'"></i>
-            </button>
-        </div>
-
-        <div class="md:hidden bg-[#0a2d27] border-t border-white/10" x-show="mobileMenu" x-transition>
-            <nav class="flex flex-col p-6 gap-4 text-white font-semibold">
-                <a href="{{ route('home') }}">Home</a>
-                <a href="{{ route('landing.courses') }}" class="text-yellow-400">Courses</a>
-                <a href="{{ route('landing.instructors') }}">Instructors</a>
-                <a href="{{ route('landing.contact') }}">Contact</a>
-            </nav>
-        </div>
-    </header>
+    @include('partials.public-header')
 
     <main>
         @php
@@ -356,6 +333,7 @@
 
             $progressionCards = [];
             $progressionSourceText = trim(implode("\n", array_map(static fn (array $item): string => trim(($item['level'] !== '' ? $item['level'].': ' : '').($item['details'] ?? '')), $progressionItems)));
+            $isLockedCourse = $course->is_open_enrollment === false;
 
             foreach (['Beginner', 'Intermediate', 'Advanced'] as $index => $levelName) {
                 $matched = null;
@@ -417,9 +395,33 @@
                         <li class="text-white">{{ $course->title }}</li>
                     </ol>
                 </nav>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">{{ $course->code }}</p>
+                <div class="flex items-center gap-3">
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">{{ $course->code }}</p>
+                    @if ($isLockedCourse)
+                        <span class="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">Locked To Selected Participants</span>
+                    @endif
+                </div>
                 <h1 class="mt-4 max-w-4xl text-4xl font-black text-white sm:text-5xl">{{ $course->title }}</h1>
                 <p class="mt-5 max-w-3xl text-slate-300">{{ $course->overview ?: $course->description }}</p>
+                @php
+                    $avgRating = round((float) ($course->ratings_avg_rating ?? 0), 1);
+                    $ratingCount = (int) ($course->ratings_count ?? 0);
+                @endphp
+                <div class="mt-4 flex items-center gap-2">
+                    <div class="flex items-center gap-1 text-sm">
+                        @for ($star = 1; $star <= 5; $star++)
+                            @if ($star <= floor($avgRating))
+                                <i class="fa-solid fa-star text-yellow-400"></i>
+                            @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
+                                <i class="fa-solid fa-star-half-stroke text-yellow-400"></i>
+                            @else
+                                <i class="fa-regular fa-star text-slate-500"></i>
+                            @endif
+                        @endfor
+                    </div>
+                    <span class="text-sm font-semibold text-white">{{ $avgRating > 0 ? $avgRating : '' }}</span>
+                    <span class="text-sm text-slate-400">({{ $ratingCount }} {{ Str::plural('review', $ratingCount) }})</span>
+                </div>
                 <div class="mt-8">
                     <a href="{{ route('landing.courses') }}" class="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
                         <i class="fa-solid fa-arrow-left"></i>
@@ -446,7 +448,7 @@
                                     <h4 class="text-sm font-semibold text-slate-800">{{ $section['label'] }}</h4>
                                     <div class="mt-2 space-y-2">
                                         @foreach ($section['rows'] as $row)
-                                            <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
+                                            <div class="hub-fee-row flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
                                                 <span class="text-sm font-medium text-slate-800">{{ $row['level'] !== '' ? $row['level'] : '-' }}</span>
                                                 <span class="text-sm font-semibold text-slate-900">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</span>
                                                 <span class="text-sm text-slate-600">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</span>
@@ -487,8 +489,145 @@
                             <dd class="mt-1 font-bold text-slate-900">{{ $course->timeline ?: 'Self paced' }}</dd>
                         </div>
                     </dl>
-                    <a href="{{ route('enroll') }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] hover:bg-yellow-300">Enroll in This Track</a>
+                    @if ($isLockedCourse)
+                        <button type="button" disabled class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-slate-200 px-5 py-3 text-sm font-bold text-slate-500 cursor-not-allowed">Enrollment Locked</button>
+                    @else
+                        <a href="{{ route('enroll') }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] hover:bg-yellow-300">Enroll in This Track</a>
+                    @endif
+
+                    <div class="mt-6 border-t border-slate-200 pt-4">
+                        <h3 class="text-sm font-bold text-slate-900">Rating</h3>
+                        <div class="mt-2 flex items-center gap-1 text-sm">
+                            @for ($star = 1; $star <= 5; $star++)
+                                @if ($star <= floor($avgRating))
+                                    <i class="fa-solid fa-star text-yellow-500"></i>
+                                @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
+                                    <i class="fa-solid fa-star-half-stroke text-yellow-500"></i>
+                                @else
+                                    <i class="fa-regular fa-star text-slate-300"></i>
+                                @endif
+                            @endfor
+                            <span class="ml-1 text-sm font-semibold text-slate-700">{{ $avgRating > 0 ? $avgRating.'/5' : 'N/A' }}</span>
+                        </div>
+                        <p class="mt-1 text-xs text-slate-500">{{ $ratingCount }} {{ Str::plural('review', $ratingCount) }}</p>
+                    </div>
                 </aside>
+            </div>
+        </section>
+
+        {{-- Reviews Section --}}
+        <section class="py-12 lg:py-16 border-t border-slate-100">
+            <div class="mx-auto max-w-6xl px-6 lg:px-8">
+                <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-900 sm:text-3xl">Reviews</h2>
+                        <p class="mt-1 text-slate-600">What students say about this course.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl font-black text-slate-900">{{ $avgRating > 0 ? $avgRating : '—' }}</span>
+                        <div>
+                            <div class="flex items-center gap-0.5">
+                                @for ($star = 1; $star <= 5; $star++)
+                                    @if ($star <= floor($avgRating))
+                                        <i class="fa-solid fa-star text-yellow-500 text-sm"></i>
+                                    @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
+                                        <i class="fa-solid fa-star-half-stroke text-yellow-500 text-sm"></i>
+                                    @else
+                                        <i class="fa-regular fa-star text-slate-300 text-sm"></i>
+                                    @endif
+                                @endfor
+                            </div>
+                            <p class="text-xs text-slate-500 mt-0.5">{{ $ratingCount }} {{ Str::plural('review', $ratingCount) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Rating Form (logged-in enrolled students only) --}}
+                @auth
+                    @php
+                        $isEnrolled = auth()->user()->courses()->where('courses.id', $course->id)->exists();
+                        $existingRating = $isEnrolled ? \App\Models\CourseRating::where('course_id', $course->id)->where('user_id', auth()->id())->first() : null;
+                    @endphp
+                    @if ($isEnrolled)
+                        <div class="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" x-data="{ rating: {{ $existingRating?->rating ?? 0 }}, hover: 0, review: '{{ addslashes($existingRating?->review ?? '') }}', submitted: false }">
+                            <h3 class="text-lg font-bold text-slate-900 mb-4">{{ $existingRating ? 'Update Your Review' : 'Rate This Course' }}</h3>
+                            <form method="POST" action="{{ route('course.rate', $course->id) }}" @submit="submitted = true">
+                                @csrf
+                                <input type="hidden" name="rating" :value="rating">
+                                <div class="flex items-center gap-1 mb-4">
+                                    @for ($star = 1; $star <= 5; $star++)
+                                        <button type="button"
+                                            @click="rating = {{ $star }}"
+                                            @mouseenter="hover = {{ $star }}"
+                                            @mouseleave="hover = 0"
+                                            class="text-2xl transition-transform hover:scale-110 focus:outline-none"
+                                        >
+                                            <i :class="(hover || rating) >= {{ $star }} ? 'fa-solid fa-star text-yellow-500' : 'fa-regular fa-star text-slate-300'"></i>
+                                        </button>
+                                    @endfor
+                                    <span class="ml-2 text-sm text-slate-500" x-text="rating > 0 ? rating + '/5' : 'Click to rate'"></span>
+                                </div>
+                                <textarea
+                                    name="review"
+                                    x-model="review"
+                                    rows="3"
+                                    placeholder="Share your experience with this course (optional)..."
+                                    class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                                ></textarea>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <button
+                                        type="submit"
+                                        :disabled="rating === 0 || submitted"
+                                        class="inline-flex items-center rounded-full bg-[#0a2d27] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#11443c] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {{ $existingRating ? 'Update Review' : 'Submit Review' }}
+                                    </button>
+                                    @if ($existingRating)
+                                        <span class="text-xs text-slate-500">You rated this {{ $existingRating->rating }}/5 on {{ $existingRating->updated_at->format('M j, Y') }}</span>
+                                    @endif
+                                </div>
+                            </form>
+                        </div>
+                    @endif
+                @endauth
+
+                {{-- Reviews List --}}
+                @if ($course->ratings->isNotEmpty())
+                    <div class="space-y-5">
+                        @foreach ($course->ratings as $rating)
+                            <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="flex items-center gap-3">
+                                        @if ($rating->user?->profile_photo_path)
+                                            <img src="{{ Storage::disk('public')->url($rating->user->profile_photo_path) }}" alt="" class="h-9 w-9 rounded-full object-cover" onerror="this.style.display='none'">
+                                        @else
+                                            <div class="h-9 w-9 rounded-full bg-teal-100 flex items-center justify-center text-sm font-bold text-teal-700">
+                                                {{ strtoupper(substr($rating->user?->name ?? '?', 0, 1)) }}
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <p class="font-semibold text-slate-900 text-sm">{{ $rating->user?->name ?? 'Student' }}</p>
+                                            <p class="text-xs text-slate-500">{{ $rating->created_at->diffForHumans() }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-0.5">
+                                        @for ($star = 1; $star <= 5; $star++)
+                                            <i class="{{ $star <= $rating->rating ? 'fa-solid fa-star text-yellow-500' : 'fa-regular fa-star text-slate-300' }} text-xs"></i>
+                                        @endfor
+                                    </div>
+                                </div>
+                                @if ($rating->review)
+                                    <p class="mt-3 text-sm leading-relaxed text-slate-600">{{ $rating->review }}</p>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-12 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50">
+                        <i class="fa-regular fa-star text-slate-300 text-3xl mb-3"></i>
+                        <p class="text-slate-500 font-medium">No reviews yet. Be the first to share your experience!</p>
+                    </div>
+                @endif
             </div>
         </section>
 
@@ -522,6 +661,9 @@
                     <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
                         Thinker Hub empowers learners with practical, career-focused training designed to turn knowledge into measurable results.
                     </p>
+                    <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
+                        <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>
+                    </div>
                 </div>
 
                 <div class="hidden lg:block">
@@ -548,11 +690,23 @@
                         <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinker.learn@gmail.com</a></p>
                         <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
                     </div>
+                    <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
                 </div>
             </div>
 
-            <div class="mt-8 border-t border-slate-200 pt-5 text-xs text-slate-500">
-                <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
+            <div class="mt-8 border-t border-slate-200 pt-5">
+                <div class="flex flex-col items-center gap-4 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+                    <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button type="button" @click="$dispatch('open-legal', 'privacy')" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</button>
+                        <button type="button" @click="$dispatch('open-legal', 'cookies')" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</button>
+                        <button type="button" @click="$dispatch('open-legal', 'terms')" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</button>
+                    </div>
+                </div>
             </div>
         </div>
     </footer>

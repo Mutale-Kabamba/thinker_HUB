@@ -10,6 +10,7 @@ class RescheduleRequestNotification extends Notification
 {
     public function __construct(
         private readonly CourseSession $session,
+        private readonly int $studentId,
         private readonly string $studentName,
         private readonly string $reason,
         private readonly ?string $preferredDate,
@@ -43,6 +44,7 @@ class RescheduleRequestNotification extends Notification
     public function toArray(object $notifiable): array
     {
         $courseName = $this->session->course->title ?? 'Course';
+        $url = $notifiable->role === 'instructor' ? '/teach/schedule' : '/manage/course-sessions';
 
         return [
             'type' => 'reschedule_request',
@@ -50,11 +52,12 @@ class RescheduleRequestNotification extends Notification
             'message' => $courseName.' ('.$this->session->session_date->format('M j').'): '.$this->reason,
             'session_id' => $this->session->id,
             'course_id' => $this->session->course_id,
+            'student_id' => $this->studentId,
             'student_name' => $this->studentName,
             'reason' => $this->reason,
             'preferred_date' => $this->preferredDate,
             'preferred_time' => $this->preferredTime,
-            'url' => $notifiable->role === 'instructor' ? '/teach/schedule' : '/admin/course-sessions',
+            'url' => $url,
         ];
     }
 }

@@ -7,49 +7,49 @@
         </section>
 
         {{-- Stats --}}
-        <div class="hub-grid hub-stats-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+        <div class="hub-grid hub-stats-grid">
             <section class="hub-card">
                 <p class="hub-eyebrow">My Courses</p>
-                <p class="hub-metric">{{ count($courses) }}</p>
+                <p class="hub-metric">{{ count($courses) < 10 ? count($courses) : '10+' }}</p>
                 <p class="hub-copy">Assigned courses</p>
             </section>
             <section class="hub-card">
                 <p class="hub-eyebrow">Total Students</p>
-                <p class="hub-metric">{{ $totalStudents }}</p>
+                <p class="hub-metric">{{ $totalStudents < 10 ? $totalStudents : '10+' }}</p>
                 <p class="hub-copy">Across all courses</p>
             </section>
             <section class="hub-card">
                 <p class="hub-eyebrow">Assessments</p>
-                <p class="hub-metric">{{ $totalAssessments }}</p>
+                <p class="hub-metric">{{ $totalAssessments < 10 ? $totalAssessments : '10+' }}</p>
                 <p class="hub-copy">In my courses</p>
             </section>
             <section class="hub-card">
                 <p class="hub-eyebrow">Upcoming Sessions</p>
-                <p class="hub-metric">{{ $upcomingSessionCount }}</p>
+                <p class="hub-metric">{{ $upcomingSessionCount < 10 ? $upcomingSessionCount : '10+' }}</p>
                 <p class="hub-copy">Scheduled</p>
             </section>
         </div>
 
         {{-- Session Calendar --}}
         <section class="hub-card" style="padding:1rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.4rem;">
                 <div>
                     <h3 class="hub-title" style="font-size:1rem;">Session Calendar</h3>
                     <p class="hub-copy" style="margin-top:0.1rem;">{{ $upcomingSessionCount }} upcoming session{{ $upcomingSessionCount !== 1 ? 's' : '' }}</p>
                 </div>
-                <a href="{{ route('filament.instructor.pages.schedule') }}" class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;text-decoration:none;">View Full Schedule →</a>
+                <a href="{{ route('filament.instructor.pages.schedule') }}" class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;text-decoration:none;white-space:nowrap;">View Full Schedule →</a>
             </div>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-                <button wire:click="previousMonth" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.25rem 0.5rem;">← Prev</button>
-                <span style="font-weight:700;font-size:0.88rem;color:var(--hub-ink);">
+            <div style="display:flex;align-items:center;justify-content:center;margin-bottom:0.5rem;gap:0.5rem;word-break:normal;">
+                <button wire:click="previousMonth" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--hub-muted);padding:0.15rem;line-height:1;flex-shrink:0;">&#8249;</button>
+                <span style="font-weight:700;font-size:0.88rem;color:var(--hub-ink);text-align:center;white-space:nowrap;flex-shrink:0;">
                     {{ \Carbon\Carbon::createFromDate($calendarYear, $calendarMonth, 1)->format('F Y') }}
                 </span>
-                <button wire:click="nextMonth" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.25rem 0.5rem;">Next →</button>
+                <button wire:click="nextMonth" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--hub-muted);padding:0.15rem;line-height:1;flex-shrink:0;">&#8250;</button>
             </div>
 
-            <div style="overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:480px;">
+            <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+                <table class="hub-calendar-table" style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:320px;">
                     <thead>
                         <tr>
                             @foreach (['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $day)
@@ -69,11 +69,11 @@
                                         {{ ! $dayCell['in_month'] ? 'opacity:0.3;' : '' }}
                                         {{ $dayCell['is_today'] ? 'background:var(--hub-primary-soft);' : '' }}
                                     ">
-                                        <div style="font-size:0.68rem;font-weight:{{ $dayCell['is_today'] ? '800' : '600' }};color:{{ $dayCell['is_today'] ? 'var(--hub-primary)' : 'var(--hub-ink)' }};margin-bottom:0.15rem;">
+                                        <div class="hub-calendar-day-num" style="font-size:0.68rem;font-weight:{{ $dayCell['is_today'] ? '800' : '600' }};color:{{ $dayCell['is_today'] ? 'var(--hub-primary)' : 'var(--hub-ink)' }};margin-bottom:0.15rem;">
                                             {{ $dayCell['date'] }}
                                         </div>
                                         @foreach ($dayCell['sessions'] as $calSession)
-                                            <div style="
+                                            <div class="hub-calendar-session" style="
                                                 margin-bottom:0.1rem;
                                                 padding:0.1rem 0.2rem;
                                                 border-radius:3px;

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Courses\Schemas;
 
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -172,6 +173,25 @@ class CourseForm
                 Textarea::make('key_outcome')
                     ->helperText('Summarize expected learning outcome after completion.')
                     ->rows(3)
+                    ->columnSpanFull(),
+                Toggle::make('is_open_enrollment')
+                    ->label('Open For Public Enrollment')
+                    ->helperText('Turn off to lock enrollment to selected participants only.')
+                    ->default(true)
+                    ->live()
+                    ->required(),
+                Select::make('selected_participant_ids')
+                    ->label('Selected Participants')
+                    ->helperText('Only these participants can enroll when public enrollment is locked.')
+                    ->options(fn (): array => User::query()
+                        ->where('role', 'student')
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                        ->all())
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (callable $get): bool => ! (bool) $get('is_open_enrollment'))
                     ->columnSpanFull(),
                 Toggle::make('is_active')
                     ->required(),

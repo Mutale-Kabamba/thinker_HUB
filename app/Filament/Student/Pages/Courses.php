@@ -66,6 +66,21 @@ class Courses extends Page
             return;
         }
 
+        if ($course->is_open_enrollment === false) {
+            $isSelectedParticipant = $course->selectedParticipants()
+                ->where('users.id', $user->id)
+                ->exists();
+
+            if (! $isSelectedParticipant) {
+                Notification::make()
+                    ->title('This course is locked to selected participants only.')
+                    ->warning()
+                    ->send();
+
+                return;
+            }
+        }
+
         Enrollment::firstOrCreate([
             'user_id' => $user->id,
             'course_id' => $course->id,
@@ -112,17 +127,31 @@ class Courses extends Page
         $this->enrolledCount = count($enrolledCourseIds);
 
         $this->courses = Course::query()
+            ->with(['selectedParticipants:id'])
             ->orderBy('title')
             ->get()
-            ->map(fn (Course $course): array => [
-                'id' => $course->id,
-                'title' => $course->title,
-                'code' => $course->code,
-                'summary' => Str::limit($course->description ?: 'No summary available.', 90),
-                'description' => $course->description ?: 'No full description available.',
-                'is_active' => $course->is_active,
-                'enrolled' => in_array($course->id, $enrolledCourseIds, true),
-            ])
+            ->map(function (Course $course) use ($enrolledCourseIds, $user): array {
+                $selectedParticipantIds = $course->selectedParticipants
+                    ->pluck('id')
+                    ->map(fn ($id): int => (int) $id)
+                    ->all();
+
+                $isOpenEnrollment = $course->is_open_enrollment !== false;
+
+                return [
+                    'id' => $course->id,
+                    'title' => $course->title,
+                    'code' => $course->code,
+                    'summary' => Str::limit($course->description ?: 'No summary available.', 90),
+                    'description' => $course->description ?: 'No full description available.',
+                    'is_active' => $course->is_active,
+                    'is_open_enrollment' => $isOpenEnrollment,
+                    'enrolled' => in_array($course->id, $enrolledCourseIds, true),
+                    'can_enroll' => $course->is_active && (
+                        $isOpenEnrollment || in_array((int) $user->id, $selectedParticipantIds, true)
+                    ),
+                ];
+            })
             ->all();
     }
 }
