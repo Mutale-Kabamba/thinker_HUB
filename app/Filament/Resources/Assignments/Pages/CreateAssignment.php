@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Assignments\Pages;
 
 use App\Filament\Resources\Assignments\AssignmentResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\BaseCreateRecord;
 
-class CreateAssignment extends CreateRecord
+class CreateAssignment extends BaseCreateRecord
 {
     protected static string $resource = AssignmentResource::class;
     

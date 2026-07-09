@@ -5,9 +5,9 @@ namespace App\Filament\Resources\Courses\Pages;
 use App\Filament\Resources\Courses\CourseResource;
 use App\Filament\Resources\Courses\Schemas\CourseForm;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\Pages\BaseEditRecord;
 
-class EditCourse extends EditRecord
+class EditCourse extends BaseEditRecord
 {
     protected static string $resource = CourseResource::class;
 

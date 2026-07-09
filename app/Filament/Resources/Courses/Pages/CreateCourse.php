@@ -4,9 +4,9 @@ namespace App\Filament\Resources\Courses\Pages;
 
 use App\Filament\Resources\Courses\CourseResource;
 use App\Filament\Resources\Courses\Schemas\CourseForm;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\BaseCreateRecord;
 
-class CreateCourse extends CreateRecord
+class CreateCourse extends BaseCreateRecord
 {
     protected static string $resource = CourseResource::class;
 

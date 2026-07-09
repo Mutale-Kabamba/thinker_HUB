@@ -4,10 +4,10 @@ namespace App\Filament\Resources\Assessments\Pages;
 
 use App\Filament\Resources\Assessments\AssessmentResource;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\Pages\BaseEditRecord;
 use Illuminate\Validation\ValidationException;
 
-class EditAssessment extends EditRecord
+class EditAssessment extends BaseEditRecord
 {
     protected static string $resource = AssessmentResource::class;
 

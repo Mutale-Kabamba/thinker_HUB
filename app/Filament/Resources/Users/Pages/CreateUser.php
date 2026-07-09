@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\BaseCreateRecord;
 use Illuminate\Support\Facades\Log;
 
-class CreateUser extends CreateRecord
+class CreateUser extends BaseCreateRecord
 {
     protected static string $resource = UserResource::class;
 

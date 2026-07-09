@@ -4,9 +4,9 @@ namespace App\Filament\Resources\AssignmentSubmissions\Pages;
 
 use App\Filament\Resources\AssignmentSubmissions\AssignmentSubmissionResource;
 use App\Notifications\SubmissionGradedNotification;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\Pages\BaseEditRecord;
 
-class EditAssignmentSubmission extends EditRecord
+class EditAssignmentSubmission extends BaseEditRecord
 {
     protected static string $resource = AssignmentSubmissionResource::class;
 

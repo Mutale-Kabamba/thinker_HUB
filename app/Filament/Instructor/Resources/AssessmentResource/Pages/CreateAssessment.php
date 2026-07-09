@@ -3,9 +3,9 @@
 namespace App\Filament\Instructor\Resources\AssessmentResource\Pages;
 
 use App\Filament\Instructor\Resources\AssessmentResource\AssessmentResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\BaseCreateRecord;
 
-class CreateAssessment extends CreateRecord
+class CreateAssessment extends BaseCreateRecord
 {
     protected static string $resource = AssessmentResource::class;
 }
