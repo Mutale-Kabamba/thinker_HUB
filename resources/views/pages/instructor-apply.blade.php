@@ -220,6 +220,5 @@
         </div>
     </footer>
 
-    @include('partials.legal-modals')
 </body>
 </html>
