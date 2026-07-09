@@ -45,48 +45,73 @@ Artisan::command('mail:probe {--to=}', function (): int {
     }
 })->purpose('Send a probe email and print exact SMTP diagnostics.');
 
-Artisan::command('seo:generate', function (): int {
+Artisan::command('seo:generate {--base-url=}', function (): int {
     $this->info('Generating sitemap index, child sitemaps, and robots.txt...');
+
+    $configuredBaseUrl = (string) ($this->option('base-url') ?: config('app.url'));
+    $baseUrl = rtrim($configuredBaseUrl, '/');
+
+    if ($baseUrl === '') {
+        $this->error('No base URL provided. Set APP_URL or pass --base-url=https://your-domain.com');
+
+        return self::FAILURE;
+    }
+
+    if (app()->environment('production') && str_contains($baseUrl, 'localhost')) {
+        $this->error('Refusing to generate production sitemap with localhost URLs. Set APP_URL to your live domain or pass --base-url.');
+
+        return self::FAILURE;
+    }
+
+    $routeUrl = static function (string $name, array $parameters = []) use ($baseUrl): string {
+        $path = (string) route($name, $parameters, false);
+
+        if ($path === '/' || $path === '') {
+            return $baseUrl;
+        }
+
+        return $baseUrl.'/'.ltrim($path, '/');
+    };
 
     $staticSitemap = Sitemap::create()
         ->add(
-            Url::create(route('home'))
+            Url::create($routeUrl('home'))
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                 ->setPriority(1.0)
                 ->setLastModificationDate(now())
         )
         ->add(
-            Url::create(route('landing.courses'))
+            Url::create($routeUrl('landing.courses'))
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                 ->setPriority(0.9)
                 ->setLastModificationDate(now())
         )
         ->add(
-            Url::create(route('landing.instructors'))
+            Url::create($routeUrl('landing.instructors'))
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                 ->setPriority(0.7)
                 ->setLastModificationDate(now())
         )
         ->add(
-            Url::create(route('landing.contact'))
+            Url::create($routeUrl('landing.contact'))
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                 ->setPriority(0.6)
                 ->setLastModificationDate(now())
         )
         ->add(
-            Url::create(route('landing.privacy'))
+            Url::create($routeUrl('landing.privacy'))
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                 ->setPriority(0.4)
                 ->setLastModificationDate(now())
         )
         ->add(
-            Url::create(route('landing.cookies'))
+            Url::create($routeUrl('landing.cookies'))
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                 ->setPriority(0.4)
                 ->setLastModificationDate(now())
         )
         ->add(
-            Url::create(route('landing.terms'))
+            Url::create($routeUrl('landing.terms'))
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                 ->setPriority(0.4)
                 ->setLastModificationDate(now())
@@ -111,13 +136,13 @@ Artisan::command('seo:generate', function (): int {
                     $slugSource = trim((string) ($course->title ?: $course->code ?: $course->id));
                     $slug = Str::slug($slugSource);
 
-                    $courseUrl = Url::create(route('landing.courses.show', ['course' => $course->id, 'slug' => $slug]))
+                    $courseUrl = Url::create($routeUrl('landing.courses.show', ['course' => $course->id, 'slug' => $slug]))
                         ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                         ->setPriority(0.8)
                         ->setLastModificationDate($course->updated_at ?? now());
 
                     // Attach a representative image for richer sitemap indexing.
-                    $courseUrl->addImage(asset('images/logos/green.png'), $course->title, '', $course->title);
+                    $courseUrl->addImage($baseUrl.'/images/logos/green.png', $course->title, '', $course->title);
 
                     $coursesSitemap->add($courseUrl);
                 });
@@ -136,17 +161,16 @@ Artisan::command('seo:generate', function (): int {
 
     SitemapIndex::create()
         ->add(
-            SitemapTag::create(url('/sitemap-static.xml'))
+            SitemapTag::create($baseUrl.'/sitemap-static.xml')
                 ->setLastModificationDate(now())
         )
         ->add(
-            SitemapTag::create(url('/sitemap-courses.xml'))
+            SitemapTag::create($baseUrl.'/sitemap-courses.xml')
                 ->setLastModificationDate(now())
         )
         ->writeToFile($indexPath);
 
-    $appUrl = rtrim((string) config('app.url'), '/');
-    $sitemapUrl = ($appUrl !== '' ? $appUrl : url('/')).'/sitemap.xml';
+    $sitemapUrl = $baseUrl.'/sitemap.xml';
 
     $robots = implode(PHP_EOL, [
         'User-agent: *',
