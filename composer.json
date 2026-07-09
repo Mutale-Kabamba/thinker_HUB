@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "filament/filament": "^5.5",
+        "kreait/laravel-firebase": "6.2",
         "ladumor/laravel-pwa": "^1.0",
         "laravel/framework": "^12.0",
         "laravel/nightwatch": "^1.26",
