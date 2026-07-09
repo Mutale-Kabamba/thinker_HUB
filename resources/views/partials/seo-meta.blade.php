@@ -1,13 +1,18 @@
 @php
-    $siteName = 'think.er HUB';
-    $seoTitle = $title ?? $siteName;
-    $seoDescription = $description ?? 'Thinker Hub delivers practical, career-focused digital skills training with an 80% hands-on approach.';
-    $seoImage = $image ?? asset('images/logos/green.png');
+    $siteName = (string) config('seo.site_name', 'think.er HUB');
+    $seoTitle = $title ?? config('seo.default_title', $siteName);
+    $seoDescription = $description ?? config('seo.default_description', 'Thinker Hub delivers practical, career-focused digital skills training with an 80% hands-on approach.');
+    $defaultImage = (string) config('seo.default_image', '/images/logos/green.png');
+    $seoImage = $image ?? (str_starts_with($defaultImage, 'http') ? $defaultImage : asset(ltrim($defaultImage, '/')));
     $seoUrl = $url ?? url()->current();
     $seoType = $type ?? 'website';
     $seoKeywords = $keywords ?? null;
     $indexable = $indexable ?? true;
     $robots = $indexable ? 'index,follow,max-image-preview:large' : 'noindex,nofollow';
+    $seoLocale = (string) config('seo.default_locale', 'en_US');
+    $twitterCard = (string) config('seo.twitter_card', 'summary_large_image');
+    $twitterSite = config('seo.twitter_site');
+    $twitterCreator = config('seo.twitter_creator');
 @endphp
 
 <title>{{ $seoTitle }}</title>
@@ -19,7 +24,7 @@
 <link rel="canonical" href="{{ $seoUrl }}">
 <link rel="icon" type="image/png" href="{{ asset('images/logos/icon_green.png') }}">
 
-<meta property="og:locale" content="en_US">
+<meta property="og:locale" content="{{ $seoLocale }}">
 <meta property="og:type" content="{{ $seoType }}">
 <meta property="og:site_name" content="{{ $siteName }}">
 <meta property="og:title" content="{{ $seoTitle }}">
@@ -27,10 +32,16 @@
 <meta property="og:url" content="{{ $seoUrl }}">
 <meta property="og:image" content="{{ $seoImage }}">
 
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="{{ $twitterCard }}">
 <meta name="twitter:title" content="{{ $seoTitle }}">
 <meta name="twitter:description" content="{{ $seoDescription }}">
 <meta name="twitter:image" content="{{ $seoImage }}">
+@if ($twitterSite)
+    <meta name="twitter:site" content="{{ $twitterSite }}">
+@endif
+@if ($twitterCreator)
+    <meta name="twitter:creator" content="{{ $twitterCreator }}">
+@endif
 
 @if ($indexable)
     <script type="application/ld+json">
