@@ -97,9 +97,8 @@
                         <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Join today to start your journey into a better future.</h2>
                         <p class="mt-4 text-slate-400">Get access to unlimited resources and expert guidance.</p>
                     </div>
-                    <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                        <a href="{{ route('register') }}" class="rounded-full bg-yellow-400 px-8 py-4 font-bold text-[#0a2d27] hover:bg-white transition-all text-center">ENROLL NOW</a>
-                        <a href="{{ route('landing.instructors.apply') }}" class="rounded-full border border-white/20 px-8 py-4 font-bold text-white hover:bg-white/10 transition-all text-center">Apply as Instructor</a>
+                    <div class="w-full lg:w-auto">
+                        <a href="{{ route('landing.instructors.apply') }}" class="block w-full rounded-full bg-yellow-400 px-10 py-5 text-center text-base font-extrabold text-[#0a2d27] transition-all hover:bg-white sm:w-auto">Apply as Instructor</a>
                     </div>
                 </div>
                 <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 rounded-full -mr-20 -mt-20"></div>

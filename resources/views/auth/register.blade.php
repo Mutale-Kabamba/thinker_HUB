@@ -21,12 +21,9 @@
                 id="google-signin-register"
                 class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-[0.75rem] font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                    <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-1.4 3.6-5.5 3.6-3.3 0-6-2.8-6-6.2s2.7-6.2 6-6.2c1.9 0 3.2.8 3.9 1.5l2.7-2.7C16.9 2.5 14.6 1.5 12 1.5 6.8 1.5 2.6 5.9 2.6 11.5S6.8 21.5 12 21.5c6.9 0 9.2-5 9.2-7.5 0-.5-.1-.9-.1-1.3H12z"/>
-                    <path fill="#34A853" d="M3.4 7.1l3.2 2.4C7.4 7.9 9.5 6 12 6c1.9 0 3.2.8 3.9 1.5l2.7-2.7C16.9 2.5 14.6 1.5 12 1.5 8.2 1.5 4.9 3.8 3.4 7.1z"/>
-                    <path fill="#4A90E2" d="M12 21.5c2.5 0 4.7-.9 6.3-2.6l-2.9-2.4c-.8.6-1.9 1.1-3.4 1.1-2.9 0-5.3-2-6.1-4.7l-3.3 2.6c1.5 3.7 5 6 9.4 6z"/>
-                    <path fill="#FBBC05" d="M5.9 12.9c-.2-.6-.3-1.1-.3-1.8s.1-1.2.3-1.8L2.6 6.7C2 8 1.6 9.5 1.6 11.1s.4 3.1 1 4.4l3.3-2.6z"/>
-                </svg>
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm dark:bg-slate-900" aria-hidden="true">
+                    <i class="fa-brands fa-google text-sm" style="background: conic-gradient(from 300deg, #4285F4 0deg 90deg, #34A853 90deg 180deg, #FBBC05 180deg 270deg, #EA4335 270deg 360deg); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>
+                </span>
                 Continue with Google
             </button>
 
@@ -310,7 +307,29 @@
                     return 'A sign-in popup is already open. Complete that popup first.';
                 }
 
+                if (code === 'auth/operation-not-supported-in-this-environment') {
+                    return 'Popup sign-in is not supported in this browser context. Redirect sign-in will be used instead.';
+                }
+
+                if (code === 'auth/web-storage-unsupported') {
+                    return 'This browser environment blocks web storage required for Google sign-in.';
+                }
+
+                if (code === 'auth/unauthorized-domain') {
+                    return `Google sign-in is not enabled for this domain (${window.location.hostname}). Add it in Firebase Console > Authentication > Settings > Authorized domains.`;
+                }
+
                 return error?.message || 'Social sign-in failed.';
+            };
+
+            const shouldFallbackToRedirect = (error) => {
+                const code = error?.code || '';
+
+                return [
+                    'auth/popup-blocked',
+                    'auth/operation-not-supported-in-this-environment',
+                    'auth/web-storage-unsupported',
+                ].includes(code);
             };
 
             const prepareGoogleEnrollmentStep = async (user) => {
@@ -397,8 +416,9 @@
                         await prepareGoogleEnrollmentStep(result.user);
                         return;
                     } catch (error) {
-                        if (error?.code === 'auth/popup-blocked') {
+                        if (shouldFallbackToRedirect(error)) {
                             try {
+                                feedback.textContent = 'Opening Google sign-in as a full-page redirect...';
                                 await signInWithRedirect(auth, provider);
                                 return;
                             } catch (redirectError) {
