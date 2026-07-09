@@ -92,7 +92,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-        import { getAuth, FacebookAuthProvider, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { getAuth, FacebookAuthProvider, GoogleAuthProvider, getRedirectResult, signInWithPopup, signInWithRedirect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
         const googleButton = document.getElementById('google-signin-login');
         const facebookButton = document.getElementById('facebook-signin-login');
@@ -138,6 +138,41 @@
                 window.location.assign(payload.redirect || "{{ route('dashboard', absolute: false) }}");
             };
 
+            const setIdleButtons = () => {
+                googleButton.disabled = false;
+                facebookButton.disabled = false;
+                googleButton.textContent = 'Continue with Google';
+                facebookButton.textContent = 'Continue with Facebook';
+            };
+
+            const explainSocialError = (error) => {
+                const code = error?.code || '';
+
+                if (code === 'auth/popup-closed-by-user') {
+                    return 'Popup was closed before completing sign-in. Try again and keep it open.';
+                }
+
+                if (code === 'auth/cancelled-popup-request') {
+                    return 'A sign-in popup is already open. Complete that popup first.';
+                }
+
+                return error?.message || 'Social sign-in failed.';
+            };
+
+            (async () => {
+                try {
+                    const redirectResult = await getRedirectResult(auth);
+
+                    if (redirectResult?.user) {
+                        const idToken = await redirectResult.user.getIdToken();
+                        await submitSocialToken(idToken);
+                    }
+                } catch (error) {
+                    feedback.textContent = explainSocialError(error);
+                    setIdleButtons();
+                }
+            })();
+
             const bindProvider = (button, provider, loadingLabel, idleLabel) => {
                 button.addEventListener('click', async () => {
                     feedback.textContent = '';
@@ -150,11 +185,19 @@
                         const idToken = await result.user.getIdToken();
                         await submitSocialToken(idToken);
                     } catch (error) {
-                        feedback.textContent = error?.message || 'Social sign-in failed.';
-                        googleButton.disabled = false;
-                        facebookButton.disabled = false;
-                        googleButton.textContent = 'Continue with Google';
-                        facebookButton.textContent = 'Continue with Facebook';
+                        if (error?.code === 'auth/popup-blocked') {
+                            try {
+                                await signInWithRedirect(auth, provider);
+                                return;
+                            } catch (redirectError) {
+                                feedback.textContent = explainSocialError(redirectError);
+                                setIdleButtons();
+                                return;
+                            }
+                        }
+
+                        feedback.textContent = explainSocialError(error);
+                        setIdleButtons();
                     }
                 });
             };

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,16 +32,16 @@ class FirebaseGoogleAuthController extends Controller
             'accept_requirements' => ['nullable', 'boolean'],
         ]);
 
-        $credentials = (string) config('services.firebase.credentials');
+        $credentialsPath = $this->resolveCredentialsPath((string) config('services.firebase.credentials'));
 
-        if ($credentials === '' || ! is_file($credentials)) {
+        if ($credentialsPath === null) {
             return response()->json([
-                'message' => 'Firebase server credentials are not configured correctly.',
+                'message' => 'Firebase server credentials are not configured correctly. Set FIREBASE_CREDENTIALS to a valid service account JSON path, e.g. storage/app/firebase-service-account.json.',
             ], 500);
         }
 
         $firebaseAuth = (new Factory())
-            ->withServiceAccount($credentials)
+            ->withServiceAccount($credentialsPath)
             ->createAuth();
 
         try {
@@ -84,7 +83,6 @@ class FirebaseGoogleAuthController extends Controller
             ]);
 
             $created = true;
-            event(new Registered($user));
         } else {
             $updateData = [];
 
@@ -131,5 +129,30 @@ class FirebaseGoogleAuthController extends Controller
             'redirect' => $request->session()->pull('url.intended', route('dashboard', absolute: false)),
             'message' => 'Signed in successfully.',
         ]);
+    }
+
+    private function resolveCredentialsPath(string $configuredPath): ?string
+    {
+        $candidates = [];
+
+        $trimmed = trim($configuredPath);
+
+        if ($trimmed !== '') {
+            $candidates[] = $trimmed;
+            $candidates[] = base_path($trimmed);
+            $candidates[] = storage_path($trimmed);
+        }
+
+        $candidates[] = storage_path('app/firebase-service-account.json');
+        $candidates[] = storage_path('app/firebase-admin.json');
+        $candidates[] = base_path('firebase-service-account.json');
+
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate) && $candidate !== '' && is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 }
