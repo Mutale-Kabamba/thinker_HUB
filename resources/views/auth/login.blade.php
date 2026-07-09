@@ -50,6 +50,24 @@
                 {{ __('Login') }}
             </x-primary-button>
 
+            <button
+                type="button"
+                id="google-signin-login"
+                class="w-full justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-[0.75rem] font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+            >
+                Continue with Google
+            </button>
+
+            <button
+                type="button"
+                id="facebook-signin-login"
+                class="w-full justify-center rounded-xl border border-slate-300 bg-[#1877F2] px-4 py-2.5 text-[0.75rem] font-semibold text-white transition hover:bg-[#1669d7] dark:border-slate-700"
+            >
+                Continue with Facebook
+            </button>
+
+            <p id="google-signin-login-feedback" class="text-xs text-center text-slate-500"></p>
+
             <p class="text-center text-sm text-slate-600 dark:text-slate-400">
                 New here?
                 <a href="{{ route('register') }}" class="font-semibold text-teal-700 underline-offset-4 hover:underline">Register your account</a>
@@ -70,5 +88,80 @@
                 button.textContent = isHidden ? 'Hide' : 'Show';
             });
         });
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import { getAuth, FacebookAuthProvider, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+        const googleButton = document.getElementById('google-signin-login');
+        const facebookButton = document.getElementById('facebook-signin-login');
+        const feedback = document.getElementById('google-signin-login-feedback');
+
+        const firebaseConfig = @json(config('services.firebase.web'));
+        const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
+        const missingKey = requiredKeys.find((key) => !firebaseConfig?.[key]);
+
+        if (googleButton && facebookButton && feedback) {
+            if (missingKey) {
+                googleButton.disabled = true;
+                facebookButton.disabled = true;
+                googleButton.classList.add('opacity-60', 'cursor-not-allowed');
+                facebookButton.classList.add('opacity-60', 'cursor-not-allowed');
+                feedback.textContent = 'Social sign-in is unavailable. Missing Firebase config.';
+            } else {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const googleProvider = new GoogleAuthProvider();
+            const facebookProvider = new FacebookAuthProvider();
+            facebookProvider.addScope('email');
+
+            const submitSocialToken = async (idToken) => {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+                const response = await fetch("{{ route('auth.firebase.google') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                    },
+                    body: JSON.stringify({ id_token: idToken }),
+                });
+
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(payload.message || 'Social sign-in failed.');
+                }
+
+                window.location.assign(payload.redirect || "{{ route('dashboard', absolute: false) }}");
+            };
+
+            const bindProvider = (button, provider, loadingLabel, idleLabel) => {
+                button.addEventListener('click', async () => {
+                    feedback.textContent = '';
+                    googleButton.disabled = true;
+                    facebookButton.disabled = true;
+                    button.textContent = loadingLabel;
+
+                    try {
+                        const result = await signInWithPopup(auth, provider);
+                        const idToken = await result.user.getIdToken();
+                        await submitSocialToken(idToken);
+                    } catch (error) {
+                        feedback.textContent = error?.message || 'Social sign-in failed.';
+                        googleButton.disabled = false;
+                        facebookButton.disabled = false;
+                        googleButton.textContent = 'Continue with Google';
+                        facebookButton.textContent = 'Continue with Facebook';
+                    }
+                });
+            };
+
+            bindProvider(googleButton, googleProvider, 'Signing in...', 'Continue with Google');
+            bindProvider(facebookButton, facebookProvider, 'Signing in...', 'Continue with Facebook');
+            }
+        }
     </script>
 </x-guest-layout>

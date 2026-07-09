@@ -98,6 +98,24 @@
                     {{ __('Complete Enrollment') }}
                 </x-primary-button>
             </div>
+
+            <button
+                type="button"
+                id="google-signin-register"
+                class="w-full justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-[0.75rem] font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+            >
+                Continue with Google
+            </button>
+
+            <button
+                type="button"
+                id="facebook-signin-register"
+                class="w-full justify-center rounded-xl border border-slate-300 bg-[#1877F2] px-4 py-2.5 text-[0.75rem] font-semibold text-white transition hover:bg-[#1669d7] dark:border-slate-700"
+            >
+                Continue with Facebook
+            </button>
+
+            <p id="google-signin-register-feedback" class="text-xs text-center text-slate-500"></p>
         </form>
     </div>
 
@@ -114,5 +132,102 @@
                 button.textContent = isHidden ? 'Hide' : 'Show';
             });
         });
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import { getAuth, FacebookAuthProvider, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+        const googleButton = document.getElementById('google-signin-register');
+        const facebookButton = document.getElementById('facebook-signin-register');
+        const feedback = document.getElementById('google-signin-register-feedback');
+
+        const firebaseConfig = @json(config('services.firebase.web'));
+        const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
+        const missingKey = requiredKeys.find((key) => !firebaseConfig?.[key]);
+
+        if (googleButton && facebookButton && feedback) {
+            if (missingKey) {
+                googleButton.disabled = true;
+                facebookButton.disabled = true;
+                googleButton.classList.add('opacity-60', 'cursor-not-allowed');
+                facebookButton.classList.add('opacity-60', 'cursor-not-allowed');
+                feedback.textContent = 'Social sign-in is unavailable. Missing Firebase config.';
+            } else {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const googleProvider = new GoogleAuthProvider();
+            const facebookProvider = new FacebookAuthProvider();
+            facebookProvider.addScope('email');
+
+            const buildRegistrationPayload = () => {
+                const courseId = document.getElementById('course_id')?.value;
+                const track = document.getElementById('track')?.value;
+                const acceptTerms = document.querySelector('input[name="accept_terms"]')?.checked;
+                const acceptRequirements = document.querySelector('input[name="accept_requirements"]')?.checked;
+
+                if (!courseId || !track || !acceptTerms || !acceptRequirements) {
+                    throw new Error('Select course, level, and accept both confirmations before social sign-in.');
+                }
+
+                return {
+                    course_id: Number(courseId),
+                    track: track,
+                    accept_terms: true,
+                    accept_requirements: true,
+                };
+            };
+
+            const submitSocialToken = async (idToken, payload) => {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+                const response = await fetch("{{ route('auth.firebase.google') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                    },
+                    body: JSON.stringify({
+                        id_token: idToken,
+                        ...payload,
+                    }),
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Social sign-in failed.');
+                }
+
+                window.location.assign(result.redirect || "{{ route('dashboard', absolute: false) }}");
+            };
+
+            const bindProvider = (button, provider, loadingLabel) => {
+                button.addEventListener('click', async () => {
+                    feedback.textContent = '';
+                    googleButton.disabled = true;
+                    facebookButton.disabled = true;
+                    button.textContent = loadingLabel;
+
+                    try {
+                        const enrollmentPayload = buildRegistrationPayload();
+                        const result = await signInWithPopup(auth, provider);
+                        const idToken = await result.user.getIdToken();
+                        await submitSocialToken(idToken, enrollmentPayload);
+                    } catch (error) {
+                        feedback.textContent = error?.message || 'Social sign-in failed.';
+                        googleButton.disabled = false;
+                        facebookButton.disabled = false;
+                        googleButton.textContent = 'Continue with Google';
+                        facebookButton.textContent = 'Continue with Facebook';
+                    }
+                });
+            };
+
+            bindProvider(googleButton, googleProvider, 'Signing in...');
+            bindProvider(facebookButton, facebookProvider, 'Signing in...');
+            }
+        }
     </script>
 </x-guest-layout>
