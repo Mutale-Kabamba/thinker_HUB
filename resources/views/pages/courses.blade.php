@@ -65,11 +65,16 @@
                     @forelse ($courses as $course)
                         @php
                             $courseImage = $resolveCourseImage($course);
+                            $isLockedCourse = $course->is_open_enrollment === false;
+                            $studentsCount = (int) ($course->enrollments_count ?? 0);
+                            if ($studentsCount === 0) {
+                                $studentsCount = (int) ($course->selected_participants_count ?? 0);
+                            }
                         @endphp
                         <article class="group bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-xl transition-all border border-slate-100">
                             <div class="relative h-52 overflow-hidden rounded-[1.5rem]">
                                 <img src="{{ asset($courseImage) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="{{ $course->title }} image">
-                                <div class="absolute top-4 left-4 bg-yellow-400 text-[#0a2d27] text-[11px] font-bold px-4 py-1.5 rounded-full shadow-lg">ACTIVE</div>
+                                <div class="absolute top-4 left-4 text-[11px] font-bold px-4 py-1.5 rounded-full shadow-lg {{ $isLockedCourse ? 'bg-slate-900 text-white' : 'bg-yellow-400 text-[#0a2d27]' }}">{{ $isLockedCourse ? 'LOCKED' : 'ACTIVE' }}</div>
                             </div>
                             <div class="px-3 py-6">
                                 <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">{{ $course->code }}</p>
@@ -98,7 +103,7 @@
                                 <h3 class="mt-2 text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug">{{ $course->title }}</h3>
                                 <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ $course->timeline ?: 'Self paced' }}</span>
-                                    <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $course->enrollments_count ?? 0 }} Students</span>
+                                    <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $studentsCount }} Students</span>
                                 </div>
                                 <a
                                     href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"

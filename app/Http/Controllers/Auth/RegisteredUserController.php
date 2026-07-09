@@ -27,7 +27,7 @@ class RegisteredUserController extends Controller
             'courses' => Course::query()
                 ->where('is_active', true)
                 ->orderBy('title')
-                ->get(['id', 'title', 'code']),
+                ->get(['id', 'title', 'code', 'is_open_enrollment']),
         ]);
     }
 
@@ -43,7 +43,11 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'course_id' => [
                 'required',
-                Rule::exists('courses', 'id')->where('is_active', true),
+                Rule::exists('courses', 'id')
+                    ->where('is_active', true)
+                    ->where(fn ($query) => $query
+                        ->where('is_open_enrollment', true)
+                        ->orWhereNull('is_open_enrollment')),
             ],
             'track' => ['required', 'in:Beginner,Intermediate,Advanced'],
             'accept_terms' => ['accepted'],

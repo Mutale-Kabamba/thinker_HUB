@@ -34,8 +34,13 @@
                     <select id="course_id" name="course_id" required class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
                         <option value="">Select course</option>
                         @foreach ($courses as $course)
-                            <option value="{{ $course->id }}" @selected((string) old('course_id') === (string) $course->id)>
-                                {{ $course->code }} - {{ $course->title }}
+                            @php $isLockedCourse = $course->is_open_enrollment === false; @endphp
+                            <option
+                                value="{{ $course->id }}"
+                                @selected((string) old('course_id') === (string) $course->id)
+                                @disabled($isLockedCourse)
+                            >
+                                {{ $course->code }} - {{ $course->title }}{{ $isLockedCourse ? ' (Locked)' : '' }}
                             </option>
                         @endforeach
                     </select>

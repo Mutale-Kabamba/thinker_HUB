@@ -9,9 +9,11 @@ use App\Notifications\StudentSubmissionNotification;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 class Assignments extends Page
 {
@@ -67,9 +69,20 @@ class Assignments extends Page
                 'submitted_at' => Carbon::now(),
             ],
         );
-        User::query()->where('role', 'admin')->get()->each(
-            fn (User $admin) => $admin->notify(new StudentSubmissionNotification($user->name, 'assignment', $assignment->name, $assignment->id))
-        );
+        User::query()->where('role', 'admin')->get()->each(function (User $admin) use ($user, $assignment): void {
+            try {
+                $admin->notify(new StudentSubmissionNotification($user->name, 'assignment', $assignment->name, $assignment->id));
+            } catch (Throwable $exception) {
+                // Mail failures should not block the student submission flow.
+                Log::warning('Failed to notify admin about assignment submission.', [
+                    'admin_id' => $admin->id,
+                    'admin_email' => $admin->email,
+                    'assignment_id' => $assignment->id,
+                    'student_id' => $user->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        });
         Notification::make()->title('Assignment submitted.')->success()->send();
         $this->refreshAssignments();
     }
