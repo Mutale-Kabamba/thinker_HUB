@@ -13,6 +13,52 @@
             </div>
         </section>
 
+        <section class="hub-card" style="padding:0.75rem 1rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                <div>
+                    <p class="hub-eyebrow">Reschedule Requests</p>
+                    <h3 class="hub-title" style="font-size:0.95rem;">Manage Your Request Updates</h3>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;">
+                    <label style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.72rem;color:var(--hub-muted);font-weight:600;">
+                        <input type="checkbox" wire:model.live="showRequestHistory">
+                        Show history
+                    </label>
+                    <span class="hub-chip hub-chip-primary">{{ count($rescheduleRequests) }} {{ $showRequestHistory ? 'recent' : 'pending' }}</span>
+                </div>
+            </div>
+
+            <div style="margin-top:0.65rem;display:grid;gap:0.5rem;">
+                @forelse ($rescheduleRequests as $request)
+                    <article style="border:1px solid var(--hub-border);border-radius:10px;padding:0.55rem 0.65rem;background:var(--hub-surface-soft);">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap;">
+                            <div>
+                                <p style="font-size:0.8rem;font-weight:700;color:var(--hub-ink);margin:0;">Session #{{ $request['session_id'] }}</p>
+                                <p style="font-size:0.74rem;color:var(--hub-muted);margin:0.15rem 0 0;">{{ $request['message'] }}</p>
+                            </div>
+                            <span class="hub-chip {{ match($request['decision_status']) { 'accepted' => 'hub-chip-green', 'declined' => 'hub-chip-gray', default => 'hub-chip-amber' } }}" style="font-size:0.68rem;">
+                                {{ ucfirst($request['decision_status']) }}
+                            </span>
+                        </div>
+                        <p style="margin:0.25rem 0 0;font-size:0.72rem;color:var(--hub-muted);">
+                            Reason: {{ $request['reason'] ?: 'Not provided' }}
+                            @if ($request['preferred_date'])
+                                · Preferred {{ $request['preferred_date'] }}
+                                @if ($request['preferred_time']) at {{ $request['preferred_time'] }} @endif
+                            @endif
+                            @if ($request['created_at'])
+                                · {{ $request['created_at'] }}
+                            @endif
+                        </p>
+                    </article>
+                @empty
+                    <p class="hub-copy" style="color:var(--hub-muted);text-align:center;">
+                        {{ $showRequestHistory ? 'No reschedule requests yet.' : 'No pending reschedule requests.' }}
+                    </p>
+                @endforelse
+            </div>
+        </section>
+
         {{-- Course Progress Tracker --}}
         @if (count($courseProgress) > 0)
             <section class="hub-card" style="padding:0.75rem 1rem;">

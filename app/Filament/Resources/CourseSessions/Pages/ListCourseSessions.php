@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CourseSessions\Pages;
 
 use App\Filament\Actions\ImportSessionsAction;
+use App\Filament\Widgets\AdminRescheduleRequestsWidget;
 use App\Filament\Resources\CourseSessions\CourseSessionResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
@@ -16,6 +17,13 @@ class ListCourseSessions extends ListRecords
         return [
             CreateAction::make(),
             ImportSessionsAction::make(),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            AdminRescheduleRequestsWidget::class,
         ];
     }
 }

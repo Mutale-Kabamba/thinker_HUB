@@ -5,9 +5,12 @@ namespace App\Filament\Instructor\Pages;
 use App\Filament\Actions\ImportSessionsAction;
 use App\Models\CourseSession;
 use App\Models\User;
+use App\Notifications\RescheduleRequestDeclinedNotification;
+use App\Notifications\RescheduleRequestSubmittedNotification;
 use App\Notifications\SessionRescheduledNotification;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Carbon;
 
 class Schedule extends Page
@@ -44,6 +47,34 @@ class Schedule extends Page
 
     public ?string $rescheduleEndTime = null;
 
+    public array $pendingRescheduleRequests = [];
+
+    public ?string $decisionNotificationId = null;
+
+    public ?int $decisionSessionId = null;
+
+    public ?int $decisionStudentId = null;
+
+    public string $decisionStudentName = '';
+
+    public string $decisionReason = '';
+
+    public ?string $decisionPreferredDate = null;
+
+    public ?string $decisionPreferredTime = null;
+
+    public string $decisionStep = 'review';
+
+    public ?string $decisionDate = null;
+
+    public ?string $decisionStartTime = null;
+
+    public ?string $decisionEndTime = null;
+
+    public string $declineReason = '';
+
+    public bool $suppressAutoOpenDecisionWizard = false;
+
     protected function getHeaderActions(): array
     {
         $user = auth()->user();
@@ -60,6 +91,14 @@ class Schedule extends Page
         $this->calendarMonth = $now->format('m');
         $this->calendarYear = $now->format('Y');
         $this->loadSessions();
+
+        $sessionId = (int) request()->integer('reschedule_session');
+        if ($sessionId > 0) {
+            $notification = $this->resolvePendingNotificationBySessionId($sessionId);
+            if ($notification) {
+                $this->openDecisionWizard($notification->id);
+            }
+        }
     }
 
     public function updatedFilterStatus(): void
@@ -148,23 +187,182 @@ class Schedule extends Page
         ]);
 
         $session->refresh();
-        $courseName = $session->course->title ?? 'Course';
-
-        if ($session->isOneOnOne() && $session->student_id) {
-            $student = User::find($session->student_id);
-            $student?->notify(new SessionRescheduledNotification($session, $courseName));
-        } else {
-            $students = User::query()
-                ->whereHas('enrollments', fn ($q) => $q->where('course_id', $session->course_id))
-                ->get();
-            foreach ($students as $student) {
-                $student->notify(new SessionRescheduledNotification($session, $courseName));
-            }
-        }
+        $this->notifyStudentsAboutReschedule($session);
 
         $this->rescheduleSessionId = null;
         Notification::make()->title('Session rescheduled. Students notified.')->success()->send();
         $this->loadSessions();
+    }
+
+    public function openDecisionWizard(string $notificationId): void
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $notification = $user->notifications()
+            ->where('id', $notificationId)
+            ->where('type', 'App\\Notifications\\RescheduleRequestNotification')
+            ->first();
+
+        if (! $notification) {
+            Notification::make()->title('Request no longer available.')->warning()->send();
+
+            return;
+        }
+
+        $data = $notification->data;
+
+        if (! $this->isPendingRescheduleRequestData($data)) {
+            Notification::make()->title('This request has already been handled.')->warning()->send();
+
+            return;
+        }
+
+        $this->decisionNotificationId = $notification->id;
+        $this->decisionSessionId = isset($data['session_id']) ? (int) $data['session_id'] : null;
+        $this->decisionStudentId = isset($data['student_id']) ? (int) $data['student_id'] : null;
+        $this->decisionStudentName = (string) ($data['student_name'] ?? 'Student');
+        $this->decisionReason = (string) ($data['reason'] ?? '');
+        $this->decisionPreferredDate = $data['preferred_date'] ?? null;
+        $this->decisionPreferredTime = $data['preferred_time'] ?? null;
+
+        $this->decisionStep = 'review';
+        $this->decisionDate = $this->decisionPreferredDate;
+        $this->decisionStartTime = $this->decisionPreferredTime;
+        $this->decisionEndTime = null;
+        $this->declineReason = '';
+    }
+
+    public function closeDecisionWizard(): void
+    {
+        $this->suppressAutoOpenDecisionWizard = true;
+        $this->decisionNotificationId = null;
+        $this->decisionSessionId = null;
+        $this->decisionStudentId = null;
+        $this->decisionStudentName = '';
+        $this->decisionReason = '';
+        $this->decisionPreferredDate = null;
+        $this->decisionPreferredTime = null;
+        $this->decisionStep = 'review';
+        $this->decisionDate = null;
+        $this->decisionStartTime = null;
+        $this->decisionEndTime = null;
+        $this->declineReason = '';
+    }
+
+    public function setDecisionStep(string $step): void
+    {
+        if (! in_array($step, ['review', 'accept', 'decline'], true)) {
+            return;
+        }
+
+        $this->decisionStep = $step;
+    }
+
+    public function acceptRescheduleRequest(): void
+    {
+        $user = auth()->user();
+
+        if (! $user || ! $this->decisionNotificationId || ! $this->decisionSessionId) {
+            return;
+        }
+
+        if (! $this->decisionDate || ! $this->decisionStartTime) {
+            Notification::make()->title('Please provide a rescheduled date and start time.')->danger()->send();
+
+            return;
+        }
+
+        $notification = $this->resolveDecisionNotification($user, $this->decisionNotificationId);
+
+        if (! $notification) {
+            Notification::make()->title('Request no longer available.')->warning()->send();
+            $this->closeDecisionWizard();
+            $this->loadPendingRescheduleRequests();
+
+            return;
+        }
+
+        $session = $this->resolveInstructorSession($user, $this->decisionSessionId);
+
+        if (! $session) {
+            Notification::make()->title('Session not found for this request.')->danger()->send();
+
+            return;
+        }
+
+        $session->update([
+            'status' => 'rescheduled',
+            'rescheduled_date' => $this->decisionDate,
+            'rescheduled_start_time' => $this->decisionStartTime,
+            'rescheduled_end_time' => $this->decisionEndTime,
+        ]);
+
+        $session->refresh();
+        $this->notifyStudentsAboutReschedule($session);
+
+        $notification->update([
+            'read_at' => now(),
+            'data' => array_merge($notification->data ?? [], ['decision_status' => 'accepted']),
+        ]);
+
+        $this->updateStudentRequestDecision($this->decisionSessionId, $this->decisionStudentId, 'accepted');
+
+        Notification::make()->title('Reschedule request accepted and students notified.')->success()->send();
+
+        $this->closeDecisionWizard();
+        $this->loadSessions();
+    }
+
+    public function declineRescheduleRequest(): void
+    {
+        $user = auth()->user();
+
+        if (! $user || ! $this->decisionNotificationId || ! $this->decisionSessionId) {
+            return;
+        }
+
+        $notification = $this->resolveDecisionNotification($user, $this->decisionNotificationId);
+
+        if (! $notification) {
+            Notification::make()->title('Request no longer available.')->warning()->send();
+            $this->closeDecisionWizard();
+            $this->loadPendingRescheduleRequests();
+
+            return;
+        }
+
+        $session = $this->resolveInstructorSession($user, $this->decisionSessionId);
+
+        if (! $session) {
+            Notification::make()->title('Session not found for this request.')->danger()->send();
+
+            return;
+        }
+
+        $student = $this->decisionStudentId ? User::find($this->decisionStudentId) : null;
+        if ($student) {
+            $student->notify(new RescheduleRequestDeclinedNotification(
+                session: $session,
+                courseName: $session->course->title ?? 'Course',
+                reason: trim($this->declineReason) !== '' ? trim($this->declineReason) : null,
+            ));
+        }
+
+        $notification->update([
+            'read_at' => now(),
+            'data' => array_merge($notification->data ?? [], ['decision_status' => 'declined']),
+        ]);
+
+        $this->updateStudentRequestDecision($this->decisionSessionId, $this->decisionStudentId, 'declined');
+
+        Notification::make()->title('Reschedule request declined. Student notified.')->success()->send();
+
+        $this->closeDecisionWizard();
+        $this->loadPendingRescheduleRequests();
     }
 
     protected function loadSessions(): void
@@ -211,6 +409,146 @@ class Schedule extends Page
         ])->all();
 
         $this->buildCalendar($allSessions);
+        $this->loadPendingRescheduleRequests();
+    }
+
+    protected function loadPendingRescheduleRequests(): void
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            $this->pendingRescheduleRequests = [];
+
+            return;
+        }
+
+        $this->pendingRescheduleRequests = $user->notifications()
+            ->where('type', 'App\\Notifications\\RescheduleRequestNotification')
+            ->latest()
+            ->take(30)
+            ->get()
+            ->filter(fn (DatabaseNotification $notification): bool => $this->isPendingRescheduleRequestData($notification->data ?? []))
+            ->map(function (DatabaseNotification $notification): array {
+                $data = $notification->data;
+
+                return [
+                    'id' => $notification->id,
+                    'session_id' => isset($data['session_id']) ? (int) $data['session_id'] : null,
+                    'student_name' => (string) ($data['student_name'] ?? 'Student'),
+                    'reason' => (string) ($data['reason'] ?? ''),
+                    'preferred_date' => $data['preferred_date'] ?? null,
+                    'preferred_time' => $data['preferred_time'] ?? null,
+                    'created_at' => $notification->created_at?->diffForHumans(),
+                ];
+            })
+            ->values()
+            ->all();
+
+        if ($this->suppressAutoOpenDecisionWizard) {
+            $this->suppressAutoOpenDecisionWizard = false;
+
+            return;
+        }
+
+        if (! $this->decisionNotificationId && ! empty($this->pendingRescheduleRequests)) {
+            $this->openDecisionWizard($this->pendingRescheduleRequests[0]['id']);
+        }
+    }
+
+    protected function resolveDecisionNotification(User $user, string $notificationId): ?DatabaseNotification
+    {
+        return $user->notifications()
+            ->where('id', $notificationId)
+            ->where('type', 'App\\Notifications\\RescheduleRequestNotification')
+            ->latest()
+            ->first();
+    }
+
+    protected function resolvePendingNotificationBySessionId(int $sessionId): ?DatabaseNotification
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        return $user->notifications()
+            ->where('type', 'App\\Notifications\\RescheduleRequestNotification')
+            ->latest()
+            ->get()
+            ->first(function (DatabaseNotification $notification) use ($sessionId): bool {
+                $data = $notification->data ?? [];
+
+                return (int) ($data['session_id'] ?? 0) === $sessionId
+                    && $this->isPendingRescheduleRequestData($data);
+            });
+    }
+
+    protected function isPendingRescheduleRequestData(array $data): bool
+    {
+        return empty($data['decision_status']);
+    }
+
+    protected function resolveInstructorSession(User $user, int $sessionId): ?CourseSession
+    {
+        return CourseSession::query()
+            ->with('course')
+            ->whereIn('course_id', $user->instructorCourses()->pluck('courses.id'))
+            ->where('id', $sessionId)
+            ->first();
+    }
+
+    protected function notifyStudentsAboutReschedule(CourseSession $session): void
+    {
+        $courseName = $session->course->title ?? 'Course';
+
+        if ($session->isOneOnOne() && $session->student_id) {
+            $student = User::find($session->student_id);
+            $student?->notify(new SessionRescheduledNotification($session, $courseName));
+
+            return;
+        }
+
+        $students = User::query()
+            ->whereHas('enrollments', fn ($q) => $q->where('course_id', $session->course_id))
+            ->get();
+
+        foreach ($students as $student) {
+            $student->notify(new SessionRescheduledNotification($session, $courseName));
+        }
+    }
+
+    protected function updateStudentRequestDecision(?int $sessionId, ?int $studentId, string $decision): void
+    {
+        if (! $sessionId || ! $studentId) {
+            return;
+        }
+
+        $student = User::find($studentId);
+
+        if (! $student) {
+            return;
+        }
+
+        $requestNotification = $student->notifications()
+            ->where('type', RescheduleRequestSubmittedNotification::class)
+            ->latest()
+            ->get()
+            ->first(function (DatabaseNotification $notification) use ($sessionId): bool {
+                $data = $notification->data ?? [];
+
+                return (int) ($data['session_id'] ?? 0) === $sessionId
+                    && in_array((string) ($data['decision_status'] ?? 'pending'), ['pending', ''], true);
+            });
+
+        if (! $requestNotification) {
+            return;
+        }
+
+        $requestNotification->update([
+            'read_at' => now(),
+            'data' => array_merge($requestNotification->data ?? [], ['decision_status' => $decision]),
+        ]);
     }
 
     protected function buildCalendar($allSessions): void

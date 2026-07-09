@@ -21,6 +21,7 @@ class Course extends Model
         'requirements',
         'key_outcome',
         'level_progression',
+        'is_open_enrollment',
         'is_active',
     ];
 
@@ -28,6 +29,7 @@ class Course extends Model
     {
         return [
             'is_active' => 'boolean',
+            'is_open_enrollment' => 'boolean',
         ];
     }
 
@@ -43,6 +45,11 @@ class Course extends Model
     public function enrolledUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'enrollments')->withTimestamps();
+    }
+
+    public function selectedParticipants(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'course_selected_participants')->withTimestamps();
     }
 
     public function enrollments(): HasMany

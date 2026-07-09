@@ -4,9 +4,9 @@ namespace App\Filament\Instructor\Resources\AssignmentResource\Pages;
 
 use App\Filament\Instructor\Resources\AssignmentResource\AssignmentResource;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\Pages\BaseEditRecord;
 
-class EditAssignment extends EditRecord
+class EditAssignment extends BaseEditRecord
 {
     protected static string $resource = AssignmentResource::class;
 

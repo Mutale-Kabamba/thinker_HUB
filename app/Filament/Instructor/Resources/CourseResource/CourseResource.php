@@ -12,6 +12,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -39,8 +40,38 @@ class CourseResource extends Resource
                     ->label('Students')
                     ->counts('enrollments')
                     ->sortable(),
+                TextColumn::make('is_open_enrollment')
+                    ->label('Enrollment')
+                    ->badge()
+                    ->formatStateUsing(fn (?bool $state): string => $state === false ? 'Locked' : 'Open')
+                    ->color(fn (?bool $state): string => $state === false ? 'gray' : 'success'),
                 IconColumn::make('is_active')
                     ->boolean(),
+            ])
+            ->filters([
+                SelectFilter::make('is_open_enrollment')
+                    ->label('Enrollment Mode')
+                    ->options([
+                        '1' => 'Open',
+                        '0' => 'Locked',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        $value = $data['value'] ?? null;
+
+                        if ($value === null || $value === '') {
+                            return $query;
+                        }
+
+                        if ($value === '0') {
+                            return $query->where('is_open_enrollment', false);
+                        }
+
+                        return $query->where(function (Builder $innerQuery): void {
+                            $innerQuery
+                                ->where('is_open_enrollment', true)
+                                ->orWhereNull('is_open_enrollment');
+                        });
+                    }),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('id', static::instructorCourseIds()));
     }

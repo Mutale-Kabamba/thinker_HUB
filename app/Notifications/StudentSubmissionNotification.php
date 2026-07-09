@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Str;
 
 class StudentSubmissionNotification extends Notification
 {
@@ -20,7 +21,9 @@ class StudentSubmissionNotification extends Notification
     {
         $channels = ['database'];
 
-        if (filled($notifiable->email ?? null)) {
+        $email = strtolower((string) ($notifiable->email ?? ''));
+
+        if ($email !== '' && ! Str::endsWith($email, '@example.com')) {
             $channels[] = 'mail';
         }
 
@@ -41,13 +44,19 @@ class StudentSubmissionNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
+        $url = match ($notifiable->role ?? null) {
+            'admin' => '/manage',
+            'instructor' => '/teach/instructor-overview',
+            default => '/learn/overview',
+        };
+
         return [
             'type' => 'student_submission',
             'title' => 'Student submission received',
             'message' => $this->studentName.' submitted '.$this->submissionType.': '.$this->itemTitle,
             'submission_type' => $this->submissionType,
             'item_id' => $this->itemId,
-            'url' => '/teach/instructor-overview',
+            'url' => $url,
         ];
     }
 }

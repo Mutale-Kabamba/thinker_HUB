@@ -333,6 +333,7 @@
 
             $progressionCards = [];
             $progressionSourceText = trim(implode("\n", array_map(static fn (array $item): string => trim(($item['level'] !== '' ? $item['level'].': ' : '').($item['details'] ?? '')), $progressionItems)));
+            $isLockedCourse = $course->is_open_enrollment === false;
 
             foreach (['Beginner', 'Intermediate', 'Advanced'] as $index => $levelName) {
                 $matched = null;
@@ -394,7 +395,12 @@
                         <li class="text-white">{{ $course->title }}</li>
                     </ol>
                 </nav>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">{{ $course->code }}</p>
+                <div class="flex items-center gap-3">
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">{{ $course->code }}</p>
+                    @if ($isLockedCourse)
+                        <span class="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">Locked To Selected Participants</span>
+                    @endif
+                </div>
                 <h1 class="mt-4 max-w-4xl text-4xl font-black text-white sm:text-5xl">{{ $course->title }}</h1>
                 <p class="mt-5 max-w-3xl text-slate-300">{{ $course->overview ?: $course->description }}</p>
                 @php
@@ -483,7 +489,11 @@
                             <dd class="mt-1 font-bold text-slate-900">{{ $course->timeline ?: 'Self paced' }}</dd>
                         </div>
                     </dl>
-                    <a href="{{ route('enroll') }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] hover:bg-yellow-300">Enroll in This Track</a>
+                    @if ($isLockedCourse)
+                        <button type="button" disabled class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-slate-200 px-5 py-3 text-sm font-bold text-slate-500 cursor-not-allowed">Enrollment Locked</button>
+                    @else
+                        <a href="{{ route('enroll') }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] hover:bg-yellow-300">Enroll in This Track</a>
+                    @endif
 
                     <div class="mt-6 border-t border-slate-200 pt-4">
                         <h3 class="text-sm font-bold text-slate-900">Rating</h3>

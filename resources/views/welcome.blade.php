@@ -180,6 +180,10 @@
                                 @php
                                     $avgRating = round((float) ($course->ratings_avg_rating ?? 0), 1);
                                     $ratingCount = (int) ($course->ratings_count ?? 0);
+                                    $studentsCount = (int) ($course->enrollments_count ?? 0);
+                                    if ($studentsCount === 0) {
+                                        $studentsCount = (int) ($course->selected_participants_count ?? 0);
+                                    }
                                 @endphp
                                 <div class="flex items-center gap-1 text-[10px] mb-3">
                                     @for ($star = 1; $star <= 5; $star++)
@@ -202,7 +206,7 @@
                                 <h3 class="text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug">{{ $course->title }}</h3>
                                 <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ $course->timeline ?: 'Self paced' }}</span>
-                                    <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $course->enrollments_count ?? 0 }} Students</span>
+                                    <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $studentsCount }} Students</span>
                                 </div>
                                 <a
                                     href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"

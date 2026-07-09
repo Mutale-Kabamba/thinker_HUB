@@ -9,6 +9,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 
@@ -22,6 +23,11 @@ class CoursesTable
                     ->searchable(),
                 TextColumn::make('code')
                     ->searchable(),
+                TextColumn::make('is_open_enrollment')
+                    ->label('Enrollment')
+                    ->badge()
+                    ->formatStateUsing(fn (?bool $state): string => $state === false ? 'Locked' : 'Open')
+                    ->color(fn (?bool $state): string => $state === false ? 'gray' : 'success'),
                 IconColumn::make('is_active')
                     ->boolean(),
                 TextColumn::make('created_at')
@@ -34,7 +40,29 @@ class CoursesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('is_open_enrollment')
+                    ->label('Enrollment Mode')
+                    ->options([
+                        '1' => 'Open',
+                        '0' => 'Locked',
+                    ])
+                    ->query(function ($query, array $data) {
+                        $value = $data['value'] ?? null;
+
+                        if ($value === null || $value === '') {
+                            return $query;
+                        }
+
+                        if ($value === '0') {
+                            return $query->where('is_open_enrollment', false);
+                        }
+
+                        return $query->where(function ($innerQuery): void {
+                            $innerQuery
+                                ->where('is_open_enrollment', true)
+                                ->orWhereNull('is_open_enrollment');
+                        });
+                    }),
             ])
             ->recordActions([
                 Action::make('viewDetails')

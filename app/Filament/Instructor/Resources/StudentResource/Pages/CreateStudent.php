@@ -3,10 +3,10 @@
 namespace App\Filament\Instructor\Resources\StudentResource\Pages;
 
 use App\Filament\Instructor\Resources\StudentResource\StudentResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\BaseCreateRecord;
 use Illuminate\Support\Facades\Log;
 
-class CreateStudent extends CreateRecord
+class CreateStudent extends BaseCreateRecord
 {
     protected static string $resource = StudentResource::class;
 

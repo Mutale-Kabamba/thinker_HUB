@@ -4,9 +4,9 @@ namespace App\Filament\Resources\Instructors\Pages;
 
 use App\Filament\Resources\Instructors\InstructorResource;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\Pages\BaseEditRecord;
 
-class EditInstructor extends EditRecord
+class EditInstructor extends BaseEditRecord
 {
     protected static string $resource = InstructorResource::class;
 

@@ -5,9 +5,9 @@ namespace App\Filament\Resources\InstructorApplications\Pages;
 use App\Filament\Resources\InstructorApplications\InstructorApplicationResource;
 use App\Models\InstructorApplication;
 use Filament\Notifications\Notification;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\Pages\BaseEditRecord;
 
-class EditInstructorApplication extends EditRecord
+class EditInstructorApplication extends BaseEditRecord
 {
     protected static string $resource = InstructorApplicationResource::class;
 

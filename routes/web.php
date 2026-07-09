@@ -32,6 +32,10 @@ $loadPublicCourses = static function (int $limit = 0) {
             ->withCount('ratings')
             ->latest();
 
+        if (Schema::hasTable('course_selected_participants')) {
+            $query->withCount('selectedParticipants');
+        }
+
         if ($limit > 0) {
             $query->limit($limit);
         }
@@ -43,6 +47,16 @@ $loadPublicCourses = static function (int $limit = 0) {
 
         return collect();
     }
+};
+
+$publicCourseStudentCount = static function (Course $course): int {
+    $enrolled = (int) ($course->enrollments_count ?? 0);
+
+    if ($enrolled > 0) {
+        return $enrolled;
+    }
+
+    return (int) ($course->selected_participants_count ?? 0);
 };
 
 $loadHomeStats = static function () {
@@ -97,15 +111,15 @@ $databaseReady = static function (): bool {
     return true;
 };
 
-Route::get('/', function () use ($loadPublicCourses, $loadHomeStats) {
+Route::get('/', function () use ($loadPublicCourses, $loadHomeStats, $publicCourseStudentCount) {
     $allCourses = $loadPublicCourses();
     $coursesWithStudents = $allCourses
-        ->filter(fn (Course $course): bool => (int) ($course->enrollments_count ?? 0) > 0)
-        ->sortByDesc(fn (Course $course): int => (int) ($course->enrollments_count ?? 0))
+        ->filter(fn (Course $course): bool => $publicCourseStudentCount($course) > 0)
+        ->sortByDesc(fn (Course $course): int => $publicCourseStudentCount($course))
         ->values();
 
     $coursesWithoutStudents = $allCourses
-        ->filter(fn (Course $course): bool => (int) ($course->enrollments_count ?? 0) === 0)
+        ->filter(fn (Course $course): bool => $publicCourseStudentCount($course) === 0)
         ->shuffle()
         ->values();
 
@@ -301,6 +315,7 @@ Route::middleware('auth')->group(function () {
         Route::redirect('/overview', '/manage')->name('overview');
         Route::redirect('/students', '/manage/users')->name('students');
         Route::redirect('/courses', '/manage/courses')->name('courses');
+        Route::redirect('/course-sessions', '/manage/course-sessions')->name('course-sessions');
         Route::redirect('/assignments', '/manage/assignments')->name('assignments');
         Route::redirect('/assessments', '/manage/assessments')->name('assessments');
         Route::redirect('/materials', '/manage/learning-materials')->name('materials');
