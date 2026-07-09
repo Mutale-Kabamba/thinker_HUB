@@ -71,13 +71,24 @@ class FirebaseGoogleAuthController extends Controller
         $created = false;
 
         if (! $user) {
+            $courseId = $data['course_id'] ?? null;
+            $track = $data['track'] ?? null;
+            $acceptedTerms = (bool) ($data['accept_terms'] ?? false);
+            $acceptedRequirements = (bool) ($data['accept_requirements'] ?? false);
+
+            if (! $courseId || ! $track || ! $acceptedTerms || ! $acceptedRequirements) {
+                return response()->json([
+                    'message' => 'Complete enrollment fields (Course, Level, and agreements) before continuing with Google.',
+                ], 422);
+            }
+
             $user = User::create([
                 'name' => $name !== '' ? $name : Str::before($email, '@'),
                 'email' => $email,
                 'firebase_uid' => $uid,
                 'password' => Str::random(64),
                 'role' => 'student',
-                'track' => $data['track'] ?? 'Beginner',
+                'track' => $track,
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]);
@@ -120,6 +131,11 @@ class FirebaseGoogleAuthController extends Controller
                     'course_id' => $course->id,
                 ]);
             }
+        }
+
+        // Social-authenticated accounts should bypass email verification prompts.
+        if (method_exists($user, 'hasVerifiedEmail') && ! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
         }
 
         Auth::login($user, true);
