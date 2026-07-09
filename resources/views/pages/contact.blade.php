@@ -125,16 +125,14 @@
                 <div class="flex flex-col items-center gap-4 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
                     <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
                     <div class="flex flex-wrap items-center gap-4">
-                        <button type="button" @click="$dispatch('open-legal', 'privacy')" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</button>
-                        <button type="button" @click="$dispatch('open-legal', 'cookies')" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</button>
-                        <button type="button" @click="$dispatch('open-legal', 'terms')" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</button>
+                        <a href="{{ route('landing.privacy') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</a>
+                        <a href="{{ route('landing.cookies') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</a>
+                        <a href="{{ route('landing.terms') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</a>
                     </div>
                 </div>
             </div>
         </div>
     </footer>
-
-    @include('partials.legal-modals')
 
 </body>
 </html>

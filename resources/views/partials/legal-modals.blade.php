@@ -30,7 +30,7 @@
             <div class="flex-1 text-sm text-slate-600 leading-relaxed">
                 <p class="font-semibold text-slate-900 mb-1">We value your privacy</p>
                 <p>We use essential cookies to keep this platform running and optional analytics cookies to improve your experience. By clicking "Accept All", you consent to our use of cookies as described in our
-                    <button type="button" @click="legalModal = 'cookies'" class="text-teal-700 underline underline-offset-2 hover:text-teal-900">Cookie Policy</button>.
+                    <a href="{{ route('landing.cookies') }}" class="text-teal-700 underline underline-offset-2 hover:text-teal-900">Cookie Policy</a>.
                 </p>
             </div>
             <div class="mt-4 flex gap-3 sm:mt-0 sm:shrink-0">

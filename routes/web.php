@@ -225,6 +225,9 @@ Route::get('/instructors/apply', [InstructorApplicationController::class, 'creat
 Route::post('/instructors/apply', [InstructorApplicationController::class, 'store'])->name('landing.instructors.apply.store');
 
 Route::view('/contact', 'pages.contact')->name('landing.contact');
+Route::view('/privacy', 'pages.privacy')->name('landing.privacy');
+Route::view('/cookies', 'pages.cookies')->name('landing.cookies');
+Route::view('/terms', 'pages.terms')->name('landing.terms');
 
 Route::get('/sitemap.xml', function () use ($databaseReady, $courseSlug) {
     $pages = [
@@ -232,6 +235,9 @@ Route::get('/sitemap.xml', function () use ($databaseReady, $courseSlug) {
         ['loc' => route('landing.courses'), 'lastmod' => now()->toDateString(), 'changefreq' => 'weekly', 'priority' => '0.9'],
         ['loc' => route('landing.instructors'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.7'],
         ['loc' => route('landing.contact'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.6'],
+        ['loc' => route('landing.privacy'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.4'],
+        ['loc' => route('landing.cookies'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.4'],
+        ['loc' => route('landing.terms'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.4'],
     ];
 
     try {
