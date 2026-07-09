@@ -5,6 +5,7 @@ use App\Http\Controllers\InstructorApplicationController;
 use App\Models\Course;
 use App\Models\CourseRating;
 use App\Models\User;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -229,38 +230,19 @@ Route::view('/privacy', 'pages.privacy')->name('landing.privacy');
 Route::view('/cookies', 'pages.cookies')->name('landing.cookies');
 Route::view('/terms', 'pages.terms')->name('landing.terms');
 
-Route::get('/sitemap.xml', function () use ($databaseReady, $courseSlug) {
-    $pages = [
-        ['loc' => route('home'), 'lastmod' => now()->toDateString(), 'changefreq' => 'weekly', 'priority' => '1.0'],
-        ['loc' => route('landing.courses'), 'lastmod' => now()->toDateString(), 'changefreq' => 'weekly', 'priority' => '0.9'],
-        ['loc' => route('landing.instructors'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.7'],
-        ['loc' => route('landing.contact'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.6'],
-        ['loc' => route('landing.privacy'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.4'],
-        ['loc' => route('landing.cookies'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.4'],
-        ['loc' => route('landing.terms'), 'lastmod' => now()->toDateString(), 'changefreq' => 'monthly', 'priority' => '0.4'],
-    ];
+Route::get('/sitemap.xml', function () {
+    $sitemapPath = public_path('sitemap.xml');
 
-    try {
-        if ($databaseReady() && Schema::hasTable('courses')) {
-            $courses = Course::query()->where('is_active', true)->latest('updated_at')->get(['id', 'title', 'code', 'updated_at']);
-
-            foreach ($courses as $course) {
-                $pages[] = [
-                    'loc' => route('landing.courses.show', ['course' => $course->id, 'slug' => $courseSlug($course)]),
-                    'lastmod' => optional($course->updated_at)->toDateString() ?: now()->toDateString(),
-                    'changefreq' => 'weekly',
-                    'priority' => '0.8',
-                ];
-            }
-        }
-    } catch (\Throwable $e) {
-        report($e);
+    if (! is_file($sitemapPath)) {
+        Artisan::call('seo:generate');
     }
 
-    return response()
-        ->view('sitemap', ['pages' => $pages])
-        ->header('Content-Type', 'application/xml; charset=UTF-8')
-        ->header('Cache-Control', 'public, max-age=3600');
+    abort_unless(is_file($sitemapPath), 404);
+
+    return response()->file($sitemapPath, [
+        'Content-Type' => 'application/xml; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
 })->withoutMiddleware([
     \Illuminate\Cookie\Middleware\EncryptCookies::class,
     \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,

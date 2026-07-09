@@ -258,6 +258,17 @@
                 ].includes(code);
             };
 
+            const processGoogleUser = async (user) => {
+                const idToken = await user.getIdToken();
+                const result = await submitSocialToken(idToken);
+
+                if (result?.requiresEnrollment) {
+                    pendingGoogleIdToken = idToken;
+                    showEnrollmentModal();
+                    setIdleButtons();
+                }
+            };
+
             enrollmentCancelButton.addEventListener('click', () => {
                 hideEnrollmentModal();
                 setIdleButtons();
@@ -294,17 +305,15 @@
 
             (async () => {
                 try {
+                    if (auth.currentUser) {
+                        await processGoogleUser(auth.currentUser);
+                        return;
+                    }
+
                     const redirectResult = await getRedirectResult(auth);
 
                     if (redirectResult?.user) {
-                        const idToken = await redirectResult.user.getIdToken();
-                        const result = await submitSocialToken(idToken);
-
-                        if (result?.requiresEnrollment) {
-                            pendingGoogleIdToken = idToken;
-                            showEnrollmentModal();
-                            setIdleButtons();
-                        }
+                        await processGoogleUser(redirectResult.user);
                     }
                 } catch (error) {
                     feedback.textContent = explainSocialError(error);
@@ -320,15 +329,8 @@
 
                     try {
                         const result = await signInWithPopup(auth, provider);
-                        const idToken = await result.user.getIdToken();
-                        const submitResult = await submitSocialToken(idToken);
-
-                        if (submitResult?.requiresEnrollment) {
-                            pendingGoogleIdToken = idToken;
-                            showEnrollmentModal();
-                            setIdleButtons();
-                            return;
-                        }
+                        await processGoogleUser(result.user);
+                        return;
                     } catch (error) {
                         if (shouldFallbackToRedirect(error)) {
                             try {

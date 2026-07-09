@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+    <url>
+    <loc>http://localhost/courses/2/digital-product-development-and-office-productivity-play-it-forward</loc>
+    <lastmod>2026-07-09T13:41:46+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+    <image:loc>http://localhost/images/logos/green.png</image:loc>
+    <image:caption>Digital Product Development and Office Productivity | Play it Forward</image:caption>
+    <image:title>Digital Product Development and Office Productivity | Play it Forward</image:title>
+</image:image>
+        </url>
+    <url>
+    <loc>http://localhost/courses/1/introduction-to-web-development</loc>
+    <lastmod>2026-04-13T06:52:01+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+    <image:loc>http://localhost/images/logos/green.png</image:loc>
+    <image:caption>Introduction to Web Development</image:caption>
+    <image:title>Introduction to Web Development</image:title>
+</image:image>
+        </url>
+</urlset>
