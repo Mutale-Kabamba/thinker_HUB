@@ -8,6 +8,15 @@ use App\Notifications\MaterialPublishedNotification;
 
 class LearningMaterialObserver
 {
+    private function notifyUser(User $user, LearningMaterial $material): void
+    {
+        try {
+            $user->notify(new MaterialPublishedNotification($material));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
     public function created(LearningMaterial $material): void
     {
         $users = User::query()->where('role', 'student');
@@ -15,7 +24,7 @@ class LearningMaterialObserver
         if ($material->scope === 'personal' && $material->target_user_id) {
             $target = User::query()->find($material->target_user_id);
             if ($target) {
-                $target->notify(new MaterialPublishedNotification($material));
+                $this->notifyUser($target, $material);
             }
 
             return;
@@ -29,6 +38,6 @@ class LearningMaterialObserver
             $users->whereHas('courses', fn ($query) => $query->where('courses.id', $material->course_id));
         }
 
-        $users->get()->each(fn (User $user) => $user->notify(new MaterialPublishedNotification($material)));
+        $users->get()->each(fn (User $user) => $this->notifyUser($user, $material));
     }
 }
