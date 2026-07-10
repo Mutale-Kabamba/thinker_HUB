@@ -8,13 +8,22 @@ use App\Notifications\AssignmentAssignedNotification;
 
 class AssignmentObserver
 {
+    private function notifyUser(User $user, Assignment $assignment): void
+    {
+        try {
+            $user->notify(new AssignmentAssignedNotification($assignment));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
     public function created(Assignment $assignment): void
     {
         if ($assignment->target_user_id) {
             $target = User::query()->find($assignment->target_user_id);
 
             if ($target) {
-                $target->notify(new AssignmentAssignedNotification($assignment));
+                $this->notifyUser($target, $assignment);
             }
 
             return;
@@ -34,6 +43,6 @@ class AssignmentObserver
             $users->where('track', $targetLevel);
         }
 
-        $users->get()->each(fn (User $user) => $user->notify(new AssignmentAssignedNotification($assignment)));
+        $users->get()->each(fn (User $user) => $this->notifyUser($user, $assignment));
     }
 }

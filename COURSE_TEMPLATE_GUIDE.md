@@ -117,3 +117,6 @@ Required sections:
 - Active Status (ON/OFF)
 
 We will copy your template directly into the platform, so please keep formatting clean and complete.
+
+
+
