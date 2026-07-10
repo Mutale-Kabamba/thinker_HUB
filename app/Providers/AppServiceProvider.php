@@ -21,6 +21,7 @@ use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -61,9 +62,14 @@ class AppServiceProvider extends ServiceProvider
     {
         $listUnsubscribe = (string) config('mail.deliverability.list_unsubscribe', '');
         $listUnsubscribePost = (string) config('mail.deliverability.list_unsubscribe_post', '');
+        $messageIdDomain = trim((string) config('mail.deliverability.message_id_domain', ''));
 
-        $this->app['events']->listen(MessageSending::class, function (MessageSending $event) use ($listUnsubscribe, $listUnsubscribePost): void {
+        $this->app['events']->listen(MessageSending::class, function (MessageSending $event) use ($listUnsubscribe, $listUnsubscribePost, $messageIdDomain): void {
             $headers = $event->message->getHeaders();
+
+            if ($messageIdDomain !== '' && ! $headers->has('Message-ID') && method_exists($headers, 'addIdHeader')) {
+                $headers->addIdHeader('Message-ID', Str::uuid().'@'.$messageIdDomain);
+            }
 
             if (! $headers->has('Auto-Submitted')) {
                 $headers->addTextHeader('Auto-Submitted', 'auto-generated');
