@@ -1,7 +1,7 @@
 <x-mail::message>
 # 📚 New Learning Material
 
-Hello **{{ $notifiable->name }}**,
+Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
 
 New learning material has been published for you to explore.
 
@@ -26,5 +26,5 @@ View Material
 Happy learning!
 
 Best regards,<br>
-**Thinker HUB**
+{{ $signerName ?? config('app.name') }}
 </x-mail::message>

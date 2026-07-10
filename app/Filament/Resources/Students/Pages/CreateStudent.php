@@ -13,6 +13,7 @@ class CreateStudent extends BaseCreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['role'] = 'student';
+        $data['email_verified_at'] = now();
 
         return $data;
     }
@@ -22,20 +23,12 @@ class CreateStudent extends BaseCreateRecord
         $user = $this->record;
 
         if (! $user->hasVerifiedEmail()) {
-            try {
-                $user->sendEmailVerificationNotification();
+            $user->forceFill(['email_verified_at' => now()])->saveQuietly();
 
-                Log::info('Verification email sent to admin-created student.', [
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                ]);
-            } catch (\Throwable $e) {
-                Log::error('Failed to send verification email to student.', [
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                    'error' => $e->getMessage(),
-                ]);
-            }
+            Log::info('Admin-created student auto-verified.', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
         }
     }
 }

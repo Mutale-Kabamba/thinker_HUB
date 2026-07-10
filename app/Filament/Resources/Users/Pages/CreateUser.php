@@ -12,6 +12,10 @@ class CreateUser extends BaseCreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        if (($data['role'] ?? '') === 'student') {
+            $data['email_verified_at'] = now();
+        }
+
         if (($data['role'] ?? '') === 'instructor') {
             $data['track'] = null;
         }
@@ -22,6 +26,16 @@ class CreateUser extends BaseCreateRecord
     protected function afterCreate(): void
     {
         $user = $this->record;
+
+        if ($user->role === 'student' && ! $user->hasVerifiedEmail()) {
+            $user->forceFill(['email_verified_at' => now()])->saveQuietly();
+
+            Log::info('Admin-created student auto-verified from users page.', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'role' => $user->role,
+            ]);
+        }
 
         if (! $user->hasVerifiedEmail()) {
             try {

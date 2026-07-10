@@ -20,6 +20,7 @@ use App\Policies\LearningMaterialPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -52,7 +53,34 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(LearningMaterial::class, LearningMaterialPolicy::class);
         Gate::policy(Assessment::class, AssessmentPolicy::class);
 
+        $this->configureMailDeliverabilityHeaders();
         $this->configureMailSslPeerName();
+    }
+
+    private function configureMailDeliverabilityHeaders(): void
+    {
+        $listUnsubscribe = (string) config('mail.deliverability.list_unsubscribe', '');
+        $listUnsubscribePost = (string) config('mail.deliverability.list_unsubscribe_post', '');
+
+        $this->app['events']->listen(MessageSending::class, function (MessageSending $event) use ($listUnsubscribe, $listUnsubscribePost): void {
+            $headers = $event->message->getHeaders();
+
+            if (! $headers->has('Auto-Submitted')) {
+                $headers->addTextHeader('Auto-Submitted', 'auto-generated');
+            }
+
+            if (! $headers->has('X-Auto-Response-Suppress')) {
+                $headers->addTextHeader('X-Auto-Response-Suppress', 'All');
+            }
+
+            if ($listUnsubscribe !== '' && ! $headers->has('List-Unsubscribe')) {
+                $headers->addTextHeader('List-Unsubscribe', $listUnsubscribe);
+            }
+
+            if ($listUnsubscribePost !== '' && ! $headers->has('List-Unsubscribe-Post')) {
+                $headers->addTextHeader('List-Unsubscribe-Post', $listUnsubscribePost);
+            }
+        });
     }
 
     /**

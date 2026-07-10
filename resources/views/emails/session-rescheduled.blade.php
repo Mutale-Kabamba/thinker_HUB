@@ -1,6 +1,8 @@
 @component('mail::message')
 # Session Rescheduled
 
+Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
+
 Your session for **{{ $courseName }}** has been rescheduled.
 
 @component('mail::panel')
@@ -12,6 +14,6 @@ Your session for **{{ $courseName }}** has been rescheduled.
 View Schedule
 @endcomponent
 
-Thanks,<br>
-{{ config('app.name') }}
+Regards,<br>
+{{ $signerName ?? config('app.name') }}
 @endcomponent

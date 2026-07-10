@@ -3,11 +3,13 @@
 namespace App\Notifications;
 
 use App\Models\CourseSession;
+use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class RescheduleRequestDeclinedNotification extends Notification
 {
+    use ResolvesMailPersonalization;
     public function __construct(
         private readonly CourseSession $session,
         private readonly string $courseName,
@@ -34,6 +36,8 @@ class RescheduleRequestDeclinedNotification extends Notification
                 'courseName' => $this->courseName,
                 'reason' => $this->reason,
                 'notifiable' => $notifiable,
+                'recipientName' => $this->resolveRecipientName($notifiable),
+                'signerName' => $this->resolveSignerName(),
             ]);
     }
 

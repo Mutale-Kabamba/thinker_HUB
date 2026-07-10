@@ -2,11 +2,13 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class SubmissionGradedNotification extends Notification
 {
+    use ResolvesMailPersonalization;
 
     public function __construct(
         private readonly string $submissionType,
@@ -30,13 +32,15 @@ class SubmissionGradedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('✅ Submission Reviewed: '.$this->itemTitle)
+            ->subject('Submission Reviewed: '.$this->itemTitle)
             ->markdown('emails.submission-graded', [
                 'submissionType' => $this->submissionType,
                 'itemTitle' => $this->itemTitle,
                 'scoreOrGrade' => $this->scoreOrGrade,
                 'feedback' => $this->feedback,
                 'notifiable' => $notifiable,
+                'recipientName' => $this->resolveRecipientName($notifiable),
+                'signerName' => $this->resolveSignerName(),
             ]);
     }
 
