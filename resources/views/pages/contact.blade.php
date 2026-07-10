@@ -31,11 +31,31 @@
                 <div class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
                     <h2 class="text-2xl font-bold text-slate-900">Send a Message</h2>
                     <p class="mt-2 text-sm text-slate-600">Our team usually responds within one business day.</p>
-                    <form class="mt-6 space-y-4">
-                        <input type="text" placeholder="Full name" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none">
-                        <input type="email" placeholder="Email address" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none">
-                        <textarea placeholder="How can we help?" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none"></textarea>
-                        <button type="button" class="rounded-full bg-yellow-400 px-7 py-3 text-sm font-bold text-[#0a2d27] hover:bg-[#0a2d27] hover:text-white transition-all">Send Message</button>
+                    @if (session('contact_success'))
+                        <div class="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                            {{ session('contact_success') }}
+                        </div>
+                    @endif
+                    @if ($errors->has('contact'))
+                        <div class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            {{ $errors->first('contact') }}
+                        </div>
+                    @endif
+                    <form method="POST" action="{{ route('landing.contact.store') }}" class="mt-6 space-y-4">
+                        @csrf
+                        <input type="text" name="name" value="{{ old('name') }}" placeholder="Full name" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
+                        @error('name')
+                            <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                        <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
+                        @error('email')
+                            <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                        <textarea name="message" placeholder="How can we help?" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>{{ old('message') }}</textarea>
+                        @error('message')
+                            <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                        <button type="submit" class="rounded-full bg-yellow-400 px-7 py-3 text-sm font-bold text-[#0a2d27] hover:bg-[#0a2d27] hover:text-white transition-all">Send Message</button>
                     </form>
                 </div>
 

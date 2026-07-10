@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InstructorApplicationController;
+use App\Http\Controllers\ContactMessageController;
 use App\Models\Course;
 use App\Models\CourseRating;
 use App\Models\User;
@@ -226,6 +227,7 @@ Route::get('/instructors/apply', [InstructorApplicationController::class, 'creat
 Route::post('/instructors/apply', [InstructorApplicationController::class, 'store'])->name('landing.instructors.apply.store');
 
 Route::view('/contact', 'pages.contact')->name('landing.contact');
+Route::post('/contact', [ContactMessageController::class, 'store'])->name('landing.contact.store');
 Route::view('/privacy', 'pages.privacy')->name('landing.privacy');
 Route::view('/cookies', 'pages.cookies')->name('landing.cookies');
 Route::view('/terms', 'pages.terms')->name('landing.terms');
