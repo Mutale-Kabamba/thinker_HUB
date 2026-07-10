@@ -176,17 +176,17 @@
                     body: JSON.stringify({ id_token: idToken, ...payload }),
                 });
 
-                const payload = await response.json();
+                const responsePayload = await response.json();
 
                 if (!response.ok) {
-                    if ((payload.message || '').includes('Complete enrollment fields')) {
+                    if ((responsePayload.message || '').includes('Complete enrollment fields')) {
                         return { requiresEnrollment: true };
                     }
 
-                    throw new Error(payload.message || 'Social sign-in failed.');
+                    throw new Error(responsePayload.message || 'Social sign-in failed.');
                 }
 
-                window.location.assign(payload.redirect || "{{ route('dashboard', absolute: false) }}");
+                window.location.assign(responsePayload.redirect || "{{ route('dashboard', absolute: false) }}");
             };
 
             const showEnrollmentModal = () => {
