@@ -4,6 +4,7 @@ namespace App\Filament\Student\Pages;
 
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\CourseRating;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Str;
@@ -19,6 +20,16 @@ class Courses extends Page
     public array $courses = [];
 
     public int $enrolledCount = 0;
+
+    /**
+     * @var array<int, int>
+     */
+    public array $ratingInputs = [];
+
+    /**
+     * @var array<int, string>
+     */
+    public array $reviewInputs = [];
 
     public function mount(): void
     {
@@ -115,6 +126,103 @@ class Courses extends Page
         $this->refreshCourses();
     }
 
+    public function setRating(int $courseId, int $rating): void
+    {
+        if ($rating < 1 || $rating > 5) {
+            return;
+        }
+
+        $user = auth()->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $isEnrolled = $user->courses()->where('courses.id', $courseId)->exists();
+
+        if (! $isEnrolled) {
+            Notification::make()
+                ->title('You must be enrolled to rate this course.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $this->ratingInputs[$courseId] = $rating;
+    }
+
+    public function saveRating(int $courseId): void
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $isEnrolled = $user->courses()->where('courses.id', $courseId)->exists();
+
+        if (! $isEnrolled) {
+            Notification::make()
+                ->title('You must be enrolled to rate this course.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $course = Course::query()->whereKey($courseId)->first();
+
+        if (! $course) {
+            Notification::make()
+                ->title('Course not found.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $rating = (int) ($this->ratingInputs[$courseId] ?? 0);
+
+        if ($rating < 1 || $rating > 5) {
+            Notification::make()
+                ->title('Choose a star rating from 1 to 5.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $review = trim((string) ($this->reviewInputs[$courseId] ?? ''));
+
+        if (mb_strlen($review) > 1000) {
+            Notification::make()
+                ->title('Review must be 1000 characters or fewer.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        CourseRating::query()->updateOrCreate(
+            [
+                'course_id' => $course->id,
+                'user_id' => $user->id,
+            ],
+            [
+                'rating' => $rating,
+                'review' => $review !== '' ? $review : null,
+            ],
+        );
+
+        Notification::make()
+            ->title('Your review has been saved.')
+            ->success()
+            ->send();
+
+        $this->refreshCourses();
+    }
+
     protected function refreshCourses(): void
     {
         $user = auth()->user();
@@ -127,7 +235,12 @@ class Courses extends Page
         $this->enrolledCount = count($enrolledCourseIds);
 
         $this->courses = Course::query()
-            ->with(['selectedParticipants:id'])
+            ->with([
+                'selectedParticipants:id',
+                'ratings' => fn ($query) => $query
+                    ->with('user:id,name')
+                    ->latest(),
+            ])
             ->orderBy('title')
             ->get()
             ->map(function (Course $course) use ($enrolledCourseIds, $user): array {
@@ -135,6 +248,17 @@ class Courses extends Page
                     ->pluck('id')
                     ->map(fn ($id): int => (int) $id)
                     ->all();
+
+                $ratings = $course->ratings->values();
+                $ratingsCount = $ratings->count();
+                $avgRating = $ratingsCount > 0
+                    ? round((float) $ratings->avg('rating'), 1)
+                    : 0.0;
+
+                $myRating = $ratings->firstWhere('user_id', (int) $user->id);
+
+                $this->ratingInputs[$course->id] = (int) ($myRating?->rating ?? 0);
+                $this->reviewInputs[$course->id] = (string) ($myRating?->review ?? '');
 
                 $isOpenEnrollment = $course->is_open_enrollment !== false;
 
@@ -150,6 +274,18 @@ class Courses extends Page
                     'can_enroll' => $course->is_active && (
                         $isOpenEnrollment || in_array((int) $user->id, $selectedParticipantIds, true)
                     ),
+                    'avg_rating' => $avgRating,
+                    'ratings_count' => $ratingsCount,
+                    'reviews' => $ratings
+                        ->take(5)
+                        ->map(fn (CourseRating $rating): array => [
+                            'id' => $rating->id,
+                            'user_name' => $rating->user?->name ?? 'Student',
+                            'rating' => (int) $rating->rating,
+                            'review' => (string) ($rating->review ?? ''),
+                            'created_at' => $rating->created_at?->diffForHumans() ?? 'Recently',
+                        ])
+                        ->all(),
                 ];
             })
             ->all();

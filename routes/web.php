@@ -95,6 +95,37 @@ $loadHomeStats = static function () {
     }
 };
 
+$loadRecentCourseReviews = static function (int $limit = 6) {
+    try {
+        if (config('database.default') === 'sqlite') {
+            $sqlitePath = (string) config('database.connections.sqlite.database');
+
+            if (! $sqlitePath || ! is_file($sqlitePath)) {
+                return collect();
+            }
+        }
+
+        if (! Schema::hasTable('course_ratings') || ! Schema::hasTable('courses') || ! Schema::hasTable('users')) {
+            return collect();
+        }
+
+        return CourseRating::query()
+            ->whereNotNull('review')
+            ->where('review', '!=', '')
+            ->with([
+                'user:id,name',
+                'course:id,title',
+            ])
+            ->latest()
+            ->limit($limit)
+            ->get();
+    } catch (\Throwable $e) {
+        report($e);
+
+        return collect();
+    }
+};
+
 $courseSlug = static function (Course $course): string {
     $source = trim((string) ($course->title ?: $course->code ?: $course->id));
 
@@ -105,6 +136,10 @@ $databaseReady = static function (): bool {
     if (config('database.default') === 'sqlite') {
         $sqlitePath = (string) config('database.connections.sqlite.database');
 
+        if ($sqlitePath === ':memory:') {
+            return true;
+        }
+
         if (! $sqlitePath || ! is_file($sqlitePath)) {
             return false;
         }
@@ -113,7 +148,7 @@ $databaseReady = static function (): bool {
     return true;
 };
 
-Route::get('/', function () use ($loadPublicCourses, $loadHomeStats, $publicCourseStudentCount) {
+Route::get('/', function () use ($loadPublicCourses, $loadHomeStats, $publicCourseStudentCount, $loadRecentCourseReviews) {
     $allCourses = $loadPublicCourses();
     $coursesWithStudents = $allCourses
         ->filter(fn (Course $course): bool => $publicCourseStudentCount($course) > 0)
@@ -135,10 +170,12 @@ Route::get('/', function () use ($loadPublicCourses, $loadHomeStats, $publicCour
 
     $courses = $courses->take(3);
     $stats = $loadHomeStats();
+    $reviews = $loadRecentCourseReviews();
 
     return view('welcome', [
         'courses' => $courses,
         'stats' => $stats,
+        'reviews' => $reviews,
     ]);
 })->name('home');
 
@@ -199,9 +236,11 @@ Route::post('/courses/{course}/rate', function (Request $request, int $course) u
         'review' => 'nullable|string|max:1000',
     ]);
 
+    $review = isset($validated['review']) ? trim((string) $validated['review']) : '';
+
     CourseRating::updateOrCreate(
         ['course_id' => $courseModel->id, 'user_id' => $user->id],
-        ['rating' => $validated['rating'], 'review' => $validated['review']],
+        ['rating' => $validated['rating'], 'review' => $review !== '' ? $review : null],
     );
 
     return redirect()->back()->with('success', 'Your review has been saved!');

@@ -14,8 +14,6 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -45,8 +43,6 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AdminStatsWidget::class,
                 RecentActivitiesWidget::class,
-                AccountWidget::class,
-                FilamentInfoWidget::class,
             ])
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
