@@ -542,6 +542,23 @@
                     </div>
                 </div>
 
+                @if (session('success'))
+                    <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if ($errors->any())
+                    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <p class="font-semibold">We could not save your review.</p>
+                        <ul class="mt-1 list-disc pl-5">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 {{-- Rating Form (logged-in enrolled students only) --}}
                 @auth
                     @php
@@ -549,7 +566,7 @@
                         $existingRating = $isEnrolled ? \App\Models\CourseRating::where('course_id', $course->id)->where('user_id', auth()->id())->first() : null;
                     @endphp
                     @if ($isEnrolled)
-                        <div class="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" x-data="{ rating: {{ $existingRating?->rating ?? 0 }}, hover: 0, review: '{{ addslashes($existingRating?->review ?? '') }}', submitted: false }">
+                        <div class="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" x-data='{ rating: @js((int) ($existingRating?->rating ?? 0)), hover: 0, review: @js((string) ($existingRating?->review ?? "")), submitted: false }'>
                             <h3 class="text-lg font-bold text-slate-900 mb-4">{{ $existingRating ? 'Update Your Review' : 'Rate This Course' }}</h3>
                             <form method="POST" action="{{ route('course.rate', $course->id) }}" @submit="submitted = true">
                                 @csrf

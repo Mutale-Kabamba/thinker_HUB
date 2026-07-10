@@ -250,6 +250,47 @@
             </div>
         </section>
 
+        <section class="pb-20 lg:pb-24">
+            <div class="mx-auto max-w-6xl px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6 text-center md:text-left">
+                    <div class="max-w-xl">
+                        <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Real Feedback</span>
+                        <h2 class="text-3xl font-black text-slate-900 mt-3 sm:text-4xl">Student Reviews</h2>
+                        <p class="mt-3 text-slate-600">Reviews shared by learners actively using the system.</p>
+                    </div>
+                </div>
+
+                @if (($reviews ?? collect())->isNotEmpty())
+                    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                        @foreach ($reviews as $review)
+                            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="text-sm font-bold text-slate-900">{{ $review->user?->name ?? 'Student' }}</p>
+                                    <div class="flex items-center gap-0.5 text-xs">
+                                        @for ($star = 1; $star <= 5; $star++)
+                                            @if ($star <= (int) $review->rating)
+                                                <i class="fa-solid fa-star text-yellow-500"></i>
+                                            @else
+                                                <i class="fa-regular fa-star text-slate-300"></i>
+                                            @endif
+                                        @endfor
+                                    </div>
+                                </div>
+                                <p class="mt-1 text-xs font-semibold text-teal-700">{{ $review->course?->title ?? 'Course' }}</p>
+                                <p class="mt-3 text-sm leading-relaxed text-slate-600">{{ $review->review }}</p>
+                                <p class="mt-3 text-xs text-slate-400">{{ $review->created_at?->diffForHumans() }}</p>
+                            </article>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/60 p-10 text-center">
+                        <i class="fa-regular fa-star text-slate-300 text-3xl"></i>
+                        <p class="mt-3 text-slate-500 font-medium">No reviews yet. Enrolled students can add reviews from their dashboard.</p>
+                    </div>
+                @endif
+            </div>
+        </section>
+
         <section class="max-w-6xl mx-auto px-6 lg:px-8 pb-24">
             <div class="rounded-[2.5rem] lg:rounded-[4rem] bg-[#0a2d27] p-8 lg:p-16 text-center lg:text-left relative overflow-hidden">
                 <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
