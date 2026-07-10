@@ -2,17 +2,38 @@
     <div x-data="{
         viewerOpen: false,
         viewerUrl: '',
+        viewerRawUrl: '',
+        viewerObjectUrl: '',
         viewerName: '',
         viewerType: '',
         viewerDocUrl: '',
         expanded: null,
         panel: null,
+        async buildObjectUrl(url) {
+            const resp = await fetch(url, { credentials: 'same-origin' });
+            if (!resp.ok) throw new Error('Failed to fetch file for preview');
+            const blob = await resp.blob();
+            return URL.createObjectURL(blob);
+        },
         async openViewer(url, name) {
+            this.viewerRawUrl = url;
             this.viewerUrl = url;
             this.viewerName = name;
             this.viewerDocUrl = '';
+            if (this.viewerObjectUrl) {
+                URL.revokeObjectURL(this.viewerObjectUrl);
+                this.viewerObjectUrl = '';
+            }
             const ext = name.split('.').pop().toLowerCase();
-            if (ext === 'pdf') this.viewerType = 'pdf';
+            if (ext === 'pdf') {
+                this.viewerType = 'pdf';
+                try {
+                    this.viewerObjectUrl = await this.buildObjectUrl(url);
+                    this.viewerUrl = this.viewerObjectUrl;
+                } catch (e) {
+                    this.viewerUrl = this.viewerRawUrl;
+                }
+            }
             else if (['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) this.viewerType = 'image';
             else if (['mp4','webm','ogg'].includes(ext)) this.viewerType = 'video';
             else if (['doc','docx','ppt','pptx','xls','xlsx'].includes(ext)) {
@@ -28,7 +49,16 @@
             else this.viewerType = 'other';
             this.viewerOpen = true;
         },
-        closeViewer() { this.viewerOpen = false; this.viewerUrl = ''; },
+        closeViewer() {
+            this.viewerOpen = false;
+            this.viewerUrl = '';
+            this.viewerRawUrl = '';
+            this.viewerDocUrl = '';
+            if (this.viewerObjectUrl) {
+                URL.revokeObjectURL(this.viewerObjectUrl);
+                this.viewerObjectUrl = '';
+            }
+        },
         toggle(id, p) {
             if (this.expanded === id && this.panel === p) { this.expanded = null; this.panel = null; }
             else { this.expanded = id; this.panel = p; }
