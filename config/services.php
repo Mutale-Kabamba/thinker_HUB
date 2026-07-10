@@ -37,6 +37,8 @@ return [
 
     'firebase' => [
         'credentials' => env('FIREBASE_CREDENTIALS'),
+        'credentials_json' => env('FIREBASE_CREDENTIALS_JSON'),
+        'credentials_json_base64' => env('FIREBASE_CREDENTIALS_JSON_BASE64'),
         'web' => [
             'apiKey' => env('FIREBASE_WEB_API_KEY'),
             'authDomain' => env('FIREBASE_WEB_AUTH_DOMAIN'),

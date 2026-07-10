@@ -10,10 +10,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Kreait\Firebase\Exception\Auth\FailedToVerifyToken;
 use Kreait\Firebase\Factory;
+use Throwable;
 
 class FirebaseGoogleAuthController extends Controller
 {
@@ -32,17 +32,27 @@ class FirebaseGoogleAuthController extends Controller
             'accept_requirements' => ['nullable', 'boolean'],
         ]);
 
-        $credentialsPath = $this->resolveCredentialsPath((string) config('services.firebase.credentials'));
+        $serviceAccount = $this->resolveServiceAccountCredentials(
+            (string) config('services.firebase.credentials'),
+            (string) config('services.firebase.credentials_json'),
+            (string) config('services.firebase.credentials_json_base64'),
+        );
 
-        if ($credentialsPath === null) {
+        if ($serviceAccount === null) {
             return response()->json([
-                'message' => 'Firebase server credentials are not configured correctly. Set FIREBASE_CREDENTIALS to a valid service account JSON path, e.g. storage/app/firebase-service-account.json.',
+                'message' => 'Firebase server credentials are not configured correctly. Set FIREBASE_CREDENTIALS to a valid JSON file path, or provide FIREBASE_CREDENTIALS_JSON / FIREBASE_CREDENTIALS_JSON_BASE64 in your environment.',
             ], 500);
         }
 
-        $firebaseAuth = (new Factory())
-            ->withServiceAccount($credentialsPath)
-            ->createAuth();
+        try {
+            $firebaseAuth = (new Factory())
+                ->withServiceAccount($serviceAccount)
+                ->createAuth();
+        } catch (Throwable) {
+            return response()->json([
+                'message' => 'Firebase server credentials are not configured correctly. Check FIREBASE_CREDENTIALS / FIREBASE_CREDENTIALS_JSON values on this environment.',
+            ], 500);
+        }
 
         try {
             $verifiedToken = $firebaseAuth->verifyIdToken($data['id_token'], true);
@@ -147,8 +157,38 @@ class FirebaseGoogleAuthController extends Controller
         ]);
     }
 
-    private function resolveCredentialsPath(string $configuredPath): ?string
+    /**
+     * @return array<string, mixed>|string|null
+     */
+    private function resolveServiceAccountCredentials(
+        string $configuredPath,
+        string $credentialsJson,
+        string $credentialsJsonBase64,
+    ): array|string|null
     {
+        $inlineJson = $this->parseServiceAccountJson($credentialsJson);
+
+        if ($inlineJson !== null) {
+            return $inlineJson;
+        }
+
+        $decodedJson = base64_decode(trim($credentialsJsonBase64), true);
+
+        if (is_string($decodedJson)) {
+            $decodedCredentials = $this->parseServiceAccountJson($decodedJson);
+
+            if ($decodedCredentials !== null) {
+                return $decodedCredentials;
+            }
+        }
+
+        // Support passing raw JSON in FIREBASE_CREDENTIALS for platforms that do not expose files.
+        $configuredJson = $this->parseServiceAccountJson($configuredPath);
+
+        if ($configuredJson !== null) {
+            return $configuredJson;
+        }
+
         $candidates = [];
 
         $trimmed = trim($configuredPath);
@@ -170,5 +210,25 @@ class FirebaseGoogleAuthController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function parseServiceAccountJson(string $json): ?array
+    {
+        $trimmed = trim($json);
+
+        if ($trimmed === '' || ! str_starts_with($trimmed, '{')) {
+            return null;
+        }
+
+        $decoded = json_decode($trimmed, true);
+
+        if (! is_array($decoded) || ($decoded['type'] ?? null) !== 'service_account') {
+            return null;
+        }
+
+        return $decoded;
     }
 }
