@@ -118,6 +118,7 @@ Artisan::command('seo:generate {--base-url=}', function (): int {
         );
 
     $coursesSitemap = Sitemap::create();
+    $courseUrlsCount = 0;
 
     try {
         $hasSqliteDatabaseFile = true;
@@ -132,7 +133,7 @@ Artisan::command('seo:generate {--base-url=}', function (): int {
                 ->where('is_active', true)
                 ->latest('updated_at')
                 ->get(['id', 'title', 'code', 'updated_at'])
-                ->each(function (Course $course) use ($coursesSitemap): void {
+                ->each(function (Course $course) use ($coursesSitemap, &$courseUrlsCount): void {
                     $slugSource = trim((string) ($course->title ?: $course->code ?: $course->id));
                     $slug = Str::slug($slugSource);
 
@@ -145,6 +146,7 @@ Artisan::command('seo:generate {--base-url=}', function (): int {
                     $courseUrl->addImage($baseUrl.'/images/logos/green.png', $course->title, '', $course->title);
 
                     $coursesSitemap->add($courseUrl);
+                    $courseUrlsCount++;
                 });
         }
     } catch (\Throwable $e) {
@@ -157,18 +159,26 @@ Artisan::command('seo:generate {--base-url=}', function (): int {
     $indexPath = public_path('sitemap.xml');
 
     $staticSitemap->writeToFile($staticPath);
-    $coursesSitemap->writeToFile($coursesPath);
 
-    SitemapIndex::create()
+    $sitemapIndex = SitemapIndex::create()
         ->add(
             SitemapTag::create($baseUrl.'/sitemap-static.xml')
                 ->setLastModificationDate(now())
-        )
-        ->add(
+        );
+
+    if ($courseUrlsCount > 0) {
+        $coursesSitemap->writeToFile($coursesPath);
+
+        $sitemapIndex->add(
             SitemapTag::create($baseUrl.'/sitemap-courses.xml')
                 ->setLastModificationDate(now())
-        )
-        ->writeToFile($indexPath);
+        );
+    } elseif (is_file($coursesPath)) {
+        @unlink($coursesPath);
+        $this->warn('No active course URLs found. Skipped sitemap-courses.xml generation.');
+    }
+
+    $sitemapIndex->writeToFile($indexPath);
 
     $sitemapUrl = $baseUrl.'/sitemap.xml';
 

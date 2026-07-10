@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\QueuedVerifyEmail;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
@@ -147,5 +148,20 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             'instructor' => $this->isInstructor() && $this->is_active,
             default => false,
         };
+    }
+
+    public function sendEmailVerificationNotification(?string $signerName = null): void
+    {
+        $resolvedSigner = $signerName;
+
+        if ($resolvedSigner === null) {
+            $sender = auth()->user();
+
+            if ($sender instanceof self && in_array($sender->role, ['admin', 'instructor'], true)) {
+                $resolvedSigner = $sender->name;
+            }
+        }
+
+        $this->notify(new QueuedVerifyEmail($resolvedSigner));
     }
 }

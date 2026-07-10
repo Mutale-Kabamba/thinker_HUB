@@ -3,11 +3,13 @@
 namespace App\Notifications;
 
 use App\Models\CourseSession;
+use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class RescheduleRequestNotification extends Notification
 {
+    use ResolvesMailPersonalization;
     public function __construct(
         private readonly CourseSession $session,
         private readonly int $studentId,
@@ -30,7 +32,7 @@ class RescheduleRequestNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('📅 Reschedule Request from '.$this->studentName)
+            ->subject('Reschedule Request from '.$this->studentName)
             ->markdown('emails.reschedule-request', [
                 'session' => $this->session,
                 'studentName' => $this->studentName,
@@ -38,6 +40,8 @@ class RescheduleRequestNotification extends Notification
                 'preferredDate' => $this->preferredDate,
                 'preferredTime' => $this->preferredTime,
                 'notifiable' => $notifiable,
+                'recipientName' => $this->resolveRecipientName($notifiable),
+                'signerName' => $this->resolveSignerName(),
             ]);
     }
 

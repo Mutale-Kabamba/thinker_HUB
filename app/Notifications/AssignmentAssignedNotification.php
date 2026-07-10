@@ -3,11 +3,13 @@
 namespace App\Notifications;
 
 use App\Models\Assignment;
+use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class AssignmentAssignedNotification extends Notification
 {
+    use ResolvesMailPersonalization;
 
     public function __construct(private readonly Assignment $assignment)
     {
@@ -27,10 +29,12 @@ class AssignmentAssignedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('📝 New Assignment: '.$this->assignment->name)
+            ->subject('New Assignment: '.$this->assignment->name)
             ->markdown('emails.assignment-assigned', [
                 'assignment' => $this->assignment,
                 'notifiable' => $notifiable,
+                'recipientName' => $this->resolveRecipientName($notifiable),
+                'signerName' => $this->resolveSignerName(),
             ]);
     }
 

@@ -1,7 +1,7 @@
 <x-mail::message>
 # 📬 New Student Submission
 
-Hello **{{ $notifiable->name }}**,
+Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
 
 A student has submitted work that needs your attention.
 
@@ -22,5 +22,5 @@ Review Submission
 </x-mail::button>
 
 Best regards,<br>
-**Thinker HUB**
+{{ $signerName ?? config('app.name') }}
 </x-mail::message>

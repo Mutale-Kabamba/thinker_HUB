@@ -3,11 +3,13 @@
 namespace App\Notifications;
 
 use App\Models\LearningMaterial;
+use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class MaterialPublishedNotification extends Notification
 {
+    use ResolvesMailPersonalization;
 
     public function __construct(private readonly LearningMaterial $material)
     {
@@ -27,10 +29,12 @@ class MaterialPublishedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('📚 New Material: '.$this->material->title)
+            ->subject('New Material: '.$this->material->title)
             ->markdown('emails.material-published', [
                 'material' => $this->material,
                 'notifiable' => $notifiable,
+                'recipientName' => $this->resolveRecipientName($notifiable),
+                'signerName' => $this->resolveSignerName(),
             ]);
     }
 

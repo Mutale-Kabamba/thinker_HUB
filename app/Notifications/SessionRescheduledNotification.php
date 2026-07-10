@@ -3,11 +3,13 @@
 namespace App\Notifications;
 
 use App\Models\CourseSession;
+use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class SessionRescheduledNotification extends Notification
 {
+    use ResolvesMailPersonalization;
     public function __construct(
         private readonly CourseSession $session,
         private readonly string $courseName,
@@ -26,11 +28,13 @@ class SessionRescheduledNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('📅 Session Rescheduled: '.$this->courseName)
+            ->subject('Session Rescheduled: '.$this->courseName)
             ->markdown('emails.session-rescheduled', [
                 'session' => $this->session,
                 'courseName' => $this->courseName,
                 'notifiable' => $notifiable,
+                'recipientName' => $this->resolveRecipientName($notifiable),
+                'signerName' => $this->resolveSignerName(),
             ]);
     }
 

@@ -1,6 +1,8 @@
 @component('mail::message')
 # Reschedule Request
 
+Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
+
 **{{ $studentName }}** has requested to reschedule a session.
 
 @component('mail::panel')
@@ -21,6 +23,6 @@ Please review and take action from your dashboard.
 View Schedule
 @endcomponent
 
-Thanks,<br>
-{{ config('app.name') }}
+Regards,<br>
+{{ $signerName ?? config('app.name') }}
 @endcomponent

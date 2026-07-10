@@ -2,12 +2,14 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
 
 class StudentSubmissionNotification extends Notification
 {
+    use ResolvesMailPersonalization;
 
     public function __construct(
         private readonly string $studentName,
@@ -33,12 +35,14 @@ class StudentSubmissionNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('📬 New Submission from '.$this->studentName)
+            ->subject('New Submission from '.$this->studentName)
             ->markdown('emails.student-submission', [
                 'studentName' => $this->studentName,
                 'submissionType' => $this->submissionType,
                 'itemTitle' => $this->itemTitle,
                 'notifiable' => $notifiable,
+                'recipientName' => $this->resolveRecipientName($notifiable),
+                'signerName' => $this->resolveSignerName(),
             ]);
     }
 

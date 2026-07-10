@@ -1,7 +1,7 @@
 <x-mail::message>
 # 📝 New Assignment
 
-Hello **{{ $notifiable->name }}**,
+Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
 
 A new assignment has been posted and is waiting for you.
 
@@ -26,5 +26,5 @@ View Assignment
 If you have any questions, reach out to your instructor.
 
 Best regards,<br>
-**Thinker HUB**
+{{ $signerName ?? config('app.name') }}
 </x-mail::message>

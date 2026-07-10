@@ -1,7 +1,7 @@
 <x-mail::message>
 # ✅ Your Submission Was Reviewed
 
-Hello **{{ $notifiable->name }}**,
+Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
 
 Great news — your {{ $submissionType }} has been reviewed by your instructor.
 
@@ -25,5 +25,5 @@ View Results
 Keep up the great work!
 
 Best regards,<br>
-**Thinker HUB**
+{{ $signerName ?? config('app.name') }}
 </x-mail::message>
