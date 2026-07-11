@@ -26,6 +26,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use UnitEnum;
 
 class StudentResource extends Resource
 {
@@ -41,7 +42,9 @@ class StudentResource extends Resource
 
     protected static ?string $slug = 'students';
 
-    protected static ?int $navigationSort = 1;
+    protected static string|UnitEnum|null $navigationGroup = 'PEOPLE & ROLES';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

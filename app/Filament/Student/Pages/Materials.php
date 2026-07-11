@@ -12,7 +12,9 @@ class Materials extends Page
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-book-open';
 
-    protected static ?int $navigationSort = 5;
+    protected static string | \UnitEnum | null $navigationGroup = 'LEARNING';
+
+    protected static ?int $navigationSort = 2;
 
     protected string $view = 'filament.student.pages.materials';
 

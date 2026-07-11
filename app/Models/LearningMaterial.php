@@ -36,6 +36,11 @@ class LearningMaterial extends Model
         return $this->belongsTo(Course::class);
     }
 
+    public function comments(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(ResourceComment::class, 'commentable');
+    }
+
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
         if ($user->isAdmin()) {

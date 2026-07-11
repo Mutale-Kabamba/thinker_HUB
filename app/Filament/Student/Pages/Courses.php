@@ -13,7 +13,9 @@ class Courses extends Page
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-academic-cap';
 
-    protected static ?int $navigationSort = 2;
+    protected static string | \UnitEnum | null $navigationGroup = 'LEARNING';
+
+    protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.student.pages.courses';
 

@@ -36,6 +36,12 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->navigationGroups([
+                'ACADEMICS & CONTENT',
+                'GRADING & EVALUATIONS',
+                'PEOPLE & ROLES',
+                'COMMUNITY & SYSTEM',
+            ])
             ->pages([
                 Dashboard::class,
             ])

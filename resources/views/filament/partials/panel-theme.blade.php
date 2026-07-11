@@ -302,6 +302,19 @@
         padding-bottom: 0.42rem;
     }
 
+    /* Student sidebar active state accent: keep brand-consistent teal/blue */
+    .fi-panel-student .fi-sidebar-item-button.fi-active,
+    .fi-panel-student .fi-sidebar-item-button[aria-current="page"] {
+        background: linear-gradient(135deg, color-mix(in oklab, var(--hub-primary) 92%, #0ea5e9 8%), #0ea5e9) !important;
+        color: #ffffff !important;
+        border: 1px solid color-mix(in oklab, var(--hub-primary) 65%, #0ea5e9 35%);
+        box-shadow: 0 10px 24px rgba(14, 116, 144, 0.24);
+    }
+
+    .fi-panel-student .fi-sidebar-item-button.fi-active .fi-icon,
+    .fi-panel-student .fi-sidebar-item-button[aria-current="page"] .fi-icon {
+        color: #ffffff !important;
+    }
     .fi-panel-admin .fi-input,
     .fi-panel-admin .fi-select-input,
     .fi-panel-admin .fi-ta-search-field input {

@@ -6,6 +6,7 @@ use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -22,6 +23,15 @@ class CourseForm
                     ->required(),
                 TextInput::make('code')
                     ->required(),
+                FileUpload::make('image_path')
+                    ->label('Course Image')
+                    ->disk('public')
+                    ->directory('course-images')
+                    ->image()
+                    ->imageEditor()
+                    ->maxSize(2048)
+                    ->helperText('Shown in course group chats as the room avatar.')
+                    ->columnSpanFull(),
                 Textarea::make('description')
                     ->columnSpanFull(),
                 Textarea::make('overview')
