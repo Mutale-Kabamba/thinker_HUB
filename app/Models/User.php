@@ -60,6 +60,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'pending_login_token_expires_at' => 'datetime',
+            'pending_login_token_used_at' => 'datetime',
         ];
     }
 

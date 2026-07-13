@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\NewStudentRegistrationAlertMail;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
+use App\Support\PaymentApprovalMessage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Kreait\Firebase\Exception\Auth\FailedToVerifyToken;
@@ -88,9 +92,27 @@ class FirebaseGoogleAuthController extends Controller
 
             if (! $courseId || ! $track || ! $acceptedTerms || ! $acceptedRequirements) {
                 return response()->json([
-                    'message' => 'Complete enrollment fields (Course, Level, and agreements) before continuing with Google.',
+                    'message' => 'Complete setup fields (Course, Level, and agreements) before continuing with Google.',
                 ], 422);
             }
+
+            $course = Course::query()
+                ->whereKey((int) $courseId)
+                ->where('is_active', true)
+                ->where(function ($query): void {
+                    $query
+                        ->where('is_open_enrollment', true)
+                        ->orWhereNull('is_open_enrollment');
+                })
+                ->first();
+
+            if (! $course) {
+                return response()->json([
+                    'message' => 'The selected course is not available for public enrollment.',
+                ], 422);
+            }
+
+            $requiresPaymentApproval = $course->requiresPaymentApproval();
 
             $user = User::create([
                 'name' => $name !== '' ? $name : Str::before($email, '@'),
@@ -99,9 +121,16 @@ class FirebaseGoogleAuthController extends Controller
                 'password' => Str::random(64),
                 'role' => 'student',
                 'track' => $track,
-                'is_active' => true,
+                'is_active' => ! $requiresPaymentApproval,
                 'email_verified_at' => now(),
             ]);
+
+            Enrollment::firstOrCreate([
+                'user_id' => $user->id,
+                'course_id' => $course->id,
+            ]);
+
+            $this->notifyAdminsAboutNewStudent($user, $course, $requiresPaymentApproval);
 
             $created = true;
         } else {
@@ -124,23 +153,19 @@ class FirebaseGoogleAuthController extends Controller
             }
         }
 
-        if ($user->role === 'student' && $created && isset($data['course_id'])) {
-            $course = Course::query()
-                ->whereKey((int) $data['course_id'])
-                ->where('is_active', true)
-                ->where(function ($query): void {
-                    $query
-                        ->where('is_open_enrollment', true)
-                        ->orWhereNull('is_open_enrollment');
-                })
-                ->first();
+        if ($user->role === 'student' && ! $user->is_active) {
+            if ($created) {
+                $request->session()->flash('status', PaymentApprovalMessage::forUser($user));
 
-            if ($course) {
-                Enrollment::firstOrCreate([
-                    'user_id' => $user->id,
-                    'course_id' => $course->id,
+                return response()->json([
+                    'redirect' => route('login', absolute: false),
+                    'message' => 'Registration received. Account pending approval.',
                 ]);
             }
+
+            return response()->json([
+                'message' => PaymentApprovalMessage::forUser($user),
+            ], 403);
         }
 
         // Social-authenticated accounts should bypass email verification prompts.
@@ -155,6 +180,41 @@ class FirebaseGoogleAuthController extends Controller
             'redirect' => $request->session()->pull('url.intended', route('dashboard', absolute: false)),
             'message' => 'Signed in successfully.',
         ]);
+    }
+
+    private function notifyAdminsAboutNewStudent(User $student, Course $course, bool $requiresPaymentApproval): void
+    {
+        $recipientConfig = (string) config('mail.admin_to', config('mail.contact_to', config('mail.from.address')));
+        $recipients = collect(explode(',', $recipientConfig))
+            ->map(static fn (string $email): string => trim($email))
+            ->filter(static fn (string $email): bool => $email !== '')
+            ->values()
+            ->all();
+
+        if ($recipients === []) {
+            return;
+        }
+
+        $instructorContacts = $course->instructors()
+            ->orderBy('name')
+            ->get(['name', 'email'])
+            ->map(static fn (User $instructor): string => trim($instructor->name.' <'.$instructor->email.'>'))
+            ->all();
+
+        try {
+            Mail::to($recipients)->send(new NewStudentRegistrationAlertMail(
+                student: $student,
+                course: $course,
+                requiresPaymentApproval: $requiresPaymentApproval,
+                instructorContacts: $instructorContacts,
+            ));
+        } catch (\Throwable $exception) {
+            Log::error('Failed to send new student registration alert.', [
+                'student_id' => $student->id,
+                'course_id' => $course->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 
     /**

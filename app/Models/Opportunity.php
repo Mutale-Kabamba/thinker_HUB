@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Opportunity extends Model
 {
@@ -18,6 +19,7 @@ class Opportunity extends Model
         'link_url',
         'promo_code',
         'provider',
+        'extra',
         'is_published',
         'expires_at',
     ];
@@ -27,6 +29,7 @@ class Opportunity extends Model
         return [
             'is_published' => 'boolean',
             'expires_at' => 'date',
+            'extra' => 'array',
         ];
     }
 
@@ -63,5 +66,10 @@ class Opportunity extends Model
     public function comments(): MorphMany
     {
         return $this->morphMany(ResourceComment::class, 'commentable');
+    }
+
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(OpportunityReaction::class);
     }
 }

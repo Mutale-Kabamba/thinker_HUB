@@ -3,7 +3,7 @@
     <div class="hub-shell">
 
         {{-- Tabs --}}
-        <section class="hub-card" style="padding:0.6rem 0.9rem;">
+        <section style="padding:0.15rem 0 0.35rem;">
             <div style="display:flex;justify-content:center;">
                 <div style="display:flex;gap:0.35rem;max-width:330px;width:100%;padding:0.26rem;border-radius:999px;background:rgba(255,255,255,.5);backdrop-filter:blur(8px);border:1px solid var(--hub-border);box-shadow:0 8px 22px rgba(15,23,42,.07);">
                 <button type="button" wire:click="$set('tab','chats')"
@@ -23,7 +23,7 @@
 
         {{-- ===================== FRIENDS TAB ===================== --}}
         @if ($tab === 'friends')
-            <section class="hub-card" style="padding:0.85rem 1rem;">
+            <section style="padding:0.35rem 0.35rem 0.6rem;">
                 <h3 class="hub-title" style="font-size:0.95rem;margin:0 0 0.5rem;">Find people</h3>
                 <input type="text" wire:model.live.debounce.400ms="peopleSearch" placeholder="Search by name…"
                     class="hub-input" style="width:100%;font-size:0.85rem;padding:0.45rem 0.6rem;">
@@ -70,20 +70,42 @@
             @endif
 
             {{-- Friends list --}}
-            <section class="hub-card" style="padding:0.85rem 1rem;">
+            <section style="padding:0.35rem 0.35rem 0.6rem;">
                 <h3 class="hub-title" style="font-size:0.95rem;margin:0 0 0.5rem;">My friends ({{ $this->friends->count() }})</h3>
+                <div style="height:1px;background:var(--hub-border);margin:0 0 0.6rem;"></div>
                 @if ($this->friends->count() === 0)
                     <p class="hub-copy" style="color:var(--hub-muted);font-size:0.82rem;">No friends yet. Search above to connect.</p>
                 @else
-                    <div style="display:flex;flex-direction:column;gap:0.4rem;">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:0.65rem;">
                         @foreach ($this->friends as $friend)
-                            <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;padding:0.4rem 0.55rem;border:1px solid var(--hub-border);border-radius:0.5rem;">
-                                <span style="font-size:0.85rem;color:var(--hub-ink);">{{ $friend->name }}</span>
-                                <div style="display:flex;gap:0.35rem;">
-                                    <button type="button" wire:click="openDirect({{ $friend->id }})"
-                                        style="font-size:0.74rem;padding:0.3rem 0.7rem;background:var(--hub-primary,#0d9488);color:#fff;border:none;border-radius:0.4rem;cursor:pointer;">Message</button>
-                                    <button type="button" wire:click="removeFriend({{ $friend->id }})" wire:confirm="Remove this friend?"
-                                        style="font-size:0.74rem;padding:0.3rem 0.7rem;background:none;border:1px solid var(--hub-border);color:#dc2626;border-radius:0.4rem;cursor:pointer;">Remove</button>
+                            @php
+                                $friendAvatar = $friend->getFilamentAvatarUrl();
+                                $friendInitial = strtoupper(substr($friend->name, 0, 1));
+                                $friendCourseCode = optional($friend->courses()->select('code')->first())->code;
+                                $friendLevel = $friend->proficiency ?: $friend->track;
+                            @endphp
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0.52rem;padding:0.72rem 0.55rem 0.82rem;border:none;border-bottom:1px solid var(--hub-border);border-radius:0;background:transparent;">
+                                <div style="display:flex;align-items:center;justify-content:center;min-width:0;">
+                                    @if ($friendAvatar)
+                                        <img src="{{ $friendAvatar }}" alt="{{ $friend->name }}"
+                                            style="width:2.4rem;height:2.4rem;border-radius:999px;object-fit:cover;border:1px solid var(--hub-border);flex:0 0 auto;">
+                                    @else
+                                        <span style="width:2.4rem;height:2.4rem;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:transparent;color:#ccfbf1;font-size:0.82rem;font-weight:700;flex:0 0 auto;border:1px solid color-mix(in oklab, var(--hub-border) 70%, #0f766e 30%);">{{ $friendInitial }}</span>
+                                    @endif
+                                </div>
+                                <div style="text-align:center;max-width:100%;">
+                                    <p style="margin:0;font-size:0.84rem;font-weight:600;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $friend->name }}</p>
+                                    <p style="margin:0.08rem 0 0;font-size:0.72rem;color:var(--hub-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $friendCourseCode ?: 'No course' }} | {{ $friendLevel ?: 'No level' }}</p>
+                                </div>
+                                <div style="display:flex;gap:0.4rem;justify-content:center;flex:0 0 auto;">
+                                    <button type="button" wire:click="openDirect({{ $friend->id }})" title="Message"
+                                        style="width:2rem;height:2rem;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:#22d3ee;border:1px solid color-mix(in oklab, var(--hub-border) 62%, #22d3ee 38%);border-radius:999px;cursor:pointer;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                    </button>
+                                    <button type="button" wire:click="removeFriend({{ $friend->id }})" wire:confirm="Remove this friend?" title="Remove friend"
+                                        style="width:2rem;height:2rem;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1px solid color-mix(in oklab, var(--hub-border) 70%, #ef4444 30%);color:#ef4444;border-radius:999px;cursor:pointer;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                                    </button>
                                 </div>
                             </div>
                         @endforeach
@@ -222,7 +244,7 @@
                                     <input type="file" wire:model="attachment" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip" style="display:none;">
                                 </label>
                                 <input type="text" wire:model="messageBody" placeholder="Type a message…" autocomplete="off"
-                                    class="hub-input" style="flex:1;font-size:13px;padding:0.45rem 0.5rem;border:none;background:transparent;box-shadow:none;color:var(--hub-ink);">
+                                    style="flex:1;font-size:13px;padding:0.45rem 0.5rem;border:0;outline:0;background:transparent;box-shadow:none;color:var(--hub-ink);-webkit-appearance:none;appearance:none;">
                                 <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachment"
                                     style="padding:0.5rem 1.05rem;background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;border:none;border-radius:999px;cursor:pointer;font-size:0.82rem;font-weight:700;box-shadow:0 8px 20px rgba(14,116,144,.28);">Send</button>
                             </div>

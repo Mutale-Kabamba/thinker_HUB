@@ -7,9 +7,9 @@
                 </svg>
             </a>
             <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Shared Access</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Unified Access</p>
             <h1 class="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">Sign In</h1>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Admin and student accounts use this same login panel.</p>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Admins, instructors, and students use this same login panel.</p>
             </div>
         </div>
 
@@ -20,14 +20,14 @@
 
             <div>
                 <x-input-label for="email" class="text-slate-700 dark:text-slate-300" :value="__('Email')" />
-                <x-text-input id="email" class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+                <x-text-input id="email" class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" type="email" name="email" :value="old('email', $prefilledEmail ?? '')" required autofocus autocomplete="username" />
                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
             </div>
 
             <div>
                 <x-input-label for="password" class="text-slate-700 dark:text-slate-300" :value="__('Password')" />
                 <div class="relative mt-1">
-                    <x-text-input id="password" class="block w-full rounded-xl border-slate-300 pr-24 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" type="password" name="password" required autocomplete="current-password" />
+                    <x-text-input id="password" class="block w-full rounded-xl border-slate-300 pr-24 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" type="password" name="password" :value="$prefilledPassword ?? ''" required autocomplete="current-password" />
                     <button type="button" data-toggle-password="password" class="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">Show</button>
                 </div>
                 <x-input-error :messages="$errors->get('password')" class="mt-2" />
@@ -74,9 +74,9 @@
         <div class="absolute inset-0 bg-slate-900/50"></div>
         <div class="relative mx-auto mt-10 w-[92%] max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:mt-16 dark:border-slate-700 dark:bg-slate-900">
             <div class="mb-4">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Complete Enrollment</p>
-                <h3 id="google-enrollment-modal-login-title" class="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100">Finish Google Sign-In</h3>
-                <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Select your course, level, and accept the required agreements to continue.</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Course Setup</p>
+                <h3 id="google-enrollment-modal-login-title" class="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100">Finish Google Access Setup</h3>
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Select your course and level so we can route you to the correct workspace.</p>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
@@ -86,7 +86,7 @@
                         <option value="">Select course</option>
                         @foreach (($courses ?? collect()) as $course)
                             @php $isLockedCourse = $course->is_open_enrollment === false; @endphp
-                            <option value="{{ $course->id }}" @disabled($isLockedCourse)>
+                            <option value="{{ $course->id }}" data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}" data-payment-message="{{ $course->payment_contact_message }}" @disabled($isLockedCourse)>
                                 {{ $course->code }} - {{ $course->title }}{{ $isLockedCourse ? ' (Locked)' : '' }}
                             </option>
                         @endforeach
@@ -104,21 +104,26 @@
                 </div>
             </div>
 
+            <div id="google-login-payment-notice" class="mt-4 hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                <p class="font-semibold">Notice: Online Payment Coming Soon.</p>
+                <p id="google-login-payment-notice-message" class="mt-1">For this paid course, the registration team will reach out soon.</p>
+            </div>
+
             <div class="mt-4 space-y-3">
                 <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
                     <input id="google_login_modal_accept_terms" type="checkbox" class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
-                    <span>I agree to the Terms and Conditions for learner enrollment.</span>
+                    <span>I agree to the Terms and Conditions for platform access.</span>
                 </label>
 
                 <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
                     <input id="google_login_modal_accept_requirements" type="checkbox" class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
-                    <span>I confirm that I meet the basic requirements for this learning program.</span>
+                    <span>I confirm the submitted profile details are correct for account setup.</span>
                 </label>
             </div>
 
             <div class="mt-5 flex items-center justify-end gap-3">
                 <button type="button" id="google-login-enrollment-cancel" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200">Cancel</button>
-                <button type="button" id="google-login-enrollment-submit" class="rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Complete Enrollment</button>
+                <button type="button" id="google-login-enrollment-submit" class="rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Complete Setup</button>
             </div>
         </div>
     </div>
@@ -136,6 +141,35 @@
                 button.textContent = isHidden ? 'Hide' : 'Show';
             });
         });
+
+        (function () {
+            var modalCourseSelect = document.getElementById('google_login_modal_course_id');
+            var modalPaymentNotice = document.getElementById('google-login-payment-notice');
+            var modalPaymentNoticeMessage = document.getElementById('google-login-payment-notice-message');
+
+            var updateNotice = function () {
+                if (!modalCourseSelect || !modalPaymentNotice || !modalPaymentNoticeMessage) {
+                    return;
+                }
+
+                var option = modalCourseSelect.options[modalCourseSelect.selectedIndex];
+                var requiresPayment = option && option.getAttribute('data-requires-payment') === '1';
+                var message = option && option.getAttribute('data-payment-message');
+
+                modalPaymentNotice.classList.toggle('hidden', !requiresPayment);
+
+                if (requiresPayment) {
+                    modalPaymentNoticeMessage.textContent = message && message.trim() !== ''
+                        ? message
+                        : 'For this paid course, the registration team will reach out soon.';
+                }
+            };
+
+            if (modalCourseSelect && modalPaymentNotice && modalPaymentNoticeMessage) {
+                modalCourseSelect.addEventListener('change', updateNotice);
+                updateNotice();
+            }
+        })();
     </script>
 
     <script type="module">
@@ -179,7 +213,7 @@
                 const responsePayload = await response.json();
 
                 if (!response.ok) {
-                    if ((responsePayload.message || '').includes('Complete enrollment fields')) {
+                    if ((responsePayload.message || '').includes('Complete setup fields')) {
                         return { requiresEnrollment: true };
                     }
 
@@ -206,7 +240,7 @@
                 const acceptRequirements = document.getElementById('google_login_modal_accept_requirements')?.checked;
 
                 if (!courseId || !track || !acceptTerms || !acceptRequirements) {
-                    throw new Error('Complete Course, Level, and both agreement confirmations.');
+                    throw new Error('Complete course, level, and both confirmations.');
                 }
 
                 return {
@@ -300,7 +334,7 @@
                 } catch (error) {
                     feedback.textContent = explainSocialError(error);
                     enrollmentSubmitButton.disabled = false;
-                    enrollmentSubmitButton.textContent = 'Complete Enrollment';
+                    enrollmentSubmitButton.textContent = 'Complete Setup';
                     showEnrollmentModal();
                 }
             });

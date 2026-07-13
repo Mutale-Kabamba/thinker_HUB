@@ -2,14 +2,15 @@
 
     <div class="hub-shell">
 
-        <section class="hub-card" style="padding:0.75rem 1rem;">
+        <section style="padding:0.35rem 0.5rem 0.6rem;">
             <p class="hub-eyebrow">Learning Resources</p>
             <h2 class="hub-title" style="font-size:1.05rem;">Watch &amp; Learn</h2>
             <p class="hub-copy" style="margin-top:0.2rem;">Recorded lessons for your courses plus curated videos from top learning channels. Everything plays right here in the app.</p>
+            <div style="height:1px;background:var(--hub-border);margin-top:0.65rem;"></div>
         </section>
 
         {{-- ==================== COURSE RECORDED LESSONS ==================== --}}
-        <section class="hub-card" style="padding:0.85rem 1rem;">
+        <section style="padding:0.35rem 0.5rem 0.7rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.65rem;">
                 <h3 class="hub-title" style="font-size:0.95rem;margin:0;">Recorded Lessons</h3>
                 @if (count($lessonCategories) > 0)
@@ -21,6 +22,7 @@
                     </select>
                 @endif
             </div>
+            <div style="height:1px;background:var(--hub-border);margin:0 0 0.7rem;"></div>
 
             @if (count($courseLessons) === 0)
                 <p class="hub-copy" style="color:var(--hub-muted);">No recorded lessons are available for your courses yet.</p>
@@ -60,7 +62,7 @@
         </section>
 
         {{-- ==================== GENERAL / CURATED VIDEOS ==================== --}}
-        <section class="hub-card" style="padding:0.85rem 1rem;">
+        <section style="padding:0.35rem 0.5rem 0.7rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.65rem;">
                 <h3 class="hub-title" style="font-size:0.95rem;margin:0;">Explore More</h3>
                 @if (count($generalCategories) > 0)
@@ -72,6 +74,7 @@
                     </select>
                 @endif
             </div>
+            <div style="height:1px;background:var(--hub-border);margin:0 0 0.7rem;"></div>
 
             @if (count($generalVideos) === 0)
                 <p class="hub-copy" style="color:var(--hub-muted);">No curated videos yet. Check back soon.</p>
