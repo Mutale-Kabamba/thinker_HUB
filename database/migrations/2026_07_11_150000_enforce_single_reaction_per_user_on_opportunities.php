@@ -36,17 +36,12 @@ return new class extends Migration
                 ->delete();
         }
 
-        // Create the replacement unique index before dropping the old one,
-        // so MySQL foreign keys still have a supporting index.
+        // Keep the legacy 3-column unique index because some MySQL setups
+        // use it to satisfy FK indexing requirements; add stricter 2-column
+        // uniqueness to enforce one reaction per user/opportunity.
         if (! $this->indexExists('opportunity_reactions', 'opp_user_single_reaction_unique')) {
             Schema::table('opportunity_reactions', function (Blueprint $table): void {
                 $table->unique(['opportunity_id', 'user_id'], 'opp_user_single_reaction_unique');
-            });
-        }
-
-        if ($this->indexExists('opportunity_reactions', 'opp_user_emoji_unique')) {
-            Schema::table('opportunity_reactions', function (Blueprint $table): void {
-                $table->dropUnique('opp_user_emoji_unique');
             });
         }
     }
