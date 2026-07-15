@@ -41,6 +41,11 @@
                             {{ $errors->first('contact') }}
                         </div>
                     @endif
+                    @if (session('contact_warning'))
+                        <div class="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            {{ session('contact_warning') }}
+                        </div>
+                    @endif
                     <form method="POST" action="{{ route('landing.contact.store') }}" class="mt-6 space-y-4">
                         @csrf
                         <input type="text" name="name" value="{{ old('name') }}" placeholder="Full name" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
@@ -49,6 +54,32 @@
                         @enderror
                         <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
                         @error('email')
+                            <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                        <div x-data="{ selectedSubject: '{{ old('subject', 'General Inquiry') }}' }" class="space-y-3">
+                            <select name="subject" x-model="selectedSubject" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
+                                <option value="General Inquiry">General Inquiry</option>
+                                <option value="Enrollment Support">Enrollment Support</option>
+                                <option value="Course Guidance">Course Guidance</option>
+                                <option value="Technical Support">Technical Support</option>
+                                <option value="Partnership Opportunity">Partnership Opportunity</option>
+                                <option value="Other">Other (type custom subject)</option>
+                            </select>
+                            <input
+                                type="text"
+                                name="custom_subject"
+                                value="{{ old('custom_subject') }}"
+                                x-bind:required="selectedSubject === 'Other'"
+                                x-show="selectedSubject === 'Other'"
+                                x-transition
+                                placeholder="Type your custom subject"
+                                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none"
+                            >
+                        </div>
+                        @error('subject')
+                            <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                        @error('custom_subject')
                             <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
                         @enderror
                         <textarea name="message" placeholder="How can we help?" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>{{ old('message') }}</textarea>

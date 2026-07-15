@@ -9,6 +9,7 @@
 
     <p><strong>Name:</strong> {{ $name }}</p>
     <p><strong>Email:</strong> {{ $email }}</p>
+    <p><strong>Subject:</strong> {{ $subject }}</p>
 
     <p style="margin-top: 20px;"><strong>Message:</strong></p>
     <div style="white-space: pre-wrap; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; background: #f8fafc;">
