@@ -10,7 +10,9 @@ class Quizzes extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-puzzle-piece';
 
-    protected static ?int $navigationSort = 5;
+    protected static string|\UnitEnum|null $navigationGroup = 'EVALUATIONS';
+
+    protected static ?int $navigationSort = 2;
 
     protected string $view = 'filament.student.pages.quizzes';
 

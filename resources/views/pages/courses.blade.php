@@ -65,24 +65,25 @@
                     @forelse ($courses as $course)
                         @php
                             $courseImage = $resolveCourseImage($course);
-                            $isLockedCourse = $course->is_open_enrollment === false;
-                            $studentsCount = (int) ($course->enrollments_count ?? 0);
-                            if ($studentsCount === 0) {
-                                $studentsCount = (int) ($course->selected_participants_count ?? 0);
-                            }
                         @endphp
                         <article class="group bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-xl transition-all border border-slate-100">
-                            <div class="relative h-52 overflow-hidden rounded-[1.5rem]">
+                            <div class="relative h-56 overflow-hidden rounded-[1.5rem]">
                                 <img src="{{ asset($courseImage) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="{{ $course->title }} image">
-                                <div class="absolute top-4 left-4 text-[11px] font-bold px-4 py-1.5 rounded-full shadow-lg {{ $isLockedCourse ? 'bg-slate-900 text-white' : 'bg-yellow-400 text-[#0a2d27]' }}">{{ $isLockedCourse ? 'LOCKED' : 'ACTIVE' }}</div>
+                                <div class="absolute top-4 left-4 bg-yellow-400 text-[#0a2d27] text-[11px] font-bold px-4 py-1.5 rounded-full shadow-lg">BEST SELLER</div>
                             </div>
                             <div class="px-3 py-6">
-                                <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">{{ $course->code }}</p>
                                 @php
                                     $avgRating = round((float) ($course->ratings_avg_rating ?? 0), 1);
                                     $ratingCount = (int) ($course->ratings_count ?? 0);
+                                    $studentsCount = (int) ($course->enrollments_count ?? 0);
+                                    $isOpenEnrollment = $course->is_open_enrollment !== false;
+                                    $fullTitle = (string) $course->title;
+                                    $displayTitle = \Illuminate\Support\Str::limit($fullTitle, 72);
+                                    if ($studentsCount === 0) {
+                                        $studentsCount = (int) ($course->selected_participants_count ?? 0);
+                                    }
                                 @endphp
-                                <div class="flex items-center gap-1 text-[10px] mt-2 mb-1">
+                                <div class="flex items-center gap-1 text-[10px] mb-3">
                                     @for ($star = 1; $star <= 5; $star++)
                                         @if ($star <= floor($avgRating))
                                             <i class="fa-solid fa-star text-yellow-500"></i>
@@ -94,23 +95,50 @@
                                     @endfor
                                     <span class="text-slate-400 font-semibold ml-2">
                                         @if ($ratingCount > 0)
-                                            {{ $avgRating }} ({{ $ratingCount }})
+                                            {{ $avgRating }} ({{ $ratingCount }} {{ Str::plural('review', $ratingCount) }})
                                         @else
-                                            No reviews
+                                            No reviews yet
                                         @endif
                                     </span>
                                 </div>
-                                <h3 class="mt-2 text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug">{{ $course->title }}</h3>
+                                <div class="min-h-[6.25rem]">
+                                    <h3
+                                        class="text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug"
+                                        title="{{ $fullTitle }}"
+                                    >
+                                        {{ $displayTitle }}
+                                    </h3>
+                                </div>
                                 <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ $course->timeline ?: 'Self paced' }}</span>
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $studentsCount }} Students</span>
                                 </div>
-                                <a
-                                    href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
-                                    class="mt-4 inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#11443c]"
-                                >
-                                    Open Course Page
-                                </a>
+                                <div class="mt-4 flex items-center justify-between gap-3">
+                                    <a
+                                        href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
+                                        class="inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#11443c]"
+                                    >
+                                        Open Course Page
+                                    </a>
+
+                                    @if ($isOpenEnrollment)
+                                        <span
+                                            title="Open to enroll"
+                                            aria-label="Open to enroll"
+                                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"
+                                        >
+                                            <i class="fa-solid fa-lock-open text-sm"></i>
+                                        </span>
+                                    @else
+                                        <span
+                                            title="Locked for selected students"
+                                            aria-label="Locked for selected students"
+                                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600"
+                                        >
+                                            <i class="fa-solid fa-lock text-sm"></i>
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </article>
                     @empty

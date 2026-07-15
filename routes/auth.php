@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\StudentApprovalAccessController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,14 @@ Route::middleware('guest')->group(function () {
 
     Route::post('auth/firebase/google', FirebaseGoogleAuthController::class)
         ->name('auth.firebase.google');
+
+    Route::get('auth/student-approval/google/{user}/{hash}', [StudentApprovalAccessController::class, 'google'])
+        ->middleware('signed')
+        ->name('auth.student-approval.google');
+
+    Route::get('auth/student-approval/manual/{user}/{token}', [StudentApprovalAccessController::class, 'manual'])
+        ->middleware('signed')
+        ->name('auth.student-approval.manual');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');

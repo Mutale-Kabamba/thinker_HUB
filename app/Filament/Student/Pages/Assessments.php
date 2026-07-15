@@ -17,7 +17,9 @@ class Assessments extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-check-badge';
 
-    protected static ?int $navigationSort = 4;
+    protected static string|\UnitEnum|null $navigationGroup = 'EVALUATIONS';
+
+    protected static ?int $navigationSort = 3;
 
     protected string $view = 'filament.student.pages.assessments';
 

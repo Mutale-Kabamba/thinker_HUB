@@ -15,7 +15,9 @@ class Schedule extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static ?int $navigationSort = 6;
+    protected static string|\UnitEnum|null $navigationGroup = 'LEARNING';
+
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $navigationLabel = 'Schedule';
 

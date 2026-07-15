@@ -7,9 +7,9 @@
                 </svg>
             </a>
             <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Enrollment</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Account Setup</p>
             <h1 class="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">Create Your Account</h1>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Fill in your details to join as a student.</p>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Create an account to register for a course and access your workspace.</p>
             </div>
         </div>
 
@@ -36,7 +36,7 @@
                     <div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
                 </div>
                 <div class="relative flex justify-center">
-                    <span class="bg-white px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:bg-slate-900">Or register manually</span>
+                    <span class="bg-white px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:bg-slate-900">Or create account manually</span>
                 </div>
             </div>
 
@@ -61,6 +61,8 @@
                             @php $isLockedCourse = $course->is_open_enrollment === false; @endphp
                             <option
                                 value="{{ $course->id }}"
+                                data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}"
+                                data-payment-message="{{ $course->payment_contact_message }}"
                                 @selected((string) old('course_id') === (string) $course->id)
                                 @disabled($isLockedCourse)
                             >
@@ -83,6 +85,11 @@
                 </div>
             </div>
 
+            <div id="payment-notice" class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                <p class="font-semibold">Notice: Online Payment Coming Soon.</p>
+                <p id="payment-notice-message" class="mt-1">For this paid course, the registration team will reach out soon.</p>
+            </div>
+
             <div>
                 <x-input-label for="password" class="text-slate-700 dark:text-slate-300" :value="__('Password')" />
                 <div class="relative mt-1">
@@ -103,13 +110,13 @@
 
             <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
                 <input type="checkbox" name="accept_terms" value="1" class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500" @checked(old('accept_terms'))>
-                <span>I agree to the Terms and Conditions for learner enrollment.</span>
+                <span>I agree to the Terms and Conditions for platform access.</span>
             </label>
             <x-input-error :messages="$errors->get('accept_terms')" class="mt-2" />
 
             <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
                 <input type="checkbox" name="accept_requirements" value="1" class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500" @checked(old('accept_requirements'))>
-                <span>I confirm that I meet the basic requirements for this learning program.</span>
+                <span>I confirm the submitted profile details are correct for account setup.</span>
             </label>
             <x-input-error :messages="$errors->get('accept_requirements')" class="mt-2" />
 
@@ -119,7 +126,7 @@
                 </a>
 
                 <x-primary-button class="justify-center rounded-xl bg-teal-600 px-6 py-2.5 text-[0.75rem] hover:bg-teal-700 focus:ring-teal-500">
-                    {{ __('Complete Enrollment') }}
+                    {{ __('Create Account') }}
                 </x-primary-button>
             </div>
 
@@ -130,9 +137,9 @@
         <div class="absolute inset-0 bg-slate-900/50"></div>
         <div class="relative mx-auto mt-10 w-[92%] max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:mt-16 dark:border-slate-700 dark:bg-slate-900">
             <div class="mb-4">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Complete Enrollment</p>
-                <h3 id="google-enrollment-modal-title" class="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100">Finish Your Google Registration</h3>
-                <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Select your course, level, and accept the required agreements to continue.</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Course Setup</p>
+                <h3 id="google-enrollment-modal-title" class="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100">Finish Your Google Account Setup</h3>
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Select your course and level so we can place your account in the correct workflow.</p>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
@@ -142,7 +149,7 @@
                         <option value="">Select course</option>
                         @foreach ($courses as $course)
                             @php $isLockedCourse = $course->is_open_enrollment === false; @endphp
-                            <option value="{{ $course->id }}" @disabled($isLockedCourse)>
+                            <option value="{{ $course->id }}" data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}" data-payment-message="{{ $course->payment_contact_message }}" @disabled($isLockedCourse)>
                                 {{ $course->code }} - {{ $course->title }}{{ $isLockedCourse ? ' (Locked)' : '' }}
                             </option>
                         @endforeach
@@ -160,21 +167,26 @@
                 </div>
             </div>
 
+            <div id="google-payment-notice" class="mt-4 hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                <p class="font-semibold">Notice: Online Payment Coming Soon.</p>
+                <p id="google-payment-notice-message" class="mt-1">For this paid course, the registration team will reach out soon.</p>
+            </div>
+
             <div class="mt-4 space-y-3">
                 <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
                     <input id="google_modal_accept_terms" type="checkbox" class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
-                    <span>I agree to the Terms and Conditions for learner enrollment.</span>
+                    <span>I agree to the Terms and Conditions for platform access.</span>
                 </label>
 
                 <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
                     <input id="google_modal_accept_requirements" type="checkbox" class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
-                    <span>I confirm that I meet the basic requirements for this learning program.</span>
+                    <span>I confirm the submitted profile details are correct for account setup.</span>
                 </label>
             </div>
 
             <div class="mt-5 flex items-center justify-end gap-3">
                 <button type="button" id="google-enrollment-cancel" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200">Cancel</button>
-                <button type="button" id="google-enrollment-submit" class="rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Complete Enrollment</button>
+                <button type="button" id="google-enrollment-submit" class="rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Complete Setup</button>
             </div>
         </div>
     </div>
@@ -192,6 +204,47 @@
                 button.textContent = isHidden ? 'Hide' : 'Show';
             });
         });
+
+        (function () {
+            var pageCourseSelect = document.getElementById('course_id');
+            var pagePaymentNotice = document.getElementById('payment-notice');
+            var pagePaymentNoticeMessage = document.getElementById('payment-notice-message');
+            var modalCourseSelect = document.getElementById('google_modal_course_id');
+            var modalPaymentNotice = document.getElementById('google-payment-notice');
+            var modalPaymentNoticeMessage = document.getElementById('google-payment-notice-message');
+
+            var updateNotice = function (selectEl, noticeEl, messageEl) {
+                if (!selectEl || !noticeEl || !messageEl) {
+                    return;
+                }
+
+                var option = selectEl.options[selectEl.selectedIndex];
+                var requiresPayment = option && option.getAttribute('data-requires-payment') === '1';
+                var message = option && option.getAttribute('data-payment-message');
+
+                noticeEl.classList.toggle('hidden', !requiresPayment);
+
+                if (requiresPayment) {
+                    messageEl.textContent = message && message.trim() !== ''
+                        ? message
+                        : 'For this paid course, the registration team will reach out soon.';
+                }
+            };
+
+            if (pageCourseSelect && pagePaymentNotice && pagePaymentNoticeMessage) {
+                pageCourseSelect.addEventListener('change', function () {
+                    updateNotice(pageCourseSelect, pagePaymentNotice, pagePaymentNoticeMessage);
+                });
+                updateNotice(pageCourseSelect, pagePaymentNotice, pagePaymentNoticeMessage);
+            }
+
+            if (modalCourseSelect && modalPaymentNotice && modalPaymentNoticeMessage) {
+                modalCourseSelect.addEventListener('change', function () {
+                    updateNotice(modalCourseSelect, modalPaymentNotice, modalPaymentNoticeMessage);
+                });
+                updateNotice(modalCourseSelect, modalPaymentNotice, modalPaymentNoticeMessage);
+            }
+        })();
     </script>
 
     <script type="module">
@@ -227,7 +280,7 @@
                 const acceptRequirements = document.querySelector('input[name="accept_requirements"]')?.checked;
 
                 if (!courseId || !track || !acceptTerms || !acceptRequirements) {
-                    throw new Error('Select course, level, and accept both confirmations before social sign-in.');
+                    throw new Error('Select course, level, and both confirmations before social sign-in.');
                 }
 
                 return {
@@ -285,7 +338,7 @@
                 const acceptRequirements = document.getElementById('google_modal_accept_requirements')?.checked;
 
                 if (!courseId || !track || !acceptTerms || !acceptRequirements) {
-                    throw new Error('Complete Course, Level, and both agreement confirmations.');
+                    throw new Error('Complete course, level, and both confirmations.');
                 }
 
                 return {
@@ -348,6 +401,7 @@
                 document.getElementById('google_modal_track').value = pageTrack;
                 document.getElementById('google_modal_accept_terms').checked = pageTerms;
                 document.getElementById('google_modal_accept_requirements').checked = pageReqs;
+                document.getElementById('google_modal_course_id').dispatchEvent(new Event('change'));
 
                 showEnrollmentModal();
                 setIdleButtons();
@@ -380,9 +434,9 @@
                 } catch (error) {
                     feedback.textContent = explainSocialError(error);
                     enrollmentSubmitButton.disabled = false;
-                    enrollmentSubmitButton.textContent = 'Complete Enrollment';
+                    enrollmentSubmitButton.textContent = 'Complete Setup';
 
-                    if ((error?.message || '').includes('Complete enrollment fields')) {
+                    if ((error?.message || '').includes('Complete setup fields')) {
                         showEnrollmentModal();
                     }
                 }

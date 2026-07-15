@@ -60,6 +60,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'pending_login_token_expires_at' => 'datetime',
+            'pending_login_token_used_at' => 'datetime',
         ];
     }
 
@@ -116,6 +118,49 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     public function courseSessions(): HasMany
     {
         return $this->hasMany(CourseSession::class, 'student_id');
+    }
+
+    public function chatRooms(): BelongsToMany
+    {
+        return $this->belongsToMany(ChatRoom::class, 'chat_room_user')
+            ->withPivot('last_read_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Accepted friends (in either direction).
+     *
+     * @return \Illuminate\Support\Collection<int, User>
+     */
+    public function friends(): \Illuminate\Support\Collection
+    {
+        $sent = Friendship::query()
+            ->where('user_id', $this->id)
+            ->where('status', 'accepted')
+            ->pluck('friend_id');
+
+        $received = Friendship::query()
+            ->where('friend_id', $this->id)
+            ->where('status', 'accepted')
+            ->pluck('user_id');
+
+        $ids = $sent->merge($received)->unique();
+
+        return User::query()->whereIn('id', $ids)->orderBy('name')->get();
+    }
+
+    public function isFriendsWith(int $userId): bool
+    {
+        return Friendship::query()
+            ->where('status', 'accepted')
+            ->where(function ($q) use ($userId): void {
+                $q->where(function ($w) use ($userId): void {
+                    $w->where('user_id', $this->id)->where('friend_id', $userId);
+                })->orWhere(function ($w) use ($userId): void {
+                    $w->where('user_id', $userId)->where('friend_id', $this->id);
+                });
+            })
+            ->exists();
     }
 
     public function isAdmin(): bool

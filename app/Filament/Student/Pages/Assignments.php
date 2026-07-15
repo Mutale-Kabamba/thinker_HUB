@@ -19,7 +19,9 @@ class Assignments extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?int $navigationSort = 3;
+    protected static string|\UnitEnum|null $navigationGroup = 'EVALUATIONS';
+
+    protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.student.pages.assignments';
 

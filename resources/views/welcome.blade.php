@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @include('partials.seo-meta', [
-        'title' => 'think.er HUB | Practical Digital Skills Training',
-        'description' => 'Master the skills and skip the fluff. Learn through an 80% practical, hands-on approach designed to make you job-ready faster.',
-        'keywords' => 'digital skills training, practical courses, online learning, thinker hub',
+        'title' => 'think.er HUB | Instructor & Student Management Platform',
+        'description' => 'Manage instructors, students, schedules, and course resources in one platform. Public users can also register for available courses.',
+        'keywords' => 'instructor management platform, student management system, course registration, course operations, thinker hub',
         'type' => 'website',
     ])
     <link rel="preload" as="image" href="{{ asset('images/hero/office.png') }}">
@@ -15,7 +15,7 @@
     @include('partials.pwa-register')
 </head>
 <body
-    class="bg-[#f8fcf9] text-slate-900 font-sans antialiased"
+    class="bg-white text-slate-900 font-sans antialiased"
     x-data="{
         mobileMenu: false,
         videoModal: false,
@@ -59,9 +59,25 @@
                     image.src = slide.image;
                 });
             }, 1200);
+        },
+        reorderHomepageSections() {
+            const valuePropositionSection = document.getElementById('value-proposition-section');
+            const publicRegistrationSection = document.getElementById('public-registration-section');
+
+            if (!valuePropositionSection || !publicRegistrationSection) {
+                return;
+            }
+
+            const parent = valuePropositionSection.parentElement;
+
+            if (!parent || parent !== publicRegistrationSection.parentElement) {
+                return;
+            }
+
+            parent.insertBefore(publicRegistrationSection, valuePropositionSection);
         }
     }"
-    x-init="startHeroRotation(); preloadHeroImages()"
+    x-init="startHeroRotation(); preloadHeroImages(); reorderHomepageSections()"
 >
 
     @include('partials.public-header')
@@ -72,18 +88,18 @@
                 <div class="grid items-center gap-16 lg:grid-cols-2">
                     <div class="text-center lg:text-left order-2 lg:order-1">
                         <h1 class="text-4xl font-extrabold leading-[1.1] text-white sm:text-5xl lg:text-6xl">
-                            Master the Skills.<br class="hidden lg:block"> Skip the Fluff.
+                            Manage Learning Operations.<br class="hidden lg:block"> Keep Teams Aligned.
                         </h1>
                         <p class="mt-8 text-lg text-slate-300 leading-relaxed max-w-lg mx-auto lg:mx-0">
-                            Forget traditional theory-heavy classrooms. We offer an 80% practical, hands-on environment designed to turn you into a specialist in weeks, not years.
+                            think.er HUB is built for instructors and admins to manage students, schedules, resources, and progress from one place, while still allowing new users to register for available courses.
                         </p>
                         <div class="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
-                            <a href="{{ route('register') }}" class="w-full sm:w-auto rounded-full bg-yellow-400 px-10 py-4 font-bold text-[#0a2d27] hover:translate-y-[-2px] transition-all shadow-lg shadow-yellow-400/20">Start Learning</a>
+                            <a href="{{ route('register') }}" class="w-full sm:w-auto rounded-full bg-yellow-400 px-10 py-4 font-bold text-[#0a2d27] hover:translate-y-[-2px] transition-all shadow-lg shadow-yellow-400/20">Register for a Course</a>
                             <button type="button" @click="videoModal = true" class="flex items-center gap-3 text-white font-semibold group">
                                 <span class="flex items-center justify-center w-12 h-12 rounded-full border border-white/30 group-hover:bg-white group-hover:text-[#0a2d27] transition-all">
                                     <i class="fa-solid fa-play ml-1"></i>
                                 </span>
-                                See How We Teach
+                                See How It Works
                             </button>
                         </div>
                         
@@ -110,7 +126,7 @@
                             <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/45 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white backdrop-blur-sm" x-text="heroSlides[heroSlideIndex].label"></div>
                             <div class="absolute -bottom-2 -right-4 bg-white p-4 rounded-2xl shadow-2xl z-20 hidden sm:flex items-center gap-3">
                                 <div class="bg-green-100 p-2 rounded-lg text-green-600"><i class="fa-solid fa-certificate"></i></div>
-                                <div><p class="text-xs font-bold text-[#0a2d27]">Verified Platform</p><p class="text-[10px] text-slate-500">Official Certification</p></div>
+                                <div><p class="text-xs font-bold text-[#0a2d27]">Operations Ready</p><p class="text-[10px] text-slate-500">Instructor & Student Panels</p></div>
                             </div>
                         </div>
                     </div>
@@ -118,16 +134,64 @@
             </div>
         </section>
 
-        <section class="py-24 lg:py-32">
+        <section id="value-proposition-section" class="py-20 lg:py-24 bg-[#f8fcf9]">
+            <div class="mx-auto max-w-6xl px-6 lg:px-8">
+                <div class="max-w-3xl text-center mx-auto">
+                    <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Value Proposition</span>
+                    <h2 class="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">Why Teams Choose think.er HUB</h2>
+                    <p class="mt-4 text-slate-600 leading-relaxed">From instructor workflows to student onboarding, the platform keeps operations organized while making course registration easy for new users.</p>
+                </div>
+
+                <div class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-600"><i class="fa-solid fa-users-gear"></i></div>
+                        <h3 class="mt-4 text-lg font-bold text-slate-900">Centralized Team Management</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Manage instructors, students, and role-based access from one consistent admin flow.</p>
+                    </article>
+
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><i class="fa-solid fa-calendar-check"></i></div>
+                        <h3 class="mt-4 text-lg font-bold text-slate-900">Structured Daily Operations</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Coordinate classes, sessions, assignments, and assessments without scattered tools.</p>
+                    </article>
+
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600"><i class="fa-solid fa-chart-line"></i></div>
+                        <h3 class="mt-4 text-lg font-bold text-slate-900">Clear Progress Visibility</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Track learner activity and outcomes so instructors can intervene earlier and better.</p>
+                    </article>
+
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700"><i class="fa-solid fa-folder-tree"></i></div>
+                        <h3 class="mt-4 text-lg font-bold text-slate-900">Resource Control</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Publish and manage materials, updates, and communication in one platform.</p>
+                    </article>
+
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><i class="fa-solid fa-user-plus"></i></div>
+                        <h3 class="mt-4 text-lg font-bold text-slate-900">Simple Course Registration</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Public users can register for available courses and enter the right workflow quickly.</p>
+                    </article>
+
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600"><i class="fa-solid fa-shield-halved"></i></div>
+                        <h3 class="mt-4 text-lg font-bold text-slate-900">Controlled Access by Role</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Guide each user into admin, instructor, or student views with the permissions they need.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="public-registration-section" class="py-24 lg:py-32">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
                 <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6 text-center md:text-left">
                     <div class="max-w-xl">
-                        <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Explore Programs</span>
-                        <h2 class="text-3xl font-black text-slate-900 mt-3 sm:text-4xl">Our Popular Courses</h2>
+                        <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Public Registration</span>
+                        <h2 class="text-3xl font-black text-slate-900 mt-3 sm:text-4xl">Courses Open for Registration</h2>
                     </div>
                     <div class="flex justify-center md:justify-end">
                         <a href="{{ route('landing.courses') }}" class="inline-flex items-center gap-2 text-sm font-bold text-teal-700 transition hover:text-[#0a2d27]">
-                            View More Courses
+                            Browse All Courses
                             <i class="fa-solid fa-arrow-right-long"></i>
                         </a>
                     </div>
@@ -181,6 +245,9 @@
                                     $avgRating = round((float) ($course->ratings_avg_rating ?? 0), 1);
                                     $ratingCount = (int) ($course->ratings_count ?? 0);
                                     $studentsCount = (int) ($course->enrollments_count ?? 0);
+                                    $isOpenEnrollment = $course->is_open_enrollment !== false;
+                                    $fullTitle = (string) $course->title;
+                                    $displayTitle = \Illuminate\Support\Str::limit($fullTitle, 72);
                                     if ($studentsCount === 0) {
                                         $studentsCount = (int) ($course->selected_participants_count ?? 0);
                                     }
@@ -203,17 +270,44 @@
                                         @endif
                                     </span>
                                 </div>
-                                <h3 class="text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug">{{ $course->title }}</h3>
+                                <div class="min-h-[6.25rem]">
+                                    <h3
+                                        class="text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug"
+                                        title="{{ $fullTitle }}"
+                                    >
+                                        {{ $displayTitle }}
+                                    </h3>
+                                </div>
                                 <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ $course->timeline ?: 'Self paced' }}</span>
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $studentsCount }} Students</span>
                                 </div>
-                                <a
-                                    href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
-                                    class="mt-4 inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#11443c]"
-                                >
-                                    Open Course Page
-                                </a>
+                                <div class="mt-4 flex items-center justify-between gap-3">
+                                    <a
+                                        href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
+                                        class="inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#11443c]"
+                                    >
+                                        Open Course Page
+                                    </a>
+
+                                    @if ($isOpenEnrollment)
+                                        <span
+                                            title="Open to enroll"
+                                            aria-label="Open to enroll"
+                                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"
+                                        >
+                                            <i class="fa-solid fa-lock-open text-sm"></i>
+                                        </span>
+                                    @else
+                                        <span
+                                            title="Locked for selected students"
+                                            aria-label="Locked for selected students"
+                                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600"
+                                        >
+                                            <i class="fa-solid fa-lock text-sm"></i>
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </article>
                     @empty
@@ -232,18 +326,18 @@
         <section class="pb-20 lg:pb-24">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
                 <div class="rounded-[2rem] border border-slate-200 bg-white p-8 lg:p-12 shadow-sm">
-                    <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Practical Approach</span>
-                    <h2 class="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">Skills Over Certificates</h2>
-                    <p class="mt-4 max-w-3xl text-slate-600 leading-relaxed">In the real world, nobody asks to see your diploma-they ask to see your work. Our curriculum is built on a simple ratio:</p>
+                    <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Platform Focus</span>
+                    <h2 class="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">Built for Academic Operations</h2>
+                    <p class="mt-4 max-w-3xl text-slate-600 leading-relaxed">This is a management-first platform that helps teaching teams coordinate daily work, monitor progress, and keep students supported from onboarding to completion.</p>
 
                     <div class="mt-8 grid gap-4 md:grid-cols-2">
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                            <h3 class="text-lg font-bold text-slate-900">20% Theory</h3>
-                            <p class="mt-2 text-sm text-slate-600 leading-relaxed">We give you the mental framework and the "why" behind the tools.</p>
+                            <h3 class="text-lg font-bold text-slate-900">Instructor Control</h3>
+                            <p class="mt-2 text-sm text-slate-600 leading-relaxed">Manage courses, assignments, schedules, assessments, and materials with clear visibility across your students.</p>
                         </div>
                         <div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5">
-                            <h3 class="text-lg font-bold text-slate-900">80% Execution</h3>
-                            <p class="mt-2 text-sm text-slate-700 leading-relaxed">You spend the bulk of your time building, breaking, and fixing real projects under the guidance of expert instructors.</p>
+                            <h3 class="text-lg font-bold text-slate-900">Student Onboarding</h3>
+                            <p class="mt-2 text-sm text-slate-700 leading-relaxed">Keep public registration simple so new learners can join available courses and move into the right panel quickly.</p>
                         </div>
                     </div>
                 </div>
@@ -295,11 +389,11 @@
             <div class="rounded-[2.5rem] lg:rounded-[4rem] bg-[#0a2d27] p-8 lg:p-16 text-center lg:text-left relative overflow-hidden">
                 <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
                     <div class="max-w-xl">
-                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Stop studying. Start doing.</h2>
-                        <p class="mt-4 text-slate-400">Join a community of doers. Gain the confidence to handle any professional task in the digital space.</p>
+                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Run your training operations in one place.</h2>
+                        <p class="mt-4 text-slate-400">Support instructors, manage students, and keep course activity organized while still accepting new course registrations.</p>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                        <a href="{{ route('register') }}" class="rounded-full bg-yellow-400 px-8 py-4 font-bold text-[#0a2d27] hover:bg-white transition-all text-center">ENROLL NOW</a>
+                        <a href="{{ route('register') }}" class="rounded-full bg-yellow-400 px-8 py-4 font-bold text-[#0a2d27] hover:bg-white transition-all text-center">CREATE ACCOUNT</a>
                         <a href="{{ route('landing.courses') }}" class="rounded-full border border-white/20 px-8 py-4 font-bold text-white hover:bg-white/10 transition-all text-center">Courses</a>
                     </div>
                 </div>
@@ -354,7 +448,7 @@
                             <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
                         </div>
                         <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
-                            Thinker Hub empowers learners with practical, career-focused training designed to turn knowledge into measurable results. We don't just teach software; we build practitioners.
+                            Thinker Hub helps instructors and admins manage students, teaching workflows, and course operations in one platform, with public course registration for new learners.
                         </p>
                         <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
                             <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>

@@ -7,6 +7,7 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -19,6 +20,10 @@ class CoursesTable
     {
         return $table
             ->columns([
+                ImageColumn::make('image_path')
+                    ->label('Image')
+                    ->disk('public')
+                    ->circular(),
                 TextColumn::make('title')
                     ->searchable(),
                 TextColumn::make('code')

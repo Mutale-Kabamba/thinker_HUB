@@ -7,14 +7,19 @@ use App\Models\User;
 
 class EnrollmentPolicy
 {
+    public function viewAny(User $actor): bool
+    {
+        return $actor->isAdmin();
+    }
+
     public function view(User $actor, Enrollment $enrollment): bool
     {
         return $actor->isAdmin() || $actor->id === $enrollment->user_id;
     }
 
-    public function create(User $actor, User $owner): bool
+    public function create(User $actor, ?User $owner = null): bool
     {
-        return $actor->isAdmin() || $actor->id === $owner->id;
+        return $actor->isAdmin() || ($owner && $actor->id === $owner->id);
     }
 
     public function update(User $actor, Enrollment $enrollment): bool

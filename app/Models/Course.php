@@ -14,6 +14,7 @@ class Course extends Model
     protected $fillable = [
         'title',
         'code',
+        'image_path',
         'description',
         'overview',
         'timeline',
@@ -100,5 +101,26 @@ class Course extends Model
     public function ratingsCount(): int
     {
         return (int) $this->ratings()->count();
+    }
+
+    public function requiresPaymentApproval(): bool
+    {
+        $fees = trim((string) $this->fees);
+
+        if ($fees === '') {
+            return false;
+        }
+
+        if (preg_match_all('/\d+(?:[.,]\d+)?/', $fees, $matches) !== false) {
+            foreach ($matches[0] ?? [] as $rawAmount) {
+                $normalized = str_replace(',', '', (string) $rawAmount);
+
+                if ((float) $normalized > 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

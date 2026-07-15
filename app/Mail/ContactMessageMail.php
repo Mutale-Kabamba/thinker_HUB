@@ -16,6 +16,7 @@ class ContactMessageMail extends Mailable
     public function __construct(
         public string $name,
         public string $email,
+        public string $contactSubject,
         public string $bodyText,
     ) {
     }
@@ -23,7 +24,7 @@ class ContactMessageMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'New Contact Message from '.$this->name,
+            subject: '[Contact] '.$this->contactSubject.' - '.$this->name,
             replyTo: [new Address($this->email, $this->name)],
         );
     }

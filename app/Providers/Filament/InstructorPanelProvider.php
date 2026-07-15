@@ -7,6 +7,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -30,8 +31,16 @@ class InstructorPanelProvider extends PanelProvider
             ->login(SharedLogin::class)
             ->colors([
                 'primary' => Color::Teal,
-            ])            ->sidebarCollapsibleOnDesktop()            ->discoverResources(in: app_path('Filament/Instructor/Resources'), for: 'App\Filament\Instructor\Resources')
+            ])
+            ->sidebarCollapsibleOnDesktop()
+            ->discoverResources(in: app_path('Filament/Instructor/Resources'), for: 'App\Filament\Instructor\Resources')
             ->discoverPages(in: app_path('Filament/Instructor/Pages'), for: 'App\Filament\Instructor\Pages')
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label('Profile Management')
+                    ->icon('heroicon-o-user-circle')
+                    ->url(fn (): string => route('filament.instructor.pages.settings')),
+            ])
             ->discoverWidgets(in: app_path('Filament/Instructor/Widgets'), for: 'App\Filament\Instructor\Widgets')
             ->widgets([
                 AccountWidget::class,

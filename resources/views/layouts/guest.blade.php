@@ -7,7 +7,7 @@
 
         @include('partials.seo-meta', [
             'title' => 'Account Access | think.er HUB',
-            'description' => 'Sign in or create your account to access think.er HUB learning panels.',
+            'description' => 'Sign in or create your account to access think.er HUB management panels and course workflows.',
             'type' => 'website',
             'indexable' => false,
         ])

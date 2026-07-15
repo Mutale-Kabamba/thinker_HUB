@@ -12,6 +12,7 @@ use App\Models\LearningMaterial;
 use App\Models\User;
 use App\Observers\AssignmentObserver;
 use App\Observers\LearningMaterialObserver;
+use App\Observers\UserObserver;
 use App\Policies\AssessmentPolicy;
 use App\Policies\AssignmentPolicy;
 use App\Policies\CoursePolicy;
@@ -46,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
 
         Assignment::observe(AssignmentObserver::class);
         LearningMaterial::observe(LearningMaterialObserver::class);
+        User::observe(UserObserver::class);
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Enrollment::class, EnrollmentPolicy::class);
