@@ -9,6 +9,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('opportunity_reactions')) {
+            return;
+        }
+
         // Deduplicate legacy multi-emoji reactions per user/opportunity pair,
         // keeping the most recent reaction.
         $pairs = DB::table('opportunity_reactions')
@@ -32,17 +36,56 @@ return new class extends Migration
                 ->delete();
         }
 
-        Schema::table('opportunity_reactions', function (Blueprint $table): void {
-            $table->dropUnique('opp_user_emoji_unique');
-            $table->unique(['opportunity_id', 'user_id'], 'opp_user_single_reaction_unique');
-        });
+        // Create the replacement unique index before dropping the old one,
+        // so MySQL foreign keys still have a supporting index.
+        if (! $this->indexExists('opportunity_reactions', 'opp_user_single_reaction_unique')) {
+            Schema::table('opportunity_reactions', function (Blueprint $table): void {
+                $table->unique(['opportunity_id', 'user_id'], 'opp_user_single_reaction_unique');
+            });
+        }
+
+        if ($this->indexExists('opportunity_reactions', 'opp_user_emoji_unique')) {
+            Schema::table('opportunity_reactions', function (Blueprint $table): void {
+                $table->dropUnique('opp_user_emoji_unique');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('opportunity_reactions', function (Blueprint $table): void {
-            $table->dropUnique('opp_user_single_reaction_unique');
-            $table->unique(['opportunity_id', 'user_id', 'emoji'], 'opp_user_emoji_unique');
-        });
+        if (! Schema::hasTable('opportunity_reactions')) {
+            return;
+        }
+
+        if (! $this->indexExists('opportunity_reactions', 'opp_user_emoji_unique')) {
+            Schema::table('opportunity_reactions', function (Blueprint $table): void {
+                $table->unique(['opportunity_id', 'user_id', 'emoji'], 'opp_user_emoji_unique');
+            });
+        }
+
+        if ($this->indexExists('opportunity_reactions', 'opp_user_single_reaction_unique')) {
+            Schema::table('opportunity_reactions', function (Blueprint $table): void {
+                $table->dropUnique('opp_user_single_reaction_unique');
+            });
+        }
+    }
+
+    private function indexExists(string $table, string $index): bool
+    {
+        $connection = Schema::getConnection();
+        $driver = $connection->getDriverName();
+
+        if ($driver === 'mysql') {
+            $database = $connection->getDatabaseName();
+
+            $rows = DB::select(
+                'select 1 from information_schema.statistics where table_schema = ? and table_name = ? and index_name = ? limit 1',
+                [$database, $table, $index]
+            );
+
+            return ! empty($rows);
+        }
+
+        return false;
     }
 };
