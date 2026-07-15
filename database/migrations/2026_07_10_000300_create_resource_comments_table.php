@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('body');
             $table->timestamps();
 
-            $table->index(['commentable_type', 'commentable_id', 'parent_id']);
+            $table->index(['commentable_type', 'commentable_id', 'parent_id'], 'rc_comments_cmp_parent_idx');
         });
     }
 
