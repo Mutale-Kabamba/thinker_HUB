@@ -28,6 +28,10 @@
     .hub-shell {
         display: grid;
         gap: 0.75rem;
+        max-width: 100%;
+        overflow-x: hidden;
+        box-sizing: border-box;
+        word-break: break-word;
     }
 
     .hub-grid {
@@ -51,6 +55,8 @@
         border-radius: 12px;
         padding: 0.8rem;
         box-shadow: none;
+        box-sizing: border-box;
+        max-width: 100%;
     }
 
     .hub-card-dark {
@@ -100,6 +106,7 @@
     }
 
     .hub-chip-primary { background: var(--hub-primary-soft); color: #0f766e; border-color: #5eead4; }
+    .hub-chip-blue { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
     .hub-chip-amber { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
     .hub-chip-green { background: #dcfce7; color: #166534; border-color: #86efac; }
     .hub-chip-red { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
@@ -170,7 +177,7 @@
     .hub-stack { display: grid; gap: 0.55rem; }
 
     .hub-top-search {
-        width: 220px;
+        width: 100%;
         border: 1px solid var(--hub-border);
         border-radius: 999px;
         padding: 0.38rem 0.68rem;
@@ -179,20 +186,55 @@
         color: var(--hub-ink);
     }
 
-    .hub-top-search-wrap { display: none; }
+    /* Combined search + notification group */
+    .hub-top-bar-group {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.5rem;
+    }
 
+    .hub-top-search-form {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Mobile: search+notif centered, profile pushed right */
+    @media (max-width: 899px) {
+        .hub-top-bar-group {
+            flex: 1;
+            min-width: 0;
+            gap: 0.25rem;
+            padding: 0 0.25rem;
+        }
+
+        .hub-top-search {
+            width: 100%;
+            font-size: 0.72rem;
+            padding: 0.32rem 0.55rem;
+        }
+
+        /* Reorder: push profile (fi-topbar-end) to the far right */
+        .fi-topbar > .fi-topbar-end {
+            order: 99;
+            margin-inline-start: 0;
+            flex-shrink: 0;
+        }
+    }
+
+    /* Desktop: centre the group in the topbar */
     @media (min-width: 900px) {
         .fi-topbar {
             position: relative;
         }
 
-        .hub-top-search-wrap {
-            display: block;
+        .hub-top-bar-group {
             position: absolute;
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
             z-index: 20;
+            padding: 0;
         }
 
         .hub-top-search {
@@ -233,6 +275,9 @@
 
     .hub-day-today { background: #0f766e; color: #fff; border-color: #115e59; }
     .hub-day-due { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+    .hub-day-past { opacity: 0.45; }
+    .hub-day-selected { outline: 2px solid #3b82f6; outline-offset: 1px; border-radius: 8px; }
+    .hub-day:hover { background: var(--hub-surface); }
 
     /* Keep admin data tables denser and closer to Filament compact layout. */
     .fi-panel-admin .hub-table {
@@ -257,6 +302,19 @@
         padding-bottom: 0.42rem;
     }
 
+    /* Student sidebar active state accent: keep brand-consistent teal/blue */
+    .fi-panel-student .fi-sidebar-item-button.fi-active,
+    .fi-panel-student .fi-sidebar-item-button[aria-current="page"] {
+        background: linear-gradient(135deg, color-mix(in oklab, var(--hub-primary) 92%, #0ea5e9 8%), #0ea5e9) !important;
+        color: #ffffff !important;
+        border: 1px solid color-mix(in oklab, var(--hub-primary) 65%, #0ea5e9 35%);
+        box-shadow: 0 10px 24px rgba(14, 116, 144, 0.24);
+    }
+
+    .fi-panel-student .fi-sidebar-item-button.fi-active .fi-icon,
+    .fi-panel-student .fi-sidebar-item-button[aria-current="page"] .fi-icon {
+        color: #ffffff !important;
+    }
     .fi-panel-admin .fi-input,
     .fi-panel-admin .fi-select-input,
     .fi-panel-admin .fi-ta-search-field input {
@@ -267,6 +325,12 @@
     .dark .hub-chip-primary {
         color: #99f6e4;
         border-color: #134e4a;
+    }
+
+    .dark .hub-chip-blue {
+        background: #1e2a4a;
+        color: #93c5fd;
+        border-color: #1e3a5f;
     }
 
     .dark .hub-chip-gray {
@@ -291,5 +355,513 @@
         background: #3a1418;
         color: #fca5a5;
         border-color: #7f1d1d;
+    }
+
+    /* ============================================================ */
+    /* GLOBAL MOBILE RESPONSIVE UTILITIES                           */
+    /* ============================================================ */
+    .hub-desktop-only { display: block !important; }
+    .hub-mobile-only  { display: none !important; }
+
+    /* Stats grid: 4 columns on desktop by default */
+    .hub-stats-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    @media (max-width: 768px) {
+        .hub-desktop-only { display: none !important; }
+        .hub-mobile-only  { display: block !important; }
+
+        /* ── Filament v5 mobile overflow fix ──────────────────────
+           .fi-main-ctn uses w-screen (100vw) which includes the
+           scrollbar width and overflows. Override to 100%. */
+        .fi-main-ctn {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .fi-layout {
+            overflow-x: hidden !important;
+        }
+
+        .fi-main {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Reduce Filament page vertical spacing on mobile */
+        .fi-page-header-main-ctn {
+            padding-top: 1rem !important;
+            padding-bottom: 0 !important;
+            gap: 0.75rem !important;
+        }
+
+        .fi-page-content {
+            gap: 0.5rem !important;
+        }
+
+        /* Constrain Filament page header padding */
+        .fi-header {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        /* Stack grid items vertically on mobile */
+        .hub-grid-3 > .hub-card[style*="grid-column: span 2"] {
+            grid-column: span 1 !important;
+        }
+
+        /* Make hub-table scroll horizontal on mobile */
+        .hub-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        /* Tighter padding on cards */
+        .hub-card { padding: 0.65rem 0.75rem; }
+
+        /* Hub links wrap nicely */
+        .hub-links { gap: 0.3rem; }
+        .hub-links .hub-btn { font-size: 0.7rem; padding: 0.35rem 0.55rem; }
+
+        /* Calendar day cells */
+        .hub-day { font-size: 0.62rem; padding: 0.22rem 0; }
+
+        /* Material filters: stack vertically on mobile */
+        .hub-filter-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.5rem !important;
+        }
+
+        .hub-filter-row select {
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+        }
+
+        /* Mobile card improvements */
+        .hub-mobile-card {
+            padding: 0.85rem 1rem;
+        }
+
+        .hub-mobile-card-actions {
+            gap: 0.25rem;
+        }
+
+        .hub-action-btn {
+            font-size: 0.7rem;
+            padding: 0.28rem 0.5rem;
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Admin/instructor stat widgets: 2 columns on tablet */
+        .hub-stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.5rem !important;
+        }
+
+        .hub-stats-grid .hub-card {
+            padding: 0.6rem 0.7rem;
+        }
+
+        .hub-metric {
+            font-size: 1.1rem;
+        }
+
+        /* Filament built-in table responsiveness */
+        .fi-ta-table {
+            font-size: 0.72rem;
+        }
+
+        .fi-ta-header-cell,
+        .fi-ta-cell {
+            padding: 0.35rem 0.4rem !important;
+        }
+
+        /* Filament action modals: full width on mobile */
+        .fi-modal-window {
+            max-width: calc(100vw - 1rem) !important;
+            margin: 0.5rem !important;
+        }
+
+        /* Filament form components: prevent overflow */
+        .fi-fo-field-wrp,
+        .fi-fo-component-ctn {
+            max-width: 100% !important;
+            overflow-x: hidden;
+        }
+
+        /* Filament action buttons in table rows */
+        .fi-ta-actions {
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        /* Fee row stacking on mobile (public course detail page) */
+        .hub-fee-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.25rem !important;
+        }
+
+        /* Cookie table scroll on mobile */
+        .hub-legal-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    }
+
+    /* Mobile card for replacing tables on small screens */
+    .hub-mobile-card {
+        border: 1px solid var(--hub-border);
+        border-radius: 10px;
+        padding: 0.7rem 0.85rem;
+        background: var(--hub-card);
+        margin-bottom: 0.5rem;
+        box-sizing: border-box;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .hub-mobile-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .hub-mobile-card-meta {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.4rem;
+        font-size: 0.78rem;
+        flex-wrap: wrap;
+    }
+
+    .hub-mobile-card-actions {
+        display: flex;
+        gap: 0.35rem;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .hub-action-btn {
+        background: none;
+        border: 1px solid var(--hub-border);
+        border-radius: 6px;
+        padding: 0.3rem 0.65rem;
+        font-size: 0.75rem;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .hub-span-2 { grid-column: span 2; }
+
+    @media (max-width: 768px) {
+        .hub-span-2 { grid-column: span 1 !important; }
+
+        /* ---- Quiz Centre listing ---- */
+        .hub-quiz-listing .hub-mobile-card {
+            padding: 0.75rem 0.85rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-row {
+            align-items: center;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-meta {
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-meta span {
+            white-space: nowrap;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-actions {
+            margin-top: 0.6rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-actions .hub-action-btn {
+            flex: 1;
+            text-align: center;
+            padding: 0.45rem 0.5rem;
+            font-size: 0.78rem;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ---- Quiz take-quiz page ---- */
+        .hub-quiz-timer-bar {
+            padding: 0.4rem 0.65rem !important;
+            font-size: 0.75rem !important;
+            border-radius: 8px !important;
+        }
+
+        .hub-quiz-nav-dots {
+            gap: 0.25rem !important;
+        }
+
+        .hub-quiz-nav-dots button {
+            width: 24px !important;
+            height: 24px !important;
+            font-size: 0.62rem !important;
+        }
+
+        .hub-quiz-option label {
+            padding: 0.5rem 0.65rem !important;
+            font-size: 0.82rem !important;
+        }
+
+        .hub-quiz-question-card {
+            padding: 0.85rem !important;
+        }
+
+        /* ---- Schedule calendar ---- */
+        .hub-calendar-table {
+            min-width: 320px !important;
+        }
+
+        .hub-calendar-table td {
+            height: 3.5rem !important;
+            padding: 0.15rem !important;
+        }
+
+        .hub-calendar-table th {
+            font-size: 0.6rem !important;
+            padding: 0.25rem 0.1rem !important;
+        }
+
+        .hub-calendar-session {
+            font-size: 0.5rem !important;
+            padding: 0.1rem 0.15rem !important;
+        }
+
+        .hub-calendar-day-num {
+            font-size: 0.6rem !important;
+        }
+
+        /* Schedule legend */
+        .hub-legend {
+            gap: 0.5rem !important;
+            font-size: 0.6rem !important;
+        }
+
+        /* Schedule/reschedule forms: stack inputs */
+        .hub-form-row {
+            flex-direction: column !important;
+            gap: 0.4rem !important;
+        }
+
+        .hub-form-row > div {
+            width: 100% !important;
+        }
+
+        .hub-form-row input[type="date"],
+        .hub-form-row input[type="time"] {
+            width: 100% !important;
+        }
+
+        /* Schedule filter row */
+        .hub-schedule-filters {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.4rem !important;
+        }
+
+        .hub-schedule-filters > div {
+            width: 100% !important;
+        }
+
+        .hub-schedule-filters select {
+            width: 100% !important;
+        }
+
+        .hub-schedule-filters .hub-filter-count {
+            margin-left: 0 !important;
+            align-self: flex-start !important;
+        }
+
+        /* Session cards meta row */
+        .hub-session-meta {
+            gap: 0.5rem !important;
+            font-size: 0.72rem !important;
+        }
+
+        /* Course progress grid */
+        .hub-progress-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    /* Extra-small screens (≤ 480px) */
+    @media (max-width: 480px) {
+        .hub-shell { gap: 0.5rem; }
+
+        .hub-card { padding: 0.55rem 0.65rem; }
+
+        .hub-eyebrow { font-size: 0.58rem; }
+        .hub-title { font-size: 0.95rem !important; }
+        .hub-copy { font-size: 0.76rem; }
+
+        .hub-mobile-card {
+            padding: 0.65rem 0.75rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .hub-mobile-card-row p:first-child {
+            font-size: 0.82rem !important;
+        }
+
+        .hub-mobile-card-meta {
+            gap: 0.35rem;
+            font-size: 0.72rem;
+        }
+
+        .hub-action-btn {
+            font-size: 0.68rem;
+            padding: 0.25rem 0.45rem;
+            min-height: 36px;
+        }
+
+        .hub-chip {
+            font-size: 0.6rem !important;
+            padding: 0.15rem 0.4rem !important;
+        }
+
+        /* Stats grid stacks to 1 column on very small screens */
+        .hub-stats-grid {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* All hub buttons get touch-friendly minimum height */
+        .hub-btn {
+            min-height: 36px;
+        }
+
+        /* Quiz centre: stack meta vertically on very small screens */
+        .hub-quiz-listing .hub-mobile-card-meta {
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .hub-quiz-listing .hub-mobile-card-actions .hub-action-btn {
+            width: 100%;
+        }
+    }
+
+    /* ============================================================ */
+    /* INSTRUCTOR PANEL MOBILE ENHANCEMENTS                          */
+    /* ============================================================ */
+    @media (max-width: 768px) {
+        /* Instructor overview: course cards stack in single column */
+        .fi-panel-instructor .hub-grid-2 {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* Filament sidebar toggle button — ensure visible and tappable */
+        .fi-layout-sidebar-toggle-btn-ctn {
+            padding: 0.5rem !important;
+        }
+
+        /* Instructor resource tables: enable horizontal scroll */
+        .fi-panel-instructor .fi-ta-ctn {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Session list action buttons: stack on small screens */
+        .fi-panel-instructor .hub-card > div:last-child > .hub-btn {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+        }
+
+        /* Filament header title sizing on mobile */
+        .fi-panel-instructor .fi-header-heading {
+            font-size: 1.25rem !important;
+        }
+
+        /* Filament account widget: compact on mobile */
+        .fi-panel-instructor .fi-account-widget {
+            padding: 0.5rem !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        /* Extra-small: full-width buttons in instructor session cards */
+        .fi-panel-instructor .hub-card .hub-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .fi-panel-instructor .hub-card .hub-btn + .hub-btn {
+            width: 100%;
+        }
+    }
+
+    /* ============================================================ */
+    /* NOTIFICATION BELL                                             */
+    /* ============================================================ */
+    .hub-notif-bell:hover { color: var(--hub-ink); }
+    .hub-notif-bell:focus { outline: 2px solid var(--hub-primary); outline-offset: 2px; border-radius: 6px; }
+
+    /* Close button row — hidden on desktop */
+    .hub-notif-close-row { display: none; }
+
+    /* Desktop: overlay is just a positioner, no backdrop */
+    .hub-notif-overlay {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        z-index: 100;
+    }
+
+    .hub-notif-panel {
+        width: 340px;
+        max-height: 420px;
+        background: var(--hub-card);
+        border: 1px solid var(--hub-border);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Mobile: overlay becomes fullscreen backdrop with centered panel */
+    @media (max-width: 899px) {
+        .hub-notif-close-row {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0.5rem 0.75rem 0;
+        }
+
+        .hub-notif-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.45);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hub-notif-panel {
+            width: calc(100% - 2rem);
+            max-width: 380px;
+            max-height: 75vh;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+            z-index: 9999;
+        }
     }
 </style>

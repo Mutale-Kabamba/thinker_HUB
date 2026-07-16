@@ -7,14 +7,38 @@
                 </svg>
             </a>
             <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Enrollment</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Account Setup</p>
             <h1 class="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">Create Your Account</h1>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Fill in your details to join as a student.</p>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Create an account to register for a course and access your workspace.</p>
             </div>
         </div>
 
         <form method="POST" action="{{ route('register') }}" class="space-y-4">
             @csrf
+
+            <button
+                type="button"
+                id="google-signin-register"
+                class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-[0.75rem] font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+            >
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm dark:bg-slate-900" aria-hidden="true">
+                    <i class="fa-brands fa-google text-sm" style="background: conic-gradient(from 300deg, #4285F4 0deg 90deg, #34A853 90deg 180deg, #FBBC05 180deg 270deg, #EA4335 270deg 360deg); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>
+                </span>
+                Continue with Google
+            </button>
+
+            <p id="google-signin-register-feedback" class="text-xs text-center text-slate-500"></p>
+
+            <div id="google-register-state" class="hidden rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-xs text-teal-800 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-200"></div>
+
+            <div class="relative py-1">
+                <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
+                </div>
+                <div class="relative flex justify-center">
+                    <span class="bg-white px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:bg-slate-900">Or create account manually</span>
+                </div>
+            </div>
 
             <div>
                 <x-input-label for="name" class="text-slate-700 dark:text-slate-300" :value="__('Full Name')" />
@@ -34,8 +58,15 @@
                     <select id="course_id" name="course_id" required class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
                         <option value="">Select course</option>
                         @foreach ($courses as $course)
-                            <option value="{{ $course->id }}" @selected((string) old('course_id') === (string) $course->id)>
-                                {{ $course->code }} - {{ $course->title }}
+                            @php $isLockedCourse = $course->is_open_enrollment === false; @endphp
+                            <option
+                                value="{{ $course->id }}"
+                                data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}"
+                                data-payment-message="{{ $course->payment_contact_message }}"
+                                @selected((string) old('course_id') === (string) $course->id)
+                                @disabled($isLockedCourse)
+                            >
+                                {{ $course->code }} - {{ $course->title }}{{ $isLockedCourse ? ' (Locked)' : '' }}
                             </option>
                         @endforeach
                     </select>
@@ -52,6 +83,11 @@
                     </select>
                     <x-input-error :messages="$errors->get('track')" class="mt-2" />
                 </div>
+            </div>
+
+            <div id="payment-notice" class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                <p class="font-semibold">Notice: Online Payment Coming Soon.</p>
+                <p id="payment-notice-message" class="mt-1">For this paid course, the registration team will reach out soon.</p>
             </div>
 
             <div>
@@ -74,13 +110,13 @@
 
             <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
                 <input type="checkbox" name="accept_terms" value="1" class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500" @checked(old('accept_terms'))>
-                <span>I agree to the Terms and Conditions for learner enrollment.</span>
+                <span>I agree to the Terms and Conditions for platform access.</span>
             </label>
             <x-input-error :messages="$errors->get('accept_terms')" class="mt-2" />
 
             <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
                 <input type="checkbox" name="accept_requirements" value="1" class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500" @checked(old('accept_requirements'))>
-                <span>I confirm that I meet the basic requirements for this learning program.</span>
+                <span>I confirm the submitted profile details are correct for account setup.</span>
             </label>
             <x-input-error :messages="$errors->get('accept_requirements')" class="mt-2" />
 
@@ -90,10 +126,69 @@
                 </a>
 
                 <x-primary-button class="justify-center rounded-xl bg-teal-600 px-6 py-2.5 text-[0.75rem] hover:bg-teal-700 focus:ring-teal-500">
-                    {{ __('Complete Enrollment') }}
+                    {{ __('Create Account') }}
                 </x-primary-button>
             </div>
+
         </form>
+    </div>
+
+    <div id="google-enrollment-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="google-enrollment-modal-title">
+        <div class="absolute inset-0 bg-slate-900/50"></div>
+        <div class="relative mx-auto mt-10 w-[92%] max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:mt-16 dark:border-slate-700 dark:bg-slate-900">
+            <div class="mb-4">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Course Setup</p>
+                <h3 id="google-enrollment-modal-title" class="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100">Finish Your Google Account Setup</h3>
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Select your course and level so we can place your account in the correct workflow.</p>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                    <label for="google_modal_course_id" class="text-sm font-medium text-slate-700 dark:text-slate-300">Course</label>
+                    <select id="google_modal_course_id" class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                        <option value="">Select course</option>
+                        @foreach ($courses as $course)
+                            @php $isLockedCourse = $course->is_open_enrollment === false; @endphp
+                            <option value="{{ $course->id }}" data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}" data-payment-message="{{ $course->payment_contact_message }}" @disabled($isLockedCourse)>
+                                {{ $course->code }} - {{ $course->title }}{{ $isLockedCourse ? ' (Locked)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label for="google_modal_track" class="text-sm font-medium text-slate-700 dark:text-slate-300">Level</label>
+                    <select id="google_modal_track" class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                        <option value="">Select level</option>
+                        @foreach (['Beginner', 'Intermediate', 'Advanced'] as $track)
+                            <option value="{{ $track }}">{{ $track }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div id="google-payment-notice" class="mt-4 hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                <p class="font-semibold">Notice: Online Payment Coming Soon.</p>
+                <p id="google-payment-notice-message" class="mt-1">For this paid course, the registration team will reach out soon.</p>
+            </div>
+
+            <div class="mt-4 space-y-3">
+                <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+                    <input id="google_modal_accept_terms" type="checkbox" class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                    <span>I agree to the Terms and Conditions for platform access.</span>
+                </label>
+
+                <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+                    <input id="google_modal_accept_requirements" type="checkbox" class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                    <span>I confirm the submitted profile details are correct for account setup.</span>
+                </label>
+            </div>
+
+            <div class="mt-5 flex items-center justify-end gap-3">
+                <button type="button" id="google-enrollment-cancel" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200">Cancel</button>
+                <button type="button" id="google-enrollment-submit" class="rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Complete Setup</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -109,5 +204,294 @@
                 button.textContent = isHidden ? 'Hide' : 'Show';
             });
         });
+
+        (function () {
+            var pageCourseSelect = document.getElementById('course_id');
+            var pagePaymentNotice = document.getElementById('payment-notice');
+            var pagePaymentNoticeMessage = document.getElementById('payment-notice-message');
+            var modalCourseSelect = document.getElementById('google_modal_course_id');
+            var modalPaymentNotice = document.getElementById('google-payment-notice');
+            var modalPaymentNoticeMessage = document.getElementById('google-payment-notice-message');
+
+            var updateNotice = function (selectEl, noticeEl, messageEl) {
+                if (!selectEl || !noticeEl || !messageEl) {
+                    return;
+                }
+
+                var option = selectEl.options[selectEl.selectedIndex];
+                var requiresPayment = option && option.getAttribute('data-requires-payment') === '1';
+                var message = option && option.getAttribute('data-payment-message');
+
+                noticeEl.classList.toggle('hidden', !requiresPayment);
+
+                if (requiresPayment) {
+                    messageEl.textContent = message && message.trim() !== ''
+                        ? message
+                        : 'For this paid course, the registration team will reach out soon.';
+                }
+            };
+
+            if (pageCourseSelect && pagePaymentNotice && pagePaymentNoticeMessage) {
+                pageCourseSelect.addEventListener('change', function () {
+                    updateNotice(pageCourseSelect, pagePaymentNotice, pagePaymentNoticeMessage);
+                });
+                updateNotice(pageCourseSelect, pagePaymentNotice, pagePaymentNoticeMessage);
+            }
+
+            if (modalCourseSelect && modalPaymentNotice && modalPaymentNoticeMessage) {
+                modalCourseSelect.addEventListener('change', function () {
+                    updateNotice(modalCourseSelect, modalPaymentNotice, modalPaymentNoticeMessage);
+                });
+                updateNotice(modalCourseSelect, modalPaymentNotice, modalPaymentNoticeMessage);
+            }
+        })();
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, getRedirectResult, signInWithPopup, signInWithRedirect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+        const googleButton = document.getElementById('google-signin-register');
+        const googleState = document.getElementById('google-register-state');
+        const feedback = document.getElementById('google-signin-register-feedback');
+        const enrollmentModal = document.getElementById('google-enrollment-modal');
+        const enrollmentCancelButton = document.getElementById('google-enrollment-cancel');
+        const enrollmentSubmitButton = document.getElementById('google-enrollment-submit');
+        let pendingGoogleIdToken = null;
+
+        const firebaseConfig = @json(config('services.firebase.web'));
+        const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
+        const missingKey = requiredKeys.find((key) => !firebaseConfig?.[key]);
+
+        if (googleButton && feedback && googleState && enrollmentModal && enrollmentCancelButton && enrollmentSubmitButton) {
+            if (missingKey) {
+                googleButton.disabled = true;
+                googleButton.classList.add('opacity-60', 'cursor-not-allowed');
+                feedback.textContent = 'Social sign-in is unavailable. Missing Firebase config.';
+            } else {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const googleProvider = new GoogleAuthProvider();
+
+            const buildRegistrationPayload = () => {
+                const courseId = document.getElementById('course_id')?.value;
+                const track = document.getElementById('track')?.value;
+                const acceptTerms = document.querySelector('input[name="accept_terms"]')?.checked;
+                const acceptRequirements = document.querySelector('input[name="accept_requirements"]')?.checked;
+
+                if (!courseId || !track || !acceptTerms || !acceptRequirements) {
+                    throw new Error('Select course, level, and both confirmations before social sign-in.');
+                }
+
+                return {
+                    course_id: Number(courseId),
+                    track: track,
+                    accept_terms: true,
+                    accept_requirements: true,
+                };
+            };
+
+            const submitSocialToken = async (idToken, payload) => {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+                const response = await fetch("{{ route('auth.firebase.google', absolute: false) }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                    },
+                    body: JSON.stringify({
+                        id_token: idToken,
+                        ...payload,
+                    }),
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Social sign-in failed.');
+                }
+
+                window.location.assign(result.redirect || "{{ route('dashboard', absolute: false) }}");
+            };
+
+            const setIdleButtons = () => {
+                googleButton.disabled = false;
+                googleButton.textContent = 'Continue with Google';
+            };
+
+            const showEnrollmentModal = () => {
+                enrollmentModal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            };
+
+            const hideEnrollmentModal = () => {
+                enrollmentModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            };
+
+            const getEnrollmentPayload = () => {
+                const courseId = document.getElementById('google_modal_course_id')?.value;
+                const track = document.getElementById('google_modal_track')?.value;
+                const acceptTerms = document.getElementById('google_modal_accept_terms')?.checked;
+                const acceptRequirements = document.getElementById('google_modal_accept_requirements')?.checked;
+
+                if (!courseId || !track || !acceptTerms || !acceptRequirements) {
+                    throw new Error('Complete course, level, and both confirmations.');
+                }
+
+                return {
+                    course_id: Number(courseId),
+                    track,
+                    accept_terms: true,
+                    accept_requirements: true,
+                };
+            };
+
+            const explainSocialError = (error) => {
+                const code = error?.code || '';
+
+                if (code === 'auth/popup-closed-by-user') {
+                    return 'Popup was closed before completing sign-in. Try again and keep it open.';
+                }
+
+                if (code === 'auth/cancelled-popup-request') {
+                    return 'A sign-in popup is already open. Complete that popup first.';
+                }
+
+                if (code === 'auth/operation-not-supported-in-this-environment') {
+                    return 'Popup sign-in is not supported in this browser context. Redirect sign-in will be used instead.';
+                }
+
+                if (code === 'auth/web-storage-unsupported') {
+                    return 'This browser environment blocks web storage required for Google sign-in.';
+                }
+
+                if (code === 'auth/unauthorized-domain') {
+                    return `Google sign-in is not enabled for this domain (${window.location.hostname}). Add it in Firebase Console > Authentication > Settings > Authorized domains.`;
+                }
+
+                return error?.message || 'Social sign-in failed.';
+            };
+
+            const shouldFallbackToRedirect = (error) => {
+                const code = error?.code || '';
+
+                return [
+                    'auth/popup-blocked',
+                    'auth/popup-closed-by-user',
+                    'auth/cancelled-popup-request',
+                    'auth/operation-not-supported-in-this-environment',
+                    'auth/web-storage-unsupported',
+                ].includes(code);
+            };
+
+            const prepareGoogleEnrollmentStep = async (user) => {
+                pendingGoogleIdToken = await user.getIdToken();
+                googleState.classList.remove('hidden');
+                googleState.textContent = `Google connected as ${user.email || 'your account'}. Complete your enrollment details in the popup to continue.`;
+
+                const pageCourse = document.getElementById('course_id')?.value || '';
+                const pageTrack = document.getElementById('track')?.value || '';
+                const pageTerms = document.querySelector('input[name="accept_terms"]')?.checked || false;
+                const pageReqs = document.querySelector('input[name="accept_requirements"]')?.checked || false;
+
+                document.getElementById('google_modal_course_id').value = pageCourse;
+                document.getElementById('google_modal_track').value = pageTrack;
+                document.getElementById('google_modal_accept_terms').checked = pageTerms;
+                document.getElementById('google_modal_accept_requirements').checked = pageReqs;
+                document.getElementById('google_modal_course_id').dispatchEvent(new Event('change'));
+
+                showEnrollmentModal();
+                setIdleButtons();
+            };
+
+            enrollmentCancelButton.addEventListener('click', () => {
+                hideEnrollmentModal();
+            });
+
+            enrollmentModal.addEventListener('click', (event) => {
+                if (event.target === enrollmentModal) {
+                    hideEnrollmentModal();
+                }
+            });
+
+            enrollmentSubmitButton.addEventListener('click', async () => {
+                feedback.textContent = '';
+
+                if (!pendingGoogleIdToken) {
+                    feedback.textContent = 'Start with Continue with Google first.';
+                    return;
+                }
+
+                enrollmentSubmitButton.disabled = true;
+                enrollmentSubmitButton.textContent = 'Completing...';
+
+                try {
+                    const payload = getEnrollmentPayload();
+                    await submitSocialToken(pendingGoogleIdToken, payload);
+                } catch (error) {
+                    feedback.textContent = explainSocialError(error);
+                    enrollmentSubmitButton.disabled = false;
+                    enrollmentSubmitButton.textContent = 'Complete Setup';
+
+                    if ((error?.message || '').includes('Complete setup fields')) {
+                        showEnrollmentModal();
+                    }
+                }
+            });
+
+            (async () => {
+                try {
+                    if (auth.currentUser) {
+                        await prepareGoogleEnrollmentStep(auth.currentUser);
+                        return;
+                    }
+
+                    const redirectResult = await getRedirectResult(auth);
+
+                    if (redirectResult?.user) {
+                        await prepareGoogleEnrollmentStep(redirectResult.user);
+                    }
+                } catch (error) {
+                    feedback.textContent = explainSocialError(error);
+                    setIdleButtons();
+                }
+            })();
+
+            const bindProvider = (button, provider, loadingLabel) => {
+                button.addEventListener('click', async () => {
+                    feedback.textContent = '';
+                    googleButton.disabled = true;
+                    button.textContent = loadingLabel;
+
+                    try {
+                        const result = await signInWithPopup(auth, provider);
+
+                        await prepareGoogleEnrollmentStep(result.user);
+                        return;
+                    } catch (error) {
+                        if (shouldFallbackToRedirect(error)) {
+                            try {
+                                feedback.textContent = 'Opening Google sign-in as a full-page redirect...';
+                                await signInWithRedirect(auth, provider);
+                                return;
+                            } catch (redirectError) {
+                                feedback.textContent = explainSocialError(redirectError);
+                                setIdleButtons();
+                                return;
+                            }
+                        }
+
+                        feedback.textContent = explainSocialError(error);
+                        setIdleButtons();
+                    }
+                });
+            };
+
+            bindProvider(googleButton, googleProvider, 'Signing in...');
+            }
+        }
     </script>
 </x-guest-layout>

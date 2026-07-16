@@ -5,13 +5,19 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>think.er HUB</title>
-        <link rel="icon" type="image/png" href="{{ asset('images/logos/icon_green.png') }}">
+        @include('partials.seo-meta', [
+            'title' => 'Account Access | think.er HUB',
+            'description' => 'Sign in or create your account to access think.er HUB management panels and course workflows.',
+            'type' => 'website',
+            'indexable' => false,
+        ])
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @include('partials.pwa-register')
     </head>
     <body class="font-sans antialiased text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-950">
         <div class="relative min-h-screen overflow-hidden">
@@ -21,8 +27,8 @@
             </div>
 
             <div class="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
-                <a href="{{ route('home') }}" class="mx-auto inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200">
-                    <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
+                <a href="{{ route('home') }}" class="mx-auto inline-flex items-center" aria-label="think.er HUB home">
+                    <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-16 w-auto">
                 </a>
 
                 <main class="mx-auto mt-6 flex w-full flex-1 items-center justify-center">

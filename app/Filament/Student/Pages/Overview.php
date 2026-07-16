@@ -6,6 +6,7 @@ use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\Assessment;
 use App\Models\AssessmentSubmission;
+use App\Models\CourseSession;
 use App\Models\LearningMaterial;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
@@ -16,7 +17,7 @@ class Overview extends Page
 
     protected static ?string $navigationLabel = 'Overview';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = -10;
 
     protected string $view = 'filament.student.pages.overview';
 
@@ -27,6 +28,8 @@ class Overview extends Page
     public array $quickLinks = [];
 
     public array $calendar = [];
+
+    public array $calendarEvents = [];
 
     public array $upcoming = [];
 
@@ -59,8 +62,10 @@ class Overview extends Page
 
         $assessmentRecords = Assessment::query()
             ->with('course')
-            ->where('user_id', $user->id)
-            ->latest()
+            ->visibleTo($user)
+            ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('due_date')
+            ->latest('id')
             ->get();
 
         $assessmentSubmissions = AssessmentSubmission::query()
@@ -148,8 +153,9 @@ class Overview extends Page
             'items' => $assessmentRecords
                 ->take(4)
                 ->map(fn (Assessment $item): array => [
+                        'name' => $item->name ?: 'Assessment',
                     'course' => $item->course?->title ?? 'Unassigned course',
-                    'status' => $item->status,
+                        'due_date' => $item->due_date?->format('Y-m-d') ?? '-',
                     'score' => $assessmentSubmissions->get($item->id)?->score ?? '-',
                     'submission_status' => $assessmentSubmissions->get($item->id)?->status ?? 'Not submitted',
                 ])
@@ -157,27 +163,155 @@ class Overview extends Page
                 ->all(),
         ];
 
-        $monthStart = $today->copy()->startOfMonth();
+        $this->loadCalendar(Carbon::today());
+    }
+
+    public function navigateCalendar(int $year, int $month): void
+    {
+        $date = Carbon::createFromDate($year, $month, 1);
+        $this->loadCalendar($date);
+    }
+
+    protected function loadCalendar(Carbon $reference): void
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $monthStart = $reference->copy()->startOfMonth();
+        $monthEnd = $reference->copy()->endOfMonth();
         $daysInMonth = $monthStart->daysInMonth;
-        $dueMap = $visibleAssignments
-            ->filter(fn (Assignment $item): bool => (bool) $item->due_date && $item->due_date->isSameMonth($today))
-            ->groupBy(fn (Assignment $item): string => $item->due_date->format('Y-m-d'));
+        $today = Carbon::today();
+
+        $visibleAssignments = Assignment::query()
+            ->with('course')
+            ->visibleTo($user)
+            ->get();
+
+        $assessmentRecords = Assessment::query()
+            ->with('course')
+            ->visibleTo($user)
+            ->get();
+
+        $assignmentSubmissions = AssignmentSubmission::query()
+            ->where('user_id', $user->id)
+            ->get()
+            ->keyBy('assignment_id');
+
+        $assessmentSubmissions = AssessmentSubmission::query()
+            ->where('user_id', $user->id)
+            ->get()
+            ->keyBy('assessment_id');
+
+        $assignmentDueMap = $visibleAssignments
+            ->filter(fn (Assignment $a): bool => (bool) $a->due_date && $a->due_date->between($monthStart, $monthEnd))
+            ->groupBy(fn (Assignment $a): string => $a->due_date->format('Y-m-d'));
+
+        $assessmentDueMap = $assessmentRecords
+            ->filter(fn (Assessment $a): bool => (bool) $a->due_date && $a->due_date->between($monthStart, $monthEnd))
+            ->groupBy(fn (Assessment $a): string => $a->due_date->format('Y-m-d'));
+
+        $courseIds = $user->courses()->pluck('courses.id')->all();
+        $sessions = CourseSession::query()
+            ->with('course')
+            ->where(function ($q) use ($courseIds, $user) {
+                $q->whereIn('course_id', $courseIds)
+                    ->where(function ($q2) use ($user) {
+                        $q2->where('type', 'group')
+                            ->orWhere('student_id', $user->id);
+                    });
+            })
+            ->whereIn('status', ['scheduled', 'rescheduled'])
+            ->get();
+
+        $sessionDateMap = [];
+        foreach ($sessions as $s) {
+            $effectiveDate = $s->getEffectiveDate();
+            if ($effectiveDate->between($monthStart, $monthEnd)) {
+                $key = $effectiveDate->format('Y-m-d');
+                $sessionDateMap[$key][] = $s;
+            }
+        }
 
         $days = [];
+        $events = [];
 
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $date = $monthStart->copy()->day($day);
             $key = $date->format('Y-m-d');
+
+            $dayAssignments = $assignmentDueMap->get($key, collect());
+            $dayAssessments = $assessmentDueMap->get($key, collect());
+            $daySessions = $sessionDateMap[$key] ?? [];
+            $hasItems = $dayAssignments->isNotEmpty() || $dayAssessments->isNotEmpty() || count($daySessions) > 0;
+
+            $sessionNames = collect($daySessions)->map(fn ($s) => ($s->title ?: $s->course?->title ?? 'Session').' @ '.Carbon::parse($s->getEffectiveStartTime())->format('g:i A'));
+
             $days[] = [
                 'day' => $day,
+                'date' => $key,
                 'is_today' => $date->isToday(),
-                'has_due' => $dueMap->has($key),
+                'is_past' => $date->lt($today),
+                'has_due' => $hasItems,
+                'assignment_count' => $dayAssignments->count(),
+                'assessment_count' => $dayAssessments->count(),
+                'session_count' => count($daySessions),
+                'due_names' => $dayAssignments->pluck('name')->merge($dayAssessments->pluck('name'))->merge($sessionNames)->filter()->values()->all(),
             ];
+
+            if ($hasItems) {
+                $items = [];
+
+                foreach ($dayAssignments as $a) {
+                    $sub = $assignmentSubmissions->get($a->id);
+                    $items[] = [
+                        'type' => 'Assignment',
+                        'name' => $a->name,
+                        'course' => $a->course?->title ?? 'Unassigned',
+                        'status' => $sub?->status ?? 'Not submitted',
+                        'grade' => $sub?->grade,
+                    ];
+                }
+
+                foreach ($dayAssessments as $a) {
+                    $sub = $assessmentSubmissions->get($a->id);
+                    $items[] = [
+                        'type' => 'Assessment',
+                        'name' => $a->name ?: 'Assessment',
+                        'course' => $a->course?->title ?? 'Unassigned',
+                        'status' => $sub?->status ?? 'Not submitted',
+                        'grade' => $sub?->score,
+                    ];
+                }
+
+                foreach ($daySessions as $s) {
+                    $items[] = [
+                        'type' => 'Session',
+                        'name' => $s->title ?: ($s->course?->title ?? 'Session'),
+                        'course' => $s->course?->title ?? 'Unassigned',
+                        'status' => ucfirst($s->status),
+                        'grade' => null,
+                        'time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A').' – '.Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
+                        'session_type' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
+                    ];
+                }
+
+                $events[$key] = $items;
+            }
         }
 
         $this->calendar = [
-            'month' => $today->format('F Y'),
+            'month' => $reference->format('F Y'),
+            'month_num' => (int) $reference->format('m'),
+            'year' => (int) $reference->format('Y'),
+            'start_day' => $monthStart->dayOfWeek,
             'days' => $days,
+            'prev' => ['year' => (int) $reference->copy()->subMonth()->format('Y'), 'month' => (int) $reference->copy()->subMonth()->format('m')],
+            'next' => ['year' => (int) $reference->copy()->addMonth()->format('Y'), 'month' => (int) $reference->copy()->addMonth()->format('m')],
         ];
+
+        $this->calendarEvents = $events;
     }
 }

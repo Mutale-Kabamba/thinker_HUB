@@ -14,12 +14,16 @@ class LearningMaterial extends Model
     protected $fillable = [
         'course_id',
         'title',
+        'category',
+        'description',
         'material_type',
         'scope',
         'target_track',
         'target_user_id',
         'link_url',
+        'video_url',
         'file_name',
+        'file_path',
     ];
 
     public function targetUser(): BelongsTo
@@ -30,6 +34,11 @@ class LearningMaterial extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function comments(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(ResourceComment::class, 'commentable');
     }
 
     public function scopeVisibleTo(Builder $query, User $user): Builder

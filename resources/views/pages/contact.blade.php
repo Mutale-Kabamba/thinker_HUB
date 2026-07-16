@@ -3,46 +3,19 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>think.er HUB</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logos/icon_green.png') }}">
+    @include('partials.seo-meta', [
+        'title' => 'Contact | think.er HUB',
+        'description' => 'Contact think.er HUB for enrollment support, course guidance, and practical digital training information.',
+        'keywords' => 'contact thinker hub, enrollment support, digital skills training',
+        'type' => 'website',
+    ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.pwa-register')
 </head>
 <body class="bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
 
-    <header class="sticky top-0 z-50 bg-[#0a2d27] py-4 shadow-lg">
-        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
-            <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-bold text-white shrink-0">
-                <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
-            </a>
-
-            <nav class="hidden md:flex items-center gap-10 text-[13px] font-semibold uppercase tracking-wider text-slate-300">
-                <a href="{{ route('home') }}" class="hover:text-yellow-400 transition-colors">Home</a>
-                <a href="{{ route('landing.courses') }}" class="hover:text-yellow-400 transition-colors">Courses</a>
-                <a href="{{ route('landing.instructors') }}" class="hover:text-yellow-400 transition-colors">Instructors</a>
-                <a href="{{ route('landing.contact') }}" class="text-yellow-400">Contact</a>
-            </nav>
-
-            <div class="hidden md:flex items-center gap-6">
-                <a href="{{ route('login') }}" class="text-sm font-bold text-white hover:text-yellow-400">Login</a>
-                <a href="{{ route('enroll') }}" class="rounded-full bg-yellow-400 px-6 py-2.5 text-sm font-bold text-[#0a2d27] hover:bg-white transition-all">Enroll Now</a>
-            </div>
-
-            <button class="md:hidden text-white text-2xl" @click="mobileMenu = !mobileMenu">
-                <i class="fa-solid" :class="mobileMenu ? 'fa-xmark' : 'fa-bars-staggered'"></i>
-            </button>
-        </div>
-
-        <div class="md:hidden bg-[#0a2d27] border-t border-white/10" x-show="mobileMenu" x-transition>
-            <nav class="flex flex-col p-6 gap-4 text-white font-semibold">
-                <a href="{{ route('home') }}">Home</a>
-                <a href="{{ route('landing.courses') }}">Courses</a>
-                <a href="{{ route('landing.instructors') }}">Instructors</a>
-                <a href="{{ route('landing.contact') }}" class="text-yellow-400">Contact</a>
-            </nav>
-        </div>
-    </header>
+    @include('partials.public-header')
 
     <main>
         <section class="bg-[#0a2d27] relative overflow-hidden py-16 lg:py-20">
@@ -58,38 +31,83 @@
                 <div class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
                     <h2 class="text-2xl font-bold text-slate-900">Send a Message</h2>
                     <p class="mt-2 text-sm text-slate-600">Our team usually responds within one business day.</p>
-                    <form class="mt-6 space-y-4">
-                        <input type="text" placeholder="Full name" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none">
-                        <input type="email" placeholder="Email address" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none">
-                        <textarea placeholder="How can we help?" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none"></textarea>
-                        <button type="button" class="rounded-full bg-yellow-400 px-7 py-3 text-sm font-bold text-[#0a2d27] hover:bg-[#0a2d27] hover:text-white transition-all">Send Message</button>
+                    @if (session('contact_success'))
+                        <div class="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                            {{ session('contact_success') }}
+                        </div>
+                    @endif
+                    @if ($errors->has('contact'))
+                        <div class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            {{ $errors->first('contact') }}
+                        </div>
+                    @endif
+                    @if (session('contact_warning'))
+                        <div class="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            {{ session('contact_warning') }}
+                        </div>
+                    @endif
+                    <form method="POST" action="{{ route('landing.contact.store') }}" class="mt-6 space-y-4">
+                        @csrf
+                        <input type="text" name="name" value="{{ old('name') }}" placeholder="Full name" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
+                        @error('name')
+                            <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                        <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
+                        @error('email')
+                            <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                        <div x-data="{ selectedSubject: '{{ old('subject', 'General Inquiry') }}' }" class="space-y-3">
+                            <select name="subject" x-model="selectedSubject" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
+                                <option value="General Inquiry">General Inquiry</option>
+                                <option value="Enrollment Support">Enrollment Support</option>
+                                <option value="Course Guidance">Course Guidance</option>
+                                <option value="Technical Support">Technical Support</option>
+                                <option value="Partnership Opportunity">Partnership Opportunity</option>
+                                <option value="Other">Other (type custom subject)</option>
+                            </select>
+                            <input
+                                type="text"
+                                name="custom_subject"
+                                value="{{ old('custom_subject') }}"
+                                x-bind:required="selectedSubject === 'Other'"
+                                x-show="selectedSubject === 'Other'"
+                                x-transition
+                                placeholder="Type your custom subject"
+                                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none"
+                            >
+                        </div>
+                        @error('subject')
+                            <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                        @error('custom_subject')
+                            <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                        <textarea name="message" placeholder="How can we help?" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>{{ old('message') }}</textarea>
+                        @error('message')
+                            <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                        <button type="submit" class="rounded-full bg-yellow-400 px-7 py-3 text-sm font-bold text-[#0a2d27] hover:bg-[#0a2d27] hover:text-white transition-all">Send Message</button>
                     </form>
                 </div>
 
                 <div class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-                    <h2 class="text-2xl font-bold text-slate-900">Contact Details</h2>
-                    <div class="mt-6 space-y-6 text-sm text-slate-600">
-                        <div class="flex items-start gap-4">
-                            <span class="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-teal-700"><i class="fa-solid fa-location-dot"></i></span>
-                            <div>
-                                <p class="font-semibold text-slate-900">Office</p>
-                                <p>12 Innovation Avenue, Lagos, Nigeria</p>
+                    <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
+                    <div class="mt-4 space-y-2.5 text-sm text-slate-500">
+                        <div class="relative" x-data="{ phoneMenu: false }">
+                            <span class="font-semibold text-slate-700">Phone:</span>
+                            <button type="button" @click="phoneMenu = !phoneMenu" class="ml-1 text-[#0a2d27] underline-offset-2 hover:underline">+260772640546</button>
+                            <div x-show="phoneMenu" x-transition @click.outside="phoneMenu = false" class="absolute left-0 z-20 mt-2 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg" style="display: none;">
+                                <a href="tel:+260772640546" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-phone text-teal-600"></i>Call</a>
+                                <a href="https://wa.me/260772640546" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-brands fa-whatsapp text-green-600"></i>WhatsApp</a>
                             </div>
                         </div>
-                        <div class="flex items-start gap-4">
-                            <span class="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-teal-700"><i class="fa-solid fa-envelope"></i></span>
-                            <div>
-                                <p class="font-semibold text-slate-900">Email</p>
-                                <p>support@thinkerhub.test</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-4">
-                            <span class="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-teal-700"><i class="fa-solid fa-phone"></i></span>
-                            <div>
-                                <p class="font-semibold text-slate-900">Phone</p>
-                                <p>+234 800 000 0000</p>
-                            </div>
-                        </div>
+                        <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinker.learn@gmail.com</a></p>
+                        <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
+                    </div>
+                    <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
                     </div>
                 </div>
             </div>
@@ -140,9 +158,16 @@
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
                         <div class="mt-4 space-y-2.5 text-sm text-slate-500">
-                            <p><span class="font-semibold text-slate-700">Phone:</span> +260 977 000 000</p>
-                            <p><span class="font-semibold text-slate-700">Email:</span> support@thinkerhub.com</p>
-                            <p><span class="font-semibold text-slate-700">Address:</span> Lusaka, Zambia</p>
+                            <div class="relative" x-data="{ phoneMenu: false }">
+                                <span class="font-semibold text-slate-700">Phone:</span>
+                                <button type="button" @click="phoneMenu = !phoneMenu" class="ml-1 text-[#0a2d27] underline-offset-2 hover:underline">+260772640546</button>
+                                <div x-show="phoneMenu" x-transition @click.outside="phoneMenu = false" class="absolute left-0 z-20 mt-2 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg" style="display: none;">
+                                    <a href="tel:+260772640546" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-phone text-teal-600"></i>Call</a>
+                                    <a href="https://wa.me/260772640546" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-brands fa-whatsapp text-green-600"></i>WhatsApp</a>
+                                </div>
+                            </div>
+                            <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinker.learn@gmail.com</a></p>
+                            <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
                         </div>
                         <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
                             <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
@@ -156,9 +181,9 @@
                 <div class="flex flex-col items-center gap-4 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
                     <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
                     <div class="flex flex-wrap items-center gap-4">
-                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</a>
-                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</a>
-                        <a href="{{ route('landing.contact') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</a>
+                        <a href="{{ route('landing.privacy') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</a>
+                        <a href="{{ route('landing.cookies') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</a>
+                        <a href="{{ route('landing.terms') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</a>
                     </div>
                 </div>
             </div>

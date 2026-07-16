@@ -9,12 +9,19 @@ use App\Notifications\StudentSubmissionNotification;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 class Assignments extends Page
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?int $navigationSort = 3;
+    protected static string|\UnitEnum|null $navigationGroup = 'EVALUATIONS';
+
+    protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.student.pages.assignments';
 
@@ -30,20 +37,26 @@ class Assignments extends Page
     public function submit(int $assignmentId): void
     {
         $user = auth()->user();
-
         if (! $user) {
             return;
         }
-
         $assignment = Assignment::query()->visibleTo($user)->whereKey($assignmentId)->first();
-
         if (! $assignment) {
             Notification::make()->title('Assignment not available.')->danger()->send();
+
             return;
         }
-
-        $content = trim((string) ($this->submissionDrafts[$assignmentId] ?? ''));
-
+        $draft = $this->submissionDrafts[$assignmentId] ?? [];
+        $content = trim((string) ($draft['text'] ?? ''));
+        $link = isset($draft['link']) ? trim((string) $draft['link']) : null;
+        $video = isset($draft['video']) ? trim((string) $draft['video']) : null;
+        $filePath = null;
+        if (isset($draft['file']) && $draft['file']) {
+            $file = $draft['file'];
+            if (is_object($file) && method_exists($file, 'store')) {
+                $filePath = $file->store('submissions', 'public');
+            }
+        }
         AssignmentSubmission::query()->updateOrCreate(
             [
                 'assignment_id' => $assignmentId,
@@ -51,15 +64,27 @@ class Assignments extends Page
             ],
             [
                 'content' => $content,
+                'file_path' => $filePath,
+                'link' => $link,
+                'video_url' => $video,
                 'status' => 'Submitted',
                 'submitted_at' => Carbon::now(),
             ],
         );
-
-        User::query()->where('role', 'admin')->get()->each(
-            fn (User $admin) => $admin->notify(new StudentSubmissionNotification($user->name, 'assignment', $assignment->name, $assignment->id))
-        );
-
+        User::query()->where('role', 'admin')->get()->each(function (User $admin) use ($user, $assignment): void {
+            try {
+                $admin->notify(new StudentSubmissionNotification($user->name, 'assignment', $assignment->name, $assignment->id));
+            } catch (Throwable $exception) {
+                // Mail failures should not block the student submission flow.
+                Log::warning('Failed to notify admin about assignment submission.', [
+                    'admin_id' => $admin->id,
+                    'admin_email' => $admin->email,
+                    'assignment_id' => $assignment->id,
+                    'student_id' => $user->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        });
         Notification::make()->title('Assignment submitted.')->success()->send();
         $this->refreshAssignments();
     }
@@ -79,6 +104,36 @@ class Assignments extends Page
 
         Notification::make()->title('Submission deleted.')->success()->send();
         $this->refreshAssignments();
+    }
+
+    public function downloadFile(int $assignmentId): ?StreamedResponse
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        $assignment = Assignment::query()->visibleTo($user)->whereKey($assignmentId)->first();
+
+        if (! $assignment || empty($assignment->file_path)) {
+            Notification::make()->title('File not available.')->danger()->send();
+
+            return null;
+        }
+
+        $disk = Storage::disk('public');
+
+        if (! $disk->exists($assignment->file_path)) {
+            Notification::make()->title('File not found.')->danger()->send();
+
+            return null;
+        }
+
+        $extension = pathinfo($assignment->file_path, PATHINFO_EXTENSION);
+        $downloadName = Str::slug($assignment->name) . '.' . $extension;
+
+        return $disk->download($assignment->file_path, $downloadName);
     }
 
     protected function refreshAssignments(): void
@@ -110,11 +165,21 @@ class Assignments extends Page
                 'course' => $item->course?->title ?? 'Unassigned course',
                 'id' => $item->id,
                 'name' => $item->name,
+                'description' => $item->description ?? '',
+                'file_path' => $item->file_path,
                 'scope' => $scopeLabels[$item->scope] ?? ucfirst($item->scope),
                 'due' => optional($item->due_date)?->format('Y-m-d') ?? 'No due date',
                 'status' => $submissions->get($item->id)?->status ?? 'Not submitted',
                 'submitted_at' => optional($submissions->get($item->id)?->submitted_at)?->format('Y-m-d H:i') ?: '-',
-                'submission' => $submissions->get($item->id)?->content ?? '',
+                'submission' => [
+                    'id' => $submissions->get($item->id)?->id,
+                    'text' => $submissions->get($item->id)?->content ?? '',
+                    'file' => $submissions->get($item->id)?->file_path ?? null,
+                    'link' => $submissions->get($item->id)?->link ?? null,
+                    'video' => $submissions->get($item->id)?->video_url ?? null,
+                ],
+                'grade' => $submissions->get($item->id)?->grade,
+                'feedback' => $submissions->get($item->id)?->feedback,
             ])
             ->values()
             ->all();

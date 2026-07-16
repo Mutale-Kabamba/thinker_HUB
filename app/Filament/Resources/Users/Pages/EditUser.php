@@ -4,9 +4,9 @@ namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\Pages\BaseEditRecord;
 
-class EditUser extends EditRecord
+class EditUser extends BaseEditRecord
 {
     protected static string $resource = UserResource::class;
 
@@ -15,5 +15,14 @@ class EditUser extends EditRecord
         return [
             DeleteAction::make(),
         ];
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (($data['role'] ?? '') === 'instructor') {
+            $data['track'] = null;
+        }
+
+        return $data;
     }
 }

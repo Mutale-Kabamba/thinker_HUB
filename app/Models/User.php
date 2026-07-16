@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\QueuedVerifyEmail;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -25,10 +26,17 @@ class User extends Authenticatable implements FilamentUser
     protected $fillable = [
         'name',
         'email',
+        'firebase_uid',
         'password',
         'role',
+        'is_active',
         'track',
         'profile_photo_path',
+        'proficiency',
+        'occupation',
+        'whatsapp',
+        'linkedin_url',
+        'facebook_url',
     ];
 
     /**
@@ -51,6 +59,9 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
+            'pending_login_token_expires_at' => 'datetime',
+            'pending_login_token_used_at' => 'datetime',
         ];
     }
 
@@ -89,9 +100,77 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(AssessmentSubmission::class);
     }
 
+    public function quizAttempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
+
+    public function instructorCourses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_instructor')->withTimestamps();
+    }
+
+    public function instructorApplication(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(InstructorApplication::class);
+    }
+
+    public function courseSessions(): HasMany
+    {
+        return $this->hasMany(CourseSession::class, 'student_id');
+    }
+
+    public function chatRooms(): BelongsToMany
+    {
+        return $this->belongsToMany(ChatRoom::class, 'chat_room_user')
+            ->withPivot('last_read_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Accepted friends (in either direction).
+     *
+     * @return \Illuminate\Support\Collection<int, User>
+     */
+    public function friends(): \Illuminate\Support\Collection
+    {
+        $sent = Friendship::query()
+            ->where('user_id', $this->id)
+            ->where('status', 'accepted')
+            ->pluck('friend_id');
+
+        $received = Friendship::query()
+            ->where('friend_id', $this->id)
+            ->where('status', 'accepted')
+            ->pluck('user_id');
+
+        $ids = $sent->merge($received)->unique();
+
+        return User::query()->whereIn('id', $ids)->orderBy('name')->get();
+    }
+
+    public function isFriendsWith(int $userId): bool
+    {
+        return Friendship::query()
+            ->where('status', 'accepted')
+            ->where(function ($q) use ($userId): void {
+                $q->where(function ($w) use ($userId): void {
+                    $w->where('user_id', $this->id)->where('friend_id', $userId);
+                })->orWhere(function ($w) use ($userId): void {
+                    $w->where('user_id', $userId)->where('friend_id', $this->id);
+                });
+            })
+            ->exists();
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function isInstructor(): bool
+    {
+        return $this->role === 'instructor';
     }
 
     public function isEnrolledInCourse(int $courseId): bool
@@ -99,12 +178,35 @@ class User extends Authenticatable implements FilamentUser
         return $this->courses()->where('courses.id', $courseId)->exists();
     }
 
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->profile_photo_path
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->profile_photo_path)
+            : null;
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return match ($panel->getId()) {
             'admin' => $this->isAdmin(),
-            'student' => ! $this->isAdmin(),
+            'student' => ! $this->isAdmin() && ! $this->isInstructor(),
+            'instructor' => $this->isInstructor() && $this->is_active,
             default => false,
         };
+    }
+
+    public function sendEmailVerificationNotification(?string $signerName = null): void
+    {
+        $resolvedSigner = $signerName;
+
+        if ($resolvedSigner === null) {
+            $sender = auth()->user();
+
+            if ($sender instanceof self && in_array($sender->role, ['admin', 'instructor'], true)) {
+                $resolvedSigner = $sender->name;
+            }
+        }
+
+        $this->notify(new QueuedVerifyEmail($resolvedSigner));
     }
 }

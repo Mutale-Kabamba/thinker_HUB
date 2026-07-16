@@ -4,9 +4,9 @@ namespace App\Filament\Resources\LearningMaterials\Pages;
 
 use App\Filament\Resources\LearningMaterials\LearningMaterialResource;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\Pages\BaseEditRecord;
 
-class EditLearningMaterial extends EditRecord
+class EditLearningMaterial extends BaseEditRecord
 {
     protected static string $resource = LearningMaterialResource::class;
 

@@ -39,7 +39,27 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
+            'scheme' => (function (): ?string {
+                $scheme = strtolower((string) env('MAIL_SCHEME', ''));
+
+                if ($scheme === 'smtps' || $scheme === 'ssl') {
+                    return 'smtps';
+                }
+
+                if ($scheme === 'smtp') {
+                    return 'smtp';
+                }
+
+                // Compatibility: many setups still use MAIL_ENCRYPTION=tls/ssl.
+                $encryption = strtolower((string) env('MAIL_ENCRYPTION', ''));
+
+                if ($encryption === 'ssl') {
+                    return 'smtps';
+                }
+
+                // null lets Symfony use STARTTLS automatically on port 587.
+                return null;
+            })(),
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', '127.0.0.1'),
             'port' => env('MAIL_PORT', 2525),
@@ -47,6 +67,11 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+            'tls' => env('MAIL_SSL_PEER_NAME') ? [
+                'verify_peer' => true,
+                'verify_peer_name' => true,
+                'peer_name' => env('MAIL_SSL_PEER_NAME'),
+            ] : [],
         ],
 
         'ses' => [
@@ -113,6 +138,16 @@ return [
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+    ],
+
+    'contact_to' => env('MAIL_CONTACT_TO', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+
+    'admin_to' => env('MAIL_ADMIN_TO', env('MAIL_CONTACT_TO', env('MAIL_FROM_ADDRESS', 'hello@example.com'))),
+
+    'deliverability' => [
+        'message_id_domain' => env('MAIL_MESSAGE_ID_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+        'list_unsubscribe' => env('MAIL_LIST_UNSUBSCRIBE'),
+        'list_unsubscribe_post' => env('MAIL_LIST_UNSUBSCRIBE_POST', 'List-Unsubscribe=One-Click'),
     ],
 
 ];

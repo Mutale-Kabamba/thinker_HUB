@@ -23,6 +23,8 @@ class AssignmentSubmissionResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Submissions';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     public static function form(Schema $schema): Schema
     {
         return AssignmentSubmissionForm::configure($schema);

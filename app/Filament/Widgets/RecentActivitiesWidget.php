@@ -45,7 +45,7 @@ class RecentActivitiesWidget extends Widget
         Assessment::query()->latest()->limit(5)->get()->each(function (Assessment $assessment) use ($activities): void {
             $activities->push([
                 'event' => 'Assessment Updated',
-                'meta' => 'Status: '.$assessment->status,
+                'meta' => $assessment->name ?: 'Assessment #'.$assessment->id,
                 'time' => $assessment->updated_at,
             ]);
         });

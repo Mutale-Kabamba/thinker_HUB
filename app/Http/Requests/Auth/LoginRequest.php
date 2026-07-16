@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
+use App\Support\PaymentApprovalMessage;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -47,6 +49,20 @@ class LoginRequest extends FormRequest
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
+            ]);
+        }
+
+        $user = Auth::user();
+
+        if ($user && $user->role === 'student' && ! $user->is_active) {
+            Auth::logout();
+
+            $message = $user instanceof User
+                ? PaymentApprovalMessage::forUser($user)
+                : 'Online Payment Coming Soon. For this paid course, the registration team will reach out soon.';
+
+            throw ValidationException::withMessages([
+                'email' => $message,
             ]);
         }
 

@@ -56,6 +56,16 @@ class AssessmentSubmissionsTable
                             default => 'success',
                         };
                     }),
+                TextColumn::make('attachments_indicator')
+                    ->label('Attachments')
+                    ->getStateUsing(function ($record): string {
+                        $parts = [];
+                        if ($record->file_path) { $parts[] = '📄 File'; }
+                        if ($record->link) { $parts[] = '🔗 Link'; }
+                        if ($record->video_url) { $parts[] = '🎬 Video'; }
+                        return $parts ? implode(', ', $parts) : '-';
+                    })
+                    ->toggleable(),
                 TextColumn::make('score')
                     ->numeric()
                     ->sortable(),
@@ -71,6 +81,8 @@ class AssessmentSubmissionsTable
                 SelectFilter::make('status')
                     ->options([
                         'Submitted' => 'Submitted',
+                        'Graded' => 'Graded',
+                        'Checked' => 'Checked',
                         'Reviewed' => 'Reviewed',
                         'Returned' => 'Returned',
                     ]),
@@ -90,6 +102,41 @@ class AssessmentSubmissionsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    BulkAction::make('markGraded')
+                        ->label('Mark Graded')
+                        ->action(fn (Collection $records) => $records->each->update(['status' => 'Graded']))
+                        ->deselectRecordsAfterCompletion(),
+                    BulkAction::make('markChecked')
+                        ->label('Mark Checked')
+                        ->action(fn (Collection $records) => $records->each->update(['status' => 'Checked']))
+                        ->deselectRecordsAfterCompletion(),
+                    BulkAction::make('markGradedAndNotify')
+                        ->label('Mark Graded + Notify')
+                        ->requiresConfirmation()
+                        ->modalHeading('Mark graded and notify students')
+                        ->form([
+                            Textarea::make('message')
+                                ->label('Custom message')
+                                ->rows(3)
+                                ->placeholder('Optional message sent to all selected students.'),
+                        ])
+                        ->action(function (Collection $records, array $data): void {
+                            $customMessage = trim((string) ($data['message'] ?? ''));
+
+                            $records->each(function ($record) use ($customMessage): void {
+                                $record->update(['status' => 'Graded']);
+
+                                if ($record->user) {
+                                    $record->user->notify(new SubmissionGradedNotification(
+                                        'assessment',
+                                        'Assessment #'.(string) $record->assessment?->id,
+                                        $record->score,
+                                        (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your assessment has been graded.')),
+                                    ));
+                                }
+                            });
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markReviewed')
                         ->label('Mark Reviewed')
                         ->action(fn (Collection $records) => $records->each->update(['status' => 'Reviewed']))

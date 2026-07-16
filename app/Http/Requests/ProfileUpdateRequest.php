@@ -20,8 +20,9 @@ class ProfileUpdateRequest extends FormRequest
         $ignoreUserId = $targetUser instanceof User ? $targetUser->id : $this->user()->id;
 
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => [
+                'sometimes',
                 'required',
                 'string',
                 'lowercase',
@@ -30,6 +31,11 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(User::class)->ignore($ignoreUserId),
             ],
             'profile_photo' => ['nullable', 'image', 'max:2048'],
+            'proficiency' => ['nullable', 'string', 'max:255'],
+            'occupation' => ['nullable', 'string', 'max:255'],
+            'whatsapp' => ['nullable', 'string', 'max:50'],
+            'linkedin_url' => ['nullable', 'url', 'max:255'],
+            'facebook_url' => ['nullable', 'url', 'max:255'],
         ];
     }
 }

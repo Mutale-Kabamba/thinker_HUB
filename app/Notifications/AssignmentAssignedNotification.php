@@ -3,12 +3,13 @@
 namespace App\Notifications;
 
 use App\Models\Assignment;
-use Illuminate\Bus\Queueable;
+use App\Notifications\Concerns\ResolvesMailPersonalization;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class AssignmentAssignedNotification extends Notification
 {
-    use Queueable;
+    use ResolvesMailPersonalization;
 
     public function __construct(private readonly Assignment $assignment)
     {
@@ -16,7 +17,25 @@ class AssignmentAssignedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        $channels = ['database'];
+
+        if (filled($notifiable->email ?? null)) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)
+            ->subject('New Assignment: '.$this->assignment->name)
+            ->markdown('emails.assignment-assigned', [
+                'assignment' => $this->assignment,
+                'notifiable' => $notifiable,
+                'recipientName' => $this->resolveRecipientName($notifiable),
+                'signerName' => $this->resolveSignerName(),
+            ]);
     }
 
     public function toArray(object $notifiable): array
@@ -28,6 +47,7 @@ class AssignmentAssignedNotification extends Notification
             'assignment_id' => $this->assignment->id,
             'course_id' => $this->assignment->course_id,
             'due_date' => $this->assignment->due_date?->format('Y-m-d'),
+            'url' => '/learn/assignments',
         ];
     }
 }
