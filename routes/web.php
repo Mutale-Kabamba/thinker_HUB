@@ -3,8 +3,10 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InstructorApplicationController;
 use App\Http\Controllers\ContactMessageController;
+use App\Http\Controllers\LiveSessionController;
 use App\Models\Course;
 use App\Models\CourseRating;
+use App\Models\CourseSession;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Http\Request;
@@ -313,6 +315,34 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/live/sessions/{session}', [LiveSessionController::class, 'show'])
+        ->whereNumber('session')
+        ->name('live.sessions.show');
+
+    Route::post('/live/sessions/{session}/end', [LiveSessionController::class, 'end'])
+        ->whereNumber('session')
+        ->name('live.sessions.end');
+
+    Route::post('/live/sessions/{session}/attendance/join', [LiveSessionController::class, 'attendanceJoin'])
+        ->whereNumber('session')
+        ->name('live.sessions.attendance.join');
+
+    Route::post('/live/sessions/{session}/attendance/heartbeat', [LiveSessionController::class, 'attendanceHeartbeat'])
+        ->whereNumber('session')
+        ->name('live.sessions.attendance.heartbeat');
+
+    Route::post('/live/sessions/{session}/attendance/leave', [LiveSessionController::class, 'attendanceLeave'])
+        ->whereNumber('session')
+        ->name('live.sessions.attendance.leave');
+
+    Route::post('/live/sessions/{session}/recording', [LiveSessionController::class, 'updateRecording'])
+        ->whereNumber('session')
+        ->name('live.sessions.recording.update');
+
+    Route::post('/live/sessions/{session}/breakouts', [LiveSessionController::class, 'updateBreakouts'])
+        ->whereNumber('session')
+        ->name('live.sessions.breakouts.update');
+
     Route::get('/profile', function () {
         $user = Auth::user();
 

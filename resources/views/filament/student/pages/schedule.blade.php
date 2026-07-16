@@ -230,7 +230,17 @@
 
                     {{-- Reschedule Request Button --}}
                     @if (in_array($session['status'], ['scheduled', 'rescheduled']) && ! $session['is_past'])
-                        <div style="margin-top:0.6rem;">
+                        <div style="margin-top:0.6rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+                            @if ($session['can_join_live'])
+                                <a href="{{ $session['live_url'] }}" class="hub-btn hub-btn-primary" style="font-size:0.72rem;padding:0.3rem 0.6rem;text-decoration:none;">
+                                    🎥 Join Live
+                                </a>
+                            @else
+                                <span class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;opacity:0.85;cursor:not-allowed;">
+                                    ⏳ Awaiting Host
+                                </span>
+                            @endif
+
                             <button wire:click="openRescheduleRequest({{ $session['id'] }})" class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;">
                                 🔄 Request Reschedule
                             </button>
