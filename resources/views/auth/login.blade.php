@@ -200,7 +200,7 @@
             const submitSocialToken = async (idToken, payload = {}) => {
                 const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-                const response = await fetch("{{ route('auth.firebase.google') }}", {
+                const response = await fetch("{{ route('auth.firebase.google', absolute: false) }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
