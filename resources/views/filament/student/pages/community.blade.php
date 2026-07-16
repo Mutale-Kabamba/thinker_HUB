@@ -116,10 +116,46 @@
 
         {{-- ===================== CHATS TAB ===================== --}}
         @if ($tab === 'chats')
-            <div style="display:grid;grid-template-columns:minmax(200px,280px) 1fr;gap:0.75rem;align-items:start;">
+            <style>
+                .community-chat-layout {
+                    /* 14rem approximates top nav, page title, and tab switcher stack on small screens. */
+                    --community-mobile-base-offset: 14rem;
+                    --community-mobile-offset: calc(var(--community-mobile-base-offset) + env(safe-area-inset-bottom, 0px));
+                    --community-desktop-height: 70vh;
+                    --community-mobile-min-height: 24rem;
+                    --community-deep-bg: #0f172a;
+                    --community-active-text: #e2e8f0;
+                    --community-head-surface-ratio: 88%;
+                    --community-head-ink-ratio: 12%;
+                }
+                .community-chat-layout { display:grid; grid-template-columns:minmax(210px,300px) 1fr; gap:0.75rem; align-items:start; }
+                .community-room-list { padding:0.5rem; max-height:var(--community-desktop-height); overflow-y:auto; border-radius:1rem; }
+                .community-thread { padding:0; display:flex; flex-direction:column; height:var(--community-desktop-height); border-radius:1rem; overflow:hidden; }
+                .community-thread-head { padding:0.62rem 0.85rem; border-bottom:1px solid var(--hub-border); background:color-mix(in oklab, var(--hub-card) var(--community-head-surface-ratio), var(--community-deep-bg) var(--community-head-ink-ratio)); }
+                .community-room-item { width:100%; text-align:left; padding:0.65rem 0.72rem; border:none; border-radius:0.85rem; cursor:pointer; margin-bottom:0.25rem; transition:all .12s ease; }
+                .community-room-item-active { background:var(--community-deep-bg); color:var(--community-active-text); box-shadow:0 10px 22px rgba(2,6,23,.22); }
+                .community-bubble { max-width:70%; }
+                .community-composer-wrap { display:flex; gap:0.5rem; align-items:center; padding:0.34rem 0.4rem; border:1px solid color-mix(in oklab, var(--hub-border) 75%, #334155 25%); border-radius:999px; background:color-mix(in oklab, var(--hub-card) 70%, #0f172a 30%); backdrop-filter:blur(10px); box-shadow:0 12px 28px rgba(2,6,23,.3); }
+                .community-back-btn { display:none; }
+                .community-back-btn:focus-visible { outline:2px solid #22d3ee; outline-offset:2px; }
+
+                @media (max-width: 768px) {
+                    .community-chat-layout { grid-template-columns:1fr; gap:0.55rem; }
+                    .community-chat-layout[data-room-open="true"] .community-room-list { display:none; }
+                    .community-chat-layout[data-room-open="false"] .community-thread { display:none; }
+                    .community-room-list, .community-thread { height:calc(100vh - var(--community-mobile-offset)); max-height:none; min-height:var(--community-mobile-min-height); }
+                    .community-thread-head { position:sticky; top:0; z-index:5; padding:0.72rem 0.75rem; }
+                    .community-bubble { max-width:86%; }
+                    .community-back-btn { display:inline-flex; width:2rem; height:2rem; align-items:center; justify-content:center; border:1px solid var(--hub-border); border-radius:999px; background:var(--hub-surface); color:var(--hub-ink); cursor:pointer; flex:0 0 auto; }
+                    .community-composer-wrap { gap:0.36rem; padding:0.26rem 0.3rem; }
+                    .community-composer-wrap .community-message-input { font-size:14px; }
+                }
+            </style>
+
+            <div class="community-chat-layout" data-room-open="{{ $this->activeRoom ? 'true' : 'false' }}">
 
                 {{-- Room list --}}
-                <section class="hub-card" style="padding:0.5rem;max-height:70vh;overflow-y:auto;">
+                <section class="hub-card community-room-list">
                     @if ($this->rooms->count() === 0)
                         <p class="hub-copy" style="color:var(--hub-muted);font-size:0.8rem;padding:0.5rem;">No conversations yet. Message a friend from the Friends tab.</p>
                     @else
@@ -129,7 +165,10 @@
                                 $roomInitial = strtoupper(substr($room->displayNameFor(auth()->user()), 0, 1));
                             @endphp
                             <button type="button" wire:click="openRoom({{ $room->id }})"
-                                style="width:100%;text-align:left;padding:0.58rem 0.68rem;border:none;border-radius:0.62rem;cursor:pointer;margin-bottom:0.25rem;transition:all .12s ease;{{ $selectedRoomId === $room->id ? 'background:#0f172a;color:#e2e8f0;box-shadow:0 10px 22px rgba(2,6,23,.22);' : 'background:transparent;' }}"
+                                @class([
+                                    'community-room-item',
+                                    'community-room-item-active' => $selectedRoomId === $room->id,
+                                ])
                                 onmouseover="if(!this.dataset.active){this.style.background='var(--hub-surface)'}"
                                 onmouseout="if(!this.dataset.active){this.style.background='transparent'}"
                                 @if ($selectedRoomId === $room->id)
@@ -154,7 +193,7 @@
                 </section>
 
                 {{-- Message thread --}}
-                <section class="hub-card" style="padding:0;display:flex;flex-direction:column;height:70vh;">
+                <section class="hub-card community-thread">
                     @if (! $this->activeRoom)
                         <div style="flex:1;display:flex;align-items:center;justify-content:center;">
                             <p class="hub-copy" style="color:var(--hub-muted);font-size:0.85rem;">Select a conversation to start chatting.</p>
@@ -164,8 +203,11 @@
                             $activeAvatar = $this->activeRoom->avatarUrlFor(auth()->user());
                             $activeInitial = strtoupper(substr($this->activeRoom->displayNameFor(auth()->user()), 0, 1));
                         @endphp
-                        <div style="padding:0.55rem 0.85rem;border-bottom:1px solid var(--hub-border);">
+                        <div class="community-thread-head">
                             <div style="display:flex;align-items:center;gap:0.55rem;">
+                                <button type="button" wire:click="$set('selectedRoomId', null)" class="community-back-btn" aria-label="Back to chat rooms">
+                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                                </button>
                                 @if ($activeAvatar)
                                     <img src="{{ $activeAvatar }}" alt="{{ $this->activeRoom->displayNameFor(auth()->user()) }}"
                                         style="width:2rem;height:2rem;border-radius:999px;object-fit:cover;border:1px solid var(--hub-border);">
@@ -187,7 +229,7 @@
                             @forelse ($this->messages as $message)
                                 @php $mine = $message->user_id === auth()->id(); @endphp
                                 <div style="display:flex;flex-direction:column;{{ $mine ? 'align-items:flex-end;' : 'align-items:flex-start;' }}">
-                                    <div style="max-width:70%;padding:0.42rem 0.7rem;border-radius:0.78rem;font-size:13px;line-height:1.35;{{ $mine ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;border-bottom-right-radius:0.24rem;box-shadow:0 8px 20px rgba(15,118,110,.22);' : 'background:var(--hub-surface);color:var(--hub-ink);border:1px solid var(--hub-border);border-bottom-left-radius:0.24rem;box-shadow:0 4px 14px rgba(2,6,23,.06);' }}">
+                                    <div class="community-bubble" style="padding:0.42rem 0.7rem;border-radius:0.78rem;font-size:13px;line-height:1.35;{{ $mine ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;border-bottom-right-radius:0.24rem;box-shadow:0 8px 20px rgba(15,118,110,.22);' : 'background:var(--hub-surface);color:var(--hub-ink);border:1px solid var(--hub-border);border-bottom-left-radius:0.24rem;box-shadow:0 4px 14px rgba(2,6,23,.06);' }}">
                                         @if (! $mine && $this->activeRoom->type === 'course')
                                             <p style="margin:0 0 0.15rem;font-size:0.875rem;font-weight:600;opacity:0.92;">{{ $message->user?->name }}</p>
                                         @endif
@@ -238,12 +280,13 @@
 
                             <div wire:loading wire:target="attachment" style="font-size:0.72rem;color:var(--hub-muted);">Uploading…</div>
 
-                            <div style="display:flex;gap:0.5rem;align-items:center;padding:0.34rem 0.4rem;border:1px solid color-mix(in oklab, var(--hub-border) 75%, #334155 25%);border-radius:999px;background:color-mix(in oklab, var(--hub-card) 70%, #0f172a 30%);backdrop-filter:blur(10px);box-shadow:0 12px 28px rgba(2,6,23,.3);">
+                            <div class="community-composer-wrap">
                                 <label style="cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0.48rem;border:1px solid color-mix(in oklab, var(--hub-border) 70%, #475569 30%);border-radius:999px;color:var(--hub-muted);background:color-mix(in oklab, var(--hub-card) 82%, #111827 18%);" title="Attach a file">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                                     <input type="file" wire:model="attachment" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip" style="display:none;">
                                 </label>
                                 <input type="text" wire:model="messageBody" placeholder="Type a message…" autocomplete="off"
+                                    class="community-message-input"
                                     style="flex:1;font-size:13px;padding:0.45rem 0.5rem;border:0;outline:0;background:transparent;box-shadow:none;color:var(--hub-ink);-webkit-appearance:none;appearance:none;">
                                 <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachment"
                                     style="padding:0.5rem 1.05rem;background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;border:none;border-radius:999px;cursor:pointer;font-size:0.82rem;font-weight:700;box-shadow:0 8px 20px rgba(14,116,144,.28);">Send</button>
