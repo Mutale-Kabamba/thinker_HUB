@@ -91,8 +91,8 @@
                 </div>
 
                 <div class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-                    <h2 class="text-2xl font-bold text-slate-900">Contact Details</h2>
-                    <div class="mt-6 space-y-4 text-sm text-slate-500">
+                    <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
+                    <div class="mt-4 space-y-2.5 text-sm text-slate-500">
                         <div class="relative" x-data="{ phoneMenu: false }">
                             <span class="font-semibold text-slate-700">Phone:</span>
                             <button type="button" @click="phoneMenu = !phoneMenu" class="ml-1 text-[#0a2d27] underline-offset-2 hover:underline">+260772640546</button>
@@ -103,6 +103,11 @@
                         </div>
                         <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinker.learn@gmail.com</a></p>
                         <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
+                    </div>
+                    <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
                     </div>
                 </div>
             </div>
