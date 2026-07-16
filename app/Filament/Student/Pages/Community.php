@@ -54,10 +54,16 @@ class Community extends Page
         }
 
         foreach ($user->courses()->get() as $course) {
+            $groupName = $course->code ?: ($course->title . ' — Group');
+
             $room = ChatRoom::firstOrCreate(
                 ['type' => 'course', 'course_id' => $course->id],
-                ['name' => $course->title . ' — Group'],
+                ['name' => $groupName],
             );
+
+            if ($room->name !== $groupName) {
+                $room->update(['name' => $groupName]);
+            }
 
             $room->members()->syncWithoutDetaching([$user->id]);
         }

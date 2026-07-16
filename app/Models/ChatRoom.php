@@ -70,7 +70,9 @@ class ChatRoom extends Model
     public function displayNameFor(User $viewer): string
     {
         if ($this->type === 'course') {
-            return $this->name ?? ($this->course?->title ? $this->course->title . ' — Group' : 'Course Group');
+            return $this->course?->code
+                ?? $this->name
+                ?? ($this->course?->title ? $this->course->title . ' — Group' : 'Course Group');
         }
 
         $other = $this->otherMemberFor($viewer);
