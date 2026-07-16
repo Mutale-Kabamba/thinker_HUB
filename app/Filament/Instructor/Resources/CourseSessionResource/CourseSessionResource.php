@@ -34,6 +34,7 @@ class CourseSessionResource extends Resource
     protected static ?string $model = CourseSession::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
+    protected static string|\UnitEnum|null $navigationGroup = 'ACADEMICS & CONTENT';
 
     protected static ?string $navigationLabel = 'Session Timetable';
 

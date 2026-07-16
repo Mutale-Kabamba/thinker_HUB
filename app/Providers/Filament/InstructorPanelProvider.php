@@ -33,6 +33,12 @@ class InstructorPanelProvider extends PanelProvider
                 'primary' => Color::Teal,
             ])
             ->sidebarCollapsibleOnDesktop()
+            ->navigationGroups([
+                'ACADEMICS & CONTENT',
+                'GRADING & EVALUATIONS',
+                'PEOPLE & ROLES',
+                'COMMUNITY & SYSTEM',
+            ])
             ->discoverResources(in: app_path('Filament/Instructor/Resources'), for: 'App\Filament\Instructor\Resources')
             ->discoverPages(in: app_path('Filament/Instructor/Pages'), for: 'App\Filament\Instructor\Pages')
             ->userMenuItems([

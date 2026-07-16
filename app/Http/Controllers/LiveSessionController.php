@@ -36,11 +36,35 @@ class LiveSessionController extends Controller
         $baseRoomCode = $session->ensureLiveRoomCode();
         $breakout = Str::slug((string) $request->query('breakout', ''));
         $roomCode = $breakout !== '' ? $baseRoomCode . '-bo-' . $breakout : $baseRoomCode;
+        $jitsiDomain = rtrim((string) config('services.jitsi.domain', 'meet.jit.si'), '/');
 
         $this->touchAttendance($session, $user->id, $isHost ? 'host' : 'participant', [
             'event' => 'show',
             'breakout' => $breakout !== '' ? $breakout : null,
         ]);
+
+        $preferExternalOnPublic = (bool) config('services.jitsi.prefer_external_on_public', true);
+
+        if ($preferExternalOnPublic && strcasecmp($jitsiDomain, 'meet.jit.si') === 0) {
+            $hashParams = http_build_query([
+                'userInfo.displayName' => (string) $user->name,
+                'config.prejoinPageEnabled' => 'true',
+                'interfaceConfig.SHOW_JITSI_WATERMARK' => 'false',
+                'interfaceConfig.SHOW_WATERMARK_FOR_GUESTS' => 'false',
+                'interfaceConfig.SHOW_BRAND_WATERMARK' => 'false',
+                'interfaceConfig.JITSI_WATERMARK_LINK' => '',
+                'interfaceConfig.DEFAULT_LOGO_URL' => '',
+            ]);
+
+            $externalUrl = sprintf(
+                'https://%s/%s#%s',
+                $jitsiDomain,
+                rawurlencode($roomCode),
+                $hashParams,
+            );
+
+            return redirect()->away($externalUrl);
+        }
 
         return view('live.session', [
             'session' => $session->fresh(['course', 'instructor', 'student']),
@@ -48,7 +72,9 @@ class LiveSessionController extends Controller
             'baseRoomCode' => $baseRoomCode,
             'currentBreakout' => $breakout,
             'breakoutRooms' => $session->breakoutRooms(),
-            'jitsiDomain' => rtrim((string) config('services.jitsi.domain', 'meet.jit.si'), '/'),
+            'jitsiDomain' => $jitsiDomain,
+            'jitsiAppId' => trim((string) config('services.jitsi.app_id', '')),
+            'jitsiJwt' => trim((string) config('services.jitsi.jwt', '')),
             'displayName' => (string) $user->name,
             'isHost' => $isHost,
             'backUrl' => $user->role === 'instructor'

@@ -24,6 +24,8 @@ class CourseResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'ACADEMICS & CONTENT';
+
     protected static ?string $navigationLabel = 'My Courses';
 
     protected static ?int $navigationSort = 2;

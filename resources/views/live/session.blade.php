@@ -122,7 +122,16 @@
     <main id="meet-stage" aria-label="Live meeting stage"></main>
 </div>
 
-<script src="https://{{ $jitsiDomain }}/external_api.js"></script>
+@php
+    $isJaas = filled($jitsiAppId ?? null);
+    $jitsiScriptSrc = $isJaas
+        ? 'https://' . $jitsiDomain . '/' . $jitsiAppId . '/external_api.js'
+        : 'https://' . $jitsiDomain . '/external_api.js';
+    $jitsiRoomName = $isJaas
+        ? $jitsiAppId . '/' . $roomCode
+        : $roomCode;
+@endphp
+<script src="{{ $jitsiScriptSrc }}"></script>
 <script>
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const sessionId = @json($session->id);
@@ -157,11 +166,14 @@
     }
 
     const options = {
-        roomName: @json($roomCode),
+        roomName: @json($jitsiRoomName),
         parentNode: document.querySelector('#meet-stage'),
         userInfo: {
             displayName: @json($displayName),
         },
+        @if (!empty($jitsiJwt))
+        jwt: @json($jitsiJwt),
+        @endif
         configOverwrite: {
             prejoinPageEnabled: true,
             startWithAudioMuted: false,
@@ -196,6 +208,9 @@
             MOBILE_APP_PROMO: false,
             SHOW_JITSI_WATERMARK: false,
             SHOW_WATERMARK_FOR_GUESTS: false,
+            SHOW_BRAND_WATERMARK: false,
+            JITSI_WATERMARK_LINK: '',
+            DEFAULT_LOGO_URL: '',
             DEFAULT_BACKGROUND: '#020617',
             TOOLBAR_ALWAYS_VISIBLE: false,
         }

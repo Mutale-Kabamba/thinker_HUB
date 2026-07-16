@@ -36,6 +36,8 @@ class QuizResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPuzzlePiece;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'GRADING & EVALUATIONS';
+
     protected static ?string $navigationLabel = 'Quizzes';
 
     protected static ?int $navigationSort = 7;
