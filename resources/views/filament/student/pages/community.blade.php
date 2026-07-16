@@ -118,24 +118,32 @@
         @if ($tab === 'chats')
             <style>
                 .community-chat-layout {
-                    --community-mobile-offset: 15rem;
-                    --community-head-surface: 88%;
-                    --community-head-ink: 12%;
+                    /* 14rem approximates top nav, page title, and tab switcher stack on small screens. */
+                    --community-mobile-base-offset: 14rem;
+                    --community-mobile-offset: calc(var(--community-mobile-base-offset) + env(safe-area-inset-bottom, 0px));
+                    --community-desktop-height: 70vh;
+                    --community-mobile-min-height: 24rem;
+                    --community-deep-bg: #0f172a;
+                    --community-active-text: #e2e8f0;
+                    --community-head-surface-ratio: 88%;
+                    --community-head-ink-ratio: 12%;
                 }
                 .community-chat-layout { display:grid; grid-template-columns:minmax(210px,300px) 1fr; gap:0.75rem; align-items:start; }
-                .community-room-list { padding:0.5rem; max-height:70vh; overflow-y:auto; border-radius:1rem; }
-                .community-thread { padding:0; display:flex; flex-direction:column; height:70vh; border-radius:1rem; overflow:hidden; }
-                .community-thread-head { padding:0.62rem 0.85rem; border-bottom:1px solid var(--hub-border); background:color-mix(in oklab, var(--hub-card) var(--community-head-surface), #0f172a var(--community-head-ink)); }
+                .community-room-list { padding:0.5rem; max-height:var(--community-desktop-height); overflow-y:auto; border-radius:1rem; }
+                .community-thread { padding:0; display:flex; flex-direction:column; height:var(--community-desktop-height); border-radius:1rem; overflow:hidden; }
+                .community-thread-head { padding:0.62rem 0.85rem; border-bottom:1px solid var(--hub-border); background:color-mix(in oklab, var(--hub-card) var(--community-head-surface-ratio), var(--community-deep-bg) var(--community-head-ink-ratio)); }
                 .community-room-item { width:100%; text-align:left; padding:0.65rem 0.72rem; border:none; border-radius:0.85rem; cursor:pointer; margin-bottom:0.25rem; transition:all .12s ease; }
+                .community-room-item-active { background:var(--community-deep-bg); color:var(--community-active-text); box-shadow:0 10px 22px rgba(2,6,23,.22); }
                 .community-bubble { max-width:70%; }
                 .community-composer-wrap { display:flex; gap:0.5rem; align-items:center; padding:0.34rem 0.4rem; border:1px solid color-mix(in oklab, var(--hub-border) 75%, #334155 25%); border-radius:999px; background:color-mix(in oklab, var(--hub-card) 70%, #0f172a 30%); backdrop-filter:blur(10px); box-shadow:0 12px 28px rgba(2,6,23,.3); }
                 .community-back-btn { display:none; }
+                .community-back-btn:focus-visible { outline:2px solid #22d3ee; outline-offset:2px; }
 
                 @media (max-width: 768px) {
                     .community-chat-layout { grid-template-columns:1fr; gap:0.55rem; }
-                    .community-chat-layout[data-room-open="1"] .community-room-list { display:none; }
-                    .community-chat-layout[data-room-open="0"] .community-thread { display:none; }
-                    .community-room-list, .community-thread { height:calc(100vh - var(--community-mobile-offset)); max-height:none; min-height:24rem; }
+                    .community-chat-layout[data-room-open="true"] .community-room-list { display:none; }
+                    .community-chat-layout[data-room-open="false"] .community-thread { display:none; }
+                    .community-room-list, .community-thread { height:calc(100vh - var(--community-mobile-offset)); max-height:none; min-height:var(--community-mobile-min-height); }
                     .community-thread-head { position:sticky; top:0; z-index:5; padding:0.72rem 0.75rem; }
                     .community-bubble { max-width:86%; }
                     .community-back-btn { display:inline-flex; width:2rem; height:2rem; align-items:center; justify-content:center; border:1px solid var(--hub-border); border-radius:999px; background:var(--hub-surface); color:var(--hub-ink); cursor:pointer; flex:0 0 auto; }
@@ -144,7 +152,7 @@
                 }
             </style>
 
-            <div class="community-chat-layout" data-room-open="{{ $this->activeRoom ? '1' : '0' }}">
+            <div class="community-chat-layout" data-room-open="{{ $this->activeRoom ? 'true' : 'false' }}">
 
                 {{-- Room list --}}
                 <section class="hub-card community-room-list">
@@ -157,8 +165,10 @@
                                 $roomInitial = strtoupper(substr($room->displayNameFor(auth()->user()), 0, 1));
                             @endphp
                             <button type="button" wire:click="openRoom({{ $room->id }})"
-                                class="community-room-item"
-                                style="{{ $selectedRoomId === $room->id ? 'background:#0f172a;color:#e2e8f0;box-shadow:0 10px 22px rgba(2,6,23,.22);' : 'background:transparent;' }}"
+                                @class([
+                                    'community-room-item',
+                                    'community-room-item-active' => $selectedRoomId === $room->id,
+                                ])
                                 onmouseover="if(!this.dataset.active){this.style.background='var(--hub-surface)'}"
                                 onmouseout="if(!this.dataset.active){this.style.background='transparent'}"
                                 @if ($selectedRoomId === $room->id)
@@ -195,7 +205,7 @@
                         @endphp
                         <div class="community-thread-head">
                             <div style="display:flex;align-items:center;gap:0.55rem;">
-                                <button type="button" wire:click="$set('selectedRoomId', null)" class="community-back-btn" aria-label="Back to chats">
+                                <button type="button" wire:click="$set('selectedRoomId', null)" class="community-back-btn" aria-label="Back to chat rooms">
                                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                                 </button>
                                 @if ($activeAvatar)
