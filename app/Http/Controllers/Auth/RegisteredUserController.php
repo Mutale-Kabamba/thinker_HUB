@@ -8,7 +8,6 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
 use App\Support\PaymentApprovalMessage;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -109,7 +108,17 @@ class RegisteredUserController extends Controller
 
         $this->notifyAdminsAboutNewStudent($user, $course, $requiresPaymentApproval);
 
-        event(new Registered($user));
+        if (method_exists($user, 'hasVerifiedEmail') && ! $user->hasVerifiedEmail()) {
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $exception) {
+                Log::error('Failed to send registration verification email.', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
 
         if ($requiresPaymentApproval) {
             return redirect()->route('login')->with('status', PaymentApprovalMessage::forCourse($course));

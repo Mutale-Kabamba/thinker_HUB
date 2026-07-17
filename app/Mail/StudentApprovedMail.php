@@ -45,14 +45,7 @@ class StudentApprovedMail extends Mailable
     {
         if (filled($this->student->firebase_uid)) {
             $this->actionLabel = 'Sign In To Your Account';
-            $this->actionUrl = URL::temporarySignedRoute(
-                'auth.student-approval.google',
-                now()->addDays(7),
-                [
-                    'user' => $this->student->id,
-                    'hash' => sha1((string) $this->student->email),
-                ],
-            );
+            $this->actionUrl = route('login', ['email' => $this->student->email]);
 
             return;
         }
