@@ -191,9 +191,6 @@
                     {{-- Actions --}}
                     @if ($session['status'] === 'scheduled')
                         <div style="margin-top:0.6rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
-                            <a href="{{ $session['live_url'] }}" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.35rem 0.7rem;text-decoration:none;">
-                                {{ $session['live_started'] ? '🎥 Rejoin Live' : '▶️ Start Live' }}
-                            </a>
                             <button wire:click="markCompleted({{ $session['id'] }})" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.35rem 0.7rem;">
                                 ✅ Mark Completed
                             </button>

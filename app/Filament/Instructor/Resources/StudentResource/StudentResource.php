@@ -22,6 +22,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class StudentResource extends Resource
 {
@@ -42,6 +43,52 @@ class StudentResource extends Resource
     protected static ?string $slug = 'students';
 
     protected static ?int $navigationSort = 3;
+
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+
+        return (bool) $user && $user->isInstructor();
+    }
+
+    public static function canCreate(): bool
+    {
+        $user = auth()->user();
+
+        return (bool) $user && $user->isInstructor();
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return $record instanceof User && static::canAccessStudentRecord($record);
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return $record instanceof User && static::canAccessStudentRecord($record);
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return $record instanceof User && static::canAccessStudentRecord($record);
+    }
+
+    protected static function canAccessStudentRecord(User $record): bool
+    {
+        $user = auth()->user();
+
+        if (! $user || ! $user->isInstructor() || $record->role !== 'student') {
+            return false;
+        }
+
+        $courseIds = static::instructorCourseIds();
+
+        if (empty($courseIds)) {
+            return false;
+        }
+
+        return $record->enrollments()->whereIn('course_id', $courseIds)->exists();
+    }
 
     public static function form(Schema $schema): Schema
     {

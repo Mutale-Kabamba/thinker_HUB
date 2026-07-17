@@ -120,11 +120,6 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->hasMany(CourseSession::class, 'student_id');
     }
 
-    public function liveAttendances(): HasMany
-    {
-        return $this->hasMany(LiveSessionAttendance::class);
-    }
-
     public function chatRooms(): BelongsToMany
     {
         return $this->belongsToMany(ChatRoom::class, 'chat_room_user')
