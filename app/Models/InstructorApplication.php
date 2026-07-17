@@ -15,9 +15,13 @@ class InstructorApplication extends Model
         'email',
         'phone',
         'bio',
+        'proficiency',
+        'occupation',
+        'whatsapp',
         'qualifications',
         'experience',
         'linkedin_url',
+        'facebook_url',
         'portfolio_url',
         'cv_path',
         'proposal_type',
@@ -25,6 +29,15 @@ class InstructorApplication extends Model
         'competence_note',
         'roadmap_path',
         'proposed_course_name',
+        'proposed_course_code',
+        'proposed_course_description',
+        'proposed_course_overview',
+        'proposed_course_timeline',
+        'proposed_course_fees',
+        'proposed_course_requirements',
+        'proposed_course_level_progression',
+        'proposed_course_key_outcome',
+        'proposed_course_is_open_enrollment',
         'teaching_location',
         'full_roadmap_path',
         'curriculum_path',
@@ -42,6 +55,7 @@ class InstructorApplication extends Model
     {
         return [
             'reviewed_at' => 'datetime',
+            'proposed_course_is_open_enrollment' => 'boolean',
         ];
     }
 

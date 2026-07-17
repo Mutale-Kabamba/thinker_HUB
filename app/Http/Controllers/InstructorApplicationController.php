@@ -41,9 +41,13 @@ class InstructorApplicationController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'bio' => ['nullable', 'string', 'max:2000'],
+            'proficiency' => ['nullable', 'string', 'max:255'],
+            'occupation' => ['nullable', 'string', 'max:255'],
+            'whatsapp' => ['nullable', 'string', 'max:255'],
             'qualifications' => ['required', 'string', 'max:5000'],
             'experience' => ['nullable', 'string', 'max:5000'],
             'linkedin_url' => ['nullable', 'url', 'max:500'],
+            'facebook_url' => ['nullable', 'url', 'max:500'],
             'portfolio_url' => ['nullable', 'url', 'max:500'],
             'cv' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
             'proposal_type' => ['required', 'in:new,existing'],
@@ -56,10 +60,21 @@ class InstructorApplicationController extends Controller
 
             // New course fields
             'proposed_course_name' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:255'],
+            'proposed_course_code' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:255'],
+            'proposed_course_description' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:10000'],
+            'proposed_course_overview' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:10000'],
+            'proposed_course_timeline' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:255'],
+            'proposed_course_fees' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:10000'],
+            'proposed_course_requirements' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:10000'],
+            'proposed_course_level_progression' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:10000'],
+            'proposed_course_key_outcome' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:5000'],
+            'proposed_course_is_open_enrollment' => ['nullable', 'boolean'],
             'teaching_location' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:255'],
             'full_roadmap' => ['required_if:proposal_type,new', 'nullable', 'file', 'mimes:pdf', 'max:10240'],
             'curriculum' => ['required_if:proposal_type,new', 'nullable', 'file', 'mimes:pdf', 'max:10240'],
         ]);
+
+        $validated['proposed_course_is_open_enrollment'] = $request->boolean('proposed_course_is_open_enrollment', true);
 
         // Enforce max 2 pending/approved applications per email
         $applicationCount = InstructorApplication::query()
@@ -114,6 +129,20 @@ class InstructorApplicationController extends Controller
                 'password' => Hash::make(Str::random(16)),
                 'role' => 'instructor',
                 'is_active' => false,
+                'proficiency' => $validated['proficiency'] ?? null,
+                'occupation' => $validated['occupation'] ?? null,
+                'whatsapp' => $validated['whatsapp'] ?? null,
+                'linkedin_url' => $validated['linkedin_url'] ?? null,
+                'facebook_url' => $validated['facebook_url'] ?? null,
+            ]);
+        } else {
+            $user->update([
+                'name' => $validated['name'],
+                'proficiency' => $validated['proficiency'] ?? $user->proficiency,
+                'occupation' => $validated['occupation'] ?? $user->occupation,
+                'whatsapp' => $validated['whatsapp'] ?? $user->whatsapp,
+                'linkedin_url' => $validated['linkedin_url'] ?? $user->linkedin_url,
+                'facebook_url' => $validated['facebook_url'] ?? $user->facebook_url,
             ]);
         }
 

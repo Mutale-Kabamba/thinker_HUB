@@ -36,9 +36,9 @@ class UserForm
                     ->default('student')
                     ->live(),
                 TextInput::make('track')
-                    ->required(fn (callable $get): bool => $get('role') !== 'instructor')
+                    ->required(fn (callable $get): bool => $get('role') === 'student')
                     ->default('Beginner')
-                    ->visible(fn (callable $get): bool => $get('role') !== 'instructor'),
+                    ->visible(fn (callable $get): bool => $get('role') === 'student'),
                 Select::make('instructorCourses')
                     ->label('Assigned Courses')
                     ->relationship('instructorCourses', 'title')

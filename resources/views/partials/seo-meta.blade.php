@@ -1,7 +1,7 @@
 @php
     $siteName = (string) config('seo.site_name', 'think.er HUB');
     $seoTitle = $title ?? config('seo.default_title', $siteName);
-    $seoDescription = $description ?? config('seo.default_description', 'Thinker Hub delivers practical, career-focused digital skills training with an 80% hands-on approach.');
+    $seoDescription = $description ?? config('seo.default_description', 'think.er HUB is a platform where tutors create curated courses and learners enroll to upskill through practical training.');
     $defaultImage = (string) config('seo.default_image', '/images/logos/green.png');
     $seoImage = $image ?? (str_starts_with($defaultImage, 'http') ? $defaultImage : asset(ltrim($defaultImage, '/')));
     $seoUrl = $url ?? url()->current();

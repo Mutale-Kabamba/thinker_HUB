@@ -19,7 +19,7 @@ class EditUser extends BaseEditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        if (($data['role'] ?? '') === 'instructor') {
+        if (($data['role'] ?? '') !== 'student') {
             $data['track'] = null;
         }
 
