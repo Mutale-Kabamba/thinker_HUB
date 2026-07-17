@@ -196,6 +196,9 @@
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
             const googleProvider = new GoogleAuthProvider();
+            googleProvider.setCustomParameters({
+                prompt: 'select_account consent',
+            });
 
             const submitSocialToken = async (idToken, payload = {}) => {
                 const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
