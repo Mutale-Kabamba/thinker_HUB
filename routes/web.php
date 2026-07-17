@@ -383,6 +383,17 @@ Route::middleware('auth')->group(function () {
                 ->where('user_id', $user->id)
                 ->findOrFail($id);
             $path = $submission->file_path;
+        } elseif ($type === 'chat-message') {
+            $chatMessage = \App\Models\ChatMessage::query()->findOrFail($id);
+
+            $isRoomMember = \App\Models\ChatRoom::query()
+                ->whereKey($chatMessage->chat_room_id)
+                ->whereHas('members', fn ($query) => $query->where('users.id', $user->id))
+                ->exists();
+
+            abort_unless($isRoomMember, 403);
+
+            $path = $chatMessage->attachment_path;
         } else {
             abort(404);
         }

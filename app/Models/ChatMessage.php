@@ -22,7 +22,7 @@ class ChatMessage extends Model
     public function getAttachmentUrlAttribute(): ?string
     {
         return $this->attachment_path
-            ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->attachment_path)
+            ? route('file.view', ['type' => 'chat-message', 'id' => $this->id], false)
             : null;
     }
 
