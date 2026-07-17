@@ -127,6 +127,20 @@
                     --community-active-text: #e2e8f0;
                     --community-head-surface-ratio: 88%;
                     --community-head-ink-ratio: 12%;
+                    --community-composer-bg: #f8fafc;
+                    --community-composer-border: #cbd5e1;
+                    --community-composer-input: #0f172a;
+                    --community-composer-placeholder: #64748b;
+                    --community-composer-attach-bg: #ffffff;
+                    --community-composer-attach-icon: #475569;
+                }
+                .dark .community-chat-layout {
+                    --community-composer-bg: color-mix(in oklab, var(--hub-card) 70%, #0f172a 30%);
+                    --community-composer-border: color-mix(in oklab, var(--hub-border) 75%, #334155 25%);
+                    --community-composer-input: var(--hub-ink);
+                    --community-composer-placeholder: #94a3b8;
+                    --community-composer-attach-bg: color-mix(in oklab, var(--hub-card) 82%, #111827 18%);
+                    --community-composer-attach-icon: var(--hub-muted);
                 }
                 .community-chat-layout { display:grid; grid-template-columns:minmax(210px,300px) 1fr; gap:0.75rem; align-items:start; }
                 .community-room-list { padding:0.5rem; max-height:var(--community-desktop-height); overflow-y:auto; border-radius:1rem; }
@@ -135,7 +149,10 @@
                 .community-room-item { width:100%; text-align:left; padding:0.65rem 0.72rem; border:none; border-radius:0.85rem; cursor:pointer; margin-bottom:0.25rem; transition:all .12s ease; }
                 .community-room-item-active { background:var(--community-deep-bg); color:var(--community-active-text); box-shadow:0 10px 22px rgba(2,6,23,.22); }
                 .community-bubble { max-width:70%; }
-                .community-composer-wrap { display:flex; gap:0.5rem; align-items:center; padding:0.34rem 0.4rem; border:1px solid color-mix(in oklab, var(--hub-border) 75%, #334155 25%); border-radius:999px; background:color-mix(in oklab, var(--hub-card) 70%, #0f172a 30%); backdrop-filter:blur(10px); box-shadow:0 12px 28px rgba(2,6,23,.3); }
+                .community-composer-wrap { display:flex; gap:0.5rem; align-items:center; padding:0.34rem 0.4rem; border:1px solid var(--community-composer-border); border-radius:999px; background:var(--community-composer-bg); backdrop-filter:blur(10px); box-shadow:0 12px 28px rgba(2,6,23,.15); }
+                .community-message-input { color:var(--community-composer-input) !important; }
+                .community-message-input::placeholder { color:var(--community-composer-placeholder); opacity:1; }
+                .community-attach-btn { border-color: var(--community-composer-border) !important; color: var(--community-composer-attach-icon) !important; background: var(--community-composer-attach-bg) !important; }
                 .community-back-btn { display:none; }
                 .community-back-btn:focus-visible { outline:2px solid #22d3ee; outline-offset:2px; }
 
@@ -281,7 +298,7 @@
                             <div wire:loading wire:target="attachment" style="font-size:0.72rem;color:var(--hub-muted);">Uploading…</div>
 
                             <div class="community-composer-wrap">
-                                <label style="cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0.48rem;border:1px solid color-mix(in oklab, var(--hub-border) 70%, #475569 30%);border-radius:999px;color:var(--hub-muted);background:color-mix(in oklab, var(--hub-card) 82%, #111827 18%);" title="Attach a file">
+                                <label class="community-attach-btn" style="cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0.48rem;border:1px solid color-mix(in oklab, var(--hub-border) 70%, #475569 30%);border-radius:999px;color:var(--hub-muted);background:color-mix(in oklab, var(--hub-card) 82%, #111827 18%);" title="Attach a file">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                                     <input type="file" wire:model="attachment" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip" style="display:none;">
                                 </label>
