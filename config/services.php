@@ -50,11 +50,4 @@ return [
         ],
     ],
 
-    'jitsi' => [
-        'domain' => env('JITSI_DOMAIN', 'meet.jit.si'),
-        'app_id' => env('JITSI_APP_ID'),
-        'jwt' => env('JITSI_JWT'),
-        'prefer_external_on_public' => env('JITSI_PREFER_EXTERNAL_ON_PUBLIC', true),
-    ],
-
 ];
