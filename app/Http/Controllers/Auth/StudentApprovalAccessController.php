@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 
 class StudentApprovalAccessController extends Controller
@@ -21,10 +20,9 @@ class StudentApprovalAccessController extends Controller
             return redirect()->route('login')->with('status', 'This sign-in link is no longer valid.');
         }
 
-        Auth::login($user, true);
-        $request->session()->regenerate();
-
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()
+            ->route('login', ['email' => $user->email])
+            ->with('status', 'Your account is active. Continue with Google sign-in to access your dashboard.');
     }
 
     public function manual(User $user, string $token): RedirectResponse

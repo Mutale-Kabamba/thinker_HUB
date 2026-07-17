@@ -60,7 +60,7 @@
                                         <p style="margin:0;font-size:14px;line-height:1.45;color:#166534;font-weight:700;">Access confirmed.</p>
                                         <p style="margin:8px 0 0;font-size:13px;line-height:1.55;color:#14532d;">
                                             @if (! empty($student->firebase_uid))
-                                                Click the button below to sign in directly.
+                                                Click the button below to open sign in, then continue with Google.
                                             @else
                                                 Click the button below to open sign in with your email and password prefilled.
                                             @endif
