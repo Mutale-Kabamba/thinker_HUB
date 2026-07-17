@@ -35,6 +35,8 @@ class AssessmentSubmissionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'GRADING & EVALUATIONS';
+
     protected static ?string $navigationLabel = 'Assessment Submissions';
 
     protected static ?int $navigationSort = 9;

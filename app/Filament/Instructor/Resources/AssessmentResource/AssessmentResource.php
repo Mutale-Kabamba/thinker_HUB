@@ -32,6 +32,8 @@ class AssessmentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'GRADING & EVALUATIONS';
+
     protected static ?string $navigationLabel = 'Assessments';
 
     protected static ?int $navigationSort = 4;

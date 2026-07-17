@@ -35,6 +35,8 @@ class AssignmentSubmissionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentCheck;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'GRADING & EVALUATIONS';
+
     protected static ?string $navigationLabel = 'Assignment Submissions';
 
     protected static ?int $navigationSort = 8;

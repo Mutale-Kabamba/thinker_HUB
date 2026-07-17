@@ -32,6 +32,8 @@ class LearningMaterialResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBookOpen;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'ACADEMICS & CONTENT';
+
     protected static ?string $navigationLabel = 'Materials';
 
     protected static ?int $navigationSort = 5;

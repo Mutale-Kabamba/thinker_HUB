@@ -220,6 +220,9 @@ class Schedule extends Page
             'notes' => $s->notes,
             'is_today' => $s->getEffectiveDate()->isToday(),
             'is_past' => $s->getEffectiveDate()->isPast() && ! $s->getEffectiveDate()->isToday(),
+            'live_started' => (bool) $s->live_started_at,
+            'can_join_live' => $s->canUserJoinLive($user),
+            'live_url' => route('live.sessions.show', ['session' => $s->id]),
         ])->all();
 
         // Build calendar grid

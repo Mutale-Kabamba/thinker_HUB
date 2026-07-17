@@ -17,6 +17,8 @@ class Schedule extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'ACADEMICS & CONTENT';
+
     protected static ?int $navigationSort = 2;
 
     protected static ?string $navigationLabel = 'Schedule';
@@ -406,6 +408,8 @@ class Schedule extends Page
             'rescheduled_start_time' => $s->rescheduled_start_time ? Carbon::parse($s->rescheduled_start_time)->format('g:i A') : null,
             'rescheduled_end_time' => $s->rescheduled_end_time ? Carbon::parse($s->rescheduled_end_time)->format('g:i A') : null,
             'notes' => $s->notes,
+            'live_started' => (bool) $s->live_started_at,
+            'live_url' => route('live.sessions.show', ['session' => $s->id, 'host' => 1]),
         ])->all();
 
         $this->buildCalendar($allSessions);

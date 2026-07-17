@@ -31,6 +31,8 @@ class StudentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'PEOPLE & ROLES';
+
     protected static ?string $navigationLabel = 'Students';
 
     protected static ?string $modelLabel = 'Student';
