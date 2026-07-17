@@ -9,7 +9,7 @@
             <div>
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Unified Access</p>
             <h1 class="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">Sign In</h1>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Admins, instructors, and students use this same login panel.</p>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Tutors and learners sign in here to manage courses or continue upskilling.</p>
             </div>
         </div>
 

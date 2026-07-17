@@ -17,7 +17,7 @@
                                     <td style="padding:24px 28px;">
                                         <p style="margin:0;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#99f6e4;">think.er HUB</p>
                                         <h1 style="margin:10px 0 0;font-size:28px;line-height:1.2;color:#ffffff;font-weight:800;">Your Account Is Active</h1>
-                                        <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:#ccfbf1;">Your registration has been approved. You can now access your student workspace.</p>
+                                        <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:#ccfbf1;">Your registration has been approved. You can now sign in and continue your upskilling journey.</p>
                                     </td>
                                 </tr>
                             </table>

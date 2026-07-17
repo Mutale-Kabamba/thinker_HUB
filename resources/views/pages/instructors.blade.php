@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @include('partials.seo-meta', [
         'title' => 'Instructors | think.er HUB',
-        'description' => 'Meet industry-focused instructors guiding learners through practical, project-based training at think.er HUB.',
-        'keywords' => 'instructors, mentors, practical learning, thinker hub',
+        'description' => 'Meet tutors on think.er HUB who create curated courses for learners ready to upskill.',
+        'keywords' => 'tutors, course creators, upskill mentors, thinker hub',
         'type' => 'website',
     ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -20,9 +20,9 @@
     <main>
         <section class="bg-[#0a2d27] relative overflow-hidden py-16 lg:py-20">
             <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center">
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">Mentor Network</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">Tutor Network</p>
                 <h1 class="mt-4 text-4xl font-black text-white sm:text-5xl">Meet Our Instructors</h1>
-                <p class="mx-auto mt-5 max-w-2xl text-slate-300">Learn from experienced mentors dedicated to practical, career-ready learning outcomes.</p>
+                <p class="mx-auto mt-5 max-w-2xl text-slate-300">Explore tutors who create practical courses for learners focused on real-world upskilling.</p>
             </div>
         </section>
 
@@ -42,6 +42,7 @@
                                     @endif
                                 </div>
                                 <div class="px-3 py-6">
+                                    @php($profileSlug = \Illuminate\Support\Str::slug($instructor->name ?: (string) $instructor->id))
                                     <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">Instructor</p>
                                     <h3 class="mt-2 text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors">{{ $instructor->name }}</h3>
 
@@ -74,6 +75,15 @@
                                             @endif
                                         </div>
                                     @endif
+
+                                    <div class="mt-5">
+                                        <a
+                                            href="{{ route('landing.instructors.show', ['instructor' => $instructor->id, 'slug' => $profileSlug]) }}"
+                                            class="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+                                        >
+                                            View Full Profile
+                                        </a>
+                                    </div>
                                 </div>
                             </article>
                         @endforeach
@@ -94,8 +104,8 @@
             <div class="rounded-[2.5rem] lg:rounded-[4rem] bg-[#0a2d27] p-8 lg:p-16 text-center lg:text-left relative overflow-hidden">
                 <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
                     <div class="max-w-xl">
-                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Join today to start your journey into a better future.</h2>
-                        <p class="mt-4 text-slate-400">Get access to unlimited resources and expert guidance.</p>
+                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Teach your expertise to learners who want to grow.</h2>
+                        <p class="mt-4 text-slate-400">Register your course, manage learners, and build impact through practical training.</p>
                     </div>
                     <div class="w-full lg:w-auto">
                         <a href="{{ route('landing.instructors.apply') }}" class="block w-full rounded-full bg-yellow-400 px-10 py-5 text-center text-base font-extrabold text-[#0a2d27] transition-all hover:bg-white sm:w-auto">Apply as Instructor</a>
@@ -114,7 +124,7 @@
                             <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
                         </div>
                         <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
-                            Thinker Hub empowers learners with practical, career-focused courses designed to turn knowledge into measurable results.
+                            think.er HUB brings tutors and learners together: tutors run curated courses, and learners enroll to upskill with purpose.
                         </p>
                         <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
                             <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>

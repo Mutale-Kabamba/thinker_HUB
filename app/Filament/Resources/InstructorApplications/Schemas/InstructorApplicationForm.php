@@ -27,8 +27,24 @@ class InstructorApplicationForm
                         TextInput::make('phone')
                             ->disabled(),
 
+                        TextInput::make('proficiency')
+                            ->label('Proficiency / Expertise')
+                            ->disabled(),
+
+                        TextInput::make('occupation')
+                            ->label('Occupation')
+                            ->disabled(),
+
+                        TextInput::make('whatsapp')
+                            ->label('WhatsApp Number')
+                            ->disabled(),
+
                         TextInput::make('linkedin_url')
                             ->label('LinkedIn')
+                            ->disabled(),
+
+                        TextInput::make('facebook_url')
+                            ->label('Facebook URL')
                             ->disabled(),
 
                         TextInput::make('portfolio_url')
@@ -96,9 +112,68 @@ class InstructorApplicationForm
                             ->disabled()
                             ->visible(fn ($record) => $record?->proposal_type === 'new'),
 
+                        TextInput::make('proposed_course_code')
+                            ->label('Proposed Course Code')
+                            ->disabled()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new'),
+
                         TextInput::make('teaching_location')
                             ->label('Teaching Location')
                             ->disabled()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new'),
+
+                        Textarea::make('proposed_course_description')
+                            ->label('Course Description')
+                            ->rows(4)
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new'),
+
+                        Textarea::make('proposed_course_overview')
+                            ->label('Course Overview')
+                            ->rows(4)
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new'),
+
+                        TextInput::make('proposed_course_timeline')
+                            ->label('Course Timeline')
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new'),
+
+                        Textarea::make('proposed_course_fees')
+                            ->label('Course Fees')
+                            ->rows(4)
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new'),
+
+                        Textarea::make('proposed_course_requirements')
+                            ->label('Course Requirements')
+                            ->rows(4)
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new'),
+
+                        Textarea::make('proposed_course_level_progression')
+                            ->label('Level Progression')
+                            ->rows(4)
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new'),
+
+                        Textarea::make('proposed_course_key_outcome')
+                            ->label('Key Outcome')
+                            ->rows(3)
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record?->proposal_type === 'new'),
+
+                        TextInput::make('proposed_course_is_open_enrollment')
+                            ->label('Open For Public Enrollment')
+                            ->disabled()
+                            ->formatStateUsing(fn ($state) => (bool) $state ? 'Yes' : 'No')
                             ->visible(fn ($record) => $record?->proposal_type === 'new'),
 
                         TextInput::make('full_roadmap_path')

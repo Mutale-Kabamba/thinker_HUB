@@ -133,6 +133,12 @@ $courseSlug = static function (Course $course): string {
     return Str::slug($source);
 };
 
+$instructorSlug = static function (User $instructor): string {
+    $source = trim((string) ($instructor->name ?: $instructor->id));
+
+    return Str::slug($source);
+};
+
 $databaseReady = static function (): bool {
     if (config('database.default') === 'sqlite') {
         $sqlitePath = (string) config('database.connections.sqlite.database');
@@ -262,6 +268,40 @@ Route::get('/instructors', function () {
 
     return view('pages.instructors', ['instructors' => $instructors]);
 })->name('landing.instructors');
+
+Route::get('/instructors/{instructor}/{slug?}', function (int $instructor, ?string $slug = null) use ($databaseReady, $instructorSlug) {
+    if (! $databaseReady() || ! Schema::hasTable('users')) {
+        abort(404);
+    }
+
+    $instructorModel = User::query()
+        ->where('role', 'instructor')
+        ->where('is_active', true)
+        ->with([
+            'instructorApplication:id,user_id,bio,qualifications,experience',
+            'instructorCourses' => function ($query): void {
+                $query
+                    ->where('is_active', true)
+                    ->withCount('enrollments')
+                    ->withAvg('ratings', 'rating')
+                    ->withCount('ratings')
+                    ->latest();
+            },
+        ])
+        ->findOrFail($instructor);
+
+    $canonicalSlug = $instructorSlug($instructorModel);
+
+    if ($slug !== null && $slug !== $canonicalSlug) {
+        return redirect()->route('landing.instructors.show', ['instructor' => $instructorModel->id, 'slug' => $canonicalSlug], 301);
+    }
+
+    return view('pages.instructor', [
+        'instructor' => $instructorModel,
+        'slug' => $canonicalSlug,
+        'courses' => $instructorModel->instructorCourses,
+    ]);
+})->whereNumber('instructor')->name('landing.instructors.show');
 
 Route::get('/instructors/apply', [InstructorApplicationController::class, 'create'])->name('landing.instructors.apply');
 Route::post('/instructors/apply', [InstructorApplicationController::class, 'store'])->name('landing.instructors.apply.store');

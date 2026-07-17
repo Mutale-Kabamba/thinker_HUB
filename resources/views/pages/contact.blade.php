@@ -117,8 +117,8 @@
             <div class="rounded-[2.5rem] lg:rounded-[4rem] bg-[#0a2d27] p-8 lg:p-16 text-center lg:text-left relative overflow-hidden">
                 <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
                     <div class="max-w-xl">
-                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Join today to start your journey into a better future.</h2>
-                        <p class="mt-4 text-slate-400">Get access to unlimited resources and expert guidance.</p>
+                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Upskill with curated courses or teach your expertise.</h2>
+                        <p class="mt-4 text-slate-400">Enroll in a course that fits your goals, or join as a tutor and manage your learners.</p>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                         <a href="{{ route('register') }}" class="rounded-full bg-yellow-400 px-8 py-4 font-bold text-[#0a2d27] hover:bg-white transition-all text-center">ENROLL NOW</a>
@@ -138,7 +138,7 @@
                             <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
                         </div>
                         <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
-                            Thinker Hub empowers learners with practical, career-focused courses designed to turn knowledge into measurable results.
+                            think.er HUB brings tutors and learners together: tutors manage curated courses while learners enroll to upskill.
                         </p>
                         <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
                             <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>

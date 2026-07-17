@@ -9,7 +9,7 @@
             <div>
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Account Setup</p>
             <h1 class="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">Create Your Account</h1>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Create an account to register for a course and access your workspace.</p>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Register to enroll in curated courses and start upskilling on your path.</p>
             </div>
         </div>
 

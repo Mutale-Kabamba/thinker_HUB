@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @include('partials.seo-meta', [
         'title' => $course->title.' | think.er HUB',
-        'description' => $course->overview ?: ($course->description ?: 'Practical, career-focused course at think.er HUB.'),
+        'description' => $course->overview ?: ($course->description ?: 'Tutor-led, practical course on think.er HUB for learners ready to upskill.'),
         'keywords' => strtolower(($course->code ? $course->code.', ' : '').'thinker hub, digital skills, practical training'),
         'type' => 'article',
     ])
@@ -676,7 +676,7 @@
                         <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
                     </div>
                     <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
-                        Thinker Hub empowers learners with practical, career-focused training designed to turn knowledge into measurable results.
+                        think.er HUB connects tutors who run curated courses with learners who enroll to build practical skills.
                     </p>
                     <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
                         <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>

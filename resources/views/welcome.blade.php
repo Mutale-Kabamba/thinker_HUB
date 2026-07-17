@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @include('partials.seo-meta', [
-        'title' => 'think.er HUB | Instructor & Student Management Platform',
-        'description' => 'Manage instructors, students, schedules, and course resources in one platform. Public users can also register for available courses.',
-        'keywords' => 'instructor management platform, student management system, course registration, course operations, thinker hub',
+        'title' => 'think.er HUB | Teach, Manage, and Upskill',
+        'description' => 'Tutors can publish and manage curated courses, while learners enroll to upskill through practical training.',
+        'keywords' => 'course platform, tutor courses, learner upskilling, course registration, thinker hub',
         'type' => 'website',
     ])
     <link rel="preload" as="image" href="{{ asset('images/hero/office.png') }}">
@@ -18,7 +18,6 @@
     class="bg-white text-slate-900 font-sans antialiased"
     x-data="{
         mobileMenu: false,
-        videoModal: false,
         heroSlideIndex: 0,
         heroSlides: [
             {
@@ -88,19 +87,14 @@
                 <div class="grid items-center gap-16 lg:grid-cols-2">
                     <div class="text-center lg:text-left order-2 lg:order-1">
                         <h1 class="text-4xl font-extrabold leading-[1.1] text-white sm:text-5xl lg:text-6xl">
-                            Manage Learning Operations.<br class="hidden lg:block"> Keep Teams Aligned.
+                            Teach What You Know.<br class="hidden lg:block"> Learn What You Need.
                         </h1>
                         <p class="mt-8 text-lg text-slate-300 leading-relaxed max-w-lg mx-auto lg:mx-0">
-                            think.er HUB is built for instructors and admins to manage students, schedules, resources, and progress from one place, while still allowing new users to register for available courses.
+                            think.er HUB connects tutors and learners in one place: tutors can register courses and manage their learners, while anyone ready to upskill can register for a course of interest.
                         </p>
                         <div class="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
                             <a href="{{ route('register') }}" class="w-full sm:w-auto rounded-full bg-yellow-400 px-10 py-4 font-bold text-[#0a2d27] hover:translate-y-[-2px] transition-all shadow-lg shadow-yellow-400/20">Register for a Course</a>
-                            <button type="button" @click="videoModal = true" class="flex items-center gap-3 text-white font-semibold group">
-                                <span class="flex items-center justify-center w-12 h-12 rounded-full border border-white/30 group-hover:bg-white group-hover:text-[#0a2d27] transition-all">
-                                    <i class="fa-solid fa-play ml-1"></i>
-                                </span>
-                                See How It Works
-                            </button>
+                            <a href="{{ route('landing.instructors.apply') }}" class="w-full sm:w-auto rounded-full border border-white/30 px-10 py-4 font-bold text-white hover:bg-white/10 transition-all text-center">Instructor Registration</a>
                         </div>
                         
                         <div class="mt-16 grid grid-cols-3 gap-3 sm:gap-4 border-t border-white/10 pt-10 max-w-md mx-auto lg:mx-0">
@@ -126,7 +120,7 @@
                             <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/45 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white backdrop-blur-sm" x-text="heroSlides[heroSlideIndex].label"></div>
                             <div class="absolute -bottom-2 -right-4 bg-white p-4 rounded-2xl shadow-2xl z-20 hidden sm:flex items-center gap-3">
                                 <div class="bg-green-100 p-2 rounded-lg text-green-600"><i class="fa-solid fa-certificate"></i></div>
-                                <div><p class="text-xs font-bold text-[#0a2d27]">Operations Ready</p><p class="text-[10px] text-slate-500">Instructor & Student Panels</p></div>
+                                <div><p class="text-xs font-bold text-[#0a2d27]">Creator + Learner Ready</p><p class="text-[10px] text-slate-500">Teach, Manage, Upskill</p></div>
                             </div>
                         </div>
                     </div>
@@ -139,20 +133,20 @@
                 <div class="max-w-3xl text-center mx-auto">
                     <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Value Proposition</span>
                     <h2 class="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">Why Teams Choose think.er HUB</h2>
-                    <p class="mt-4 text-slate-600 leading-relaxed">From instructor workflows to student onboarding, the platform keeps operations organized while making course registration easy for new users.</p>
+                    <p class="mt-4 text-slate-600 leading-relaxed">From tutor-led course delivery to learner enrollment, the platform makes it simple to teach, manage, and upskill.</p>
                 </div>
 
                 <div class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                     <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                         <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-600"><i class="fa-solid fa-users-gear"></i></div>
-                        <h3 class="mt-4 text-lg font-bold text-slate-900">Centralized Team Management</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Manage instructors, students, and role-based access from one consistent admin flow.</p>
+                        <h3 class="mt-4 text-lg font-bold text-slate-900">Tutor-Led Course Management</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Tutors can register courses, manage learners, and run delivery from one focused workspace.</p>
                     </article>
 
                     <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                         <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><i class="fa-solid fa-calendar-check"></i></div>
-                        <h3 class="mt-4 text-lg font-bold text-slate-900">Structured Daily Operations</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Coordinate classes, sessions, assignments, and assessments without scattered tools.</p>
+                        <h3 class="mt-4 text-lg font-bold text-slate-900">Structured Course Delivery</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Coordinate sessions, assignments, and assessments without scattered tools.</p>
                     </article>
 
                     <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -169,8 +163,8 @@
 
                     <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                         <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><i class="fa-solid fa-user-plus"></i></div>
-                        <h3 class="mt-4 text-lg font-bold text-slate-900">Simple Course Registration</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Public users can register for available courses and enter the right workflow quickly.</p>
+                        <h3 class="mt-4 text-lg font-bold text-slate-900">Curated Course Enrollment</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">Learners can discover curated courses and register quickly based on their goals.</p>
                     </article>
 
                     <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -186,7 +180,7 @@
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
                 <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6 text-center md:text-left">
                     <div class="max-w-xl">
-                        <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Public Registration</span>
+                        <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Open Enrollment</span>
                         <h2 class="text-3xl font-black text-slate-900 mt-3 sm:text-4xl">Courses Open for Registration</h2>
                     </div>
                     <div class="flex justify-center md:justify-end">
@@ -327,17 +321,17 @@
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
                 <div class="rounded-[2rem] border border-slate-200 bg-white p-8 lg:p-12 shadow-sm">
                     <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Platform Focus</span>
-                    <h2 class="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">Built for Academic Operations</h2>
-                    <p class="mt-4 max-w-3xl text-slate-600 leading-relaxed">This is a management-first platform that helps teaching teams coordinate daily work, monitor progress, and keep students supported from onboarding to completion.</p>
+                    <h2 class="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">Built for Course Creators and Learners</h2>
+                    <p class="mt-4 max-w-3xl text-slate-600 leading-relaxed">This platform supports both sides of growth: tutors can create and manage courses, and learners can enroll to build practical skills that matter.</p>
 
                     <div class="mt-8 grid gap-4 md:grid-cols-2">
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                             <h3 class="text-lg font-bold text-slate-900">Instructor Control</h3>
-                            <p class="mt-2 text-sm text-slate-600 leading-relaxed">Manage courses, assignments, schedules, assessments, and materials with clear visibility across your students.</p>
+                            <p class="mt-2 text-sm text-slate-600 leading-relaxed">Register courses, manage learners, and run schedules, assignments, and assessments in one place.</p>
                         </div>
                         <div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5">
                             <h3 class="text-lg font-bold text-slate-900">Student Onboarding</h3>
-                            <p class="mt-2 text-sm text-slate-700 leading-relaxed">Keep public registration simple so new learners can join available courses and move into the right panel quickly.</p>
+                            <p class="mt-2 text-sm text-slate-700 leading-relaxed">Make upskilling easy so learners can register for courses they care about and start quickly.</p>
                         </div>
                     </div>
                 </div>
@@ -389,8 +383,8 @@
             <div class="rounded-[2.5rem] lg:rounded-[4rem] bg-[#0a2d27] p-8 lg:p-16 text-center lg:text-left relative overflow-hidden">
                 <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
                     <div class="max-w-xl">
-                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Run your training operations in one place.</h2>
-                        <p class="mt-4 text-slate-400">Support instructors, manage students, and keep course activity organized while still accepting new course registrations.</p>
+                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Teach your craft or upskill for your next step.</h2>
+                        <p class="mt-4 text-slate-400">If you are a tutor, register your course and manage your learners. If you are a learner, register for a course that matches your goals.</p>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                         <a href="{{ route('register') }}" class="rounded-full bg-yellow-400 px-8 py-4 font-bold text-[#0a2d27] hover:bg-white transition-all text-center">CREATE ACCOUNT</a>
@@ -401,43 +395,6 @@
             </div>
         </section>
 
-        <div
-            x-show="videoModal"
-            x-transition.opacity
-            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4"
-            style="display: none;"
-        >
-            <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl" @click.outside="videoModal = false">
-                <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-                    <h3 class="text-sm font-bold text-slate-900">Thinker Hub Intro Video</h3>
-                    <button type="button" @click="videoModal = false" class="rounded-md p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-                <div class="aspect-video w-full bg-black">
-                    <template x-if="videoModal">
-                        <iframe
-                            class="h-full w-full"
-                            src="https://www.youtube.com/embed/p6QZvXzwLdw?autoplay=1&rel=0"
-                            title="Thinker Hub video"
-                            frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowfullscreen
-                        ></iframe>
-                    </template>
-                </div>
-                <div class="flex items-center justify-end border-t border-slate-200 px-4 py-3">
-                    <a
-                        href="https://www.youtube.com/watch?v=p6QZvXzwLdw"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="rounded-lg bg-[#0a2d27] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#11443c]"
-                    >
-                        Visit on YouTube
-                    </a>
-                </div>
-            </div>
-        </div>
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-12 lg:py-16">
@@ -448,7 +405,7 @@
                             <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
                         </div>
                         <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
-                            Thinker Hub helps instructors and admins manage students, teaching workflows, and course operations in one platform, with public course registration for new learners.
+                            think.er HUB is a course platform where tutors can launch and manage courses, and learners can enroll to upskill through curated training.
                         </p>
                         <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
                             <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>

@@ -16,7 +16,7 @@ class CreateUser extends BaseCreateRecord
             $data['email_verified_at'] = now();
         }
 
-        if (($data['role'] ?? '') === 'instructor') {
+        if (($data['role'] ?? '') !== 'student') {
             $data['track'] = null;
         }
 
