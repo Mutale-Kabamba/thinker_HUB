@@ -120,7 +120,7 @@ class CourseSession extends Model
 
     public function isUserParticipant(User $user): bool
     {
-        if ($user->isAdmin() || (int) $this->instructor_id === (int) $user->id) {
+        if ($this->canUserStartLive($user)) {
             return true;
         }
 
