@@ -12,8 +12,13 @@ use Filament\Schemas\Schema;
 
 class ResourceVideoForm
 {
-    public static function configure(Schema $schema): Schema
+    /**
+     * @param (callable(): array<string, string>)|null $courseOptions
+     */
+    public static function configure(Schema $schema, ?callable $courseOptions = null): Schema
     {
+        $resolveCourseOptions = $courseOptions ?? fn (): array => Course::query()->where('is_active', true)->orderBy('title')->pluck('title', 'id')->toArray();
+
         return $schema
             ->components([
                 TextInput::make('title')
@@ -40,7 +45,7 @@ class ResourceVideoForm
 
                 Select::make('course_id')
                     ->label('Course')
-                    ->options(fn (): array => Course::query()->where('is_active', true)->orderBy('title')->pluck('title', 'id')->toArray())
+                    ->options($resolveCourseOptions)
                     ->searchable()
                     ->visible(fn (callable $get): bool => (bool) $get('is_recorded_lesson'))
                     ->required(fn (callable $get): bool => (bool) $get('is_recorded_lesson')),

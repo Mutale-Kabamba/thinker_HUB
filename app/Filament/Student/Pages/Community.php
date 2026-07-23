@@ -32,6 +32,10 @@ class Community extends Page
 
     public ?int $selectedRoomId = null;
 
+    public int $messagesLimit = 30;
+
+    public bool $hasMoreMessages = false;
+
     public string $messageBody = '';
 
     public $attachment = null;
@@ -224,6 +228,8 @@ class Community extends Page
 
         $room = ChatRoom::findOrCreateDirect($user->id, $userId);
         $this->selectedRoomId = $room->id;
+        $this->messagesLimit = 30;
+        $this->hasMoreMessages = false;
         $this->tab = 'chats';
     }
 
@@ -234,7 +240,23 @@ class Community extends Page
         // Only open rooms the user belongs to.
         if ($user && $user->chatRooms()->where('chat_rooms.id', $roomId)->exists()) {
             $this->selectedRoomId = $roomId;
+            $this->messagesLimit = 30;
+            $this->hasMoreMessages = false;
         }
+    }
+
+    public function loadMoreMessages(): void
+    {
+        if (! $this->activeRoom) {
+            return;
+        }
+
+        $totalMessages = ChatMessage::query()
+            ->where('chat_room_id', $this->activeRoom->id)
+            ->count();
+
+        $this->messagesLimit += 30;
+        $this->hasMoreMessages = $this->messagesLimit < $totalMessages;
     }
 
     public function getActiveRoomProperty(): ?ChatRoom
@@ -257,12 +279,22 @@ class Community extends Page
             return collect();
         }
 
-        return ChatMessage::query()
+        $totalMessages = ChatMessage::query()
+            ->where('chat_room_id', $this->activeRoom->id)
+            ->count();
+
+        $messages = ChatMessage::query()
             ->with('user')
             ->where('chat_room_id', $this->activeRoom->id)
-            ->oldest()
-            ->limit(200)
-            ->get();
+            ->latest()
+            ->limit($this->messagesLimit)
+            ->get()
+            ->reverse()
+            ->values();
+
+        $this->hasMoreMessages = $totalMessages > $this->messagesLimit;
+
+        return $messages;
     }
 
     public function sendMessage(): void

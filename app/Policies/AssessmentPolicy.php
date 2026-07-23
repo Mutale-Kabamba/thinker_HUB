@@ -27,7 +27,7 @@ class AssessmentPolicy
 
     public function create(User $user): bool
     {
-        return true;
+        return $user->isAdmin() || $user->isInstructor();
     }
 
     public function update(User $user, Assessment $assessment): bool

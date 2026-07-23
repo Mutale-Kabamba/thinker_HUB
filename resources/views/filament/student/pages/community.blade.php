@@ -243,6 +243,15 @@
                         <div wire:poll.4s style="flex:1;overflow-y:auto;padding:0.75rem 0.85rem 1.1rem;display:flex;flex-direction:column;gap:0.56rem;"
                             x-data x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)"
                             x-on:scroll-bottom.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
+                            @if ($this->hasMoreMessages)
+                                <div style="text-align:center;padding:0.3rem 0;">
+                                    <button type="button" wire:click="loadMoreMessages" wire:loading.attr="disabled"
+                                        style="font-size:0.78rem;padding:0.35rem 1rem;background:var(--hub-surface);color:var(--hub-muted);border:1px solid var(--hub-border);border-radius:999px;cursor:pointer;">
+                                        <span wire:loading.remove wire:target="loadMoreMessages">Load older messages</span>
+                                        <span wire:loading wire:target="loadMoreMessages">Loading…</span>
+                                    </button>
+                                </div>
+                            @endif
                             @forelse ($this->messages as $message)
                                 @php $mine = $message->user_id === auth()->id(); @endphp
                                 <div style="display:flex;flex-direction:column;{{ $mine ? 'align-items:flex-end;' : 'align-items:flex-start;' }}">
