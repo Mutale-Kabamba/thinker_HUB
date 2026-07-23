@@ -26,6 +26,7 @@ class EditInstructorApplication extends BaseEditRecord
                     'role' => 'instructor',
                     'is_active' => true,
                     'email_verified_at' => $user->email_verified_at ?? now(),
+                    'bio' => $application->bio ?: $user->bio,
                     'proficiency' => $application->proficiency ?: $user->proficiency,
                     'occupation' => $application->occupation ?: $user->occupation,
                     'whatsapp' => $application->whatsapp ?: $user->whatsapp,

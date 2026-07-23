@@ -36,6 +36,7 @@ class ProfileUpdateRequest extends FormRequest
             'whatsapp' => ['nullable', 'string', 'max:50'],
             'linkedin_url' => ['nullable', 'url', 'max:255'],
             'facebook_url' => ['nullable', 'url', 'max:255'],
+            'bio' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }
