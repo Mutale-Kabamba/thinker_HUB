@@ -8,5 +8,4 @@
             class="hub-top-search"
         >
     </form>
-    <livewire:notification-bell />
 </div>

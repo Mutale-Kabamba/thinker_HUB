@@ -4,6 +4,8 @@ namespace App\Notifications;
 
 use App\Models\Assignment;
 use App\Notifications\Concerns\ResolvesMailPersonalization;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -11,9 +13,7 @@ class AssignmentAssignedNotification extends Notification
 {
     use ResolvesMailPersonalization;
 
-    public function __construct(private readonly Assignment $assignment)
-    {
-    }
+    public function __construct(private readonly Assignment $assignment) {}
 
     public function via(object $notifiable): array
     {
@@ -40,14 +40,20 @@ class AssignmentAssignedNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'assignment_assigned',
-            'title' => 'New assignment assigned',
-            'message' => $this->assignment->name,
-            'assignment_id' => $this->assignment->id,
-            'course_id' => $this->assignment->course_id,
-            'due_date' => $this->assignment->due_date?->format('Y-m-d'),
-            'url' => '/learn/assignments',
-        ];
+        $body = $this->assignment->name;
+
+        if ($this->assignment->due_date) {
+            $body .= ' — due '.$this->assignment->due_date->format('M j, Y');
+        }
+
+        return FilamentNotification::make()
+            ->title('New assignment assigned')
+            ->body($body)
+            ->actions([
+                Action::make('view')
+                    ->label('View assignments')
+                    ->url('/learn/assignments'),
+            ])
+            ->getDatabaseMessage();
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Notifications;
 
 use App\Notifications\Concerns\ResolvesMailPersonalization;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
@@ -16,8 +18,7 @@ class StudentSubmissionNotification extends Notification
         private readonly string $submissionType,
         private readonly string $itemTitle,
         private readonly int $itemId,
-    ) {
-    }
+    ) {}
 
     public function via(object $notifiable): array
     {
@@ -54,13 +55,14 @@ class StudentSubmissionNotification extends Notification
             default => '/learn/overview',
         };
 
-        return [
-            'type' => 'student_submission',
-            'title' => 'Student submission received',
-            'message' => $this->studentName.' submitted '.$this->submissionType.': '.$this->itemTitle,
-            'submission_type' => $this->submissionType,
-            'item_id' => $this->itemId,
-            'url' => $url,
-        ];
+        return FilamentNotification::make()
+            ->title('Student submission received')
+            ->body($this->studentName.' submitted '.$this->submissionType.': '.$this->itemTitle)
+            ->actions([
+                Action::make('view')
+                    ->label('View overview')
+                    ->url($url),
+            ])
+            ->getDatabaseMessage();
     }
 }

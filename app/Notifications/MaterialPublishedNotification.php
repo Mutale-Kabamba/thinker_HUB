@@ -4,6 +4,8 @@ namespace App\Notifications;
 
 use App\Models\LearningMaterial;
 use App\Notifications\Concerns\ResolvesMailPersonalization;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -11,9 +13,7 @@ class MaterialPublishedNotification extends Notification
 {
     use ResolvesMailPersonalization;
 
-    public function __construct(private readonly LearningMaterial $material)
-    {
-    }
+    public function __construct(private readonly LearningMaterial $material) {}
 
     public function via(object $notifiable): array
     {
@@ -40,13 +40,14 @@ class MaterialPublishedNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'material_published',
-            'title' => 'New material available',
-            'message' => $this->material->title,
-            'material_id' => $this->material->id,
-            'course_id' => $this->material->course_id,
-            'url' => '/learn/materials',
-        ];
+        return FilamentNotification::make()
+            ->title('New material available')
+            ->body($this->material->title)
+            ->actions([
+                Action::make('view')
+                    ->label('View materials')
+                    ->url('/learn/materials'),
+            ])
+            ->getDatabaseMessage();
     }
 }

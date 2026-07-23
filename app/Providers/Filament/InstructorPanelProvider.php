@@ -33,6 +33,7 @@ class InstructorPanelProvider extends PanelProvider
                 'primary' => Color::Teal,
             ])
             ->sidebarCollapsibleOnDesktop()
+            ->databaseNotifications()
             ->navigationGroups([
                 'ACADEMICS & CONTENT',
                 'GRADING & EVALUATIONS',
