@@ -34,6 +34,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         'profile_photo_path',
         'proficiency',
         'occupation',
+        'bio',
         'whatsapp',
         'linkedin_url',
         'facebook_url',

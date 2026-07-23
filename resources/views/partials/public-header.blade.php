@@ -23,8 +23,8 @@
         </nav>
 
         <div class="hidden md:flex items-center gap-6">
-            <a href="{{ route('login') }}" class="text-sm font-bold text-white hover:text-yellow-400">Login</a>
-            <a href="{{ route('enroll') }}" class="rounded-full bg-yellow-400 px-6 py-2.5 text-sm font-bold text-[#0a2d27] hover:bg-white transition-all">Enroll Now</a>
+            <a href="{{ route('login') }}" class="text-sm font-bold text-white hover:text-yellow-400 transition-colors">Login</a>
+            <a href="{{ route('enroll') }}" class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-6 py-2.5 text-sm font-bold text-[#0a2d27] shadow-[0_12px_24px_-12px_rgba(253,224,71,0.9)] transition duration-300 ease-out hover:bg-white hover:text-[#0a2d27] focus:outline-none focus:ring-4 focus:ring-yellow-300/60">Enroll Now</a>
         </div>
 
         <button class="md:hidden text-white text-2xl" @click="mobileMenu = !mobileMenu" aria-label="Toggle menu">
@@ -41,8 +41,8 @@
                 >{{ $item['label'] }}</a>
             @endforeach
             <div class="pt-4 flex gap-4">
-                <a href="{{ route('login') }}" class="flex-1 text-center py-3 border border-white/20 rounded-xl">Login</a>
-                <a href="{{ route('register') }}" class="flex-1 text-center py-3 bg-yellow-400 text-[#0a2d27] rounded-xl">Join</a>
+                <a href="{{ route('login') }}" class="flex-1 text-center py-3 border border-white/20 rounded-xl text-white hover:text-yellow-300 transition-colors">Login</a>
+                <a href="{{ route('register') }}" class="flex-1 text-center py-3 rounded-xl bg-yellow-400 text-[#0a2d27] font-bold shadow-[0_12px_22px_-12px_rgba(253,224,71,0.95)] hover:bg-white hover:text-[#0a2d27] transition duration-300 ease-out">Join</a>
             </div>
         </nav>
     </div>

@@ -92,9 +92,9 @@
                         <p class="mt-8 text-lg text-slate-300 leading-relaxed max-w-lg mx-auto lg:mx-0">
                             think.er HUB connects tutors and learners in one place: tutors can register courses and manage their learners, while anyone ready to upskill can register for a course of interest.
                         </p>
-                        <div class="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
-                            <a href="{{ route('register') }}" class="w-full sm:w-auto rounded-full bg-yellow-400 px-10 py-4 font-bold text-[#0a2d27] hover:translate-y-[-2px] transition-all shadow-lg shadow-yellow-400/20">Register for a Course</a>
-                            <a href="{{ route('landing.instructors.apply') }}" class="w-full sm:w-auto rounded-full border border-white/30 px-10 py-4 font-bold text-white hover:bg-white/10 transition-all text-center">Instructor Registration</a>
+                        <div class="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5">
+                            <a href="{{ route('register') }}" class="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-yellow-400 px-10 py-4 font-bold text-[#0a2d27] shadow-[0_18px_42px_-18px_rgba(253,224,71,0.85)] transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-amber-300 focus:outline-none focus:ring-4 focus:ring-yellow-300/60">Register for a Course</a>
+                            <a href="{{ route('landing.instructors.apply') }}" class="w-full sm:w-auto inline-flex items-center justify-center rounded-full border border-white/30 bg-white/5 px-10 py-4 font-bold text-white transition duration-300 ease-out hover:bg-white/15 focus:outline-none focus:ring-4 focus:ring-white/20 text-center">Instructor Registration</a>
                         </div>
                         
                         <div class="mt-16 grid grid-cols-3 gap-3 sm:gap-4 border-t border-white/10 pt-10 max-w-md mx-auto lg:mx-0">
