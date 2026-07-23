@@ -53,3 +53,10 @@ class UserForm
             ]);
     }
 }
+
+use Filament\Forms\Components\Textarea;
+
+Textarea::make('bio')
+    ->label('Instructor Bio')
+    ->rows(4)
+    ->columnSpanFull();
