@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @include('partials.seo-meta', [
         'title' => $instructor->name.' | Instructor Profile | think.er HUB',
-        'description' => ($instructor->instructorApplication?->bio ?: ($instructor->occupation ?: 'Tutor profile on think.er HUB.')).' Explore tutor-led courses and enroll to upskill.',
+        'description' => ($instructor->bio ?: ($instructor->instructorApplication?->bio ?: ($instructor->occupation ?: 'Tutor profile on think.er HUB.'))).' Explore tutor-led courses and enroll to upskill.',
         'keywords' => 'instructor profile, tutor, curated courses, upskill, thinker hub',
         'type' => 'profile',
     ])
@@ -122,7 +122,7 @@
                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">About</p>
                     <h2 class="mt-2 text-2xl font-black text-slate-900">Meet {{ $instructor->name }}</h2>
                     <p class="mt-4 text-sm leading-relaxed text-slate-600">
-                        {{ $instructor->instructorApplication?->bio ?: 'This tutor is actively teaching on think.er HUB. Explore their courses below and enroll to start upskilling.' }}
+                        {{ $instructor->bio ?: ($instructor->instructorApplication?->bio ?: 'This tutor is actively teaching on think.er HUB. Explore their courses below and enroll to start upskilling.') }}
                     </p>
                 </article>
 

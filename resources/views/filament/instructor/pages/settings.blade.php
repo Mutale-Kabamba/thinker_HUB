@@ -80,6 +80,14 @@
                     </div>
 
                     <div>
+                        <label for="instr_bio" class="hub-eyebrow">About / Bio</label>
+                        <textarea id="instr_bio" name="bio" rows="5" class="hub-input" placeholder="Write a brief description about yourself, your background, and teaching experience...">{{ old('bio', $user->bio) }}</textarea>
+                        @error('bio')
+                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
                         <label for="instr_whatsapp" class="hub-eyebrow">WhatsApp Number</label>
                         <input id="instr_whatsapp" name="whatsapp" type="text" value="{{ old('whatsapp', $user->whatsapp) }}" class="hub-input" placeholder="+260 97 xxxxxxx">
                         @error('whatsapp')
