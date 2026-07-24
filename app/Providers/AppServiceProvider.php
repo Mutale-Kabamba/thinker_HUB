@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Http\Responses\FilamentLogoutResponse;
 use App\Models\Assessment;
+use App\Models\AssessmentSubmission;
 use App\Models\Assignment;
+use App\Models\AssignmentSubmission;
 use App\Models\ChatMessage;
 use App\Models\Course;
 use App\Models\CourseSession;
@@ -17,6 +19,7 @@ use App\Observers\ChatMessageObserver;
 use App\Observers\CourseSessionObserver;
 use App\Observers\LearningMaterialObserver;
 use App\Observers\QuizAttemptObserver;
+use App\Observers\SubmissionObserver;
 use App\Observers\UserObserver;
 use App\Policies\AssessmentPolicy;
 use App\Policies\AssignmentPolicy;
@@ -52,6 +55,8 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Assignment::observe(AssignmentObserver::class);
+        AssignmentSubmission::observe(SubmissionObserver::class);
+        AssessmentSubmission::observe(SubmissionObserver::class);
         ChatMessage::observe(ChatMessageObserver::class);
         CourseSession::observe(CourseSessionObserver::class);
         LearningMaterial::observe(LearningMaterialObserver::class);
