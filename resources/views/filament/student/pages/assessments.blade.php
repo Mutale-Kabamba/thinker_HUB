@@ -1,64 +1,8 @@
 <x-filament-panels::page>
     <div x-data="{
-        viewerOpen: false,
-        viewerUrl: '',
-        viewerRawUrl: '',
-        viewerObjectUrl: '',
-        viewerName: '',
-        viewerType: '',
-        viewerDocUrl: '',
+        ...window.documentViewer(),
         expanded: null,
         panel: null,
-        async buildObjectUrl(url) {
-            const resp = await fetch(url, { credentials: 'same-origin' });
-            if (!resp.ok) throw new Error('Failed to fetch file for preview');
-            const blob = await resp.blob();
-            return URL.createObjectURL(blob);
-        },
-        async openViewer(url, name) {
-            this.viewerRawUrl = url;
-            this.viewerUrl = url;
-            this.viewerName = name;
-            this.viewerDocUrl = '';
-            if (this.viewerObjectUrl) {
-                URL.revokeObjectURL(this.viewerObjectUrl);
-                this.viewerObjectUrl = '';
-            }
-            const ext = name.split('.').pop().toLowerCase();
-            if (ext === 'pdf') {
-                this.viewerType = 'pdf';
-                try {
-                    this.viewerObjectUrl = await this.buildObjectUrl(url);
-                    this.viewerUrl = this.viewerObjectUrl;
-                } catch (e) {
-                    this.viewerUrl = this.viewerRawUrl;
-                }
-            }
-            else if (['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) this.viewerType = 'image';
-            else if (['mp4','webm','ogg'].includes(ext)) this.viewerType = 'video';
-            else if (['doc','docx','ppt','pptx','xls','xlsx'].includes(ext)) {
-                this.viewerType = 'document';
-                try {
-                    const signedRoute = url.replace('/file/view/', '/file/signed/');
-                    const resp = await fetch(signedRoute, { credentials: 'same-origin' });
-                    const data = await resp.json();
-                    this.viewerDocUrl = 'https://docs.google.com/gview?url=' + encodeURIComponent(data.url) + '&embedded=true';
-                } catch (e) { this.viewerType = 'other'; }
-            }
-            else if (['txt','csv'].includes(ext)) this.viewerType = 'text';
-            else this.viewerType = 'other';
-            this.viewerOpen = true;
-        },
-        closeViewer() {
-            this.viewerOpen = false;
-            this.viewerUrl = '';
-            this.viewerRawUrl = '';
-            this.viewerDocUrl = '';
-            if (this.viewerObjectUrl) {
-                URL.revokeObjectURL(this.viewerObjectUrl);
-                this.viewerObjectUrl = '';
-            }
-        },
         toggle(id, p) {
             if (this.expanded === id && this.panel === p) { this.expanded = null; this.panel = null; }
             else { this.expanded = id; this.panel = p; }
@@ -180,37 +124,6 @@
         </div>
     </div>
 
-    {{-- File Viewer Modal --}}
-    <div x-show="viewerOpen" x-cloak x-transition.opacity style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:0.5rem;background:rgba(0,0,0,0.7);" @keydown.escape.window="closeViewer()">
-        <div @click.away="closeViewer()" style="background:#fff;border-radius:12px;width:95vw;max-width:900px;max-height:90vh;margin:auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.85rem;border-bottom:1px solid #e5e7eb;gap:0.5rem;">
-                <p style="margin:0;font-size:0.85rem;font-weight:600;color:#1f2937;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" x-text="viewerName"></p>
-                <button @click="closeViewer()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#6b7280;line-height:1;flex-shrink:0;" title="Close">&times;</button>
-            </div>
-            <div style="flex:1;overflow:auto;padding:0.75rem;display:flex;align-items:center;justify-content:center;min-height:300px;">
-                <template x-if="viewerType === 'pdf'">
-                    <iframe :src="viewerUrl" style="width:100%;height:75vh;border:none;"></iframe>
-                </template>
-                <template x-if="viewerType === 'image'">
-                    <img :src="viewerUrl" style="max-width:100%;max-height:75vh;object-fit:contain;" />
-                </template>
-                <template x-if="viewerType === 'video'">
-                    <video :src="viewerUrl" controls style="max-width:100%;max-height:75vh;"></video>
-                </template>
-                <template x-if="viewerType === 'document'">
-                    <iframe :src="viewerDocUrl" style="width:100%;height:75vh;border:none;"></iframe>
-                </template>
-                <template x-if="viewerType === 'text'">
-                    <iframe :src="viewerUrl" style="width:100%;height:75vh;border:none;"></iframe>
-                </template>
-                <template x-if="viewerType === 'other'">
-                    <div style="text-align:center;padding:2rem;">
-                        <p style="font-size:1rem;color:#6b7280;margin:0 0 1rem;">Preview is not available for this file type.</p>
-                        <a :href="viewerUrl" download class="hub-btn hub-btn-primary" style="font-size:0.85rem;">Download File</a>
-                    </div>
-                </template>
-            </div>
-        </div>
-    </div>
-    </div>
+    @include("filament.student.partials.document-viewer")
+</div>
 </x-filament-panels::page>
