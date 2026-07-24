@@ -4,12 +4,15 @@ namespace App\Notifications;
 
 use App\Models\CourseSession;
 use App\Notifications\Concerns\ResolvesMailPersonalization;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class SessionRescheduledNotification extends Notification
 {
     use ResolvesMailPersonalization;
+
     public function __construct(
         private readonly CourseSession $session,
         private readonly string $courseName,
@@ -40,14 +43,15 @@ class SessionRescheduledNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'session_rescheduled',
-            'title' => 'Session rescheduled',
-            'message' => $this->courseName.': moved to '.$this->session->rescheduled_date->format('D, M j')
-                .' at '.$this->session->rescheduled_start_time,
-            'session_id' => $this->session->id,
-            'course_id' => $this->session->course_id,
-            'url' => '/learn/schedule',
-        ];
+        return FilamentNotification::make()
+            ->title('Session rescheduled')
+            ->body($this->courseName.': moved to '.$this->session->rescheduled_date->format('D, M j')
+                .' at '.$this->session->rescheduled_start_time)
+            ->actions([
+                Action::make('view')
+                    ->label('View schedule')
+                    ->url('/learn/schedule'),
+            ])
+            ->getDatabaseMessage();
     }
 }

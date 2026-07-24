@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\CourseSessions\Pages;
 
 use App\Filament\Actions\ImportSessionsAction;
-use App\Filament\Widgets\AdminRescheduleRequestsWidget;
 use App\Filament\Resources\CourseSessions\CourseSessionResource;
+use App\Filament\Widgets\AdminRescheduleRequestsWidget;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 

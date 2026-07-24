@@ -3,6 +3,8 @@
 namespace App\Notifications;
 
 use App\Notifications\Concerns\ResolvesMailPersonalization;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -15,8 +17,7 @@ class SubmissionGradedNotification extends Notification
         private readonly string $itemTitle,
         private readonly ?int $scoreOrGrade,
         private readonly string $feedback,
-    ) {
-    }
+    ) {}
 
     public function via(object $notifiable): array
     {
@@ -46,14 +47,24 @@ class SubmissionGradedNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'submission_graded',
-            'title' => 'Your '.$this->submissionType.' was reviewed',
-            'message' => $this->itemTitle,
-            'submission_type' => $this->submissionType,
-            'score_or_grade' => $this->scoreOrGrade,
-            'feedback' => $this->feedback,
-            'url' => '/learn/assessments',
-        ];
+        $body = $this->itemTitle.'.';
+
+        if ($this->scoreOrGrade !== null) {
+            $body .= ' Score: '.$this->scoreOrGrade.'.';
+        }
+
+        if (filled($this->feedback)) {
+            $body .= ' '.$this->feedback;
+        }
+
+        return FilamentNotification::make()
+            ->title('Your '.$this->submissionType.' was reviewed')
+            ->body($body)
+            ->actions([
+                Action::make('view')
+                    ->label('View '.$this->submissionType)
+                    ->url($this->submissionType === 'assignment' ? '/learn/assignments' : '/learn/assessments'),
+            ])
+            ->getDatabaseMessage();
     }
 }

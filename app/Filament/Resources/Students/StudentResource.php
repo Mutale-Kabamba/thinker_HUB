@@ -7,7 +7,9 @@ use App\Filament\Resources\Students\Pages\EditStudent;
 use App\Filament\Resources\Students\Pages\ListStudents;
 use App\Filament\Resources\Students\Pages\ViewStudent;
 use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\User;
+use App\Notifications\CourseEnrolledNotification;
 use BackedEnum;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -17,6 +19,7 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -185,6 +188,52 @@ class StudentResource extends Resource
                         ->color('danger')
                         ->requiresConfirmation()
                         ->action(fn (Collection $records) => $records->each->update(['is_active' => false]))
+                        ->deselectRecordsAfterCompletion(),
+                    BulkAction::make('enroll_in_course')
+                        ->label('Enroll in Course')
+                        ->icon('heroicon-o-academic-cap')
+                        ->form([
+                            Select::make('course_id')
+                                ->label('Course')
+                                ->options(fn (): array => Course::query()->where('is_active', true)->orderBy('title')->pluck('title', 'id')->toArray())
+                                ->required()
+                                ->searchable(),
+                        ])
+                        ->action(function (Collection $records, array $data): void {
+                            $course = Course::query()->findOrFail((int) $data['course_id']);
+
+                            $created = 0;
+                            $skipped = 0;
+
+                            foreach ($records as $record) {
+                                $enrollment = Enrollment::query()->firstOrCreate([
+                                    'user_id' => $record->id,
+                                    'course_id' => $course->id,
+                                ]);
+
+                                if ($enrollment->wasRecentlyCreated) {
+                                    $created++;
+
+                                    try {
+                                        $record->notify(new CourseEnrolledNotification($course));
+                                    } catch (\Throwable $e) {
+                                        report($e);
+                                    }
+                                } else {
+                                    $skipped++;
+                                }
+                            }
+
+                            $notification = Notification::make()
+                                ->title('Bulk enrollment complete')
+                                ->body($created.' enrolled, '.$skipped.' skipped (already enrolled).');
+
+                            if ($created > 0) {
+                                $notification->success()->send();
+                            } else {
+                                $notification->warning()->send();
+                            }
+                        })
                         ->deselectRecordsAfterCompletion(),
                     DeleteBulkAction::make(),
                 ]),

@@ -2,17 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\QueuedVerifyEmail;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+
 class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
@@ -76,6 +82,114 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->hasMany(Enrollment::class);
     }
 
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(Bookmark::class);
+    }
+
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
+    public function badges(): BelongsToMany
+    {
+        return $this->belongsToMany(Badge::class, 'user_badge')
+            ->withPivot('earned_at')
+            ->withTimestamps();
+    }
+
+    public function xpTransactions(): HasMany
+    {
+        return $this->hasMany(XpTransaction::class);
+    }
+
+    /**
+     * Total XP across all award transactions. Correctness first: summed
+     * live from xp_transactions (indexed on user_id), no cached counter.
+     */
+    public function xpTotal(): int
+    {
+        return (int) $this->xpTransactions()->sum('points');
+    }
+
+    /**
+     * Course completion rule for certificates: the student must be enrolled
+     * and must have a passed attempt (QuizAttempt.passed, graded as
+     * percentage >= Quiz.pass_percentage) for every active quiz in the
+     * course. Courses without active quizzes are complete on enrollment.
+     */
+    public function hasCompletedCourse(Course $course): bool
+    {
+        $isEnrolled = $this->enrollments()
+            ->where('course_id', $course->id)
+            ->exists();
+
+        if (! $isEnrolled) {
+            return false;
+        }
+
+        $activeQuizIds = $course->quizzes()
+            ->where('is_active', true)
+            ->pluck('id');
+
+        if ($activeQuizIds->isEmpty()) {
+            return true;
+        }
+
+        $passedQuizIds = QuizAttempt::query()
+            ->where('user_id', $this->id)
+            ->whereIn('quiz_id', $activeQuizIds)
+            ->where('passed', true)
+            ->distinct()
+            ->pluck('quiz_id');
+
+        return $passedQuizIds->count() === $activeQuizIds->count();
+    }
+
+    public function hasBookmarked(Model $model): bool
+    {
+        return $this->bookmarks()
+            ->where('bookmarkable_type', $model->getMorphClass())
+            ->where('bookmarkable_id', $model->getKey())
+            ->exists();
+    }
+
+    /**
+     * Toggle a bookmark on/off for the given model.
+     * Returns true when the model is now bookmarked.
+     */
+    public function toggleBookmark(Model $model): bool
+    {
+        $existing = $this->bookmarks()
+            ->where('bookmarkable_type', $model->getMorphClass())
+            ->where('bookmarkable_id', $model->getKey())
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+
+            return false;
+        }
+
+        try {
+            $this->bookmarks()->create([
+                'bookmarkable_type' => $model->getMorphClass(),
+                'bookmarkable_id' => $model->getKey(),
+            ]);
+        } catch (QueryException $e) {
+            // Unique constraint hit (concurrent toggle) — treat as bookmarked.
+            report($e);
+        }
+
+        return true;
+    }
+
     public function courses(): BelongsToMany
     {
         return $this->belongsToMany(Course::class, 'enrollments')->withTimestamps();
@@ -111,7 +225,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->belongsToMany(Course::class, 'course_instructor')->withTimestamps();
     }
 
-    public function instructorApplication(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function instructorApplication(): HasOne
     {
         return $this->hasOne(InstructorApplication::class);
     }
@@ -131,9 +245,9 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     /**
      * Accepted friends (in either direction).
      *
-     * @return \Illuminate\Support\Collection<int, User>
+     * @return Collection<int, User>
      */
-    public function friends(): \Illuminate\Support\Collection
+    public function friends(): Collection
     {
         $sent = Friendship::query()
             ->where('user_id', $this->id)
@@ -182,7 +296,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->profile_photo_path
-            ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->profile_photo_path)
+            ? Storage::disk('public')->url($this->profile_photo_path)
             : null;
     }
 

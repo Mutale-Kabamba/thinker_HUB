@@ -4,12 +4,15 @@ namespace App\Notifications;
 
 use App\Models\CourseSession;
 use App\Notifications\Concerns\ResolvesMailPersonalization;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class RescheduleRequestNotification extends Notification
 {
     use ResolvesMailPersonalization;
+
     public function __construct(
         private readonly CourseSession $session,
         private readonly int $studentId,
@@ -49,19 +52,32 @@ class RescheduleRequestNotification extends Notification
     {
         $courseName = $this->session->course->title ?? 'Course';
         $url = $notifiable->role === 'instructor' ? '/teach/schedule' : '/manage/course-sessions';
+        $message = $courseName.' ('.$this->session->session_date->format('M j').'): '.$this->reason;
 
-        return [
-            'type' => 'reschedule_request',
-            'title' => 'Reschedule request from '.$this->studentName,
-            'message' => $courseName.' ('.$this->session->session_date->format('M j').'): '.$this->reason,
-            'session_id' => $this->session->id,
-            'course_id' => $this->session->course_id,
-            'student_id' => $this->studentId,
-            'student_name' => $this->studentName,
-            'reason' => $this->reason,
-            'preferred_date' => $this->preferredDate,
-            'preferred_time' => $this->preferredTime,
-            'url' => $url,
-        ];
+        // Filament bell payload merged with the legacy keys the reschedule
+        // decision workflow reads from stored notification data.
+        return array_merge(
+            FilamentNotification::make()
+                ->title('Reschedule request from '.$this->studentName)
+                ->body($message)
+                ->actions([
+                    Action::make('review')
+                        ->label('Review request')
+                        ->url($url),
+                ])
+                ->getDatabaseMessage(),
+            [
+                'type' => 'reschedule_request',
+                'message' => $message,
+                'session_id' => $this->session->id,
+                'course_id' => $this->session->course_id,
+                'student_id' => $this->studentId,
+                'student_name' => $this->studentName,
+                'reason' => $this->reason,
+                'preferred_date' => $this->preferredDate,
+                'preferred_time' => $this->preferredTime,
+                'url' => $url,
+            ],
+        );
     }
 }

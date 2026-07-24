@@ -3,15 +3,20 @@
 namespace App\Providers;
 
 use App\Http\Responses\FilamentLogoutResponse;
-use Filament\Auth\Http\Responses\Contracts\LogoutResponse as LogoutResponseContract;
 use App\Models\Assessment;
 use App\Models\Assignment;
+use App\Models\ChatMessage;
 use App\Models\Course;
+use App\Models\CourseSession;
 use App\Models\Enrollment;
 use App\Models\LearningMaterial;
+use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Observers\AssignmentObserver;
+use App\Observers\ChatMessageObserver;
+use App\Observers\CourseSessionObserver;
 use App\Observers\LearningMaterialObserver;
+use App\Observers\QuizAttemptObserver;
 use App\Observers\UserObserver;
 use App\Policies\AssessmentPolicy;
 use App\Policies\AssignmentPolicy;
@@ -19,12 +24,13 @@ use App\Policies\CoursePolicy;
 use App\Policies\EnrollmentPolicy;
 use App\Policies\LearningMaterialPolicy;
 use App\Policies\UserPolicy;
+use Filament\Auth\Http\Responses\Contracts\LogoutResponse as LogoutResponseContract;
+use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Mail\Events\MessageSending;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -46,7 +52,10 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Assignment::observe(AssignmentObserver::class);
+        ChatMessage::observe(ChatMessageObserver::class);
+        CourseSession::observe(CourseSessionObserver::class);
         LearningMaterial::observe(LearningMaterialObserver::class);
+        QuizAttempt::observe(QuizAttemptObserver::class);
         User::observe(UserObserver::class);
 
         Gate::policy(User::class, UserPolicy::class);

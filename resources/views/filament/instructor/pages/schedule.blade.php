@@ -189,16 +189,19 @@
                     @endif
 
                     {{-- Actions --}}
-                    @if ($session['status'] === 'scheduled')
-                        <div style="margin-top:0.6rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                    <div style="margin-top:0.6rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        @if ($session['status'] === 'scheduled')
                             <button wire:click="markCompleted({{ $session['id'] }})" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.35rem 0.7rem;">
                                 ✅ Mark Completed
                             </button>
                             <button wire:click="openReschedule({{ $session['id'] }})" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.35rem 0.7rem;">
                                 📅 Reschedule
                             </button>
-                        </div>
-                    @endif
+                        @endif
+                        <a href="{{ \App\Filament\Instructor\Resources\CourseSessionResource\CourseSessionResource::getUrl('edit', ['record' => $session['id']]) }}" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.35rem 0.7rem;text-decoration:none;">
+                            🗒️ Attendance
+                        </a>
+                    </div>
 
                     {{-- Reschedule form --}}
                     @if ($rescheduleSessionId === $session['id'])

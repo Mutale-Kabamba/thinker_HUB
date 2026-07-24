@@ -239,6 +239,11 @@ class CourseSessionTable
                         Notification::make()->title('Reschedule request accepted. Session updated and students notified.')->success()->send();
                     }),
 
+                Action::make('attendance')
+                    ->label('Attendance')
+                    ->icon('heroicon-o-clipboard-document-check')
+                    ->url(fn (CourseSession $record): string => CourseSessionResource::getUrl('edit', ['record' => $record])),
+
                 EditAction::make(),
             ])
             ->toolbarActions([

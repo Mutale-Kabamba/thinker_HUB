@@ -37,7 +37,9 @@ class CourseSessionResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            RelationManagers\AttendancesRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

@@ -65,6 +65,55 @@ class ResourceVideo extends Model
     }
 
     /**
+     * Local video uploads attached to this video. A present Media row IS the
+     * "video_type" marker — no extra column on resource_videos: upload-branch
+     * records store an empty youtube_url plus a Media row; YouTube records
+     * keep a youtube_url and no Media row.
+     */
+    public function media(): MorphMany
+    {
+        return $this->morphMany(Media::class, 'mediable');
+    }
+
+    /**
+     * Whether this video uses a local file upload rather than YouTube.
+     */
+    public function hasLocalVideo(): bool
+    {
+        return $this->media()->exists();
+    }
+
+    /**
+     * The playable local upload (transcoded, or original when transcoding
+     * was skipped), if any.
+     */
+    public function playableLocalVideo(): ?Media
+    {
+        return $this->media()
+            ->whereIn('status', ['ready', 'skipped'])
+            ->latest()
+            ->first();
+    }
+
+    /**
+     * Best playback URL: the local file when a playable upload exists,
+     * otherwise the YouTube embed URL (YouTube behaviour untouched).
+     */
+    public function videoUrl(): ?string
+    {
+        return $this->playableLocalVideo()?->url() ?? $this->embed_url;
+    }
+
+    protected static function booted(): void
+    {
+        // Deleting the video removes its Media rows; each Media deletion
+        // removes its stored file from the disk.
+        static::deleting(function (ResourceVideo $video): void {
+            $video->media()->get()->each->delete();
+        });
+    }
+
+    /**
      * Extract the YouTube video id from any common YouTube URL format.
      */
     public static function extractYoutubeId(?string $url): ?string
@@ -113,6 +162,11 @@ class ResourceVideo extends Model
     public function comments(): MorphMany
     {
         return $this->morphMany(ResourceComment::class, 'commentable');
+    }
+
+    public function bookmarks(): MorphMany
+    {
+        return $this->morphMany(Bookmark::class, 'bookmarkable');
     }
 
     /**

@@ -88,6 +88,11 @@ class Course extends Model
         return $this->hasMany(Quiz::class);
     }
 
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
     public function ratings(): HasMany
     {
         return $this->hasMany(CourseRating::class);
@@ -95,11 +100,19 @@ class Course extends Model
 
     public function averageRating(): float
     {
+        if (array_key_exists('ratings_avg_rating', $this->getAttributes())) {
+            return round((float) $this->ratings_avg_rating, 1);
+        }
+
         return round((float) $this->ratings()->avg('rating'), 1);
     }
 
     public function ratingsCount(): int
     {
+        if (array_key_exists('ratings_count', $this->getAttributes())) {
+            return (int) $this->ratings_count;
+        }
+
         return (int) $this->ratings()->count();
     }
 

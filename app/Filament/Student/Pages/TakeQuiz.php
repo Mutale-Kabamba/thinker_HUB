@@ -43,7 +43,7 @@ class TakeQuiz extends Page
             return;
         }
 
-        $quiz = Quiz::with(['questions.options', 'course'])->find($this->quizId);
+        $quiz = Quiz::find($this->quizId);
 
         if (! $quiz || ! $quiz->is_active) {
             Notification::make()->title('Quiz not available.')->danger()->send();
@@ -57,13 +57,15 @@ class TakeQuiz extends Page
             return;
         }
 
-        // Verify the student is enrolled in the quiz's course
+        // Verify the student is enrolled in the quiz's course BEFORE loading quiz data
         if (! $user->isEnrolledInCourse($quiz->course_id)) {
             Notification::make()->title('You are not authorized to take this quiz.')->danger()->send();
             $this->redirect(route('filament.student.pages.quizzes'));
 
             return;
         }
+
+        $quiz->load(['questions.options', 'course']);
 
         // Check if user has an existing completed attempt
         $existingAttempt = QuizAttempt::query()

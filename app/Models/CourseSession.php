@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class CourseSession extends Model
 {
@@ -49,6 +51,11 @@ class CourseSession extends Model
         return $this->belongsTo(User::class, 'student_id');
     }
 
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
     public function isGroup(): bool
     {
         return $this->type === 'group';
@@ -59,7 +66,7 @@ class CourseSession extends Model
         return $this->type === 'one_on_one';
     }
 
-    public function getEffectiveDate(): \Illuminate\Support\Carbon
+    public function getEffectiveDate(): Carbon
     {
         return $this->status === 'rescheduled' && $this->rescheduled_date
             ? $this->rescheduled_date
@@ -80,14 +87,13 @@ class CourseSession extends Model
             : $this->end_time;
     }
 
-    public function effectiveStartAt(): \Illuminate\Support\Carbon
+    public function effectiveStartAt(): Carbon
     {
         return $this->getEffectiveDate()->copy()->setTimeFromTimeString($this->getEffectiveStartTime());
     }
 
-    public function effectiveEndAt(): \Illuminate\Support\Carbon
+    public function effectiveEndAt(): Carbon
     {
         return $this->getEffectiveDate()->copy()->setTimeFromTimeString($this->getEffectiveEndTime());
     }
-
 }

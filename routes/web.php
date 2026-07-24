@@ -1,18 +1,32 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\InstructorApplicationController;
+use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ContactMessageController;
+use App\Http\Controllers\InstructorApplicationController;
+use App\Http\Controllers\ProfileController;
+use App\Models\Assessment;
+use App\Models\AssessmentSubmission;
+use App\Models\Assignment;
+use App\Models\AssignmentSubmission;
+use App\Models\ChatMessage;
+use App\Models\ChatRoom;
 use App\Models\Course;
 use App\Models\CourseRating;
-use App\Models\CourseSession;
+use App\Models\LearningMaterial;
 use App\Models\User;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 $loadPublicCourses = static function (int $limit = 0) {
     try {
@@ -44,7 +58,7 @@ $loadPublicCourses = static function (int $limit = 0) {
         }
 
         return $query->get();
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         // If database is unavailable during bootstrap/deploy, avoid hard-failing public pages.
         report($e);
 
@@ -89,7 +103,7 @@ $loadHomeStats = static function () {
         }
 
         return $default;
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         report($e);
 
         return $default;
@@ -120,7 +134,7 @@ $loadRecentCourseReviews = static function (int $limit = 6) {
             ->latest()
             ->limit($limit)
             ->get();
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         report($e);
 
         return collect();
@@ -262,7 +276,7 @@ Route::get('/instructors', function () {
                 ->where('is_active', true)
                 ->get(['id', 'name', 'profile_photo_path', 'proficiency', 'occupation', 'whatsapp', 'linkedin_url', 'facebook_url']);
         }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         report($e);
     }
 
@@ -307,7 +321,7 @@ Route::get('/instructors/apply', [InstructorApplicationController::class, 'creat
 Route::post('/instructors/apply', [InstructorApplicationController::class, 'store'])->name('landing.instructors.apply.store');
 
 Route::view('/contact', 'pages.contact')->name('landing.contact');
-Route::post('/contact', [ContactMessageController::class, 'store'])->name('landing.contact.store');
+Route::post('/contact', [ContactMessageController::class, 'store'])->middleware('throttle:3,1')->name('landing.contact.store');
 Route::view('/privacy', 'pages.privacy')->name('landing.privacy');
 Route::view('/cookies', 'pages.cookies')->name('landing.cookies');
 Route::view('/terms', 'pages.terms')->name('landing.terms');
@@ -326,11 +340,11 @@ Route::get('/sitemap.xml', function () {
         'Cache-Control' => 'public, max-age=3600',
     ]);
 })->withoutMiddleware([
-    \Illuminate\Cookie\Middleware\EncryptCookies::class,
-    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-    \Illuminate\Session\Middleware\StartSession::class,
-    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-    \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+    EncryptCookies::class,
+    AddQueuedCookiesToResponse::class,
+    StartSession::class,
+    ShareErrorsFromSession::class,
+    VerifyCsrfToken::class,
 ])->name('sitemap');
 
 Route::redirect('/enroll', '/register')->name('enroll');
@@ -353,7 +367,11 @@ Route::get('/dashboard', function () {
     return redirect()->route('filament.student.pages.overview');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/certificates/verify/{code}', [CertificateController::class, 'verify'])->name('certificates.verify');
+
 Route::middleware('auth')->group(function () {
+    Route::get('/certificates/{certificate}/download', [CertificateController::class, 'download'])->name('certificates.download');
+
     Route::get('/profile', function () {
         $user = Auth::user();
 
@@ -398,35 +416,35 @@ Route::middleware('auth')->group(function () {
             abort(403);
         }
 
-        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        $disk = Storage::disk('public');
 
         if ($type === 'material') {
-            $material = \App\Models\LearningMaterial::query()->visibleTo($user)->findOrFail($id);
+            $material = LearningMaterial::query()->visibleTo($user)->findOrFail($id);
             $path = $material->file_path;
         } elseif ($type === 'assignment') {
-            $assignment = \App\Models\Assignment::query()->visibleTo($user)->findOrFail($id);
+            $assignment = Assignment::query()->visibleTo($user)->findOrFail($id);
             $path = $assignment->file_path;
         } elseif ($type === 'assessment') {
             if ($user->isAdmin()) {
-                $assessment = \App\Models\Assessment::query()->findOrFail($id);
+                $assessment = Assessment::query()->findOrFail($id);
             } else {
-                $assessment = \App\Models\Assessment::query()->where('user_id', $user->id)->findOrFail($id);
+                $assessment = Assessment::query()->where('user_id', $user->id)->findOrFail($id);
             }
             $path = $assessment->file_path;
         } elseif ($type === 'submission') {
-            $submission = \App\Models\AssignmentSubmission::query()
+            $submission = AssignmentSubmission::query()
                 ->where('user_id', $user->id)
                 ->findOrFail($id);
             $path = $submission->file_path;
         } elseif ($type === 'assessment-submission') {
-            $submission = \App\Models\AssessmentSubmission::query()
+            $submission = AssessmentSubmission::query()
                 ->where('user_id', $user->id)
                 ->findOrFail($id);
             $path = $submission->file_path;
         } elseif ($type === 'chat-message') {
-            $chatMessage = \App\Models\ChatMessage::query()->findOrFail($id);
+            $chatMessage = ChatMessage::query()->findOrFail($id);
 
-            $isRoomMember = \App\Models\ChatRoom::query()
+            $isRoomMember = ChatRoom::query()
                 ->whereKey($chatMessage->chat_room_id)
                 ->whereHas('members', fn ($query) => $query->where('users.id', $user->id))
                 ->exists();
@@ -460,28 +478,28 @@ Route::middleware('auth')->group(function () {
             abort(403);
         }
 
-        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        $disk = Storage::disk('public');
 
         if ($type === 'material') {
-            $material = \App\Models\LearningMaterial::query()->visibleTo($user)->findOrFail($id);
+            $material = LearningMaterial::query()->visibleTo($user)->findOrFail($id);
             $path = $material->file_path;
         } elseif ($type === 'assignment') {
-            $assignment = \App\Models\Assignment::query()->visibleTo($user)->findOrFail($id);
+            $assignment = Assignment::query()->visibleTo($user)->findOrFail($id);
             $path = $assignment->file_path;
         } elseif ($type === 'assessment') {
             if ($user->isAdmin()) {
-                $assessment = \App\Models\Assessment::query()->findOrFail($id);
+                $assessment = Assessment::query()->findOrFail($id);
             } else {
-                $assessment = \App\Models\Assessment::query()->where('user_id', $user->id)->findOrFail($id);
+                $assessment = Assessment::query()->where('user_id', $user->id)->findOrFail($id);
             }
             $path = $assessment->file_path;
         } elseif ($type === 'submission') {
-            $submission = \App\Models\AssignmentSubmission::query()
+            $submission = AssignmentSubmission::query()
                 ->where('user_id', $user->id)
                 ->findOrFail($id);
             $path = $submission->file_path;
         } elseif ($type === 'assessment-submission') {
-            $submission = \App\Models\AssessmentSubmission::query()
+            $submission = AssessmentSubmission::query()
                 ->where('user_id', $user->id)
                 ->findOrFail($id);
             $path = $submission->file_path;
@@ -493,7 +511,7 @@ Route::middleware('auth')->group(function () {
             abort(404);
         }
 
-        $signedUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+        $signedUrl = URL::temporarySignedRoute(
             'file.public',
             now()->addMinutes(30),
             ['path' => $path]
@@ -504,13 +522,13 @@ Route::middleware('auth')->group(function () {
 });
 
 // Publicly accessible signed route for Google Docs Viewer to fetch the file.
-Route::get('/file/public', function (\Illuminate\Http\Request $request) {
+Route::get('/file/public', function (Request $request) {
     if (! $request->hasValidSignature()) {
         abort(403);
     }
 
     $path = $request->query('path');
-    $disk = \Illuminate\Support\Facades\Storage::disk('public');
+    $disk = Storage::disk('public');
 
     // Prevent path traversal attacks.
     if (! $path || str_contains($path, '..') || ! $disk->exists($path)) {
@@ -524,11 +542,11 @@ require __DIR__.'/auth.php';
 
 Route::domain('www.thinker.it.com')->group(function () {
     Route::get('/{path?}', function (Request $request, ?string $path = '') {
-        $target = 'https://thinker.it.com/' . ltrim((string) $path, '/');
+        $target = 'https://thinker.it.com/'.ltrim((string) $path, '/');
         $query = $request->getQueryString();
 
         if ($query) {
-            $target .= '?' . $query;
+            $target .= '?'.$query;
         }
 
         return redirect()->to($target, 301);

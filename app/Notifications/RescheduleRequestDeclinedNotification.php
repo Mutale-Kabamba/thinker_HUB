@@ -4,12 +4,15 @@ namespace App\Notifications;
 
 use App\Models\CourseSession;
 use App\Notifications\Concerns\ResolvesMailPersonalization;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class RescheduleRequestDeclinedNotification extends Notification
 {
     use ResolvesMailPersonalization;
+
     public function __construct(
         private readonly CourseSession $session,
         private readonly string $courseName,
@@ -43,19 +46,20 @@ class RescheduleRequestDeclinedNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        $message = 'Your reschedule request for '.$this->courseName.' was declined.';
+        $body = 'Your reschedule request for '.$this->courseName.' was declined.';
 
         if (filled($this->reason)) {
-            $message .= ' Reason: '.$this->reason;
+            $body .= ' Reason: '.$this->reason;
         }
 
-        return [
-            'type' => 'reschedule_request_declined',
-            'title' => 'Reschedule request declined',
-            'message' => $message,
-            'session_id' => $this->session->id,
-            'course_id' => $this->session->course_id,
-            'url' => '/learn/schedule',
-        ];
+        return FilamentNotification::make()
+            ->title('Reschedule request declined')
+            ->body($body)
+            ->actions([
+                Action::make('view')
+                    ->label('View schedule')
+                    ->url('/learn/schedule'),
+            ])
+            ->getDatabaseMessage();
     }
 }

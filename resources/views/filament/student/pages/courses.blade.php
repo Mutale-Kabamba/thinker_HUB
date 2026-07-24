@@ -128,6 +128,11 @@
                         @if (! $course['is_active'])
                             <button type="button" disabled class="hub-btn hub-btn-muted" style="opacity:0.6;cursor:not-allowed;">Unavailable</button>
                         @elseif ($course['enrolled'])
+                            @if ($course['certificate_claimed'])
+                                <a href="{{ url('/learn/certificates') }}" class="hub-btn hub-btn-muted" style="text-decoration:none;">🎓 View Certificate</a>
+                            @elseif ($course['certificate_eligible'])
+                                <button type="button" wire:click="claimCertificate({{ $course['id'] }})" class="hub-btn hub-btn-primary">🎓 Claim Certificate</button>
+                            @endif
                             <button type="button" wire:click="unenroll({{ $course['id'] }})" class="hub-btn hub-btn-danger">Unenroll</button>
                         @elseif (! $course['can_enroll'])
                             <button type="button" disabled class="hub-btn hub-btn-muted" style="opacity:0.6;cursor:not-allowed;">Locked</button>

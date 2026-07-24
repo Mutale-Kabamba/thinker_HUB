@@ -163,7 +163,7 @@ class Overview extends Page
                 ->all(),
         ];
 
-        $this->loadCalendar(Carbon::today());
+        $this->loadCalendar(Carbon::today(), $visibleAssignments, $assessmentRecords, $assignmentSubmissions, $assessmentSubmissions);
     }
 
     public function navigateCalendar(int $year, int $month): void
@@ -172,7 +172,13 @@ class Overview extends Page
         $this->loadCalendar($date);
     }
 
-    protected function loadCalendar(Carbon $reference): void
+    protected function loadCalendar(
+        Carbon $reference,
+        $visibleAssignments = null,
+        $assessmentRecords = null,
+        $assignmentSubmissions = null,
+        $assessmentSubmissions = null,
+    ): void
     {
         $user = auth()->user();
 
@@ -185,25 +191,33 @@ class Overview extends Page
         $daysInMonth = $monthStart->daysInMonth;
         $today = Carbon::today();
 
-        $visibleAssignments = Assignment::query()
-            ->with('course')
-            ->visibleTo($user)
-            ->get();
+        if ($visibleAssignments === null) {
+            $visibleAssignments = Assignment::query()
+                ->with('course')
+                ->visibleTo($user)
+                ->get();
+        }
 
-        $assessmentRecords = Assessment::query()
-            ->with('course')
-            ->visibleTo($user)
-            ->get();
+        if ($assessmentRecords === null) {
+            $assessmentRecords = Assessment::query()
+                ->with('course')
+                ->visibleTo($user)
+                ->get();
+        }
 
-        $assignmentSubmissions = AssignmentSubmission::query()
-            ->where('user_id', $user->id)
-            ->get()
-            ->keyBy('assignment_id');
+        if ($assignmentSubmissions === null) {
+            $assignmentSubmissions = AssignmentSubmission::query()
+                ->where('user_id', $user->id)
+                ->get()
+                ->keyBy('assignment_id');
+        }
 
-        $assessmentSubmissions = AssessmentSubmission::query()
-            ->where('user_id', $user->id)
-            ->get()
-            ->keyBy('assessment_id');
+        if ($assessmentSubmissions === null) {
+            $assessmentSubmissions = AssessmentSubmission::query()
+                ->where('user_id', $user->id)
+                ->get()
+                ->keyBy('assessment_id');
+        }
 
         $assignmentDueMap = $visibleAssignments
             ->filter(fn (Assignment $a): bool => (bool) $a->due_date && $a->due_date->between($monthStart, $monthEnd))

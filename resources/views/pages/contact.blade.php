@@ -46,6 +46,12 @@
                             {{ session('contact_warning') }}
                         </div>
                     @endif
+                    @php($rateLimitError = $errors->first() ?? null)
+                    @if ($rateLimitError && Illuminate\Support\Str::contains(strtolower($rateLimitError), ['too many', '429', 'rate limit', 'throttle']))
+                        <div class="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            Too many messages sent. Please wait a minute before trying again.
+                        </div>
+                    @endif
                     <form method="POST" action="{{ route('landing.contact.store') }}" class="mt-6 space-y-4">
                         @csrf
                         <input type="text" name="name" value="{{ old('name') }}" placeholder="Full name" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
