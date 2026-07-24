@@ -115,6 +115,11 @@ class ResourceVideo extends Model
         return $this->morphMany(ResourceComment::class, 'commentable');
     }
 
+    public function bookmarks(): MorphMany
+    {
+        return $this->morphMany(Bookmark::class, 'bookmarkable');
+    }
+
     /**
      * @return array<string, string>
      */

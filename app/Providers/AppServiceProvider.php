@@ -10,11 +10,13 @@ use App\Models\Course;
 use App\Models\CourseSession;
 use App\Models\Enrollment;
 use App\Models\LearningMaterial;
+use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Observers\AssignmentObserver;
 use App\Observers\ChatMessageObserver;
 use App\Observers\CourseSessionObserver;
 use App\Observers\LearningMaterialObserver;
+use App\Observers\QuizAttemptObserver;
 use App\Observers\UserObserver;
 use App\Policies\AssessmentPolicy;
 use App\Policies\AssignmentPolicy;
@@ -53,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
         ChatMessage::observe(ChatMessageObserver::class);
         CourseSession::observe(CourseSessionObserver::class);
         LearningMaterial::observe(LearningMaterialObserver::class);
+        QuizAttempt::observe(QuizAttemptObserver::class);
         User::observe(UserObserver::class);
 
         Gate::policy(User::class, UserPolicy::class);

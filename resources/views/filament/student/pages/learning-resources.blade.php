@@ -9,6 +9,37 @@
             <div style="height:1px;background:var(--hub-border);margin-top:0.65rem;"></div>
         </section>
 
+        {{-- ==================== SAVED / BOOKMARKED ==================== --}}
+        <section style="padding:0.35rem 0.5rem 0.7rem;">
+            <h3 class="hub-title" style="font-size:0.95rem;margin:0 0 0.65rem;">🔖 Saved for Later</h3>
+            <div style="height:1px;background:var(--hub-border);margin:0 0 0.7rem;"></div>
+
+            @if (count($savedItems) === 0)
+                <p class="hub-copy" style="color:var(--hub-muted);">Nothing saved yet. Tap the bookmark icon on any lesson, video, or material to find it here later.</p>
+            @else
+                <div class="hub-stack">
+                    @foreach ($savedItems as $saved)
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;border:1px solid var(--hub-border);border-radius:10px;padding:0.5rem 0.65rem;">
+                            <button
+                                type="button"
+                                wire:click="{{ $saved['type'] === 'lesson' ? 'openLesson' : 'openGeneralVideo' }}({{ $saved['id'] }})"
+                                style="min-width:0;flex:1;text-align:left;background:none;border:none;cursor:pointer;padding:0;"
+                            >
+                                <span style="font-weight:600;font-size:0.82rem;color:var(--hub-ink);">{{ $saved['title'] }}</span>
+                                <span style="font-size:0.7rem;color:var(--hub-muted);margin-left:0.35rem;">{{ $saved['kind'] }} · {{ $saved['meta'] }} · saved {{ $saved['saved_at'] }}</span>
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="toggleBookmark('{{ $saved['type'] }}', {{ $saved['id'] }})"
+                                title="Remove from saved"
+                                style="flex-shrink:0;background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#dc2626;font-weight:600;"
+                            >Remove</button>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+
         {{-- ==================== COURSE RECORDED LESSONS ==================== --}}
         <section style="padding:0.35rem 0.5rem 0.7rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.65rem;">
@@ -29,6 +60,7 @@
             @else
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:0.85rem;">
                     @foreach ($courseLessons as $lesson)
+                        <div style="position:relative;">
                         <button
                             type="button"
                             @if (($lesson['record_type'] ?? 'lesson') === 'video')
@@ -36,7 +68,7 @@
                             @else
                                 wire:click="openLesson({{ $lesson['id'] }})"
                             @endif
-                            style="text-align:left;background:var(--hub-card);border:1px solid var(--hub-border);border-radius:0.75rem;overflow:hidden;cursor:pointer;padding:0;transition:transform .1s,box-shadow .1s;"
+                            style="width:100%;text-align:left;background:var(--hub-card);border:1px solid var(--hub-border);border-radius:0.75rem;overflow:hidden;cursor:pointer;padding:0;transition:transform .1s,box-shadow .1s;"
                             onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 18px rgba(0,0,0,.08)'"
                             onmouseout="this.style.transform='';this.style.boxShadow=''"
                         >
@@ -56,6 +88,19 @@
                                 <p style="margin:0.2rem 0 0;font-size:0.72rem;color:var(--hub-muted);">{{ $lesson['course'] }}</p>
                             </div>
                         </button>
+                        <button
+                            type="button"
+                            wire:click="toggleBookmark('{{ ($lesson['record_type'] ?? 'lesson') === 'video' ? 'video' : 'lesson' }}', {{ $lesson['id'] }})"
+                            title="{{ $lesson['bookmarked'] ? 'Remove from saved' : 'Save for later' }}"
+                            style="position:absolute;top:8px;right:8px;z-index:2;display:flex;align-items:center;justify-content:center;width:30px;height:30px;border:none;border-radius:999px;cursor:pointer;background:rgba(15,23,42,.75);color:{{ $lesson['bookmarked'] ? '#fbbf24' : '#fff' }};"
+                        >
+                            @if ($lesson['bookmarked'])
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6.32 2.577a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 01-1.085.67L12 18.089l-7.165 3.583A.75.75 0 013.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93z"/></svg>
+                            @else
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>
+                            @endif
+                        </button>
+                        </div>
                     @endforeach
                 </div>
             @endif
@@ -81,10 +126,11 @@
             @else
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:0.85rem;">
                     @foreach ($generalVideos as $video)
+                        <div style="position:relative;">
                         <button
                             type="button"
                             wire:click="openGeneralVideo({{ $video['id'] }})"
-                            style="text-align:left;background:var(--hub-card);border:1px solid var(--hub-border);border-radius:0.75rem;overflow:hidden;cursor:pointer;padding:0;transition:transform .1s,box-shadow .1s;"
+                            style="width:100%;text-align:left;background:var(--hub-card);border:1px solid var(--hub-border);border-radius:0.75rem;overflow:hidden;cursor:pointer;padding:0;transition:transform .1s,box-shadow .1s;"
                             onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 18px rgba(0,0,0,.08)'"
                             onmouseout="this.style.transform='';this.style.boxShadow=''"
                         >
@@ -102,6 +148,19 @@
                                 @endif
                             </div>
                         </button>
+                        <button
+                            type="button"
+                            wire:click="toggleBookmark('video', {{ $video['id'] }})"
+                            title="{{ $video['bookmarked'] ? 'Remove from saved' : 'Save for later' }}"
+                            style="position:absolute;top:8px;right:8px;z-index:2;display:flex;align-items:center;justify-content:center;width:30px;height:30px;border:none;border-radius:999px;cursor:pointer;background:rgba(15,23,42,.75);color:{{ $video['bookmarked'] ? '#fbbf24' : '#fff' }};"
+                        >
+                            @if ($video['bookmarked'])
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6.32 2.577a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 01-1.085.67L12 18.089l-7.165 3.583A.75.75 0 013.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93z"/></svg>
+                            @else
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>
+                            @endif
+                        </button>
+                        </div>
                     @endforeach
                 </div>
             @endif

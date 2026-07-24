@@ -49,6 +49,10 @@ class Schedule extends Page
 
     public array $rescheduleRequests = [];
 
+    public array $attendanceSummary = [];
+
+    public array $attendanceRecords = [];
+
     public bool $showRequestHistory = false;
 
     public function mount(): void
@@ -113,6 +117,7 @@ class Schedule extends Page
 
         if (empty(trim($this->rescheduleRequestReason))) {
             Notification::make()->title('Please provide a reason for rescheduling.')->danger()->send();
+
             return;
         }
 
@@ -169,6 +174,8 @@ class Schedule extends Page
         }
 
         $this->loadRescheduleRequests($user);
+
+        $this->loadAttendance($user);
 
         $enrolledCourseIds = $user->courses()->pluck('courses.id')->all();
 
@@ -240,6 +247,42 @@ class Schedule extends Page
                 'percentage' => $total > 0 ? round(($completed / $total) * 100) : 0,
             ];
         }
+    }
+
+    protected function loadAttendance(User $user): void
+    {
+        $attendances = $user->attendances()
+            ->with(['session.course'])
+            ->whereHas('session')
+            ->get()
+            ->sortBy(fn ($attendance) => $attendance->session?->getEffectiveDate())
+            ->values();
+
+        $this->attendanceRecords = $attendances->map(fn ($attendance) => [
+            'session_title' => $attendance->session->title ?: 'Session',
+            'course_title' => $attendance->session->course->title ?? '—',
+            'session_date' => $attendance->session->getEffectiveDate()->format('D, M j, Y'),
+            'status' => $attendance->status,
+        ])->all();
+
+        $this->attendanceSummary = $attendances
+            ->groupBy(fn ($attendance) => $attendance->session->course_id)
+            ->map(function ($courseAttendances) {
+                $total = $courseAttendances->count();
+                // Present and late both count as attended.
+                $attended = $courseAttendances->whereIn('status', ['present', 'late'])->count();
+                $course = $courseAttendances->first()->session->course;
+
+                return [
+                    'course_title' => $course->title ?? '—',
+                    'course_code' => $course->code ?? '',
+                    'attended' => $attended,
+                    'total' => $total,
+                    'percentage' => $total > 0 ? round(($attended / $total) * 100) : 0,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     protected function loadRescheduleRequests(User $user): void

@@ -3,17 +3,19 @@
 namespace App\Filament\Student\Pages;
 
 use App\Models\Course;
-use App\Models\Enrollment;
 use App\Models\CourseRating;
+use App\Models\Enrollment;
+use App\Notifications\CertificateIssuedNotification;
+use App\Services\CertificateService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Str;
 
 class Courses extends Page
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-academic-cap';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'LEARNING';
+    protected static string|\UnitEnum|null $navigationGroup = 'LEARNING';
 
     protected static ?int $navigationSort = 1;
 
@@ -225,6 +227,54 @@ class Courses extends Page
         $this->refreshCourses();
     }
 
+    public function claimCertificate(int $courseId): void
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $course = Course::query()->find($courseId);
+
+        if (! $course) {
+            return;
+        }
+
+        $certificate = app(CertificateService::class)->issue($user, $course);
+
+        if (! $certificate) {
+            Notification::make()
+                ->title('Certificate not available yet')
+                ->body('Pass every active quiz in this course to earn its certificate.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        if ($certificate->wasRecentlyCreated) {
+            try {
+                $user->notify(new CertificateIssuedNotification($certificate));
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
+            Notification::make()
+                ->title('Certificate issued!')
+                ->body('Your certificate for '.$course->title.' is ready.')
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Certificate already claimed')
+                ->info()
+                ->send();
+        }
+
+        $this->refreshCourses();
+    }
+
     protected function refreshCourses(): void
     {
         $user = auth()->user();
@@ -236,6 +286,8 @@ class Courses extends Page
         $enrolledCourseIds = $user->courses()->pluck('courses.id')->all();
         $this->enrolledCount = count($enrolledCourseIds);
 
+        $certifiedCourseIds = $user->certificates()->pluck('course_id')->all();
+
         $this->courses = Course::query()
             ->with([
                 'selectedParticipants:id',
@@ -245,7 +297,7 @@ class Courses extends Page
             ])
             ->orderBy('title')
             ->get()
-            ->map(function (Course $course) use ($enrolledCourseIds, $user): array {
+            ->map(function (Course $course) use ($enrolledCourseIds, $certifiedCourseIds, $user): array {
                 $selectedParticipantIds = $course->selectedParticipants
                     ->pluck('id')
                     ->map(fn ($id): int => (int) $id)
@@ -263,6 +315,7 @@ class Courses extends Page
                 $this->reviewInputs[$course->id] = (string) ($myRating?->review ?? '');
 
                 $isOpenEnrollment = $course->is_open_enrollment !== false;
+                $isEnrolled = in_array($course->id, $enrolledCourseIds, true);
 
                 return [
                     'id' => $course->id,
@@ -272,7 +325,9 @@ class Courses extends Page
                     'description' => $course->description ?: 'No full description available.',
                     'is_active' => $course->is_active,
                     'is_open_enrollment' => $isOpenEnrollment,
-                    'enrolled' => in_array($course->id, $enrolledCourseIds, true),
+                    'enrolled' => $isEnrolled,
+                    'certificate_eligible' => $isEnrolled && $user->hasCompletedCourse($course),
+                    'certificate_claimed' => in_array($course->id, $certifiedCourseIds, true),
                     'can_enroll' => $course->is_active && (
                         $isOpenEnrollment || in_array((int) $user->id, $selectedParticipantIds, true)
                     ),

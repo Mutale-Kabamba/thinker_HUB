@@ -2,6 +2,7 @@
 
 namespace App\Filament\Student\Pages;
 
+use App\Models\Bookmark;
 use App\Models\LearningMaterial;
 use App\Models\ResourceVideo;
 use Filament\Pages\Page;
@@ -25,6 +26,9 @@ class LearningResources extends Page
 
     /** @var array<int, array<string, mixed>> */
     public array $generalVideos = [];
+
+    /** @var array<int, array<string, mixed>> */
+    public array $savedItems = [];
 
     /** @var array<int, string> */
     public array $generalCategories = [];
@@ -75,7 +79,7 @@ class LearningResources extends Page
         }
 
         $this->playerSource = 'youtube';
-        $this->playerUrl = $video->embed_url . '?autoplay=1&rel=0';
+        $this->playerUrl = $video->embed_url.'?autoplay=1&rel=0';
         $this->playerTitle = $video->title;
         $this->commentType = 'video';
         $this->commentId = $video->id;
@@ -103,7 +107,7 @@ class LearningResources extends Page
 
         if ($embed) {
             $this->playerSource = 'youtube';
-            $this->playerUrl = $embed . '?autoplay=1&rel=0';
+            $this->playerUrl = $embed.'?autoplay=1&rel=0';
         } elseif ($lesson->file_path) {
             $this->playerSource = 'file';
             $this->playerUrl = Storage::disk('public')->url($lesson->file_path);
@@ -127,6 +131,29 @@ class LearningResources extends Page
         $this->commentId = null;
     }
 
+    public function toggleBookmark(string $type, int $id): void
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $model = match ($type) {
+            'lesson' => LearningMaterial::query()->visibleTo($user)->find($id),
+            'video' => ResourceVideo::query()->where('is_published', true)->find($id),
+            default => null,
+        };
+
+        if (! $model) {
+            return;
+        }
+
+        $user->toggleBookmark($model);
+
+        $this->loadVideos();
+    }
+
     private function loadVideos(): void
     {
         $user = auth()->user();
@@ -134,6 +161,13 @@ class LearningResources extends Page
         if (! $user) {
             return;
         }
+
+        $bookmarkedKeys = $user->bookmarks()
+            ->get(['bookmarkable_type', 'bookmarkable_id'])
+            ->map(fn (Bookmark $b): string => $b->bookmarkable_type.':'.$b->bookmarkable_id)
+            ->all();
+
+        $isBookmarked = fn (string $class, int $id): bool => in_array($class.':'.$id, $bookmarkedKeys, true);
 
         // Recorded lessons per course (from learning materials tagged as Video).
         $materialLessons = LearningMaterial::query()
@@ -145,7 +179,7 @@ class LearningResources extends Page
             })
             ->latest()
             ->get()
-            ->map(function (LearningMaterial $item): array {
+            ->map(function (LearningMaterial $item) use ($isBookmarked): array {
                 $embed = $this->youtubeEmbed($item->video_url);
 
                 return [
@@ -163,6 +197,7 @@ class LearningResources extends Page
                         ? $this->youtubeThumbnail($item->video_url)
                         : null,
                     'created_at' => $item->created_at?->format('M d, Y'),
+                    'bookmarked' => $isBookmarked(LearningMaterial::class, $item->id),
                 ];
             })
             ->values();
@@ -192,6 +227,7 @@ class LearningResources extends Page
                 'thumbnail' => $video->thumbnail_url,
                 'created_at' => $video->created_at?->format('M d, Y'),
                 'record_type' => 'video',
+                'bookmarked' => $isBookmarked(ResourceVideo::class, $video->id),
             ])
             ->filter(fn (array $v): bool => filled($v['embed_url']))
             ->values();
@@ -239,6 +275,7 @@ class LearningResources extends Page
                 'channel' => $video->channel_name,
                 'embed_url' => $video->embed_url,
                 'thumbnail' => $video->thumbnail_url,
+                'bookmarked' => $isBookmarked(ResourceVideo::class, $video->id),
             ])
             ->filter(fn (array $v): bool => filled($v['embed_url']))
             ->values()
@@ -246,6 +283,47 @@ class LearningResources extends Page
 
         $this->generalCategories = collect(ResourceVideo::CATEGORIES)
             ->reject(fn (string $category): bool => $category === 'Recorded Lessons')
+            ->values()
+            ->all();
+
+        $this->loadSaved($user);
+    }
+
+    private function loadSaved($user): void
+    {
+        $this->savedItems = $user->bookmarks()
+            ->with('bookmarkable')
+            ->latest()
+            ->latest('id')
+            ->get()
+            ->map(function (Bookmark $bookmark): ?array {
+                $item = $bookmark->bookmarkable;
+
+                if ($item instanceof LearningMaterial) {
+                    return [
+                        'type' => 'lesson',
+                        'id' => $item->id,
+                        'title' => $item->title,
+                        'kind' => 'Lesson',
+                        'meta' => $item->course?->title ?? 'General',
+                        'saved_at' => $bookmark->created_at?->diffForHumans(),
+                    ];
+                }
+
+                if ($item instanceof ResourceVideo) {
+                    return [
+                        'type' => 'video',
+                        'id' => $item->id,
+                        'title' => $item->title,
+                        'kind' => 'Video',
+                        'meta' => $item->category,
+                        'saved_at' => $bookmark->created_at?->diffForHumans(),
+                    ];
+                }
+
+                return null;
+            })
+            ->filter()
             ->values()
             ->all();
     }

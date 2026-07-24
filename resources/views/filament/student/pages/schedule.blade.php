@@ -82,6 +82,49 @@
             </section>
         @endif
 
+        <section class="hub-card" style="padding:0.75rem 1rem;">
+            <h3 class="hub-title" style="font-size:0.92rem;margin-bottom:0.65rem;">✅ My Attendance</h3>
+
+            @if (count($attendanceSummary) === 0 && count($attendanceRecords) === 0)
+                <p class="hub-copy" style="color:var(--hub-muted);">No attendance recorded yet — it will appear here once your instructor marks a session.</p>
+            @endif
+
+            @if (count($attendanceSummary) > 0)
+                <div class="hub-grid hub-grid-2 hub-progress-grid" style="margin-bottom:0.75rem;">
+                    @foreach ($attendanceSummary as $summary)
+                        <div style="padding:0.5rem 0;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">
+                                <div>
+                                    <span style="font-weight:700;font-size:0.82rem;color:var(--hub-ink);">{{ $summary['course_title'] }}</span>
+                                    <span style="font-size:0.7rem;color:var(--hub-muted);margin-left:0.3rem;">{{ $summary['course_code'] }}</span>
+                                </div>
+                                <span style="font-size:0.75rem;font-weight:700;color:var(--hub-primary);">{{ $summary['attended'] }}/{{ $summary['total'] }} ({{ $summary['percentage'] }}%)</span>
+                            </div>
+                            <div style="height:8px;background:var(--hub-border);border-radius:99px;overflow:hidden;">
+                                <div style="height:100%;width:{{ $summary['percentage'] }}%;background:var(--hub-primary);border-radius:99px;transition:width 0.3s;"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            @if (count($attendanceRecords) > 0)
+                <div class="hub-stack">
+                    @foreach ($attendanceRecords as $record)
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;border:1px solid var(--hub-border);border-radius:10px;padding:0.5rem 0.65rem;">
+                            <div style="min-width:0;">
+                                <span style="font-weight:600;font-size:0.8rem;color:var(--hub-ink);">{{ $record['session_title'] }}</span>
+                                <span style="font-size:0.72rem;color:var(--hub-muted);margin-left:0.35rem;">{{ $record['course_title'] }} · {{ $record['session_date'] }}</span>
+                            </div>
+                            <span style="flex-shrink:0;font-size:0.7rem;font-weight:700;padding:0.15rem 0.55rem;border-radius:99px;color:#fff;background:{{ match($record['status']) { 'present' => '#16a34a', 'late' => '#d97706', default => '#dc2626' } }};">
+                                {{ ucfirst($record['status']) }}
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+
         {{-- ===== CALENDAR VIEW ===== --}}
         @if ($viewMode === 'calendar')
             <section class="hub-card" style="padding:0.75rem 1rem;">

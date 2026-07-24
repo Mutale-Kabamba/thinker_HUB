@@ -6,6 +6,7 @@ use App\Filament\Instructor\Concerns\ScopedToInstructor;
 use App\Filament\Instructor\Resources\CourseSessionResource\Pages\CreateCourseSession;
 use App\Filament\Instructor\Resources\CourseSessionResource\Pages\EditCourseSession;
 use App\Filament\Instructor\Resources\CourseSessionResource\Pages\ListCourseSessions;
+use App\Filament\Resources\CourseSessions\RelationManagers\AttendancesRelationManager;
 use App\Models\CourseSession;
 use App\Models\User;
 use App\Notifications\SessionRescheduledNotification;
@@ -34,6 +35,7 @@ class CourseSessionResource extends Resource
     protected static ?string $model = CourseSession::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
+
     protected static string|\UnitEnum|null $navigationGroup = 'ACADEMICS & CONTENT';
 
     protected static ?string $navigationLabel = 'Session Timetable';
@@ -219,11 +221,23 @@ class CourseSessionResource extends Resource
                         }
                     }),
 
+                Action::make('attendance')
+                    ->label('Attendance')
+                    ->icon('heroicon-o-clipboard-document-check')
+                    ->url(fn (CourseSession $record): string => self::getUrl('edit', ['record' => $record])),
+
                 EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([DeleteBulkAction::make()]),
             ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            AttendancesRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

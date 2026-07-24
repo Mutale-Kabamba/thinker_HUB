@@ -6,13 +6,14 @@ use App\Models\LearningMaterial;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
 
 class Materials extends Page
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-book-open';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'LEARNING';
+    protected static string|\UnitEnum|null $navigationGroup = 'LEARNING';
 
     protected static ?int $navigationSort = 2;
 
@@ -76,9 +77,28 @@ class Materials extends Page
         }
 
         $extension = pathinfo($material->file_path, PATHINFO_EXTENSION);
-        $downloadName = \Illuminate\Support\Str::slug($material->title) . '.' . $extension;
+        $downloadName = Str::slug($material->title).'.'.$extension;
 
         return $disk->download($material->file_path, $downloadName);
+    }
+
+    public function toggleBookmark(int $materialId): void
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $material = LearningMaterial::query()->visibleTo($user)->find($materialId);
+
+        if (! $material) {
+            return;
+        }
+
+        $user->toggleBookmark($material);
+
+        $this->loadMaterials();
     }
 
     private function loadMaterials(): void
@@ -111,6 +131,11 @@ class Materials extends Page
 
         $allMaterials = $query->latest()->get();
 
+        $bookmarkedMaterialIds = $user->bookmarks()
+            ->where('bookmarkable_type', (new LearningMaterial)->getMorphClass())
+            ->pluck('bookmarkable_id')
+            ->all();
+
         // Build available courses from all visible materials (unfiltered)
         $this->availableCourses = LearningMaterial::query()
             ->with('course')
@@ -136,6 +161,7 @@ class Materials extends Page
                 'link_url' => $item->link_url,
                 'video_url' => $item->video_url,
                 'created_at' => $item->created_at?->format('M d, Y'),
+                'bookmarked' => in_array($item->id, $bookmarkedMaterialIds, true),
             ])
             ->values()
             ->all();

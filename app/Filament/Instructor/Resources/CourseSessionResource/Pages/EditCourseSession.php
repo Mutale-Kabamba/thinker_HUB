@@ -3,8 +3,8 @@
 namespace App\Filament\Instructor\Resources\CourseSessionResource\Pages;
 
 use App\Filament\Instructor\Resources\CourseSessionResource\CourseSessionResource;
-use Filament\Actions\DeleteAction;
 use App\Filament\Resources\Pages\BaseEditRecord;
+use Filament\Actions\DeleteAction;
 
 class EditCourseSession extends BaseEditRecord
 {

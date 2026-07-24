@@ -11,7 +11,11 @@ use App\Models\CourseSession;
 use App\Models\Enrollment;
 use App\Models\LearningMaterial;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 trait BuildsSearchResults
 {
@@ -64,48 +68,57 @@ trait BuildsSearchResults
 
     protected function searchStudents(string $term): array
     {
-        return User::query()
-            ->where('role', 'student')
-            ->where(fn ($q) => $q->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"))
-            ->limit(8)
-            ->get(['id', 'name', 'email'])
-            ->toArray();
+        return $this->applyContentSearch(
+            User::query()->select(['id', 'name', 'email'])->where('role', 'student'),
+            $term,
+            'users',
+            'users_fts',
+            ['name', 'email'],
+        )->toArray();
     }
 
     protected function searchCourses(string $term): array
     {
-        return Course::query()
-            ->where(fn ($q) => $q->where('title', 'like', "%{$term}%")->orWhere('code', 'like', "%{$term}%")->orWhere('description', 'like', "%{$term}%"))
-            ->limit(8)
-            ->get(['id', 'title', 'code'])
-            ->toArray();
+        return $this->applyContentSearch(
+            Course::query()->select(['id', 'title', 'code']),
+            $term,
+            'courses',
+            'courses_fts',
+            ['title', 'code', 'description'],
+        )->toArray();
     }
 
     protected function searchAssignments(string $term): array
     {
-        return Assignment::query()
-            ->where(fn ($q) => $q->where('name', 'like', "%{$term}%")->orWhere('description', 'like', "%{$term}%"))
-            ->limit(8)
-            ->get(['id', 'name', 'scope'])
-            ->toArray();
+        return $this->applyContentSearch(
+            Assignment::query()->select(['id', 'name', 'scope']),
+            $term,
+            'assignments',
+            'assignments_fts',
+            ['name', 'description'],
+        )->toArray();
     }
 
     protected function searchAssessments(string $term): array
     {
-        return Assessment::query()
-            ->where(fn ($q) => $q->where('name', 'like', "%{$term}%")->orWhere('description', 'like', "%{$term}%")->orWhereRaw('CAST(score as CHAR) like ?', ["%{$term}%"]))
-            ->limit(8)
-            ->get(['id', 'name', 'score'])
-            ->toArray();
+        return $this->applyContentSearch(
+            Assessment::query()->select(['id', 'name', 'score']),
+            $term,
+            'assessments',
+            'assessments_fts',
+            ['name', 'description', ['CAST(score as CHAR) like ?']],
+        )->toArray();
     }
 
     protected function searchMaterials(string $term): array
     {
-        return LearningMaterial::query()
-            ->where(fn ($q) => $q->where('title', 'like', "%{$term}%")->orWhere('file_name', 'like', "%{$term}%")->orWhere('material_type', 'like', "%{$term}%"))
-            ->limit(8)
-            ->get(['id', 'title', 'material_type'])
-            ->toArray();
+        return $this->applyContentSearch(
+            LearningMaterial::query()->select(['id', 'title', 'material_type']),
+            $term,
+            'learning_materials',
+            'materials_fts',
+            ['title', 'file_name', 'material_type'],
+        )->toArray();
     }
 
     protected function searchEnrollments(string $term): array
@@ -179,15 +192,15 @@ trait BuildsSearchResults
             return [];
         }
 
-        return Course::query()
-            ->whereIn('id', $this->enrolledCourseIds($user))
-            ->where(fn ($q) => $q
-                ->where('title', 'like', "%{$term}%")
-                ->orWhere('code', 'like', "%{$term}%")
-                ->orWhere('description', 'like', "%{$term}%"))
-            ->limit(8)
-            ->get(['id', 'title', 'code'])
-            ->toArray();
+        return $this->applyContentSearch(
+            Course::query()
+                ->select(['id', 'title', 'code'])
+                ->whereIn('id', $this->enrolledCourseIds($user)),
+            $term,
+            'courses',
+            'courses_fts',
+            ['title', 'code', 'description'],
+        )->toArray();
     }
 
     protected function searchVisibleAssignments(string $term): array
@@ -198,18 +211,16 @@ trait BuildsSearchResults
             return [];
         }
 
-        return Assignment::query()
-            ->visibleTo($user)
-            ->where(fn ($q) => $q
-                ->where('name', 'like', "%{$term}%")
-                ->orWhere('description', 'like', "%{$term}%"))
-            ->limit(8)
-            ->get(['name', 'due_date'])
-            ->map(fn (Assignment $a): array => [
-                'name' => $a->name,
-                'due' => $a->due_date?->format('Y-m-d') ?? 'No due date',
-            ])
-            ->toArray();
+        return $this->applyContentSearch(
+            Assignment::query()->select(['id', 'name', 'due_date'])->visibleTo($user),
+            $term,
+            'assignments',
+            'assignments_fts',
+            ['name', 'description'],
+        )->map(fn (Assignment $a): array => [
+            'name' => $a->name,
+            'due' => $a->due_date?->format('Y-m-d') ?? 'No due date',
+        ])->toArray();
     }
 
     protected function searchVisibleMaterials(string $term): array
@@ -220,15 +231,13 @@ trait BuildsSearchResults
             return [];
         }
 
-        return LearningMaterial::query()
-            ->visibleTo($user)
-            ->where(fn ($q) => $q
-                ->where('title', 'like', "%{$term}%")
-                ->orWhere('file_name', 'like', "%{$term}%")
-                ->orWhere('material_type', 'like', "%{$term}%"))
-            ->limit(8)
-            ->get(['id', 'title', 'material_type'])
-            ->toArray();
+        return $this->applyContentSearch(
+            LearningMaterial::query()->select(['id', 'title', 'material_type'])->visibleTo($user),
+            $term,
+            'learning_materials',
+            'materials_fts',
+            ['title', 'file_name', 'material_type'],
+        )->toArray();
     }
 
     protected function searchVisibleAssessments(string $term): array
@@ -239,20 +248,17 @@ trait BuildsSearchResults
             return [];
         }
 
-        return Assessment::query()
-            ->visibleTo($user)
-            ->where(fn ($q) => $q
-                ->where('name', 'like', "%{$term}%")
-                ->orWhere('description', 'like', "%{$term}%")
-                ->orWhereRaw('CAST(score as CHAR) like ?', ["%{$term}%"]))
-            ->limit(8)
-            ->get(['name', 'score', 'due_date'])
-            ->map(fn (Assessment $assessment): array => [
-                'name' => $assessment->name ?: 'Assessment',
-                'score' => $assessment->score,
-                'due_date' => $assessment->due_date?->format('Y-m-d') ?? '-',
-            ])
-            ->toArray();
+        return $this->applyContentSearch(
+            Assessment::query()->select(['id', 'name', 'score', 'due_date'])->visibleTo($user),
+            $term,
+            'assessments',
+            'assessments_fts',
+            ['name', 'description', ['CAST(score as CHAR) like ?']],
+        )->map(fn (Assessment $assessment): array => [
+            'name' => $assessment->name ?: 'Assessment',
+            'score' => $assessment->score,
+            'due_date' => $assessment->due_date?->format('Y-m-d') ?? '-',
+        ])->toArray();
     }
 
     protected function searchMyAssignmentSubmissions(string $term): array
@@ -317,15 +323,15 @@ trait BuildsSearchResults
             return [];
         }
 
-        return Course::query()
-            ->whereIn('id', $this->instructorCourseIds($user))
-            ->where(fn ($q) => $q
-                ->where('title', 'like', "%{$term}%")
-                ->orWhere('code', 'like', "%{$term}%")
-                ->orWhere('description', 'like', "%{$term}%"))
-            ->limit(8)
-            ->get(['id', 'title', 'code', 'is_active'])
-            ->toArray();
+        return $this->applyContentSearch(
+            Course::query()
+                ->select(['id', 'title', 'code', 'is_active'])
+                ->whereIn('id', $this->instructorCourseIds($user)),
+            $term,
+            'courses',
+            'courses_fts',
+            ['title', 'code', 'description'],
+        )->toArray();
     }
 
     protected function searchInstructorStudents(string $term): array
@@ -336,15 +342,16 @@ trait BuildsSearchResults
             return [];
         }
 
-        return User::query()
-            ->where('role', 'student')
-            ->whereHas('courses', fn ($q) => $q->whereIn('courses.id', $this->instructorCourseIds($user)))
-            ->where(fn ($q) => $q
-                ->where('name', 'like', "%{$term}%")
-                ->orWhere('email', 'like', "%{$term}%"))
-            ->limit(8)
-            ->get(['id', 'name', 'email'])
-            ->toArray();
+        return $this->applyContentSearch(
+            User::query()
+                ->select(['id', 'name', 'email'])
+                ->where('role', 'student')
+                ->whereHas('courses', fn ($q) => $q->whereIn('courses.id', $this->instructorCourseIds($user))),
+            $term,
+            'users',
+            'users_fts',
+            ['name', 'email'],
+        )->toArray();
     }
 
     protected function searchInstructorSessions(string $term): array
@@ -387,5 +394,144 @@ trait BuildsSearchResults
     protected function instructorCourseIds(User $user): Collection
     {
         return $this->instructorCourseIds ??= $user->instructorCourses()->pluck('courses.id');
+    }
+
+    /*
+    |----------------------------------------------------------------------
+    | Full-text search helpers (SQLite FTS5, automatic LIKE fallback)
+    |----------------------------------------------------------------------
+    */
+
+    /**
+     * Apply the best available search to a content-table query: ranked FTS5
+     * MATCH when the index exists (SQLite with the migration applied), or
+     * the original LIKE '%term%' behaviour everywhere else. Scoping clauses
+     * already on the query (visibility, enrolment, ownership) apply in both
+     * modes, and the result limit and selected columns are unchanged.
+     *
+     * @param  array<int, string|array{0: string}>  $likeColumns  Plain column names for LIKE, or [raw where fragment] entries.
+     */
+    protected function applyContentSearch(Builder $query, string $term, string $baseTable, string $ftsTable, array $likeColumns, int $limit = 8): Collection
+    {
+        $ids = $this->ftsIds($ftsTable, $baseTable, $term);
+
+        if ($ids !== null) {
+            if ($ids === []) {
+                return new Collection;
+            }
+
+            $rank = array_flip($ids);
+
+            return $query
+                ->whereIn("{$baseTable}.id", $ids)
+                ->get()
+                ->sortBy(fn ($model): int => $rank[$model->id] ?? PHP_INT_MAX)
+                ->take($limit)
+                ->values();
+        }
+
+        $query->where(function (Builder $q) use ($likeColumns, $term): void {
+            foreach ($likeColumns as $index => $column) {
+                $or = $index > 0;
+
+                if (is_array($column)) {
+                    $q->{$or ? 'orWhereRaw' : 'whereRaw'}($column[0], ["%{$term}%"]);
+                } else {
+                    $q->{$or ? 'orWhere' : 'where'}($column, 'like', "%{$term}%");
+                }
+            }
+        });
+
+        return $query->limit($limit)->get();
+    }
+
+    /**
+     * Base-table ids matching the term, ordered by bm25() relevance (best
+     * first). More ids than the display limit are fetched so that scoping
+     * filters applied afterwards do not starve the result list. Returns null
+     * when FTS is unavailable or errors, signalling the LIKE fallback.
+     *
+     * @return array<int, int>|null
+     */
+    protected function ftsIds(string $ftsTable, string $baseTable, string $term, int $limit = 40): ?array
+    {
+        if (! $this->ftsAvailable($ftsTable)) {
+            return null;
+        }
+
+        $match = $this->toFtsMatchQuery($term);
+
+        if ($match === null) {
+            return null;
+        }
+
+        try {
+            return DB::table($baseTable)
+                ->join($ftsTable, "{$ftsTable}.rowid", '=', "{$baseTable}.id")
+                ->whereRaw("{$ftsTable} MATCH ?", [$match])
+                ->orderByRaw("bm25({$ftsTable}{$this->ftsColumnWeights($ftsTable)})")
+                ->limit($limit)
+                ->pluck("{$baseTable}.id")
+                ->map(fn ($id): int => (int) $id)
+                ->all();
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Whether a usable FTS5 index exists for the given FTS table. Memoized
+     * per table so repeated sections cost one schema lookup per request.
+     */
+    protected function ftsAvailable(string $ftsTable): bool
+    {
+        static $available = [];
+
+        return $available[$ftsTable] ??= DB::getDriverName() === 'sqlite' && Schema::hasTable($ftsTable);
+    }
+
+    /**
+     * Column weights for bm25(): the first indexed column (title/name) counts
+     * most, the second (code/email/file) next, the rest equally. Matches the
+     * column order created by the FTS migration; empty string when the table
+     * is unknown, which makes bm25() use equal weights.
+     */
+    protected function ftsColumnWeights(string $ftsTable): string
+    {
+        $columnCount = [
+            'users_fts' => 2,
+            'courses_fts' => 3,
+            'assignments_fts' => 2,
+            'assessments_fts' => 3,
+            'materials_fts' => 3,
+        ][$ftsTable] ?? null;
+
+        if ($columnCount === null) {
+            return '';
+        }
+
+        $weights = array_slice(array_merge([10.0, 5.0], array_fill(0, $columnCount, 1.0)), 0, $columnCount);
+
+        return ', '.implode(', ', $weights);
+    }
+
+    /**
+     * Convert a raw search term into a safe FTS5 MATCH query: each
+     * whitespace-separated token becomes a quoted prefix term, and tokens
+     * are ANDed together. Returns null when nothing searchable remains.
+     */
+    protected function toFtsMatchQuery(string $term): ?string
+    {
+        $tokens = preg_split('/\s+/u', trim($term)) ?: [];
+        $tokens = array_values(array_filter($tokens, fn (string $token): bool => $token !== ''));
+
+        if ($tokens === []) {
+            return null;
+        }
+
+        return implode(' ', array_map(
+            fn (string $token): string => '"'.str_replace('"', '""', $token).'"*',
+            $tokens
+        ));
     }
 }

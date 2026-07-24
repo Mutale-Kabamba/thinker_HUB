@@ -88,6 +88,11 @@ class Course extends Model
         return $this->hasMany(Quiz::class);
     }
 
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
     public function ratings(): HasMany
     {
         return $this->hasMany(CourseRating::class);
