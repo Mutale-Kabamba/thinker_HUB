@@ -9,6 +9,7 @@ use App\Filament\Instructor\Resources\StudentResource\Pages\ListStudents;
 use App\Filament\Instructor\Resources\StudentResource\Pages\ViewStudent;
 use App\Models\User;
 use BackedEnum;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
@@ -225,6 +226,7 @@ class StudentResource extends Resource
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
             ]);
     }
 
