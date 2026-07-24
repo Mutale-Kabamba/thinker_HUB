@@ -5,16 +5,22 @@ namespace App\Filament\Student\Pages;
 use App\Events\ChatMessageSent;
 use App\Models\ChatMessage;
 use App\Models\ChatRoom;
+use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\Friendship;
 use App\Models\User;
+use App\Models\XpTransaction;
+use App\Services\GamificationService;
 use Filament\Pages\Page;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\WithFileUploads;
 
 class Community extends Page
 {
     use WithFileUploads;
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
     protected static string|\UnitEnum|null $navigationGroup = 'GROWTH & SOCIAL';
@@ -25,10 +31,15 @@ class Community extends Page
 
     protected string $view = 'filament.student.pages.community';
 
-    #[Url(as: 'tab')]
-    public string $tab = 'chats'; // chats | friends
+    public const DIRECTORY_LIMIT = 50;
 
-    public string $peopleSearch = '';
+    #[Url(as: 'tab')]
+    public string $tab = 'chats'; // chats | friends | leaderboard
+
+    public string $directorySearch = '';
+
+    /** @var array<string, mixed>|null */
+    public ?array $profileUser = null;
 
     public ?int $selectedRoomId = null;
 
@@ -43,6 +54,76 @@ class Community extends Page
     public function mount(): void
     {
         $this->ensureCourseRooms();
+
+        // Evaluate-on-read: the streak badge is checked lazily for the
+        // viewing student (in addition to quiz-pass/certificate events) so
+        // chat/submission/attendance activity can complete a streak without
+        // observing four more models. Idempotent and cheap.
+        $user = auth()->user();
+
+        if ($user) {
+            try {
+                app(GamificationService::class)->evaluateStreak($user);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------- Gamification
+
+    /**
+     * Top 20 students by XP. When the viewer falls outside the top 20
+     * (including students with no XP yet), their row is appended with their
+     * overall rank so they always see where they stand.
+     *
+     * @return array{rows: Collection<int, array<string, mixed>>, viewer: array<string, mixed>|null}
+     */
+    public function getLeaderboardProperty(): array
+    {
+        $ranked = app(GamificationService::class)->leaderboard();
+        $top = $ranked->take(20)->values();
+        $viewer = null;
+        $user = auth()->user();
+
+        if ($user) {
+            $mine = $ranked->firstWhere('user_id', $user->id);
+
+            if ($mine && $mine['rank'] > 20) {
+                $viewer = $mine;
+            } elseif (! $mine) {
+                $viewer = [
+                    'rank' => $ranked->count() + 1,
+                    'user_id' => $user->id,
+                    'name' => $user->name,
+                    'xp' => 0,
+                    'badge_count' => $user->badges()->count(),
+                    'badge_icons' => $user->badges()->orderBy('user_badge.earned_at')->limit(5)->pluck('icon')->filter()->values()->all(),
+                ];
+            }
+        }
+
+        return ['rows' => $top, 'viewer' => $viewer];
+    }
+
+    /**
+     * Compact XP/badge summary chip for the viewing student.
+     *
+     * @return array{xp: int, badge_count: int, badge_icons: array<int, string>}
+     */
+    public function getMyXpProperty(): array
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return ['xp' => 0, 'badge_count' => 0, 'badge_icons' => []];
+        }
+
+        return [
+            'xp' => $user->xpTotal(),
+            'badge_count' => $user->badges()->count(),
+            'badge_icons' => $user->badges()->orderBy('user_badge.earned_at')->limit(5)->pluck('icon')->filter()->values()->all(),
+        ];
     }
 
     /**
@@ -58,7 +139,7 @@ class Community extends Page
         }
 
         foreach ($user->courses()->get() as $course) {
-            $groupName = $course->code ?: ($course->title . ' — Group');
+            $groupName = $course->code ?: ($course->title.' — Group');
 
             $room = ChatRoom::firstOrCreate(
                 ['type' => 'course', 'course_id' => $course->id],
@@ -96,38 +177,172 @@ class Community extends Page
             ->get();
     }
 
-    public function getSentRequestsProperty(): Collection
+    /**
+     * Browsable student directory (replaces the old search-first flow):
+     * every student except the viewer, classmates first — ordered by shared
+     * course count DESC then name — then everyone else alphabetically.
+     * Six grouped queries total, no N+1: enrollments-by-course, students,
+     * XP sums, badge icons, and the viewer's friendships.
+     *
+     * @return array{rows: Collection<int, array<string, mixed>>, total: int, shown: int}
+     */
+    public function getDirectoryProperty(): array
     {
         $user = auth()->user();
 
         if (! $user) {
-            return collect();
+            return ['rows' => collect(), 'total' => 0, 'shown' => 0];
         }
 
-        return Friendship::query()
-            ->where('user_id', $user->id)
-            ->where('status', 'pending')
-            ->pluck('friend_id');
+        // Classmates: students sharing >=1 enrolled course, with course names.
+        $viewerCourseIds = Enrollment::query()->where('user_id', $user->id)->pluck('course_id');
+
+        $sharedByStudent = collect();
+
+        if ($viewerCourseIds->isNotEmpty()) {
+            $sharedByStudent = Enrollment::query()
+                ->join('courses', 'courses.id', '=', 'enrollments.course_id')
+                ->whereIn('enrollments.course_id', $viewerCourseIds)
+                ->where('enrollments.user_id', '!=', $user->id)
+                ->get(['enrollments.user_id', 'courses.title'])
+                ->groupBy('user_id')
+                ->map(fn ($rows): array => [
+                    'count' => $rows->pluck('title')->unique()->count(),
+                    'courses' => $rows->pluck('title')->unique()->sort()->values()->all(),
+                ]);
+        }
+
+        $students = User::query()
+            ->where('role', 'student')
+            ->where('id', '!=', $user->id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $studentIds = $students->pluck('id')->all();
+
+        $xpByUser = XpTransaction::query()
+            ->whereIn('user_id', $studentIds)
+            ->groupBy('user_id')
+            ->selectRaw('user_id, SUM(points) as xp')
+            ->pluck('xp', 'user_id');
+
+        $badgeIcons = DB::table('user_badge')
+            ->join('badges', 'badges.id', '=', 'user_badge.badge_id')
+            ->whereIn('user_badge.user_id', $studentIds)
+            ->orderBy('user_badge.earned_at')
+            ->get(['user_badge.user_id', 'badges.icon'])
+            ->groupBy('user_id')
+            ->map(fn ($rows) => $rows->pluck('icon')->filter()->take(3)->values()->all());
+
+        $friendshipByUser = Friendship::query()
+            ->where(fn ($q) => $q->where('user_id', $user->id)->orWhere('friend_id', $user->id))
+            ->get(['id', 'user_id', 'friend_id', 'status'])
+            ->mapWithKeys(fn (Friendship $f): array => [
+                ($f->user_id === $user->id ? $f->friend_id : $f->user_id) => $this->friendshipState($f, $user->id),
+            ]);
+
+        // Collection is name-sorted; sortByDesc is stable, so classmates
+        // come first (shared DESC) and ties stay alphabetical.
+        $rows = $students
+            ->map(fn (User $s): array => [
+                'id' => $s->id,
+                'name' => $s->name,
+                'shared_count' => $sharedByStudent[$s->id]['count'] ?? 0,
+                'shared_courses' => $sharedByStudent[$s->id]['courses'] ?? [],
+                'xp' => (int) ($xpByUser[$s->id] ?? 0),
+                'badge_icons' => $badgeIcons[$s->id] ?? [],
+                'friendship' => $friendshipByUser[$s->id] ?? ['state' => 'none', 'friendship_id' => null],
+            ])
+            ->sortByDesc('shared_count')
+            ->values();
+
+        $term = mb_strtolower(trim($this->directorySearch));
+
+        if ($term !== '') {
+            $rows = $rows->filter(fn (array $row): bool => str_contains(mb_strtolower($row['name']), $term))->values();
+        }
+
+        $total = $rows->count();
+        $shown = min($total, self::DIRECTORY_LIMIT);
+
+        return [
+            'rows' => $rows->take(self::DIRECTORY_LIMIT)->values(),
+            'total' => $total,
+            'shown' => $shown,
+        ];
     }
 
-    public function getPeopleResultsProperty(): Collection
+    /**
+     * Open the student profile modal. Students only — any other id
+     * (or a missing user) aborts quietly.
+     */
+    public function showProfile(int $userId): void
     {
-        $user = auth()->user();
-        $term = trim($this->peopleSearch);
+        $viewer = auth()->user();
 
-        if (! $user || mb_strlen($term) < 2) {
-            return collect();
+        if (! $viewer) {
+            return;
         }
 
-        return User::query()
-            ->where('id', '!=', $user->id)
-            ->where(function ($q): void {
-                $q->whereNull('role')->orWhereNotIn('role', ['admin', 'instructor']);
-            })
-            ->where('name', 'like', "%{$term}%")
-            ->orderBy('name')
-            ->limit(15)
-            ->get();
+        $target = User::query()->where('role', 'student')->find($userId);
+
+        if (! $target) {
+            return;
+        }
+
+        $viewerCourseIds = Enrollment::query()->where('user_id', $viewer->id)->pluck('course_id');
+
+        $sharedCourses = $viewerCourseIds->isEmpty()
+            ? collect()
+            : Course::query()
+                ->whereIn('id', $viewerCourseIds)
+                ->whereHas('enrollments', fn ($q) => $q->where('user_id', $target->id))
+                ->orderBy('title')
+                ->pluck('title');
+
+        $friendship = Friendship::query()
+            ->where(fn ($q) => $q->where('user_id', $viewer->id)->where('friend_id', $target->id))
+            ->orWhere(fn ($q) => $q->where('user_id', $target->id)->where('friend_id', $viewer->id))
+            ->first();
+
+        $this->profileUser = [
+            'id' => $target->id,
+            'name' => $target->name,
+            'role_label' => 'Student',
+            'bio' => $target->bio,
+            'avatar' => $target->getFilamentAvatarUrl(),
+            'xp' => $target->xpTotal(),
+            'badges' => $target->badges()->orderBy('user_badge.earned_at')->get()
+                ->map(fn ($b): array => ['icon' => $b->icon, 'name' => $b->name, 'description' => $b->description])
+                ->all(),
+            'badge_count' => $target->badges()->count(),
+            'courses_count' => $target->courses()->count(),
+            'shared_courses' => $sharedCourses->all(),
+            'friendship' => $friendship ? $this->friendshipState($friendship, $viewer->id) : ['state' => 'none', 'friendship_id' => null],
+            'is_self' => $target->id === $viewer->id,
+        ];
+    }
+
+    public function closeProfile(): void
+    {
+        $this->profileUser = null;
+    }
+
+    /**
+     * Friendship state between the viewer and the other party of a
+     * friendship row: friends | sent (viewer requested) | incoming.
+     *
+     * @return array{state: string, friendship_id: int}
+     */
+    private function friendshipState(Friendship $friendship, int $viewerId): array
+    {
+        $state = match (true) {
+            $friendship->status === 'accepted' => 'friends',
+            $friendship->user_id === $viewerId => 'sent',
+            default => 'incoming',
+        };
+
+        return ['state' => $state, 'friendship_id' => $friendship->id];
     }
 
     public function sendRequest(int $userId): void
@@ -157,6 +372,8 @@ class Community extends Page
             'friend_id' => $userId,
             'status' => 'pending',
         ]);
+
+        $this->refreshOpenProfile();
     }
 
     public function acceptRequest(int $friendshipId): void
@@ -170,6 +387,8 @@ class Community extends Page
             ->first();
 
         $friendship?->update(['status' => 'accepted']);
+
+        $this->refreshOpenProfile();
     }
 
     public function declineRequest(int $friendshipId): void
@@ -181,6 +400,8 @@ class Community extends Page
             ->where('friend_id', $user?->id)
             ->where('status', 'pending')
             ->delete();
+
+        $this->refreshOpenProfile();
     }
 
     public function removeFriend(int $userId): void
@@ -199,6 +420,19 @@ class Community extends Page
                 $q->where('user_id', $userId)->where('friend_id', $user->id);
             })
             ->delete();
+
+        $this->refreshOpenProfile();
+    }
+
+    /**
+     * Re-resolve the open profile modal after a friendship action so its
+     * action button reflects the new state (no-op when no modal is open).
+     */
+    private function refreshOpenProfile(): void
+    {
+        if ($this->profileUser) {
+            $this->showProfile($this->profileUser['id']);
+        }
     }
 
     // ------------------------------------------------------------------ Chats

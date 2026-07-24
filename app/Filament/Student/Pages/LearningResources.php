@@ -74,12 +74,26 @@ class LearningResources extends Page
     {
         $video = ResourceVideo::query()->where('is_published', true)->find($id);
 
-        if (! $video || ! $video->embed_url) {
+        if (! $video) {
             return;
         }
 
-        $this->playerSource = 'youtube';
-        $this->playerUrl = $video->embed_url.'?autoplay=1&rel=0';
+        $local = $video->playableLocalVideo();
+
+        if ($local) {
+            $this->playerSource = 'file';
+            $this->playerUrl = $local->url();
+        } elseif ($video->hasLocalVideo()) {
+            // Upload exists but is pending/processing/failed — not playable yet.
+            $this->playerSource = 'processing';
+            $this->playerUrl = null;
+        } elseif ($video->embed_url) {
+            $this->playerSource = 'youtube';
+            $this->playerUrl = $video->embed_url.'?autoplay=1&rel=0';
+        } else {
+            return;
+        }
+
         $this->playerTitle = $video->title;
         $this->commentType = 'video';
         $this->commentId = $video->id;
@@ -215,21 +229,12 @@ class LearningResources extends Page
             ->orderBy('sort_order')
             ->latest()
             ->get()
-            ->map(fn (ResourceVideo $video): array => [
-                'id' => $video->id,
-                'title' => $video->title,
+            ->map(fn (ResourceVideo $video): array => $this->presentVideo($video) + [
                 'course' => $video->course?->title ?? 'General',
-                'category' => $video->category,
-                'description' => $video->description,
-                'source' => 'youtube',
-                'embed_url' => $video->embed_url,
-                'file_url' => null,
-                'thumbnail' => $video->thumbnail_url,
-                'created_at' => $video->created_at?->format('M d, Y'),
                 'record_type' => 'video',
                 'bookmarked' => $isBookmarked(ResourceVideo::class, $video->id),
             ])
-            ->filter(fn (array $v): bool => filled($v['embed_url']))
+            ->filter(fn (array $v): bool => filled($v['embed_url']) || filled($v['file_url']) || $v['processing'])
             ->values();
 
         $combinedLessons = $materialLessons
@@ -267,17 +272,11 @@ class LearningResources extends Page
             ->orderBy('sort_order')
             ->latest()
             ->get()
-            ->map(fn (ResourceVideo $video): array => [
-                'id' => $video->id,
-                'title' => $video->title,
-                'description' => $video->description,
-                'category' => $video->category,
+            ->map(fn (ResourceVideo $video): array => $this->presentVideo($video) + [
                 'channel' => $video->channel_name,
-                'embed_url' => $video->embed_url,
-                'thumbnail' => $video->thumbnail_url,
                 'bookmarked' => $isBookmarked(ResourceVideo::class, $video->id),
             ])
-            ->filter(fn (array $v): bool => filled($v['embed_url']))
+            ->filter(fn (array $v): bool => filled($v['embed_url']) || filled($v['file_url']) || $v['processing'])
             ->values()
             ->all();
 
@@ -326,6 +325,32 @@ class LearningResources extends Page
             ->filter()
             ->values()
             ->all();
+    }
+
+    /**
+     * Shared card payload for a ResourceVideo, covering both YouTube and
+     * local-upload sources. 'processing' flags uploads that are not playable
+     * yet (pending/processing/failed) so lists keep them with a hint.
+     *
+     * @return array<string, mixed>
+     */
+    private function presentVideo(ResourceVideo $video): array
+    {
+        $local = $video->playableLocalVideo();
+        $hasLocal = $local !== null || $video->hasLocalVideo();
+
+        return [
+            'id' => $video->id,
+            'title' => $video->title,
+            'description' => $video->description,
+            'category' => $video->category,
+            'source' => $local ? 'file' : ($hasLocal ? 'processing' : 'youtube'),
+            'embed_url' => $hasLocal ? null : $video->embed_url,
+            'file_url' => $local?->url(),
+            'processing' => $local === null && $hasLocal,
+            'thumbnail' => $hasLocal ? null : $video->thumbnail_url,
+            'created_at' => $video->created_at?->format('M d, Y'),
+        ];
     }
 
     private function youtubeEmbed(?string $url): ?string

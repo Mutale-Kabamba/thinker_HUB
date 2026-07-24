@@ -5,15 +5,20 @@ namespace App\Observers;
 use App\Models\QuizAttempt;
 use App\Notifications\CertificateIssuedNotification;
 use App\Services\CertificateService;
+use App\Services\GamificationService;
 
 class QuizAttemptObserver
 {
     /**
-     * Auto-issue a certificate when an attempt transitions to passed:
-     * attempts are created in-progress and graded later via $attempt->update()
-     * (TakeQuiz / Quiz::gradeAttempt), so a false→true `passed` change marks
-     * the moment a quiz is passed. If this was the student's last remaining
-     * active quiz in the course, issue (idempotently) and notify once.
+     * On a passed-transition (attempts are created in-progress and graded
+     * later via $attempt->update(), so a false→true `passed` change marks
+     * the moment a quiz is passed):
+     *   1. award quiz XP (+ perfect-score bonus/badge, + streak check),
+     *   2. if this was the student's last remaining active quiz in the
+     *      course, award completion XP/badge and issue (idempotently) the
+     *      certificate, notifying once.
+     * All gamification calls are idempotent; failures are reported without
+     * blocking the certificate flow.
      */
     public function updated(QuizAttempt $attempt): void
     {
@@ -34,10 +39,25 @@ class QuizAttemptObserver
                 return;
             }
 
+            $gamification = app(GamificationService::class);
+
+            try {
+                $gamification->awardQuizPassed($user, $attempt);
+                $gamification->evaluateStreak($user);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
             // Includes the enrollment check; false when other active
             // quizzes in the course are still unpassed.
             if (! $user->hasCompletedCourse($course)) {
                 return;
+            }
+
+            try {
+                $gamification->awardCourseCompleted($user, $course);
+            } catch (\Throwable $e) {
+                report($e);
             }
 
             $certificate = app(CertificateService::class)->issue($user, $course);

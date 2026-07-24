@@ -2,10 +2,24 @@
 
     <div class="hub-shell">
 
+        {{-- My XP summary chip --}}
+        <section style="padding:0.15rem 0 0;display:flex;justify-content:center;">
+            <button type="button" wire:click="$set('tab','leaderboard')"
+                style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.28rem 0.8rem;border-radius:999px;border:1px solid var(--hub-border);background:rgba(255,255,255,.5);backdrop-filter:blur(8px);box-shadow:0 6px 16px rgba(15,23,42,.06);cursor:pointer;font-size:0.76rem;font-weight:600;color:var(--hub-ink);">
+                <span style="font-size:0.9rem;">⚡</span>
+                <span>{{ number_format($this->myXp['xp']) }} XP</span>
+                <span style="color:var(--hub-muted);">·</span>
+                <span>🏅 {{ $this->myXp['badge_count'] }} {{ Str::plural('badge', $this->myXp['badge_count']) }}</span>
+                @if (count($this->myXp['badge_icons']) > 0)
+                    <span style="letter-spacing:0.1em;">{{ implode('', $this->myXp['badge_icons']) }}</span>
+                @endif
+            </button>
+        </section>
+
         {{-- Tabs --}}
         <section style="padding:0.15rem 0 0.35rem;">
             <div style="display:flex;justify-content:center;">
-                <div style="display:flex;gap:0.35rem;max-width:330px;width:100%;padding:0.26rem;border-radius:999px;background:rgba(255,255,255,.5);backdrop-filter:blur(8px);border:1px solid var(--hub-border);box-shadow:0 8px 22px rgba(15,23,42,.07);">
+                <div style="display:flex;gap:0.35rem;max-width:460px;width:100%;padding:0.26rem;border-radius:999px;background:rgba(255,255,255,.5);backdrop-filter:blur(8px);border:1px solid var(--hub-border);box-shadow:0 8px 22px rgba(15,23,42,.07);">
                 <button type="button" wire:click="$set('tab','chats')"
                     style="flex:1;padding:0.4rem 0.5rem;border-radius:999px;border:none;cursor:pointer;font-size:0.8rem;font-weight:700;letter-spacing:.01em;{{ $tab === 'chats' ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;box-shadow:0 8px 18px rgba(14,116,144,.26);' : 'background:transparent;color:var(--hub-ink);' }}">
                     Chats
@@ -17,35 +31,69 @@
                         <span style="background:#dc2626;color:#fff;border-radius:999px;font-size:0.65rem;padding:0.05rem 0.4rem;margin-left:0.3rem;">{{ $this->pendingRequests->count() }}</span>
                     @endif
                 </button>
+                <button type="button" wire:click="$set('tab','leaderboard')"
+                    style="flex:1;padding:0.4rem 0.5rem;border-radius:999px;border:none;cursor:pointer;font-size:0.8rem;font-weight:700;letter-spacing:.01em;{{ $tab === 'leaderboard' ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;box-shadow:0 8px 18px rgba(14,116,144,.26);' : 'background:transparent;color:var(--hub-ink);' }}">
+                    🏆 Leaderboard
+                </button>
                 </div>
             </div>
         </section>
 
         {{-- ===================== FRIENDS TAB ===================== --}}
         @if ($tab === 'friends')
+            @php $directory = $this->directory; @endphp
             <section style="padding:0.35rem 0.35rem 0.6rem;">
-                <h3 class="hub-title" style="font-size:0.95rem;margin:0 0 0.5rem;">Find people</h3>
-                <input type="text" wire:model.live.debounce.400ms="peopleSearch" placeholder="Search by name…"
+                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:0.5rem;margin:0 0 0.5rem;">
+                    <h3 class="hub-title" style="font-size:0.95rem;margin:0;">Student directory</h3>
+                    <span style="font-size:0.72rem;color:var(--hub-muted);">showing {{ $directory['shown'] }} of {{ $directory['total'] }}</span>
+                </div>
+                <input type="text" wire:model.live.debounce.300ms="directorySearch" placeholder="Filter by name…"
                     class="hub-input" style="width:100%;font-size:0.85rem;padding:0.45rem 0.6rem;">
 
-                @if ($this->peopleResults->count() > 0)
+                @if ($directory['rows']->count() > 0)
                     <div style="display:flex;flex-direction:column;gap:0.4rem;margin-top:0.6rem;">
-                        @foreach ($this->peopleResults as $person)
+                        @foreach ($directory['rows'] as $person)
                             <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;padding:0.4rem 0.55rem;border:1px solid var(--hub-border);border-radius:0.5rem;">
-                                <span style="font-size:0.85rem;color:var(--hub-ink);">{{ $person->name }}</span>
-                                @if (auth()->user()->isFriendsWith($person->id))
-                                    <span style="font-size:0.72rem;color:var(--hub-muted);">Friends</span>
-                                @elseif ($this->sentRequests->contains($person->id))
-                                    <span style="font-size:0.72rem;color:var(--hub-muted);">Requested</span>
-                                @else
-                                    <button type="button" wire:click="sendRequest({{ $person->id }})"
-                                        style="font-size:0.74rem;padding:0.3rem 0.7rem;background:var(--hub-primary,#0d9488);color:#fff;border:none;border-radius:0.4rem;cursor:pointer;">Add friend</button>
-                                @endif
+                                <div style="min-width:0;flex:1;">
+                                    <button type="button" wire:click="showProfile({{ $person['id'] }})"
+                                        style="background:none;border:none;padding:0;cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--hub-ink);text-align:left;">
+                                        {{ $person['name'] }}
+                                    </button>
+                                    <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.12rem;font-size:0.72rem;color:var(--hub-muted);">
+                                        @if ($person['shared_count'] > 0)
+                                            <span title="{{ implode(' · ', $person['shared_courses']) }}"
+                                                style="background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 14%);color:#0f766e;border-radius:999px;padding:0.04rem 0.45rem;font-weight:600;">
+                                                📚 {{ $person['shared_count'] }} {{ Str::plural('course', $person['shared_count']) }} together
+                                            </span>
+                                        @endif
+                                        <span>⚡ {{ number_format($person['xp']) }}</span>
+                                        @if (count($person['badge_icons']) > 0)
+                                            <span style="letter-spacing:0.08em;">{{ implode('', $person['badge_icons']) }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:0.35rem;flex:0 0 auto;">
+                                    @if ($person['friendship']['state'] === 'friends')
+                                        <span style="font-size:0.72rem;color:#0f766e;font-weight:600;">Friends ✓</span>
+                                    @elseif ($person['friendship']['state'] === 'sent')
+                                        <span style="font-size:0.72rem;color:var(--hub-muted);">Request sent</span>
+                                        <button type="button" wire:click="removeFriend({{ $person['id'] }})"
+                                            style="font-size:0.74rem;padding:0.3rem 0.7rem;background:none;border:1px solid var(--hub-border);color:var(--hub-ink);border-radius:0.4rem;cursor:pointer;">Cancel</button>
+                                    @elseif ($person['friendship']['state'] === 'incoming')
+                                        <button type="button" wire:click="acceptRequest({{ $person['friendship']['friendship_id'] }})"
+                                            style="font-size:0.74rem;padding:0.3rem 0.7rem;background:var(--hub-primary,#0d9488);color:#fff;border:none;border-radius:0.4rem;cursor:pointer;">Accept</button>
+                                        <button type="button" wire:click="declineRequest({{ $person['friendship']['friendship_id'] }})"
+                                            style="font-size:0.74rem;padding:0.3rem 0.7rem;background:none;border:1px solid var(--hub-border);color:var(--hub-ink);border-radius:0.4rem;cursor:pointer;">Decline</button>
+                                    @else
+                                        <button type="button" wire:click="sendRequest({{ $person['id'] }})"
+                                            style="font-size:0.74rem;padding:0.3rem 0.7rem;background:var(--hub-primary,#0d9488);color:#fff;border:none;border-radius:0.4rem;cursor:pointer;">Add friend</button>
+                                    @endif
+                                </div>
                             </div>
                         @endforeach
                     </div>
-                @elseif (mb_strlen(trim($peopleSearch)) >= 2)
-                    <p class="hub-copy" style="color:var(--hub-muted);margin-top:0.5rem;font-size:0.82rem;">No people found.</p>
+                @else
+                    <p class="hub-copy" style="color:var(--hub-muted);margin-top:0.5rem;font-size:0.82rem;">No students match.</p>
                 @endif
             </section>
 
@@ -56,7 +104,8 @@
                     <div style="display:flex;flex-direction:column;gap:0.4rem;">
                         @foreach ($this->pendingRequests as $req)
                             <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;padding:0.4rem 0.55rem;border:1px solid var(--hub-border);border-radius:0.5rem;">
-                                <span style="font-size:0.85rem;color:var(--hub-ink);">{{ $req->requester?->name ?? 'Unknown' }}</span>
+                                <button type="button" wire:click="showProfile({{ $req->requester?->id ?? 0 }})"
+                                    style="background:none;border:none;padding:0;cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--hub-ink);">{{ $req->requester?->name ?? 'Unknown' }}</button>
                                 <div style="display:flex;gap:0.35rem;">
                                     <button type="button" wire:click="acceptRequest({{ $req->id }})"
                                         style="font-size:0.74rem;padding:0.3rem 0.7rem;background:var(--hub-primary,#0d9488);color:#fff;border:none;border-radius:0.4rem;cursor:pointer;">Accept</button>
@@ -94,7 +143,8 @@
                                     @endif
                                 </div>
                                 <div style="text-align:center;max-width:100%;">
-                                    <p style="margin:0;font-size:0.84rem;font-weight:600;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $friend->name }}</p>
+                                    <button type="button" wire:click="showProfile({{ $friend->id }})"
+                                        style="background:none;border:none;padding:0;cursor:pointer;margin:0;font-size:0.84rem;font-weight:600;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">{{ $friend->name }}</button>
                                     <p style="margin:0.08rem 0 0;font-size:0.72rem;color:var(--hub-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $friendCourseCode ?: 'No course' }} | {{ $friendLevel ?: 'No level' }}</p>
                                 </div>
                                 <div style="display:flex;gap:0.4rem;justify-content:center;flex:0 0 auto;">
@@ -109,6 +159,56 @@
                                 </div>
                             </div>
                         @endforeach
+                    </div>
+                @endif
+            </section>
+        @endif
+
+        {{-- ===================== LEADERBOARD TAB ===================== --}}
+        @if ($tab === 'leaderboard')
+            @php
+                $leaderboard = $this->leaderboard;
+                $medals = [1 => '🥇', 2 => '🥈', 3 => '🥉'];
+            @endphp
+            <section class="hub-card" style="padding:0.85rem 1rem;">
+                <h3 class="hub-title" style="font-size:0.95rem;margin:0 0 0.5rem;">🏆 Leaderboard</h3>
+                <p class="hub-copy" style="color:var(--hub-muted);font-size:0.76rem;margin:0 0 0.6rem;">Top students by XP — earn XP by passing quizzes, keeping streaks, and completing courses.</p>
+
+                @if ($leaderboard['rows']->count() === 0)
+                    <p class="hub-copy" style="color:var(--hub-muted);font-size:0.82rem;">No XP earned yet. Pass a quiz to get on the board!</p>
+                @else
+                    <div style="display:flex;flex-direction:column;gap:0.4rem;">
+                        @foreach ($leaderboard['rows'] as $row)
+                            @php $isMe = $row['user_id'] === auth()->id(); @endphp
+                            <div style="display:flex;align-items:center;gap:0.55rem;padding:0.42rem 0.6rem;border-radius:0.5rem;border:1px solid {{ $isMe ? 'color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%)' : 'var(--hub-border)' }};{{ $isMe ? 'background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);' : '' }}">
+                                <span style="min-width:1.9rem;text-align:center;font-size:0.85rem;font-weight:700;color:var(--hub-ink);">
+                                    {{ $medals[$row['rank']] ?? '#'.$row['rank'] }}
+                                </span>
+                                <span style="flex:1;font-size:0.85rem;font-weight:{{ $isMe ? '700' : '500' }};color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    {{ $row['name'] }}{{ $isMe ? ' (you)' : '' }}
+                                </span>
+                                @if (count($row['badge_icons']) > 0)
+                                    <span style="font-size:0.82rem;letter-spacing:0.08em;" title="{{ $row['badge_count'] }} {{ Str::plural('badge', $row['badge_count']) }}">{{ implode('', $row['badge_icons']) }}</span>
+                                @endif
+                                <span style="font-size:0.74rem;color:var(--hub-muted);">🏅 {{ $row['badge_count'] }}</span>
+                                <span style="font-size:0.8rem;font-weight:700;color:#0f766e;min-width:3.6rem;text-align:right;">⚡ {{ number_format($row['xp']) }}</span>
+                            </div>
+                        @endforeach
+
+                        @if ($leaderboard['viewer'])
+                            @php $row = $leaderboard['viewer']; @endphp
+                            <div style="border-top:1px dashed var(--hub-border);margin-top:0.25rem;padding-top:0.45rem;">
+                                <div style="display:flex;align-items:center;gap:0.55rem;padding:0.42rem 0.6rem;border-radius:0.5rem;border:1px solid color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%);background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);">
+                                    <span style="min-width:1.9rem;text-align:center;font-size:0.85rem;font-weight:700;color:var(--hub-ink);">#{{ $row['rank'] }}</span>
+                                    <span style="flex:1;font-size:0.85rem;font-weight:700;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $row['name'] }} (you)</span>
+                                    @if (count($row['badge_icons']) > 0)
+                                        <span style="font-size:0.82rem;letter-spacing:0.08em;">{{ implode('', $row['badge_icons']) }}</span>
+                                    @endif
+                                    <span style="font-size:0.74rem;color:var(--hub-muted);">🏅 {{ $row['badge_count'] }}</span>
+                                    <span style="font-size:0.8rem;font-weight:700;color:#0f766e;min-width:3.6rem;text-align:right;">⚡ {{ number_format($row['xp']) }}</span>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @endif
             </section>
@@ -320,6 +420,96 @@
                         </form>
                     @endif
                 </section>
+            </div>
+        @endif
+
+        {{-- ===================== STUDENT PROFILE MODAL ===================== --}}
+        @if ($profileUser)
+            <div wire:click="closeProfile"
+                style="position:fixed;inset:0;z-index:60;background:rgba(2,6,23,.55);backdrop-filter:blur(3px);display:flex;padding:1rem;">
+                <div wire:click.stop
+                    style="width:100%;max-width:420px;margin:auto;background:var(--hub-card);border:1px solid var(--hub-border);border-radius:0.9rem;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;padding:0.6rem 0.9rem;border-bottom:1px solid var(--hub-border);">
+                        <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.9rem;">Student profile</p>
+                        <button type="button" wire:click="closeProfile" style="background:none;border:none;cursor:pointer;color:var(--hub-muted);font-size:1.4rem;line-height:1;">&times;</button>
+                    </div>
+
+                    <div style="padding:0.95rem 1rem;display:flex;flex-direction:column;gap:0.7rem;">
+                        {{-- Identity --}}
+                        <div style="display:flex;align-items:center;gap:0.65rem;">
+                            @if ($profileUser['avatar'])
+                                <img src="{{ $profileUser['avatar'] }}" alt="{{ $profileUser['name'] }}"
+                                    style="width:2.9rem;height:2.9rem;border-radius:999px;object-fit:cover;border:1px solid var(--hub-border);">
+                            @else
+                                <span style="width:2.9rem;height:2.9rem;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:#0f766e;color:#ccfbf1;font-size:1rem;font-weight:700;flex:0 0 auto;">{{ strtoupper(substr($profileUser['name'], 0, 1)) }}</span>
+                            @endif
+                            <div style="min-width:0;">
+                                <p style="margin:0;font-size:0.98rem;font-weight:700;color:var(--hub-ink);">{{ $profileUser['name'] }}</p>
+                                <p style="margin:0.05rem 0 0;font-size:0.74rem;color:var(--hub-muted);">{{ $profileUser['role_label'] }}{{ $profileUser['is_self'] ? ' · this is you' : '' }}</p>
+                            </div>
+                        </div>
+
+                        {{-- Bio --}}
+                        @if (filled($profileUser['bio']))
+                            <p style="margin:0;font-size:0.82rem;color:var(--hub-ink);line-height:1.45;">{{ $profileUser['bio'] }}</p>
+                        @else
+                            <p style="margin:0;font-size:0.78rem;color:var(--hub-muted);font-style:italic;">No bio yet.</p>
+                        @endif
+
+                        {{-- Stats row --}}
+                        <div style="display:flex;gap:0.5rem;">
+                            <span style="flex:1;text-align:center;padding:0.4rem 0.3rem;border:1px solid var(--hub-border);border-radius:0.5rem;font-size:0.76rem;color:var(--hub-ink);">⚡ <strong>{{ number_format($profileUser['xp']) }}</strong> XP</span>
+                            <span style="flex:1;text-align:center;padding:0.4rem 0.3rem;border:1px solid var(--hub-border);border-radius:0.5rem;font-size:0.76rem;color:var(--hub-ink);">🏅 <strong>{{ $profileUser['badge_count'] }}</strong> {{ Str::plural('badge', $profileUser['badge_count']) }}</span>
+                            <span style="flex:1;text-align:center;padding:0.4rem 0.3rem;border:1px solid var(--hub-border);border-radius:0.5rem;font-size:0.76rem;color:var(--hub-ink);">📚 <strong>{{ $profileUser['courses_count'] }}</strong> {{ Str::plural('course', $profileUser['courses_count']) }}</span>
+                        </div>
+
+                        {{-- Badge showcase --}}
+                        @if (count($profileUser['badges']) > 0)
+                            <div>
+                                <p style="margin:0 0 0.3rem;font-size:0.72rem;font-weight:700;color:var(--hub-muted);text-transform:uppercase;letter-spacing:0.04em;">Badges</p>
+                                <div style="display:flex;flex-wrap:wrap;gap:0.35rem;">
+                                    @foreach ($profileUser['badges'] as $badge)
+                                        <span title="{{ $badge['description'] }}"
+                                            style="font-size:0.76rem;padding:0.22rem 0.6rem;border-radius:999px;border:1px solid var(--hub-border);background:var(--hub-surface);color:var(--hub-ink);">
+                                            {{ $badge['icon'] }} {{ $badge['name'] }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Shared courses --}}
+                        <div>
+                            <p style="margin:0 0 0.3rem;font-size:0.72rem;font-weight:700;color:var(--hub-muted);text-transform:uppercase;letter-spacing:0.04em;">Courses in common</p>
+                            @if (count($profileUser['shared_courses']) > 0)
+                                <p style="margin:0;font-size:0.82rem;color:var(--hub-ink);">You share: {{ implode(' · ', $profileUser['shared_courses']) }}</p>
+                            @else
+                                <p style="margin:0;font-size:0.78rem;color:var(--hub-muted);">No courses in common.</p>
+                            @endif
+                        </div>
+
+                        {{-- Friendship action --}}
+                        @if (! $profileUser['is_self'])
+                            <div style="display:flex;justify-content:center;gap:0.4rem;padding-top:0.2rem;border-top:1px solid var(--hub-border);">
+                                @if ($profileUser['friendship']['state'] === 'friends')
+                                    <span style="font-size:0.8rem;color:#0f766e;font-weight:600;padding:0.35rem 0;">Friends ✓</span>
+                                @elseif ($profileUser['friendship']['state'] === 'sent')
+                                    <span style="font-size:0.8rem;color:var(--hub-muted);padding:0.35rem 0;">Request sent</span>
+                                    <button type="button" wire:click="removeFriend({{ $profileUser['id'] }})"
+                                        style="font-size:0.78rem;padding:0.35rem 0.9rem;background:none;border:1px solid var(--hub-border);color:var(--hub-ink);border-radius:0.45rem;cursor:pointer;">Cancel request</button>
+                                @elseif ($profileUser['friendship']['state'] === 'incoming')
+                                    <button type="button" wire:click="acceptRequest({{ $profileUser['friendship']['friendship_id'] }})"
+                                        style="font-size:0.78rem;padding:0.35rem 0.9rem;background:var(--hub-primary,#0d9488);color:#fff;border:none;border-radius:0.45rem;cursor:pointer;">Accept request</button>
+                                    <button type="button" wire:click="declineRequest({{ $profileUser['friendship']['friendship_id'] }})"
+                                        style="font-size:0.78rem;padding:0.35rem 0.9rem;background:none;border:1px solid var(--hub-border);color:var(--hub-ink);border-radius:0.45rem;cursor:pointer;">Decline</button>
+                                @else
+                                    <button type="button" wire:click="sendRequest({{ $profileUser['id'] }})"
+                                        style="font-size:0.78rem;padding:0.35rem 0.9rem;background:var(--hub-primary,#0d9488);color:#fff;border:none;border-radius:0.45rem;cursor:pointer;">Add friend</button>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </div>
         @endif
 

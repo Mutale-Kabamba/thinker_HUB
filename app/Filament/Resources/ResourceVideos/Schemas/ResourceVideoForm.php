@@ -4,16 +4,18 @@ namespace App\Filament\Resources\ResourceVideos\Schemas;
 
 use App\Models\Course;
 use App\Models\ResourceVideo;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class ResourceVideoForm
 {
     /**
-     * @param (callable(): array<string, string>)|null $courseOptions
+     * @param  (callable(): array<string, string>)|null  $courseOptions
      */
     public static function configure(Schema $schema, ?callable $courseOptions = null): Schema
     {
@@ -25,12 +27,35 @@ class ResourceVideoForm
                     ->required()
                     ->maxLength(255),
 
+                Radio::make('video_source')
+                    ->label('Video source')
+                    ->options([
+                        'youtube' => 'YouTube URL',
+                        'upload' => 'Upload video file',
+                    ])
+                    ->default(fn (?ResourceVideo $record): string => $record?->hasLocalVideo() ? 'upload' : 'youtube')
+                    ->helperText('Provide exactly one source: a YouTube link or an uploaded file.')
+                    ->live(),
+
                 TextInput::make('youtube_url')
                     ->label('YouTube URL')
-                    ->required()
                     ->url()
                     ->helperText('Paste any YouTube link (watch, youtu.be, shorts, or embed).')
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->visible(fn (callable $get): bool => $get('video_source') !== 'upload')
+                    ->required(fn (callable $get): bool => $get('video_source') !== 'upload'),
+
+                FileUpload::make('video_file')
+                    ->label('Video file')
+                    ->disk(config('videos.upload_disk', 'public'))
+                    ->directory('resource-videos')
+                    ->visibility('public')
+                    ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska', 'video/mpeg', 'video/3gpp'])
+                    ->maxSize(30720) // KB — below Livewire temp cap (30 MB) and php.ini limits (40M)
+                    ->storeFileNamesIn('video_file_original_name')
+                    ->helperText('MP4, WebM, MOV, MKV or MPEG up to 30 MB. Transcoding runs in the background; without FFmpeg the original file is served as-is.')
+                    ->visible(fn (callable $get): bool => $get('video_source') === 'upload')
+                    ->required(fn (callable $get, ?ResourceVideo $record): bool => $get('video_source') === 'upload' && ! $record?->hasLocalVideo()),
 
                 Toggle::make('is_recorded_lesson')
                     ->label('Recorded lesson')

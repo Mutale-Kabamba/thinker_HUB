@@ -97,6 +97,27 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->hasMany(Certificate::class);
     }
 
+    public function badges(): BelongsToMany
+    {
+        return $this->belongsToMany(Badge::class, 'user_badge')
+            ->withPivot('earned_at')
+            ->withTimestamps();
+    }
+
+    public function xpTransactions(): HasMany
+    {
+        return $this->hasMany(XpTransaction::class);
+    }
+
+    /**
+     * Total XP across all award transactions. Correctness first: summed
+     * live from xp_transactions (indexed on user_id), no cached counter.
+     */
+    public function xpTotal(): int
+    {
+        return (int) $this->xpTransactions()->sum('points');
+    }
+
     /**
      * Course completion rule for certificates: the student must be enrolled
      * and must have a passed attempt (QuizAttempt.passed, graded as

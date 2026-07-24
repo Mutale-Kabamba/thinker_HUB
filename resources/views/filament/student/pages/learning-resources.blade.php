@@ -135,11 +135,18 @@
                             onmouseout="this.style.transform='';this.style.boxShadow=''"
                         >
                             <div style="position:relative;aspect-ratio:16/9;background:#0f172a;">
-                                <img src="{{ $video['thumbnail'] }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+                                @if ($video['thumbnail'])
+                                    <img src="{{ $video['thumbnail'] }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+                                @endif
                                 <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
                                     <svg width="46" height="46" viewBox="0 0 24 24" fill="white" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));opacity:.95;"><path d="M8 5v14l11-7z"/></svg>
                                 </span>
                                 <span style="position:absolute;top:6px;left:6px;background:rgba(15,23,42,.85);color:#fff;font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:999px;">{{ $video['category'] }}</span>
+                                @if ($video['processing'] ?? false)
+                                    <span style="position:absolute;top:6px;right:6px;background:rgba(217,119,6,.9);color:#fff;font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:999px;">⏳ Processing…</span>
+                                @elseif ($video['source'] === 'file')
+                                    <span style="position:absolute;top:6px;right:6px;background:rgba(15,118,110,.9);color:#fff;font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:999px;">📁 Upload</span>
+                                @endif
                             </div>
                             <div style="padding:0.55rem 0.7rem;">
                                 <p style="margin:0;font-weight:600;color:var(--hub-ink);font-size:0.85rem;line-height:1.25;">{{ $video['title'] }}</p>
@@ -190,6 +197,12 @@
                             ></iframe>
                         @elseif ($playerSource === 'file')
                             <video src="{{ $playerUrl }}" controls autoplay style="width:100%;height:100%;background:#000;"></video>
+                        @elseif ($playerSource === 'processing')
+                            <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;background:#0f172a;color:#e2e8f0;">
+                                <span style="font-size:1.6rem;">⏳</span>
+                                <p style="margin:0;font-size:0.9rem;font-weight:600;">This video is still being processed.</p>
+                                <p style="margin:0;font-size:0.76rem;color:#94a3b8;">Please check back soon — it will play here once it's ready.</p>
+                            </div>
                         @endif
                     </div>
 
