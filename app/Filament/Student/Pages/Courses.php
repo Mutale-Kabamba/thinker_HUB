@@ -244,9 +244,16 @@ class Courses extends Page
         $certificate = app(CertificateService::class)->issue($user, $course);
 
         if (! $certificate) {
+            $reasons = app(CertificateService::class)->eligibility($user, $course)['reasons'];
+
             Notification::make()
                 ->title('Certificate not available yet')
-                ->body('Pass every active quiz in this course to earn its certificate.')
+                ->body($reasons === []
+                    ? 'Complete this course to earn its certificate.'
+                    : implode(' ', array_map(
+                        fn (string $reason): string => rtrim($reason, '.').'.',
+                        $reasons,
+                    )))
                 ->warning()
                 ->send();
 
@@ -317,6 +324,10 @@ class Courses extends Page
                 $isOpenEnrollment = $course->is_open_enrollment !== false;
                 $isEnrolled = in_array($course->id, $enrolledCourseIds, true);
 
+                $eligibility = $isEnrolled
+                    ? app(CertificateService::class)->eligibility($user, $course)
+                    : null;
+
                 return [
                     'id' => $course->id,
                     'title' => $course->title,
@@ -326,7 +337,10 @@ class Courses extends Page
                     'is_active' => $course->is_active,
                     'is_open_enrollment' => $isOpenEnrollment,
                     'enrolled' => $isEnrolled,
-                    'certificate_eligible' => $isEnrolled && $user->hasCompletedCourse($course),
+                    'certificate_eligible' => $eligibility['eligible'] ?? false,
+                    'certificate_lock_reason' => ($eligibility && ! $eligibility['eligible'])
+                        ? implode(' and ', $eligibility['reasons'])
+                        : null,
                     'certificate_claimed' => in_array($course->id, $certifiedCourseIds, true),
                     'can_enroll' => $course->is_active && (
                         $isOpenEnrollment || in_array((int) $user->id, $selectedParticipantIds, true)

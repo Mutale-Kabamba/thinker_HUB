@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\QueuedVerifyEmail;
+use App\Services\CertificateService;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
@@ -119,37 +120,134 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     }
 
     /**
-     * Course completion rule for certificates: the student must be enrolled
-     * and must have a passed attempt (QuizAttempt.passed, graded as
-     * percentage >= Quiz.pass_percentage) for every active quiz in the
-     * course. Courses without active quizzes are complete on enrollment.
+     * Structured course progress for certificate eligibility: the student must
+     * be enrolled and must finish every gradable activity visible to them —
+     * a passed attempt for every active quiz, a submission for every visible
+     * assignment, and a submission for every visible (personal) assessment.
+     * A course with no gradable content at all is NOT complete; progress
+     * tracking starts once the instructor adds activities.
+     *
+     * @return array{enrolled: bool, quizzes: array{total: int, done: int}, assignments: array{total: int, done: int}, assessments: array{total: int, done: int}, items_total: int, items_done: int, has_content: bool, complete: bool}
      */
-    public function hasCompletedCourse(Course $course): bool
+    public function courseProgress(Course $course): array
     {
-        $isEnrolled = $this->enrollments()
+        $enrolled = $this->enrollments()
             ->where('course_id', $course->id)
             ->exists();
-
-        if (! $isEnrolled) {
-            return false;
-        }
 
         $activeQuizIds = $course->quizzes()
             ->where('is_active', true)
             ->pluck('id');
 
-        if ($activeQuizIds->isEmpty()) {
-            return true;
+        $quizzesDone = $activeQuizIds->isEmpty()
+            ? 0
+            : QuizAttempt::query()
+                ->where('user_id', $this->id)
+                ->whereIn('quiz_id', $activeQuizIds)
+                ->where('passed', true)
+                ->distinct()
+                ->count('quiz_id');
+
+        $assignmentIds = $course->assignments()
+            ->visibleTo($this)
+            ->pluck('id');
+
+        $assignmentsDone = $assignmentIds->isEmpty()
+            ? 0
+            : AssignmentSubmission::query()
+                ->where('user_id', $this->id)
+                ->whereIn('assignment_id', $assignmentIds)
+                ->distinct()
+                ->count('assignment_id');
+
+        $assessmentIds = $course->assessments()
+            ->visibleTo($this)
+            ->pluck('id');
+
+        $assessmentsDone = $assessmentIds->isEmpty()
+            ? 0
+            : AssessmentSubmission::query()
+                ->where('user_id', $this->id)
+                ->whereIn('assessment_id', $assessmentIds)
+                ->distinct()
+                ->count('assessment_id');
+
+        $itemsTotal = $activeQuizIds->count() + $assignmentIds->count() + $assessmentIds->count();
+        $itemsDone = $quizzesDone + $assignmentsDone + $assessmentsDone;
+
+        return [
+            'enrolled' => $enrolled,
+            'quizzes' => ['total' => $activeQuizIds->count(), 'done' => $quizzesDone],
+            'assignments' => ['total' => $assignmentIds->count(), 'done' => $assignmentsDone],
+            'assessments' => ['total' => $assessmentIds->count(), 'done' => $assessmentsDone],
+            'items_total' => $itemsTotal,
+            'items_done' => $itemsDone,
+            'has_content' => $itemsTotal > 0,
+            'complete' => $enrolled && $itemsTotal > 0 && $itemsDone === $itemsTotal,
+        ];
+    }
+
+    /**
+     * Attendance summary for certificate eligibility: of the attendance rows
+     * marked for this student in this course's sessions, present + late count
+     * as attended and at least 75% must be attended. A course without any
+     * sessions passes vacuously (nothing to attend yet); a course with
+     * sessions but no rows marked for the student scores 0%.
+     *
+     * @return array{sessions_exist: bool, marked: int, attended: int, percent: int|null, ok: bool}
+     */
+    public function courseAttendance(Course $course): array
+    {
+        $sessionIds = $course->sessions()->pluck('id');
+
+        if ($sessionIds->isEmpty()) {
+            return [
+                'sessions_exist' => false,
+                'marked' => 0,
+                'attended' => 0,
+                'percent' => null,
+                'ok' => true,
+            ];
         }
 
-        $passedQuizIds = QuizAttempt::query()
+        $rows = Attendance::query()
             ->where('user_id', $this->id)
-            ->whereIn('quiz_id', $activeQuizIds)
-            ->where('passed', true)
-            ->distinct()
-            ->pluck('quiz_id');
+            ->whereIn('course_session_id', $sessionIds);
 
-        return $passedQuizIds->count() === $activeQuizIds->count();
+        $marked = (clone $rows)->count();
+        $attended = (clone $rows)
+            ->whereIn('status', [Attendance::STATUS_PRESENT, Attendance::STATUS_LATE])
+            ->count();
+
+        $percent = $marked === 0 ? 0 : (int) round($attended / $marked * 100);
+
+        return [
+            'sessions_exist' => true,
+            'marked' => $marked,
+            'attended' => $attended,
+            'percent' => $percent,
+            'ok' => $percent >= 75,
+        ];
+    }
+
+    /**
+     * Course completion rule for certificates: enrolled + 100% progress on
+     * gradable content (quizzes, assignments, assessments). Kept as the
+     * single completion gate used by observers and gamification; certificate
+     * issuing additionally enforces attendance in CertificateService.
+     */
+    public function hasCompletedCourse(Course $course): bool
+    {
+        return $this->courseProgress($course)['complete'];
+    }
+
+    /**
+     * Full certificate eligibility (progress + attendance), delegated to
+     * CertificateService so the rule lives in exactly one place.
+     */
+    public function isCertificateEligible(Course $course): bool
+    {
+        return app(CertificateService::class)->eligibility($this, $course)['eligible'];
     }
 
     public function hasBookmarked(Model $model): bool
