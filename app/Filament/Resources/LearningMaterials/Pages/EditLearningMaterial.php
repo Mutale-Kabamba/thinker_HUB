@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LearningMaterials\Pages;
 
 use App\Filament\Resources\LearningMaterials\LearningMaterialResource;
+use App\Support\PublicDiskPath;
 use Filament\Actions\DeleteAction;
 use App\Filament\Resources\Pages\BaseEditRecord;
 
@@ -15,5 +16,12 @@ class EditLearningMaterial extends BaseEditRecord
         return [
             DeleteAction::make(),
         ];
+    }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['file_path'] = PublicDiskPath::normalize($data['file_path'] ?? null);
+
+        return $data;
     }
 }
