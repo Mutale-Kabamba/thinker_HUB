@@ -1,0 +1,41 @@
+[
+  {
+    "title": "Data Analytics Fundamentals",
+    "code": "DAF101",
+    "description": "Introductory data analytics course.",
+    "overview": "Learn Excel, SQL, and dashboard basics.",
+    "timeline": "8 Weeks",
+    "fees": {
+      "one_on_one": [
+        {
+          "level": "Beginner",
+          "amount": "1200",
+          "duration": "8 weeks"
+        }
+      ],
+      "group": [
+        {
+          "level": "Beginner",
+          "amount": "600",
+          "duration": "8 weeks"
+        }
+      ]
+    },
+    "requirements": [
+      "Laptop",
+      "Stable internet"
+    ],
+    "level_progression": [
+      {
+        "level": "Beginner",
+        "details": "Spreadsheets and data cleaning"
+      },
+      {
+        "level": "Intermediate",
+        "details": "SQL and data visualization"
+      }
+    ],
+    "key_outcome": "Build and present a complete data report.",
+    "is_active": true
+  }
+]

@@ -10,6 +10,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Arr;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
@@ -34,6 +35,7 @@ class ListCourses extends ListRecords
                         ->directory('imports/courses')
                         ->acceptedFileTypes(['application/json', 'text/json'])
                         ->maxSize(2048)
+                        ->helperText(new HtmlString('Need a template? <a href="'.asset('samples/imports/courses.sample.json').'" download style="text-decoration:underline;">Download sample JSON</a>.'))
                         ->required(),
                 ])
                 ->action(function (array $data): void {

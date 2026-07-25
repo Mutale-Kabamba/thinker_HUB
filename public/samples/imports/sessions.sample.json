@@ -1,0 +1,23 @@
+[
+  {
+    "course_code": "DAF101",
+    "title": "Intro to Data Analytics",
+    "session_date": "2026-08-01",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Bring your laptop."
+  },
+  {
+    "course_code": "DAF101",
+    "title": "1-on-1 Support Session",
+    "session_date": "2026-08-03",
+    "start_time": "14:00",
+    "end_time": "15:00",
+    "type": "one_on_one",
+    "student_email": "student@example.com",
+    "status": "scheduled",
+    "notes": "Review assignment 1"
+  }
+]
