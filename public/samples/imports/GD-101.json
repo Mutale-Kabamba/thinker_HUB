@@ -1,0 +1,202 @@
+[
+    {
+        "course_code":  "GD-101",
+        "title":  "Orientation to Graphic Design \u0026 Core Design Principles",
+        "session_date":  "2026-08-03",
+        "start_time":  "09:00",
+        "end_time":  "10:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Virtual session. Introduction to fundamental design principles: contrast, hierarchy, balance, proximity, and space."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Typography Hierarchy, Font Pairing \u0026 Typefaces Lab",
+        "session_date":  "2026-08-04",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab session. Practice font selection, kerning, leading, tracking, and establishing typographic hierarchy."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Grid Systems, Alignment \u0026 Visual Balance Lab",
+        "session_date":  "2026-08-05",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab session. Apply column grids, baseline grids, and symmetrical/asymmetrical balance rules."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Layout Composition \u0026 Editorial Design Execution",
+        "session_date":  "2026-08-06",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab session. Construct a multi-page poster and flyer layout incorporating typography and grids."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Week 1 Design Review \u0026 Timed Quiz 1",
+        "session_date":  "2026-08-07",
+        "start_time":  "09:00",
+        "end_time":  "10:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Virtual session. Peer review of layout submissions and execution of Timed Weekly Quiz 1."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Color Psychology, Harmonies \u0026 Brand Palettes Briefing",
+        "session_date":  "2026-08-10",
+        "start_time":  "09:00",
+        "end_time":  "10:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Virtual session. Explore color wheels, complementary/analogous harmonies, RGB/CMYK spaces, and color psychology."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Vector Artwork Creation \u0026 Pen Tool Mastery Lab",
+        "session_date":  "2026-08-11",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab session. Master vector Bezier curves, anchor points, and boolean shape operations."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Logo Design Principles \u0026 Iconography Studio",
+        "session_date":  "2026-08-12",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab session. Design minimalist brand mark logos, wordmarks, and custom icon sets."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Vector Brand Asset Creation \u0026 Assignment 1 Submission",
+        "session_date":  "2026-08-13",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab session. Finalize vector logo packages in primary, secondary, and monochrome variants. Submit Assignment 1."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Week 2 Logo Review \u0026 Timed Quiz 2",
+        "session_date":  "2026-08-14",
+        "start_time":  "09:00",
+        "end_time":  "10:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Virtual session. Critique vector logo submissions and execute Timed Weekly Quiz 2."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Raster vs Vector Graphics \u0026 Image Editing Overview",
+        "session_date":  "2026-08-17",
+        "start_time":  "09:00",
+        "end_time":  "10:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Virtual session. Image resolution (DPI/PPI), raster file formats (PNG, JPG, WEBP), and editing workflows."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Non-Destructive Masking, Retouching \u0026 Color Correction",
+        "session_date":  "2026-08-18",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab session. Apply layer masks, adjustment layers, healing brushes, and color grading techniques."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Social Media Banner Design \u0026 Ad Campaigns Studio",
+        "session_date":  "2026-08-19",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab session. Create multi-platform promotional graphic banners for digital marketing campaigns."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Execution of Practical Skills Assessment 1 (Asset Creation)",
+        "session_date":  "2026-08-20",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab exam. 60-Minute practical test creating custom vector logos and social media campaign graphics."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Week 3 Design Critique \u0026 Timed Quiz 3",
+        "session_date":  "2026-08-21",
+        "start_time":  "09:00",
+        "end_time":  "10:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Virtual session. Review assessment design outputs and execute Timed Weekly Quiz 3."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Brand Style Guides, Collateral Systems \u0026 Pitching Briefing",
+        "session_date":  "2026-08-24",
+        "start_time":  "09:00",
+        "end_time":  "10:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Virtual session. Overview of comprehensive visual identity systems, brand guidelines, and client collateral."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Constructing Complete Brand Style Guides Lab",
+        "session_date":  "2026-08-25",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab session. Compile typography guidelines, color usage rules, logo clear-space rules, and brand assets."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Preparing Brand Mockups \u0026 Presentation Decks",
+        "session_date":  "2026-08-26",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab session. Apply realistic product mockups (stationery, signage, digital displays). Submit Assignment 2."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "Execution of Practical Skills Assessment 2 (Brand Identity)",
+        "session_date":  "2026-08-27",
+        "start_time":  "09:00",
+        "end_time":  "11:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Physical lab exam. 60-Minute practical test building a complete Brand Identity Kit and Presentation Deck."
+    },
+    {
+        "course_code":  "GD-101",
+        "title":  "GD-101 Final Review, Portfolio Showcase \u0026 Timed Quiz 4",
+        "session_date":  "2026-08-28",
+        "start_time":  "09:00",
+        "end_time":  "10:00",
+        "type":  "group",
+        "status":  "scheduled",
+        "notes":  "Virtual session. Final portfolio review, grade updates, and execution of Timed Weekly Quiz 4."
+    }
+]
