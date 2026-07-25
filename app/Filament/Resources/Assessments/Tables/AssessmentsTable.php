@@ -28,6 +28,11 @@ class AssessmentsTable
                 TextColumn::make('date_given')
                     ->date()
                     ->sortable(),
+                TextColumn::make('publish_at')
+                    ->label('Publish At')
+                    ->dateTime()
+                    ->placeholder('Immediate')
+                    ->sortable(),
                 TextColumn::make('due_date')
                     ->date()
                     ->sortable(),

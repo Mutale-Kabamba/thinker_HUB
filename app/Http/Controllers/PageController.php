@@ -30,7 +30,7 @@ class PageController extends Controller
 
         $stats = [
             'track' => $user->track,
-            'uploads' => Assessment::query()->where('user_id', $user->id)->count(),
+            'uploads' => Assessment::query()->visibleTo($user)->released()->count(),
             'materials' => $visibleMaterials->count(),
         ];
 
@@ -61,6 +61,7 @@ class PageController extends Controller
         $assignments = Assignment::query()
             ->with('course')
             ->visibleTo(Auth::user())
+            ->released()
             ->orderByRaw('due_date is null')
             ->orderBy('due_date')
             ->get()

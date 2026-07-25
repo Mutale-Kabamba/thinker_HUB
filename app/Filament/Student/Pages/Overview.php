@@ -49,6 +49,7 @@ class Overview extends Page
 
         $visibleAssignments = Assignment::query()
             ->visibleTo($user)
+            ->released()
             ->get();
 
         $submittedCount = AssessmentSubmission::query()->where('user_id', $user->id)->count();
@@ -63,6 +64,7 @@ class Overview extends Page
         $assessmentRecords = Assessment::query()
             ->with('course')
             ->visibleTo($user)
+            ->released()
             ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
             ->orderBy('due_date')
             ->latest('id')
@@ -195,6 +197,7 @@ class Overview extends Page
             $visibleAssignments = Assignment::query()
                 ->with('course')
                 ->visibleTo($user)
+                ->released()
                 ->get();
         }
 
@@ -202,6 +205,7 @@ class Overview extends Page
             $assessmentRecords = Assessment::query()
                 ->with('course')
                 ->visibleTo($user)
+                ->released()
                 ->get();
         }
 

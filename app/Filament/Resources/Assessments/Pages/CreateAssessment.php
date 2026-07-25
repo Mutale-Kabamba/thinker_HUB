@@ -24,6 +24,7 @@ class CreateAssessment extends BaseCreateRecord
             'course_id' => $data['course_id'] ?? null,
             'target_level' => $data['target_level'] ?? null,
             'date_given' => $data['date_given'] ?? null,
+            'publish_at' => $data['publish_at'] ?? null,
             'due_date' => $data['due_date'] ?? null,
             'file_path' => $data['file_path'] ?? null,
             'score' => null,

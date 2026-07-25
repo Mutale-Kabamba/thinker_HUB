@@ -150,6 +150,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
         $assignmentIds = $course->assignments()
             ->visibleTo($this)
+            ->released()
             ->pluck('id');
 
         $assignmentsDone = $assignmentIds->isEmpty()
@@ -162,6 +163,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
         $assessmentIds = $course->assessments()
             ->visibleTo($this)
+            ->released()
             ->pluck('id');
 
         $assessmentsDone = $assessmentIds->isEmpty()

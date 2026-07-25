@@ -21,6 +21,7 @@ class Assignment extends Model
         'target_level',
         'target_user_id',
         'date_given',
+        'publish_at',
         'due_date',
     ];
 
@@ -28,8 +29,17 @@ class Assignment extends Model
     {
         return [
             'date_given' => 'date',
+            'publish_at' => 'datetime',
             'due_date' => 'date',
         ];
+    }
+
+    public function scopeReleased(Builder $query): Builder
+    {
+        return $query->where(function (Builder $builder): void {
+            $builder->whereNull('publish_at')
+                ->orWhere('publish_at', '<=', now());
+        });
     }
 
     public function targetUser(): BelongsTo

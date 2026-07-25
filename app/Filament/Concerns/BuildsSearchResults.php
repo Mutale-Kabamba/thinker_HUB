@@ -212,7 +212,7 @@ trait BuildsSearchResults
         }
 
         return $this->applyContentSearch(
-            Assignment::query()->select(['id', 'name', 'due_date'])->visibleTo($user),
+            Assignment::query()->select(['id', 'name', 'due_date'])->visibleTo($user)->released(),
             $term,
             'assignments',
             'assignments_fts',
@@ -249,7 +249,7 @@ trait BuildsSearchResults
         }
 
         return $this->applyContentSearch(
-            Assessment::query()->select(['id', 'name', 'score', 'due_date'])->visibleTo($user),
+            Assessment::query()->select(['id', 'name', 'score', 'due_date'])->visibleTo($user)->released(),
             $term,
             'assessments',
             'assessments_fts',

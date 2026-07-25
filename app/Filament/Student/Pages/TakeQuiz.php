@@ -43,17 +43,21 @@ class TakeQuiz extends Page
             return;
         }
 
-        $quiz = Quiz::find($this->quizId);
+        $user = auth()->user();
+        if (! $user) {
+            return;
+        }
+
+        $quiz = Quiz::query()
+            ->visibleTo($user)
+            ->released()
+            ->whereKey($this->quizId)
+            ->first();
 
         if (! $quiz || ! $quiz->is_active) {
             Notification::make()->title('Quiz not available.')->danger()->send();
             $this->redirect(route('filament.student.pages.quizzes'));
 
-            return;
-        }
-
-        $user = auth()->user();
-        if (! $user) {
             return;
         }
 

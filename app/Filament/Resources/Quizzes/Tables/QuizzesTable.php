@@ -37,6 +37,11 @@ class QuizzesTable
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean(),
+                TextColumn::make('publish_at')
+                    ->label('Publish At')
+                    ->dateTime()
+                    ->placeholder('Immediate')
+                    ->sortable(),
                 TextColumn::make('attempts_count')
                     ->label('Attempts')
                     ->counts('attempts')

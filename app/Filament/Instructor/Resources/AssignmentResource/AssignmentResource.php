@@ -13,6 +13,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -120,6 +121,10 @@ class AssignmentResource extends Resource
                     ->required()
                     ->default(now()),
 
+                DateTimePicker::make('publish_at')
+                    ->label('Publish At')
+                    ->helperText('Leave empty to publish immediately. Set a future date/time to auto-release to students.'),
+
                 DatePicker::make('due_date')
                     ->label('Due Date')
                     ->required(),
@@ -144,6 +149,11 @@ class AssignmentResource extends Resource
                     ->searchable(),
                 TextColumn::make('date_given')
                     ->date()
+                    ->sortable(),
+                TextColumn::make('publish_at')
+                    ->label('Publish At')
+                    ->dateTime()
+                    ->placeholder('Immediate')
                     ->sortable(),
                 TextColumn::make('due_date')
                     ->date()

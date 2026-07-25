@@ -41,7 +41,7 @@ class Assignments extends Page
         if (! $user) {
             return;
         }
-        $assignment = Assignment::query()->visibleTo($user)->whereKey($assignmentId)->first();
+        $assignment = Assignment::query()->visibleTo($user)->released()->whereKey($assignmentId)->first();
         if (! $assignment) {
             Notification::make()->title('Assignment not available.')->danger()->send();
 
@@ -115,7 +115,7 @@ class Assignments extends Page
             return null;
         }
 
-        $assignment = Assignment::query()->visibleTo($user)->whereKey($assignmentId)->first();
+        $assignment = Assignment::query()->visibleTo($user)->released()->whereKey($assignmentId)->first();
 
         if (! $assignment || empty($assignment->file_path)) {
             Notification::make()->title('File not available.')->danger()->send();
@@ -160,6 +160,7 @@ class Assignments extends Page
         $this->assignments = Assignment::query()
             ->with('course')
             ->visibleTo($user)
+            ->released()
             ->orderByRaw('due_date is null')
             ->orderBy('due_date')
             ->get()

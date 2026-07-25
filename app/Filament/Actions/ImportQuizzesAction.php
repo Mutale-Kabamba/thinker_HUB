@@ -179,6 +179,7 @@ class ImportQuizzesAction
             'course_id' => $course->id,
             'title' => $title,
             'description' => static::nullableString(Arr::get($row, 'description')),
+            'publish_at' => static::nullableString(Arr::get($row, 'publish_at')),
             'time_limit_minutes' => static::nullablePositiveInt(Arr::get($row, 'time_limit_minutes')),
             'shuffle_questions' => (bool) Arr::get($row, 'shuffle_questions', false),
             'show_results' => (bool) Arr::get($row, 'show_results', true),

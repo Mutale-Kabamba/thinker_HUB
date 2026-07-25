@@ -13,6 +13,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -81,6 +82,11 @@ class QuizResource extends Resource
 
                         Textarea::make('description')
                             ->rows(3)
+                            ->columnSpanFull(),
+
+                        DateTimePicker::make('publish_at')
+                            ->label('Publish At')
+                            ->helperText('Leave empty to publish immediately. Set a future date/time to auto-release to students.')
                             ->columnSpanFull(),
 
                         TextInput::make('pass_percentage')
@@ -200,6 +206,11 @@ class QuizResource extends Resource
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean(),
+                TextColumn::make('publish_at')
+                    ->label('Publish At')
+                    ->dateTime()
+                    ->placeholder('Immediate')
+                    ->sortable(),
                 TextColumn::make('attempts_count')
                     ->label('Attempts')
                     ->counts('attempts')
