@@ -5,6 +5,7 @@ namespace App\Filament\Student\Pages;
 use App\Models\LearningMaterial;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use App\Support\PublicDiskPath;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
@@ -69,17 +70,19 @@ class Materials extends Page
             return null;
         }
 
+        $path = PublicDiskPath::normalize($material->file_path);
         $disk = Storage::disk('public');
-        if (! $disk->exists($material->file_path)) {
+
+        if (! $path || ! $disk->exists($path)) {
             Notification::make()->title('File not found.')->danger()->send();
 
             return null;
         }
 
-        $extension = pathinfo($material->file_path, PATHINFO_EXTENSION);
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
         $downloadName = Str::slug($material->title).'.'.$extension;
 
-        return $disk->download($material->file_path, $downloadName);
+        return $disk->download($path, $downloadName);
     }
 
     public function toggleBookmark(int $materialId): void

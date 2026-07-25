@@ -18,9 +18,7 @@
     @include('partials.public-header')
 
     @php
-        $profileImage = $instructor->profile_photo_path
-            ? \Illuminate\Support\Facades\Storage::disk('public')->url($instructor->profile_photo_path)
-            : null;
+        $profileImage = $instructor->getFilamentAvatarUrl();
 
         $coursesCount = $courses->count();
         $learnersCount = (int) $courses->sum(fn ($course) => (int) ($course->enrollments_count ?? 0));

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\QueuedVerifyEmail;
+use App\Support\PublicDiskPath;
 use App\Services\CertificateService;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
@@ -18,7 +19,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerifyEmail
 {
@@ -393,9 +393,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
     public function getFilamentAvatarUrl(): ?string
     {
-        return $this->profile_photo_path
-            ? Storage::disk('public')->url($this->profile_photo_path)
-            : null;
+        return PublicDiskPath::url($this->profile_photo_path);
     }
 
     public function canAccessPanel(Panel $panel): bool

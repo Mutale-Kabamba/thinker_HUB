@@ -4,6 +4,7 @@ namespace App\Filament\Student\Pages;
 
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Support\PublicDiskPath;
 use App\Models\User;
 use App\Notifications\StudentSubmissionNotification;
 use Filament\Notifications\Notification;
@@ -122,18 +123,19 @@ class Assignments extends Page
             return null;
         }
 
+        $path = PublicDiskPath::normalize($assignment->file_path);
         $disk = Storage::disk('public');
 
-        if (! $disk->exists($assignment->file_path)) {
+        if (! $path || ! $disk->exists($path)) {
             Notification::make()->title('File not found.')->danger()->send();
 
             return null;
         }
 
-        $extension = pathinfo($assignment->file_path, PATHINFO_EXTENSION);
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
         $downloadName = Str::slug($assignment->name) . '.' . $extension;
 
-        return $disk->download($assignment->file_path, $downloadName);
+        return $disk->download($path, $downloadName);
     }
 
     protected function refreshAssignments(): void
