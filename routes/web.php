@@ -289,20 +289,25 @@ Route::get('/instructors/{instructor}/{slug?}', function (int $instructor, ?stri
         abort(404);
     }
 
+    $with = [
+        'instructorCourses' => function ($query): void {
+            $query
+                ->where('is_active', true)
+                ->withCount('enrollments')
+                ->withAvg('ratings', 'rating')
+                ->withCount('ratings')
+                ->latest();
+        },
+    ];
+
+    if (Schema::hasTable('instructor_applications')) {
+        $with[] = 'instructorApplication';
+    }
+
     $instructorModel = User::query()
         ->where('role', 'instructor')
         ->where('is_active', true)
-        ->with([
-            'instructorApplication:id,user_id,bio,qualifications,experience',
-            'instructorCourses' => function ($query): void {
-                $query
-                    ->where('is_active', true)
-                    ->withCount('enrollments')
-                    ->withAvg('ratings', 'rating')
-                    ->withCount('ratings')
-                    ->latest();
-            },
-        ])
+        ->with($with)
         ->findOrFail($instructor);
 
     $canonicalSlug = $instructorSlug($instructorModel);

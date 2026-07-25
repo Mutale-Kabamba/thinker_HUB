@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Kreait\Firebase\Exception\Auth\FailedToVerifyToken;
@@ -96,15 +97,19 @@ class FirebaseGoogleAuthController extends Controller
                 ], 422);
             }
 
-            $course = Course::query()
+            $courseQuery = Course::query()
                 ->whereKey((int) $courseId)
-                ->where('is_active', true)
-                ->where(function ($query): void {
+                ->where('is_active', true);
+
+            if (Schema::hasColumn('courses', 'is_open_enrollment')) {
+                $courseQuery->where(function ($query): void {
                     $query
                         ->where('is_open_enrollment', true)
                         ->orWhereNull('is_open_enrollment');
-                })
-                ->first();
+                });
+            }
+
+            $course = $courseQuery->first();
 
             if (! $course) {
                 return response()->json([

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -27,11 +28,18 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
+        $hasOpenEnrollmentColumn = Schema::hasColumn('courses', 'is_open_enrollment');
+        $columns = ['id', 'title', 'code', 'fees'];
+
+        if ($hasOpenEnrollmentColumn) {
+            $columns[] = 'is_open_enrollment';
+        }
+
         $courses = Course::query()
             ->where('is_active', true)
             ->orderBy('title')
             ->with(['instructors:id,name,email,whatsapp'])
-            ->get(['id', 'title', 'code', 'fees', 'is_open_enrollment'])
+            ->get($columns)
             ->map(function (Course $course): Course {
                 $requiresPayment = $course->requiresPaymentApproval();
 
@@ -56,16 +64,23 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $hasOpenEnrollmentColumn = Schema::hasColumn('courses', 'is_open_enrollment');
+
+        $courseExistsRule = Rule::exists('courses', 'id')
+            ->where('is_active', true);
+
+        if ($hasOpenEnrollmentColumn) {
+            $courseExistsRule = $courseExistsRule->where(fn ($query) => $query
+                ->where('is_open_enrollment', true)
+                ->orWhereNull('is_open_enrollment'));
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'course_id' => [
                 'required',
-                Rule::exists('courses', 'id')
-                    ->where('is_active', true)
-                    ->where(fn ($query) => $query
-                        ->where('is_open_enrollment', true)
-                        ->orWhereNull('is_open_enrollment')),
+                $courseExistsRule,
             ],
             'track' => ['required', 'in:Beginner,Intermediate,Advanced'],
             'accept_terms' => ['accepted'],
@@ -73,13 +88,17 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $course = Course::query()
+        $courseQuery = Course::query()
             ->whereKey((int) $request->integer('course_id'))
-            ->where('is_active', true)
-            ->where(fn ($query) => $query
+            ->where('is_active', true);
+
+        if ($hasOpenEnrollmentColumn) {
+            $courseQuery->where(fn ($query) => $query
                 ->where('is_open_enrollment', true)
-                ->orWhereNull('is_open_enrollment'))
-            ->firstOrFail();
+                ->orWhereNull('is_open_enrollment'));
+        }
+
+        $course = $courseQuery->firstOrFail();
 
         $requiresPaymentApproval = $course->requiresPaymentApproval();
 
