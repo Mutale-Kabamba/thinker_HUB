@@ -1,5 +1,7 @@
 <?php
 
+$publicDiskDriver = strtolower((string) env('PUBLIC_DISK_DRIVER', 'local'));
+
 return [
 
     /*
@@ -38,7 +40,7 @@ return [
             'report' => false,
         ],
 
-        'public' => env('AWS_BUCKET')
+        'public' => $publicDiskDriver === 's3'
             ? [
                 'driver' => 's3',
                 'key' => env('AWS_ACCESS_KEY_ID'),
