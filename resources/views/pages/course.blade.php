@@ -616,7 +616,7 @@
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="flex items-center gap-3">
                                         @if ($rating->user?->profile_photo_path)
-                                            <img src="{{ Storage::disk('public')->url($rating->user->profile_photo_path) }}" alt="" class="h-9 w-9 rounded-full object-cover" onerror="this.style.display='none'">
+                                            <img src="{{ $rating->user->getFilamentAvatarUrl() }}" alt="" class="h-9 w-9 rounded-full object-cover" onerror="this.style.display='none'">
                                         @else
                                             <div class="h-9 w-9 rounded-full bg-teal-100 flex items-center justify-center text-sm font-bold text-teal-700">
                                                 {{ strtoupper(substr($rating->user?->name ?? '?', 0, 1)) }}

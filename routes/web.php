@@ -14,6 +14,7 @@ use App\Models\Course;
 use App\Models\CourseRating;
 use App\Models\LearningMaterial;
 use App\Models\User;
+use App\Support\PublicDiskPath;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -456,6 +457,8 @@ Route::middleware('auth')->group(function () {
             abort(404);
         }
 
+        $path = PublicDiskPath::normalize($path);
+
         if (! $path || ! $disk->exists($path)) {
             return response(
                 '<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:#6b7280;background:#f9fafb;">'
@@ -507,6 +510,8 @@ Route::middleware('auth')->group(function () {
             abort(404);
         }
 
+        $path = PublicDiskPath::normalize($path);
+
         if (! $path || ! $disk->exists($path)) {
             abort(404);
         }
@@ -527,7 +532,7 @@ Route::get('/file/public', function (Request $request) {
         abort(403);
     }
 
-    $path = $request->query('path');
+    $path = PublicDiskPath::normalize((string) $request->query('path', ''));
     $disk = Storage::disk('public');
 
     // Prevent path traversal attacks.

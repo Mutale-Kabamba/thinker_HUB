@@ -6,7 +6,6 @@ use App\Models\Bookmark;
 use App\Models\LearningMaterial;
 use App\Models\ResourceVideo;
 use Filament\Pages\Page;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Url;
 
 class LearningResources extends Page
@@ -124,7 +123,7 @@ class LearningResources extends Page
             $this->playerUrl = $embed.'?autoplay=1&rel=0';
         } elseif ($lesson->file_path) {
             $this->playerSource = 'file';
-            $this->playerUrl = Storage::disk('public')->url($lesson->file_path);
+            $this->playerUrl = route('file.view', ['type' => 'material', 'id' => $lesson->id], false);
         } else {
             return;
         }
@@ -205,7 +204,7 @@ class LearningResources extends Page
                     'source' => $embed ? 'youtube' : 'file',
                     'embed_url' => $embed,
                     'file_url' => (! $embed && $item->file_path)
-                        ? Storage::disk('public')->url($item->file_path)
+                        ? route('file.view', ['type' => 'material', 'id' => $item->id], false)
                         : null,
                     'thumbnail' => $embed
                         ? $this->youtubeThumbnail($item->video_url)

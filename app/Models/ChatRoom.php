@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Support\PublicDiskPath;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Storage;
 
 class ChatRoom extends Model
 {
@@ -88,9 +88,7 @@ class ChatRoom extends Model
     public function avatarUrlFor(User $viewer): ?string
     {
         if ($this->type === 'course') {
-            return $this->course?->image_path
-                ? Storage::disk('public')->url($this->course->image_path)
-                : null;
+            return PublicDiskPath::url($this->course?->image_path);
         }
 
         return $this->otherMemberFor($viewer)?->getFilamentAvatarUrl();
