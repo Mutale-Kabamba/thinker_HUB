@@ -2,31 +2,31 @@
 
 namespace App\Policies;
 
-use App\Models\Assignment;
+use App\Models\Quiz;
 use App\Models\User;
 
-class AssignmentPolicy
+class QuizPolicy
 {
     public function viewAny(User $user): bool
     {
         return true;
     }
 
-    public function view(User $user, Assignment $assignment): bool
+    public function view(User $user, Quiz $quiz): bool
     {
         if ($user->isAdmin()) {
             return true;
         }
 
-        if (! $assignment->course_id) {
+        if (! $quiz->course_id) {
             return false;
         }
 
-        if ($this->teachesCourse($user, $assignment->course_id)) {
+        if ($this->teachesCourse($user, $quiz->course_id)) {
             return true;
         }
 
-        return $user->isEnrolledInCourse($assignment->course_id);
+        return $user->isEnrolledInCourse($quiz->course_id);
     }
 
     public function create(User $user): bool
@@ -34,19 +34,19 @@ class AssignmentPolicy
         return $user->isAdmin() || $user->isInstructor();
     }
 
-    public function update(User $user, Assignment $assignment): bool
+    public function update(User $user, Quiz $quiz): bool
     {
         if ($user->isAdmin()) {
             return true;
         }
 
-        return $assignment->course_id
-            && $this->teachesCourse($user, $assignment->course_id);
+        return $quiz->course_id
+            && $this->teachesCourse($user, $quiz->course_id);
     }
 
-    public function delete(User $user, Assignment $assignment): bool
+    public function delete(User $user, Quiz $quiz): bool
     {
-        return $this->update($user, $assignment);
+        return $this->update($user, $quiz);
     }
 
     protected function teachesCourse(User $user, ?int $courseId): bool

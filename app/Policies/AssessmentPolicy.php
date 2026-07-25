@@ -18,7 +18,15 @@ class AssessmentPolicy
             return true;
         }
 
-        if ($assessment->user_id !== $user->id || ! $assessment->course_id) {
+        if (! $assessment->course_id) {
+            return false;
+        }
+
+        if ($this->teachesCourse($user, $assessment->course_id)) {
+            return true;
+        }
+
+        if ($assessment->user_id !== $user->id) {
             return false;
         }
 
@@ -36,6 +44,10 @@ class AssessmentPolicy
             return true;
         }
 
+        if ($assessment->course_id && $this->teachesCourse($user, $assessment->course_id)) {
+            return true;
+        }
+
         if ($assessment->user_id !== $user->id || ! $assessment->course_id) {
             return false;
         }
@@ -46,5 +58,16 @@ class AssessmentPolicy
     public function delete(User $user, Assessment $assessment): bool
     {
         return $this->update($user, $assessment);
+    }
+
+    protected function teachesCourse(User $user, ?int $courseId): bool
+    {
+        if (! $courseId || ! $user->isInstructor()) {
+            return false;
+        }
+
+        return $user->instructorCourses()
+            ->where('courses.id', $courseId)
+            ->exists();
     }
 }
