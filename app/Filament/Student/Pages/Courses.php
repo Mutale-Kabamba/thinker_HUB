@@ -10,6 +10,7 @@ use App\Services\CertificateService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class Courses extends Page
 {
@@ -81,7 +82,7 @@ class Courses extends Page
             return;
         }
 
-        if ($course->is_open_enrollment === false) {
+        if (Schema::hasColumn('courses', 'is_open_enrollment') && $course->is_open_enrollment === false) {
             $isSelectedParticipant = $course->selectedParticipants()
                 ->where('users.id', $user->id)
                 ->exists();

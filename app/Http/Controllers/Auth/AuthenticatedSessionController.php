@@ -9,6 +9,7 @@ use App\Support\PaymentApprovalMessage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -18,11 +19,17 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request): View
     {
+        $columns = ['id', 'title', 'code', 'fees'];
+
+        if (Schema::hasColumn('courses', 'is_open_enrollment')) {
+            $columns[] = 'is_open_enrollment';
+        }
+
         $courses = Course::query()
             ->where('is_active', true)
             ->orderBy('title')
             ->with(['instructors:id,name,email,whatsapp'])
-            ->get(['id', 'title', 'code', 'fees', 'is_open_enrollment'])
+            ->get($columns)
             ->map(function (Course $course): Course {
                 $requiresPayment = $course->requiresPaymentApproval();
 
