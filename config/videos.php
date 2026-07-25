@@ -1,5 +1,12 @@
 <?php
 
+$configuredUploadDisk = (string) env('VIDEO_UPLOAD_DISK', 'public');
+$s3AdapterAvailable = class_exists(\League\Flysystem\AwsS3V3\PortableVisibilityConverter::class);
+
+if ($configuredUploadDisk === 's3' && ! $s3AdapterAvailable) {
+    $configuredUploadDisk = 'public';
+}
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -9,7 +16,7 @@ return [
     | are stored on. Defaults to the public disk in dev; set
     | VIDEO_UPLOAD_DISK=s3 to move uploads to S3 without code changes.
     */
-    'upload_disk' => env('VIDEO_UPLOAD_DISK', 'public'),
+    'upload_disk' => $configuredUploadDisk,
 
     /*
     |--------------------------------------------------------------------------
