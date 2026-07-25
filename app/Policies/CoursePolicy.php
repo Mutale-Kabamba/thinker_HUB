@@ -14,7 +14,15 @@ class CoursePolicy
 
     public function view(User $user, Course $course): bool
     {
-        return true;
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($this->teachesCourse($user, $course->id)) {
+            return true;
+        }
+
+        return $user->isEnrolledInCourse($course->id);
     }
 
     public function create(User $user): bool
@@ -24,11 +32,22 @@ class CoursePolicy
 
     public function update(User $user, Course $course): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $this->teachesCourse($user, $course->id);
     }
 
     public function delete(User $user, Course $course): bool
     {
         return $user->isAdmin();
+    }
+
+    protected function teachesCourse(User $user, ?int $courseId): bool
+    {
+        if (! $courseId || ! $user->isInstructor()) {
+            return false;
+        }
+
+        return $user->instructorCourses()
+            ->where('courses.id', $courseId)
+            ->exists();
     }
 }

@@ -3,10 +3,11 @@
 namespace App\Filament\Instructor\Resources\CourseResource;
 
 use App\Filament\Instructor\Concerns\ScopedToInstructor;
+use App\Filament\Instructor\Resources\CourseResource\Pages\EditCourse;
 use App\Filament\Instructor\Resources\CourseResource\Pages\ListCourses;
-use App\Filament\Instructor\Resources\CourseResource\Pages\ViewCourse;
 use App\Models\Course;
 use BackedEnum;
+use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -75,6 +76,9 @@ class CourseResource extends Resource
                         });
                     }),
             ])
+            ->recordActions([
+                EditAction::make(),
+            ])
             ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('id', static::instructorCourseIds()));
     }
 
@@ -87,7 +91,7 @@ class CourseResource extends Resource
     {
         return [
             'index' => ListCourses::route('/'),
-            'view' => ViewCourse::route('/{record}'),
+            'edit' => EditCourse::route('/{record}/edit'),
         ];
     }
 }
