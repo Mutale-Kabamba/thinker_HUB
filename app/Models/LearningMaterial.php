@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\PublicDiskPath;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +28,14 @@ class LearningMaterial extends Model
         'file_name',
         'file_path',
     ];
+
+    protected function filePath(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => PublicDiskPath::normalize($value),
+            set: fn ($value) => PublicDiskPath::normalize($value),
+        );
+    }
 
     public function targetUser(): BelongsTo
     {
