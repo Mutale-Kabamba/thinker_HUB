@@ -1,6 +1,14 @@
 <?php
 
 $publicDiskDriver = strtolower((string) env('PUBLIC_DISK_DRIVER', 'local'));
+$s3AdapterAvailable = class_exists(\League\Flysystem\AwsS3V3\PortableVisibilityConverter::class);
+$useS3PublicDisk = $publicDiskDriver === 's3' && $s3AdapterAvailable;
+
+$defaultDisk = (string) env('FILESYSTEM_DISK', 'local');
+if (in_array($defaultDisk, ['s3', 'public'], true) && ! $s3AdapterAvailable && $publicDiskDriver === 's3') {
+    // Prevent hard failure when S3 is configured but the adapter package is missing.
+    $defaultDisk = 'local';
+}
 
 return [
 
@@ -15,7 +23,7 @@ return [
     |
     */
 
-    'default' => env('FILESYSTEM_DISK', 'local'),
+    'default' => $defaultDisk,
 
     /*
     |--------------------------------------------------------------------------
@@ -40,7 +48,7 @@ return [
             'report' => false,
         ],
 
-        'public' => $publicDiskDriver === 's3'
+        'public' => $useS3PublicDisk
             ? [
                 'driver' => 's3',
                 'key' => env('AWS_ACCESS_KEY_ID'),
