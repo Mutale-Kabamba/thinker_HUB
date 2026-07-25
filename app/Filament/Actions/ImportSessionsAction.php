@@ -10,6 +10,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -52,6 +53,7 @@ class ImportSessionsAction
                     ->directory('imports/sessions')
                     ->acceptedFileTypes(['application/json', 'text/json'])
                     ->maxSize(2048)
+                    ->helperText(new HtmlString('Need a template? <a href="'.asset('samples/imports/sessions.sample.json').'" download style="text-decoration:underline;">Download sample JSON</a>.'))
                     ->required(),
             ])
             ->action(function (array $data) use ($courseIds, $instructorId): void {

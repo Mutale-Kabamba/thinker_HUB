@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +16,7 @@ class Quiz extends Model
         'course_id',
         'title',
         'description',
+        'publish_at',
         'time_limit_minutes',
         'shuffle_questions',
         'show_results',
@@ -28,9 +30,29 @@ class Quiz extends Model
             'shuffle_questions' => 'boolean',
             'show_results' => 'boolean',
             'is_active' => 'boolean',
+            'publish_at' => 'datetime',
             'time_limit_minutes' => 'integer',
             'pass_percentage' => 'integer',
         ];
+    }
+
+    public function scopeReleased(Builder $query): Builder
+    {
+        return $query->where(function (Builder $builder): void {
+            $builder->whereNull('publish_at')
+                ->orWhere('publish_at', '<=', now());
+        });
+    }
+
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        $enrolledCourseIds = $user->courses()->pluck('courses.id');
+
+        return $query->whereIn('course_id', $enrolledCourseIds);
     }
 
     public function course(): BelongsTo

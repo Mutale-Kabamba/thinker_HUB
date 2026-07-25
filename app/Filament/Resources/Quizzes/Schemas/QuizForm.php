@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Quizzes\Schemas;
 
 use App\Models\Course;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
@@ -42,6 +43,11 @@ class QuizForm
 
                         Textarea::make('description')
                             ->rows(3)
+                            ->columnSpanFull(),
+
+                        DateTimePicker::make('publish_at')
+                            ->label('Publish At')
+                            ->helperText('Leave empty to publish immediately. Set a future date/time to auto-release to students.')
                             ->columnSpanFull(),
 
                         TextInput::make('pass_percentage')

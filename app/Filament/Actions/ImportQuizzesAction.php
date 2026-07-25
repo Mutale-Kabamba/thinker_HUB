@@ -12,6 +12,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -56,6 +57,7 @@ class ImportQuizzesAction
                     ->directory('imports/quizzes')
                     ->acceptedFileTypes(['application/json', 'text/json'])
                     ->maxSize(2048)
+                    ->helperText(new HtmlString('Need a template? <a href="'.asset('samples/imports/quizzes.sample.json').'" download style="text-decoration:underline;">Download sample JSON</a>.'))
                     ->required(),
                 Toggle::make('replace_questions')
                     ->label('Replace existing questions on update')
@@ -177,6 +179,7 @@ class ImportQuizzesAction
             'course_id' => $course->id,
             'title' => $title,
             'description' => static::nullableString(Arr::get($row, 'description')),
+            'publish_at' => static::nullableString(Arr::get($row, 'publish_at')),
             'time_limit_minutes' => static::nullablePositiveInt(Arr::get($row, 'time_limit_minutes')),
             'shuffle_questions' => (bool) Arr::get($row, 'shuffle_questions', false),
             'show_results' => (bool) Arr::get($row, 'show_results', true),

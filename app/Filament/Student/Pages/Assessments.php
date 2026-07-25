@@ -39,7 +39,7 @@ class Assessments extends Page
         if (! $user) {
             return;
         }
-        $assessment = Assessment::query()->where('user_id', $user->id)->whereKey($assessmentId)->first();
+        $assessment = Assessment::query()->visibleTo($user)->released()->whereKey($assessmentId)->first();
         if (! $assessment) {
             Notification::make()->title('Assessment not available.')->danger()->send();
 
@@ -102,7 +102,7 @@ class Assessments extends Page
             return null;
         }
 
-        $assessment = Assessment::query()->where('user_id', $user->id)->whereKey($assessmentId)->first();
+        $assessment = Assessment::query()->visibleTo($user)->released()->whereKey($assessmentId)->first();
 
         if (! $assessment || empty($assessment->file_path)) {
             Notification::make()->title('File not available.')->danger()->send();
@@ -137,7 +137,8 @@ class Assessments extends Page
 
         $this->assessments = Assessment::query()
             ->with('course')
-            ->where('user_id', $user->id)
+            ->visibleTo($user)
+            ->released()
             ->latest()
             ->get()
             ->map(fn (Assessment $item): array => [

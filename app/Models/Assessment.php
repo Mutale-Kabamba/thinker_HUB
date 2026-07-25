@@ -19,6 +19,7 @@ class Assessment extends Model
         'course_id',
         'target_level',
         'date_given',
+        'publish_at',
         'due_date',
         'file_path',
         'score',
@@ -28,8 +29,17 @@ class Assessment extends Model
     {
         return [
             'date_given' => 'date',
+            'publish_at' => 'datetime',
             'due_date' => 'date',
         ];
+    }
+
+    public function scopeReleased(Builder $query): Builder
+    {
+        return $query->where(function (Builder $builder): void {
+            $builder->whereNull('publish_at')
+                ->orWhere('publish_at', '<=', now());
+        });
     }
 
     public function user(): BelongsTo

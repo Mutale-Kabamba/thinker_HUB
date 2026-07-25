@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Assessments\Schemas;
 use App\Models\Course;
 use App\Models\User;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -99,6 +100,10 @@ class AssessmentForm
                     ->label('Date Given')
                     ->required()
                     ->default(now()),
+
+                DateTimePicker::make('publish_at')
+                    ->label('Publish At')
+                    ->helperText('Leave empty to publish immediately. Set a future date/time to auto-release to students.'),
 
                 DatePicker::make('due_date')
                     ->label('Due Date')
