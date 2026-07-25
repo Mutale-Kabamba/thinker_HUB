@@ -12,6 +12,7 @@ use App\Models\Course;
 use App\Models\CourseSession;
 use App\Models\Enrollment;
 use App\Models\LearningMaterial;
+use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Observers\AssignmentObserver;
@@ -26,6 +27,7 @@ use App\Policies\AssignmentPolicy;
 use App\Policies\CoursePolicy;
 use App\Policies\EnrollmentPolicy;
 use App\Policies\LearningMaterialPolicy;
+use App\Policies\QuizPolicy;
 use App\Policies\UserPolicy;
 use Filament\Auth\Http\Responses\Contracts\LogoutResponse as LogoutResponseContract;
 use Illuminate\Mail\Events\MessageSending;
@@ -69,6 +71,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Assignment::class, AssignmentPolicy::class);
         Gate::policy(LearningMaterial::class, LearningMaterialPolicy::class);
         Gate::policy(Assessment::class, AssessmentPolicy::class);
+        Gate::policy(Quiz::class, QuizPolicy::class);
 
         $this->configureMailDeliverabilityHeaders();
         $this->configureMailSslPeerName();
