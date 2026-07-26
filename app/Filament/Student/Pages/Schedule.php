@@ -13,6 +13,8 @@ use Illuminate\Support\Carbon;
 
 class Schedule extends Page
 {
+    private const DEFAULT_CALENDAR_DURATION_HOURS = 1;
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
     protected static string|\UnitEnum|null $navigationGroup = 'LEARNING';
@@ -207,27 +209,33 @@ class Schedule extends Page
 
         $allSessions = $query->get();
 
-        $this->sessions = $allSessions->map(fn (CourseSession $s) => [
-            'id' => $s->id,
-            'course_title' => $s->course->title ?? '—',
-            'course_code' => $s->course->code ?? '',
-            'type' => $s->type,
-            'type_label' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
-            'instructor_name' => $s->instructor?->name,
-            'title' => $s->title,
-            'session_date' => $s->session_date->format('D, M j, Y'),
-            'session_date_raw' => $s->session_date->format('Y-m-d'),
-            'start_time' => Carbon::parse($s->start_time)->format('g:i A'),
-            'end_time' => Carbon::parse($s->end_time)->format('g:i A'),
-            'status' => $s->status,
-            'rescheduled_date' => $s->rescheduled_date?->format('D, M j, Y'),
-            'rescheduled_date_raw' => $s->rescheduled_date?->format('Y-m-d'),
-            'rescheduled_start_time' => $s->rescheduled_start_time ? Carbon::parse($s->rescheduled_start_time)->format('g:i A') : null,
-            'rescheduled_end_time' => $s->rescheduled_end_time ? Carbon::parse($s->rescheduled_end_time)->format('g:i A') : null,
-            'notes' => $s->notes,
-            'is_today' => $s->getEffectiveDate()->isToday(),
-            'is_past' => $s->getEffectiveDate()->isPast() && ! $s->getEffectiveDate()->isToday(),
-        ])->all();
+        $this->sessions = $allSessions->map(function (CourseSession $s): array {
+            $canAddToCalendar = in_array($s->status, ['scheduled', 'rescheduled'], true) && $s->effectiveEndAt()->isFuture();
+
+            return [
+                'id' => $s->id,
+                'course_title' => $s->course->title ?? '—',
+                'course_code' => $s->course->code ?? '',
+                'type' => $s->type,
+                'type_label' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
+                'instructor_name' => $s->instructor?->name,
+                'title' => $s->title,
+                'session_date' => $s->session_date->format('D, M j, Y'),
+                'session_date_raw' => $s->session_date->format('Y-m-d'),
+                'start_time' => Carbon::parse($s->start_time)->format('g:i A'),
+                'end_time' => Carbon::parse($s->end_time)->format('g:i A'),
+                'status' => $s->status,
+                'rescheduled_date' => $s->rescheduled_date?->format('D, M j, Y'),
+                'rescheduled_date_raw' => $s->rescheduled_date?->format('Y-m-d'),
+                'rescheduled_start_time' => $s->rescheduled_start_time ? Carbon::parse($s->rescheduled_start_time)->format('g:i A') : null,
+                'rescheduled_end_time' => $s->rescheduled_end_time ? Carbon::parse($s->rescheduled_end_time)->format('g:i A') : null,
+                'notes' => $s->notes,
+                'is_today' => $s->getEffectiveDate()->isToday(),
+                'is_past' => $s->getEffectiveDate()->isPast() && ! $s->getEffectiveDate()->isToday(),
+                'can_add_to_calendar' => $canAddToCalendar,
+                'google_calendar_url' => $canAddToCalendar ? $this->buildGoogleCalendarUrl($s) : null,
+            ];
+        })->all();
 
         // Build calendar grid
         $this->buildCalendar($allSessions);
@@ -361,5 +369,35 @@ class Schedule extends Page
 
             $current->addDay();
         }
+    }
+
+    protected function buildGoogleCalendarUrl(CourseSession $session): string
+    {
+        $timezone = config('app.timezone', 'UTC');
+        $startAt = $session->effectiveStartAt()->copy()->utc();
+        $endAt = $session->effectiveEndAt()->copy()->utc();
+
+        if ($endAt->lessThanOrEqualTo($startAt)) {
+            $endAt = $startAt->copy()->addHours(self::DEFAULT_CALENDAR_DURATION_HOURS);
+        }
+
+        $courseTitle = $session->course?->title;
+        $sessionTitle = $session->title ?: ($session->type === 'one_on_one' ? 'One-On-One Session' : 'Group Session');
+        $title = $courseTitle ? trim($courseTitle.' — '.$sessionTitle) : $sessionTitle;
+
+        $details = array_filter([
+            $session->course?->code ? 'Course: '.$session->course->code : null,
+            'Session type: '.($session->type === 'one_on_one' ? 'One-On-One' : 'Group'),
+            $session->instructor?->name ? 'Instructor: '.$session->instructor->name : null,
+            $session->notes ? 'Notes: '.$session->notes : null,
+        ]);
+
+        return 'https://calendar.google.com/calendar/render?'.http_build_query([
+            'action' => 'TEMPLATE',
+            'text' => $title,
+            'dates' => $startAt->format('Ymd\THis\Z').'/'.$endAt->format('Ymd\THis\Z'),
+            'ctz' => $timezone,
+            'details' => implode("\n", $details),
+        ]);
     }
 }
