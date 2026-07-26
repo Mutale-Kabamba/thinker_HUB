@@ -382,6 +382,11 @@
                     'details' => '',
                 ];
             }
+
+            $progressionCards = array_values(array_filter(
+                $progressionCards,
+                static fn (array $item): bool => filled($item['level']) && filled($item['details'])
+            ));
         @endphp
 
         <section class="bg-[#0a2d27] py-16 lg:py-20">
@@ -468,16 +473,10 @@
                         <h3 class="mt-8 text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
                         <div class="mt-3 space-y-3">
                             @foreach ($progressionCards as $item)
-                                @if (filled($item['level']) || filled($item['details']))
-                                    <section class="border-t border-slate-200 pt-3 first:border-t-0 first:pt-0">
-                                        @if (filled($item['level']))
-                                            <h4 class="text-base font-semibold text-slate-800">{{ $item['level'] }}</h4>
-                                        @endif
-                                        @if (filled($item['details']))
-                                            <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $item['details'] }}</p>
-                                        @endif
-                                    </section>
-                                @endif
+                                <section class="border-t border-slate-200 pt-3 first:border-t-0 first:pt-0">
+                                    <h4 class="text-base font-semibold text-slate-800">{{ $item['level'] }}</h4>
+                                    <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $item['details'] }}</p>
+                                </section>
                             @endforeach
                         </div>
                     @endif
