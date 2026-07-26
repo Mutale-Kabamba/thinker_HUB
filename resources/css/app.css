@@ -154,3 +154,134 @@ h6,
 		transform: translateY(0);
 	}
 }
+
+/* Material 3 expressive refresh */
+:root {
+	--m3-primary: #006a67;
+	--m3-primary-soft: #b4f1ed;
+	--m3-secondary: #4a6261;
+	--m3-surface: #f7fbfa;
+	--m3-surface-container: #ffffff;
+	--m3-surface-container-high: #f0f5f4;
+	--m3-outline: #d5dddc;
+	--m3-shadow: 0 20px 34px -26px rgba(8, 36, 44, 0.34);
+	--m3-radius-xl: 1.35rem;
+	--m3-radius-lg: 1rem;
+}
+
+.edu-content section,
+.edu-content .bg-white,
+.edu-content .rounded-2xl,
+.edu-content .rounded-3xl {
+	border-radius: var(--m3-radius-xl) !important;
+	border-color: color-mix(in oklab, var(--m3-outline) 88%, #ffffff 12%) !important;
+	background: linear-gradient(160deg, #ffffff, var(--m3-surface-container-high));
+	box-shadow: var(--m3-shadow);
+}
+
+.edu-content table {
+	border-collapse: separate;
+	border-spacing: 0;
+	border: 1px solid color-mix(in oklab, var(--m3-outline) 88%, #ffffff 12%);
+	border-radius: var(--m3-radius-lg);
+	overflow: hidden;
+	background: #ffffff;
+}
+
+.edu-content table thead th {
+	background: color-mix(in oklab, var(--m3-primary-soft) 30%, #ffffff 70%);
+	color: #245151;
+	font-size: 0.73rem;
+	letter-spacing: 0.045em;
+	text-transform: uppercase;
+}
+
+.edu-content table th,
+.edu-content table td {
+	padding: 0.58rem 0.75rem;
+	vertical-align: middle;
+}
+
+.edu-content table tbody tr:hover {
+	background: color-mix(in oklab, var(--m3-primary-soft) 34%, #ffffff 66%);
+}
+
+.edu-content button,
+.edu-content .btn-modern,
+.edu-content a.inline-flex {
+	border-radius: 999px !important;
+}
+
+.edu-content button:not([class*='bg-']),
+.edu-content .btn-modern:not([class*='bg-']) {
+	background: linear-gradient(135deg, var(--m3-primary), #008c88);
+	color: #ffffff;
+	box-shadow: 0 14px 24px -20px rgba(0, 106, 103, 0.75);
+}
+
+.edu-content input,
+.edu-content select,
+.edu-content textarea {
+	background: #ffffff;
+	border-color: color-mix(in oklab, var(--m3-outline) 82%, #ffffff 18%);
+	border-radius: 0.9rem;
+	min-height: 2.5rem;
+}
+
+.hub-public {
+	background:
+		radial-gradient(1300px 500px at 4% -5%, rgba(0, 106, 103, 0.12), transparent 56%),
+		radial-gradient(1200px 550px at 100% 105%, rgba(52, 124, 255, 0.12), transparent 52%),
+		linear-gradient(180deg, #f5faf9 0%, #f7fbfd 55%, #f4f8fb 100%);
+	color: #132222;
+}
+
+.hub-public .hub-public-header {
+	background: rgba(255, 255, 255, 0.86);
+	backdrop-filter: blur(12px);
+	border-bottom: 1px solid color-mix(in oklab, var(--m3-outline) 86%, #ffffff 14%);
+	box-shadow: 0 16px 30px -24px rgba(6, 32, 39, 0.5);
+}
+
+.hub-public .hub-public-nav a,
+.hub-public .hub-public-auth-link {
+	border-radius: 999px;
+	padding: 0.42rem 0.9rem;
+	transition: background-color 180ms ease, color 180ms ease;
+}
+
+.hub-public .hub-public-nav a:hover,
+.hub-public .hub-public-auth-link:hover {
+	background: color-mix(in oklab, var(--m3-primary-soft) 56%, #ffffff 44%);
+	color: var(--m3-primary);
+}
+
+.hub-public .hub-public-cta {
+	border-radius: 999px;
+	background: linear-gradient(135deg, var(--m3-primary), #008c88);
+	color: #ffffff !important;
+	box-shadow: 0 18px 34px -22px rgba(0, 106, 103, 0.78);
+}
+
+.hub-public main article,
+.hub-public main .bg-white,
+.hub-public main [class*='rounded-2xl'],
+.hub-public main [class*='rounded-3xl'],
+.hub-public main [class*='rounded-[2rem]'] {
+	border-radius: var(--m3-radius-xl) !important;
+	border: 1px solid color-mix(in oklab, var(--m3-outline) 84%, #ffffff 16%);
+	background: linear-gradient(165deg, rgba(255, 255, 255, 0.98), #f8fcfb);
+	box-shadow: var(--m3-shadow);
+}
+
+.hub-public main a[class*='inline-flex'][class*='rounded'],
+.hub-public main button {
+	border-radius: 999px !important;
+}
+
+.hub-public table {
+	border-collapse: separate;
+	border-spacing: 0;
+	border-radius: var(--m3-radius-lg);
+	overflow: hidden;
+}

@@ -15,7 +15,7 @@
     @include('partials.pwa-register')
 </head>
 <body
-    class="bg-white text-slate-900 font-sans antialiased"
+    class="hub-public bg-white text-slate-900 font-sans antialiased"
     x-data="{
         mobileMenu: false,
         heroSlideIndex: 0,
