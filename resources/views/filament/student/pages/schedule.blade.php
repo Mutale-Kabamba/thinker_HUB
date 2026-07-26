@@ -272,8 +272,13 @@
                     @endif
 
                     {{-- Reschedule Request Button --}}
-                    @if (in_array($session['status'], ['scheduled', 'rescheduled']) && ! $session['is_past'])
+                    @if ($session['can_add_to_calendar'] || (in_array($session['status'], ['scheduled', 'rescheduled']) && ! $session['is_past']))
                         <div style="margin-top:0.6rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+                            @if ($session['can_add_to_calendar'])
+                                <a href="{{ $session['google_calendar_url'] }}" target="_blank" rel="noopener noreferrer" class="hub-btn hub-btn-primary" style="font-size:0.72rem;padding:0.3rem 0.6rem;">
+                                    📅 Add to Google Calendar
+                                </a>
+                            @endif
                             <button wire:click="openRescheduleRequest({{ $session['id'] }})" class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;">
                                 🔄 Request Reschedule
                             </button>
