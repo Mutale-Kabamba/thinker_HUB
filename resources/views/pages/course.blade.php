@@ -444,8 +444,8 @@
                         <p class="mt-3 leading-relaxed text-slate-600">{{ $course->key_outcome }}</p>
                     @endif
 
-                    <h3 class="mt-8 text-lg font-bold text-slate-900">Fees</h3>
                     @if (! empty($feeSections))
+                        <h3 class="mt-8 text-lg font-bold text-slate-900">Fees</h3>
                         <div class="mt-3 space-y-5">
                             @foreach ($feeSections as $section)
                                 <section class="border-t border-slate-200 pt-4 first:border-t-0 first:pt-0">
@@ -464,8 +464,8 @@
                         </div>
                     @endif
 
-                    <h3 class="mt-8 text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
                     @if (! empty($progressionCards))
+                        <h3 class="mt-8 text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
                         <div class="mt-3 space-y-3">
                             @foreach ($progressionCards as $item)
                                 <section class="border-t border-slate-200 pt-3 first:border-t-0 first:pt-0">
