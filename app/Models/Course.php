@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Course extends Model
 {
@@ -42,6 +43,34 @@ class Course extends Model
         }
 
         return trim(preg_replace('/\s*\(.*\)/', '', $value));
+    }
+
+    public function getCourseOwnerLabelAttribute(): string
+    {
+        $courseBy = trim((string) $this->course_by);
+
+        if ($courseBy !== '') {
+            return $courseBy;
+        }
+
+        return trim((string) config('app.name'));
+    }
+
+    public function getInstructorLabelAttribute(): string
+    {
+        if (! $this->relationLoaded('instructors')) {
+            return 'TBA';
+        }
+
+        /** @var Collection<int, string> $names */
+        $names = $this->instructors
+            ->pluck('name')
+            ->filter(static fn ($name) => trim((string) $name) !== '')
+            ->values();
+
+        return $names->isNotEmpty()
+            ? $names->implode(' / ')
+            : 'TBA';
     }
 
     public function enrolledUsers(): BelongsToMany
