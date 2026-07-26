@@ -377,7 +377,7 @@
                     }
                 }
 
-                if ($matched !== null) {
+                if ($matched !== null && filled($matched['level'] ?? null) && filled($matched['details'] ?? null)) {
                     $progressionCards[] = $matched;
                 }
             }
@@ -443,7 +443,7 @@
                         <p class="mt-3 leading-relaxed text-slate-600">{{ $course->key_outcome }}</p>
                     @endif
 
-                    @if (! empty($feeSections))
+                    @if (filled($feeSections))
                         <h3 class="mt-8 text-lg font-bold text-slate-900">Fees</h3>
                         <div class="mt-3 space-y-5">
                             @foreach ($feeSections as $section)
@@ -463,7 +463,7 @@
                         </div>
                     @endif
 
-                    @if (! empty($progressionCards))
+                    @if (filled($progressionCards))
                         <h3 class="mt-8 text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
                         <div class="mt-3 space-y-3">
                             @foreach ($progressionCards as $item)
