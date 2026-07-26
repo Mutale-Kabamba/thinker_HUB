@@ -381,6 +381,11 @@
                     $progressionCards[] = $matched;
                 }
             }
+
+            $progressionCards = array_values(array_filter(
+                $progressionCards,
+                static fn (array $item): bool => filled($item['level'] ?? null) && filled($item['details'] ?? null)
+            ));
         @endphp
 
         <section class="bg-[#0a2d27] py-16 lg:py-20">
