@@ -13,6 +13,8 @@ use Illuminate\Support\Carbon;
 
 class Schedule extends Page
 {
+    private const DEFAULT_CALENDAR_DURATION_HOURS = 1;
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
     protected static string|\UnitEnum|null $navigationGroup = 'LEARNING';
@@ -372,11 +374,11 @@ class Schedule extends Page
     protected function buildGoogleCalendarUrl(CourseSession $session): string
     {
         $timezone = config('app.timezone', 'UTC');
-        $startAt = $session->effectiveStartAt()->copy()->setTimezone($timezone)->utc();
-        $endAt = $session->effectiveEndAt()->copy()->setTimezone($timezone)->utc();
+        $startAt = $session->effectiveStartAt()->copy()->utc();
+        $endAt = $session->effectiveEndAt()->copy()->utc();
 
         if ($endAt->lessThanOrEqualTo($startAt)) {
-            $endAt = $startAt->copy()->addHour();
+            $endAt = $startAt->copy()->addHours(self::DEFAULT_CALENDAR_DURATION_HOURS);
         }
 
         $courseTitle = $session->course?->title;
