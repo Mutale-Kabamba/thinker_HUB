@@ -377,11 +377,15 @@
                     }
                 }
 
-                $progressionCards[] = $matched ?? [
-                    'level' => $levelName,
-                    'details' => 'Details coming soon.',
-                ];
+                if ($matched) {
+                    $progressionCards[] = $matched;
+                }
             }
+
+            $progressionCards = array_values(array_filter(
+                $progressionCards,
+                static fn (array $item): bool => filled($item['level'] ?? null) && filled($item['details'] ?? null)
+            ));
         @endphp
 
         <section class="bg-[#0a2d27] py-16 lg:py-20">
@@ -434,14 +438,18 @@
         <section class="py-16 lg:py-20">
             <div class="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-3 lg:px-8">
                 <article class="lg:col-span-2">
-                    <h2 class="text-xl font-bold text-slate-900">Course Overview</h2>
-                    <p class="mt-3 leading-relaxed text-slate-600">{{ $course->overview ?: 'Overview coming soon.' }}</p>
+                    @if (filled($course->overview))
+                        <h2 class="text-xl font-bold text-slate-900">Course Overview</h2>
+                        <p class="mt-3 leading-relaxed text-slate-600">{{ $course->overview }}</p>
+                    @endif
 
-                    <h3 class="mt-8 text-lg font-bold text-slate-900">Key Outcome</h3>
-                    <p class="mt-3 leading-relaxed text-slate-600">{{ $course->key_outcome ?: 'Key outcomes will be shared soon.' }}</p>
+                    @if (filled($course->key_outcome))
+                        <h3 class="mt-8 text-lg font-bold text-slate-900">Key Outcome</h3>
+                        <p class="mt-3 leading-relaxed text-slate-600">{{ $course->key_outcome }}</p>
+                    @endif
 
-                    <h3 class="mt-8 text-lg font-bold text-slate-900">Fees</h3>
                     @if (! empty($feeSections))
+                        <h3 class="mt-8 text-lg font-bold text-slate-900">Fees</h3>
                         <div class="mt-3 space-y-5">
                             @foreach ($feeSections as $section)
                                 <section class="border-t border-slate-200 pt-4 first:border-t-0 first:pt-0">
@@ -458,22 +466,18 @@
                                 </section>
                             @endforeach
                         </div>
-                    @else
-                        <p class="mt-3 leading-relaxed text-slate-600">No fee details added yet.</p>
                     @endif
 
-                    <h3 class="mt-8 text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
                     @if (! empty($progressionCards))
+                        <h3 class="mt-8 text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
                         <div class="mt-3 space-y-3">
                             @foreach ($progressionCards as $item)
                                 <section class="border-t border-slate-200 pt-3 first:border-t-0 first:pt-0">
-                                    <h4 class="text-base font-semibold text-slate-800">{{ $item['level'] !== '' ? $item['level'] : 'Level' }}</h4>
-                                    <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $item['details'] !== '' ? $item['details'] : 'Details coming soon.' }}</p>
+                                    <h4 class="text-base font-semibold text-slate-800">{{ $item['level'] }}</h4>
+                                    <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $item['details'] }}</p>
                                 </section>
                             @endforeach
                         </div>
-                    @else
-                        <p class="mt-3 leading-relaxed text-slate-600">No progression details added yet.</p>
                     @endif
                 </article>
 
