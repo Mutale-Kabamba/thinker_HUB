@@ -41,7 +41,7 @@
                 >{{ $item['label'] }}</a>
             @endforeach
             <div class="pt-4 flex gap-4">
-                <a href="{{ route('login') }}" class="hub-public-auth-link flex-1 border border-slate-200 text-center py-3 text-slate-700 transition-colors">Login</a>
+                <a href="{{ route('login') }}" class="hub-public-auth-link rounded-xl flex-1 border border-slate-200 text-center py-3 text-slate-700 transition-colors">Login</a>
                 <a href="{{ route('register') }}" class="hub-public-cta flex-1 text-center py-3 font-bold transition duration-300 ease-out">Join</a>
             </div>
         </nav>

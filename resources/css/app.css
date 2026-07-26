@@ -164,7 +164,7 @@ h6,
 	--m3-surface-container: #ffffff;
 	--m3-surface-container-high: #f0f5f4;
 	--m3-outline: #d5dddc;
-	--m3-shadow: 0 20px 34px -26px rgba(8, 36, 44, 0.34);
+	--m3-box-shadow: 0 20px 34px -26px rgba(8, 36, 44, 0.34);
 	--m3-radius-xl: 1.35rem;
 	--m3-radius-lg: 1rem;
 }
@@ -176,7 +176,7 @@ h6,
 	border-radius: var(--m3-radius-xl) !important;
 	border-color: color-mix(in oklab, var(--m3-outline) 88%, #ffffff 12%) !important;
 	background: linear-gradient(160deg, #ffffff, var(--m3-surface-container-high));
-	box-shadow: var(--m3-shadow);
+	box-shadow: var(--m3-box-shadow);
 }
 
 .edu-content table {
@@ -271,7 +271,7 @@ h6,
 	border-radius: var(--m3-radius-xl) !important;
 	border: 1px solid color-mix(in oklab, var(--m3-outline) 84%, #ffffff 16%);
 	background: linear-gradient(165deg, rgba(255, 255, 255, 0.98), #f8fcfb);
-	box-shadow: var(--m3-shadow);
+	box-shadow: var(--m3-box-shadow);
 }
 
 .hub-public main a[class*='inline-flex'][class*='rounded'],
