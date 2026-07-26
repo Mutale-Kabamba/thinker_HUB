@@ -435,10 +435,14 @@
             <div class="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-3 lg:px-8">
                 <article class="lg:col-span-2">
                     <h2 class="text-xl font-bold text-slate-900">Course Overview</h2>
-                    <p class="mt-3 leading-relaxed text-slate-600">{{ $course->overview ?: '' }}</p>
+                    @if (filled($course->overview))
+                        <p class="mt-3 leading-relaxed text-slate-600">{{ $course->overview }}</p>
+                    @endif
 
                     <h3 class="mt-8 text-lg font-bold text-slate-900">Key Outcome</h3>
-                    <p class="mt-3 leading-relaxed text-slate-600">{{ $course->key_outcome ?: '' }}</p>
+                    @if (filled($course->key_outcome))
+                        <p class="mt-3 leading-relaxed text-slate-600">{{ $course->key_outcome }}</p>
+                    @endif
 
                     <h3 class="mt-8 text-lg font-bold text-slate-900">Fees</h3>
                     @if (! empty($feeSections))
@@ -466,7 +470,7 @@
                             @foreach ($progressionCards as $item)
                                 <section class="border-t border-slate-200 pt-3 first:border-t-0 first:pt-0">
                                     <h4 class="text-base font-semibold text-slate-800">{{ $item['level'] !== '' ? $item['level'] : 'Level' }}</h4>
-                                    <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $item['details'] !== '' ? $item['details'] : '' }}</p>
+                                    <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $item['details'] }}</p>
                                 </section>
                             @endforeach
                         </div>
