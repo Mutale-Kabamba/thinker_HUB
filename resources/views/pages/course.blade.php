@@ -469,7 +469,9 @@
                         <div class="mt-3 space-y-3">
                             @foreach ($progressionCards as $item)
                                 <section class="border-t border-slate-200 pt-3 first:border-t-0 first:pt-0">
-                                    <h4 class="text-base font-semibold text-slate-800">{{ filled($item['level']) ? $item['level'] : 'Level' }}</h4>
+                                    @if (filled($item['level']))
+                                        <h4 class="text-base font-semibold text-slate-800">{{ $item['level'] }}</h4>
+                                    @endif
                                     @if (filled($item['details']))
                                         <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $item['details'] }}</p>
                                     @endif
