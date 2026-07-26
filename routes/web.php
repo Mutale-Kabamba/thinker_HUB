@@ -50,6 +50,14 @@ $loadPublicCourses = static function (int $limit = 0) {
             ->withCount('ratings')
             ->latest();
 
+        if (Schema::hasTable('course_instructor') && Schema::hasTable('users')) {
+            $query->with([
+                'instructors' => static fn ($instructorQuery) => $instructorQuery
+                    ->select('users.id', 'name')
+                    ->orderBy('name'),
+            ]);
+        }
+
         if (Schema::hasTable('course_selected_participants')) {
             $query->withCount('selectedParticipants');
         }

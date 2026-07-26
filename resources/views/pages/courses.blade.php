@@ -79,6 +79,14 @@
                                     $isOpenEnrollment = $course->is_open_enrollment !== false;
                                     $fullTitle = (string) $course->title;
                                     $displayTitle = \Illuminate\Support\Str::limit($fullTitle, 72);
+                                    $courseOwner = trim((string) config('app.name', 'think.er HUB'));
+                                    $instructorNames = $course->instructors
+                                        ->pluck('name')
+                                        ->filter(static fn ($name) => trim((string) $name) !== '')
+                                        ->values();
+                                    $instructorLabel = $instructorNames->isNotEmpty()
+                                        ? $instructorNames->implode(' / ')
+                                        : 'TBA';
                                     if ($studentsCount === 0) {
                                         $studentsCount = (int) ($course->selected_participants_count ?? 0);
                                     }
@@ -108,6 +116,10 @@
                                     >
                                         {{ $displayTitle }}
                                     </h3>
+                                </div>
+                                <div class="mt-3 space-y-1 text-xs text-slate-600">
+                                    <p><span class="font-semibold text-slate-800">Course By:</span> {{ $courseOwner }}</p>
+                                    <p><span class="font-semibold text-slate-800">Instructor:</span> {{ $instructorLabel }}</p>
                                 </div>
                                 <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ $course->timeline ?: 'Self paced' }}</span>
