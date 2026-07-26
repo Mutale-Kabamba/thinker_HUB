@@ -377,16 +377,10 @@
                     }
                 }
 
-                $progressionCards[] = $matched ?? [
-                    'level' => $levelName,
-                    'details' => '',
-                ];
+                if ($matched !== null) {
+                    $progressionCards[] = $matched;
+                }
             }
-
-            $progressionCards = array_values(array_filter(
-                $progressionCards,
-                static fn (array $item): bool => filled($item['level']) && filled($item['details'])
-            ));
         @endphp
 
         <section class="bg-[#0a2d27] py-16 lg:py-20">
