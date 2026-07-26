@@ -243,10 +243,12 @@
                                     $fullTitle = (string) $course->title;
                                     $displayTitle = \Illuminate\Support\Str::limit($fullTitle, 72);
                                     $courseOwner = trim((string) config('app.name', 'think.er HUB'));
-                                    $instructorNames = $course->instructors
-                                        ->pluck('name')
-                                        ->filter(static fn ($name) => trim((string) $name) !== '')
-                                        ->values();
+                                    $instructorNames = $course->relationLoaded('instructors')
+                                        ? $course->instructors
+                                            ->pluck('name')
+                                            ->filter(static fn ($name) => trim((string) $name) !== '')
+                                            ->values()
+                                        : collect();
                                     $instructorLabel = $instructorNames->isNotEmpty()
                                         ? $instructorNames->implode(' / ')
                                         : 'TBA';
