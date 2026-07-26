@@ -363,31 +363,31 @@ class Schedule extends Page
 
             $current->addDay();
         }
+    }
 
-        protected function buildGoogleCalendarUrl(CourseSession $session): string
-        {
-            $startAt = $session->effectiveStartAt()->copy()->utc();
-            $endAt = $session->effectiveEndAt()->copy()->utc();
+    protected function buildGoogleCalendarUrl(CourseSession $session): string
+    {
+        $startAt = $session->effectiveStartAt()->copy()->utc();
+        $endAt = $session->effectiveEndAt()->copy()->utc();
 
-            if ($endAt->lessThanOrEqualTo($startAt)) {
-                $endAt = $startAt->copy()->addHour();
-            }
-
-            $title = trim(($session->course?->title ? $session->course->title.' — ' : '').($session->title ?: 'Session'));
-
-            $details = array_filter([
-                $session->course?->code ? 'Course: '.$session->course->code : null,
-                'Session type: '.($session->type === 'one_on_one' ? 'One-On-One' : 'Group'),
-                $session->instructor?->name ? 'Instructor: '.$session->instructor->name : null,
-                $session->notes ? 'Notes: '.$session->notes : null,
-            ]);
-
-            return 'https://calendar.google.com/calendar/render?'.http_build_query([
-                'action' => 'TEMPLATE',
-                'text' => $title,
-                'dates' => $startAt->format('Ymd\THis\Z').'/'.$endAt->format('Ymd\THis\Z'),
-                'details' => implode("\n", $details),
-            ]);
+        if ($endAt->lessThanOrEqualTo($startAt)) {
+            $endAt = $startAt->copy()->addHour();
         }
+
+        $title = trim(($session->course?->title ? $session->course->title.' — ' : '').($session->title ?: 'Session'));
+
+        $details = array_filter([
+            $session->course?->code ? 'Course: '.$session->course->code : null,
+            'Session type: '.($session->type === 'one_on_one' ? 'One-On-One' : 'Group'),
+            $session->instructor?->name ? 'Instructor: '.$session->instructor->name : null,
+            $session->notes ? 'Notes: '.$session->notes : null,
+        ]);
+
+        return 'https://calendar.google.com/calendar/render?'.http_build_query([
+            'action' => 'TEMPLATE',
+            'text' => $title,
+            'dates' => $startAt->format('Ymd\THis\Z').'/'.$endAt->format('Ymd\THis\Z'),
+            'details' => implode("\n", $details),
+        ]);
     }
 }
