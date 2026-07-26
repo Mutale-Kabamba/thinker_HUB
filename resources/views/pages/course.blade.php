@@ -377,7 +377,7 @@
                     }
                 }
 
-                if ($matched !== null && filled($matched['level'] ?? null) && filled($matched['details'] ?? null)) {
+                if ($matched !== null && filled($matched['level']) && filled($matched['details'])) {
                     $progressionCards[] = $matched;
                 }
             }
