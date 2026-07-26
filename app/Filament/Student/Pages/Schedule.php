@@ -372,8 +372,8 @@ class Schedule extends Page
     protected function buildGoogleCalendarUrl(CourseSession $session): string
     {
         $timezone = config('app.timezone', 'UTC');
-        $startAt = $session->effectiveStartAt()->copy()->setTimezone($timezone);
-        $endAt = $session->effectiveEndAt()->copy()->setTimezone($timezone);
+        $startAt = $session->effectiveStartAt()->copy()->utc();
+        $endAt = $session->effectiveEndAt()->copy()->utc();
 
         if ($endAt->lessThanOrEqualTo($startAt)) {
             $endAt = $startAt->copy()->addHour();
@@ -393,7 +393,7 @@ class Schedule extends Page
         return 'https://calendar.google.com/calendar/render?'.http_build_query([
             'action' => 'TEMPLATE',
             'text' => $title,
-            'dates' => $startAt->format('Ymd\THis').'/'.$endAt->format('Ymd\THis'),
+            'dates' => $startAt->format('Ymd\THis\Z').'/'.$endAt->format('Ymd\THis\Z'),
             'ctz' => $timezone,
             'details' => implode("\n", $details),
         ]);
