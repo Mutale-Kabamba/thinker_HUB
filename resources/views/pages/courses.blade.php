@@ -79,7 +79,7 @@
                                     $isOpenEnrollment = $course->is_open_enrollment !== false;
                                     $fullTitle = (string) $course->title;
                                     $displayTitle = \Illuminate\Support\Str::limit($fullTitle, 72);
-                                    $courseOwner = trim((string) config('app.name', 'think.er HUB'));
+                                    $courseOwner = trim((string) ($course->course_by ?: config('app.name', 'think.er HUB')));
                                     $instructorNames = $course->relationLoaded('instructors')
                                         ? $course->instructors
                                             ->pluck('name')
