@@ -374,7 +374,9 @@ class Schedule extends Page
             $endAt = $startAt->copy()->addHour();
         }
 
-        $title = trim(($session->course?->title ? $session->course->title.' — ' : '').($session->title ?: 'Session'));
+        $courseTitle = $session->course?->title;
+        $sessionTitle = $session->title ?: 'Session';
+        $title = $courseTitle ? trim($courseTitle.' — '.$sessionTitle) : $sessionTitle;
 
         $details = array_filter([
             $session->course?->code ? 'Course: '.$session->course->code : null,
