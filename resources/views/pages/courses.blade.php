@@ -109,6 +109,10 @@
                                         {{ $displayTitle }}
                                     </h3>
                                 </div>
+                                <div class="mt-3 space-y-1 text-xs text-slate-600">
+                                    <p><span class="font-semibold text-slate-800">Course By:</span> {{ $course->course_owner_label }}</p>
+                                    <p><span class="font-semibold text-slate-800">Instructor:</span> {{ $course->instructor_label }}</p>
+                                </div>
                                 <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ $course->timeline ?: 'Self paced' }}</span>
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $studentsCount }} Students</span>

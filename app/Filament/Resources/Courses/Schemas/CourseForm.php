@@ -23,6 +23,10 @@ class CourseForm
                     ->required(),
                 TextInput::make('code')
                     ->required(),
+                TextInput::make('course_by')
+                    ->label('Course By')
+                    ->placeholder('think.er HUB / Organization / Individual')
+                    ->maxLength(255),
                 FileUpload::make('image_path')
                     ->label('Course Image')
                     ->disk('public')
@@ -226,6 +230,8 @@ class CourseForm
      */
     public static function prepareDataForSave(array $data): array
     {
+        $courseBy = trim((string) ($data['course_by'] ?? ''));
+        $data['course_by'] = $courseBy !== '' ? $courseBy : null;
         $data['fees'] = self::serializeFeesState($data['fees'] ?? null);
         $data['level_progression'] = self::serializeLevelProgressionState($data['level_progression'] ?? null);
 
