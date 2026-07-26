@@ -372,15 +372,15 @@ class Schedule extends Page
     protected function buildGoogleCalendarUrl(CourseSession $session): string
     {
         $timezone = config('app.timezone', 'UTC');
-        $startAt = $session->effectiveStartAt()->copy()->utc();
-        $endAt = $session->effectiveEndAt()->copy()->utc();
+        $startAt = $session->effectiveStartAt()->copy()->setTimezone($timezone)->utc();
+        $endAt = $session->effectiveEndAt()->copy()->setTimezone($timezone)->utc();
 
         if ($endAt->lessThanOrEqualTo($startAt)) {
             $endAt = $startAt->copy()->addHour();
         }
 
         $courseTitle = $session->course?->title;
-        $sessionTitle = $session->title ?: 'Session';
+        $sessionTitle = $session->title ?: ($session->type === 'one_on_one' ? 'One-On-One Session' : 'Group Session');
         $title = $courseTitle ? trim($courseTitle.' — '.$sessionTitle) : $sessionTitle;
 
         $details = array_filter([
