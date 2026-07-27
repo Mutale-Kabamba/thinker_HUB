@@ -9,7 +9,9 @@ use App\Models\User;
 use Filament\Widgets\Widget;
 
 class RecentActivitiesWidget extends Widget
-{
+{   
+    protected static ?string $pollingInterval = null;
+
     protected string $view = 'filament.widgets.recent-activities';
 
     protected int | string | array $columnSpan = 'full';

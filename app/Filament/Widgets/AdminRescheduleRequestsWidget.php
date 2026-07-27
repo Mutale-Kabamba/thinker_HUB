@@ -14,6 +14,8 @@ use Illuminate\Notifications\DatabaseNotification;
 
 class AdminRescheduleRequestsWidget extends Widget
 {
+    protected static ?string $pollingInterval = null;
+
     protected string $view = 'filament.widgets.admin-reschedule-requests';
 
     protected int | string | array $columnSpan = 'full';

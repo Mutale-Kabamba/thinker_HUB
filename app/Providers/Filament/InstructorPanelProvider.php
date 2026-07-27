@@ -19,6 +19,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class InstructorPanelProvider extends PanelProvider
@@ -34,6 +35,7 @@ class InstructorPanelProvider extends PanelProvider
             ])
             ->sidebarCollapsibleOnDesktop()
             ->databaseNotifications()
+            ->databaseNotificationsPolling(null) // FIX 1: Turn off background polling for notifications
             ->navigationGroups([
                 'ACADEMICS & CONTENT',
                 'GRADING & EVALUATIONS',
@@ -66,6 +68,27 @@ class InstructorPanelProvider extends PanelProvider
                     'action' => route('filament.instructor.pages.search'),
                 ])->render(),
             )
+            // FIX 2: Gracefully handle expired CSRF/sessions on background calls
+            ->renderHook(
+                        PanelsRenderHook::BODY_END,
+                        fn (): \Illuminate\Support\HtmlString => new \Illuminate\Support\HtmlString('
+                            <script>
+                                document.addEventListener("livewire:init", () => {
+                                    Livewire.hook("request", ({ fail }) => {
+                                        fail(({ status, preventDefault }) => {
+                                // Prevent popup on connection closed, timeout, or session expiry
+                                if (status === null || status === 0 || status === 419 || status === 401) {
+                                    preventDefault();
+                                    if (status === 419 || status === 401) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    });
+                </script>
+            ')
+        )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

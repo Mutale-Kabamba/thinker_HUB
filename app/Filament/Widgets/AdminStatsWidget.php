@@ -9,7 +9,9 @@ use App\Models\User;
 use Filament\Widgets\Widget;
 
 class AdminStatsWidget extends Widget
-{
+{   
+    protected static ?string $pollingInterval = null;
+
     protected string $view = 'filament.widgets.admin-stats';
 
     protected int | string | array $columnSpan = 'full';
