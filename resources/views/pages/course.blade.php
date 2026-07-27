@@ -388,6 +388,7 @@
             ));
         @endphp
 
+        {{-- Dark Banner Section --}}
         <section class="bg-[#0a2d27] py-16 lg:py-20">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
                 <nav aria-label="Breadcrumb" class="text-sm text-slate-300">
@@ -399,7 +400,7 @@
                         <li class="text-white">{{ $course->title }}</li>
                     </ol>
                 </nav>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 mt-3">
                     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">{{ $course->code }}</p>
                     @if ($isLockedCourse)
                         <span class="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">Locked To Selected Participants</span>
@@ -435,87 +436,108 @@
             </div>
         </section>
 
-        <section class="py-16 lg:py-20">
-            <div class="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-3 lg:px-8">
-                <article class="lg:col-span-2">
+        {{-- Main Course Details --}}
+        <section class="py-12 lg:py-16">
+            <div class="mx-auto grid max-w-6xl items-start gap-10 px-6 lg:grid-cols-3 lg:gap-12 lg:px-8">
+                
+                {{-- Left Content Column (Strictly Unboxed) --}}
+                <div class="min-w-0 lg:col-span-2 space-y-10">
                     @if (filled($course->overview))
-                        <h2 class="text-xl font-bold text-slate-900">Course Overview</h2>
-                        <p class="mt-3 leading-relaxed text-slate-600">{{ $course->overview }}</p>
+                        <div class="space-y-3">
+                            <h2 class="text-xl font-bold text-slate-900">Course Overview</h2>
+                            <p class="leading-relaxed text-slate-600">{{ $course->overview }}</p>
+                        </div>
                     @endif
 
                     @if (filled($course->key_outcome))
-                        <h3 class="mt-8 text-lg font-bold text-slate-900">Key Outcome</h3>
-                        <p class="mt-3 leading-relaxed text-slate-600">{{ $course->key_outcome }}</p>
+                        <div class="space-y-3">
+                            <h3 class="text-lg font-bold text-slate-900">Key Outcome</h3>
+                            <p class="leading-relaxed text-slate-600">{{ $course->key_outcome }}</p>
+                        </div>
                     @endif
 
                     @if (! empty($feeSections))
-                        <h3 class="mt-8 text-lg font-bold text-slate-900">Fees</h3>
-                        <div class="mt-3 space-y-5">
-                            @foreach ($feeSections as $section)
-                                <section class="border-t border-slate-200 pt-4 first:border-t-0 first:pt-0">
-                                    <h4 class="text-sm font-semibold text-slate-800">{{ $section['label'] }}</h4>
-                                    <div class="mt-2 space-y-2">
-                                        @foreach ($section['rows'] as $row)
-                                            <div class="hub-fee-row flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
-                                                <span class="text-sm font-medium text-slate-800">{{ $row['level'] !== '' ? $row['level'] : '-' }}</span>
-                                                <span class="text-sm font-semibold text-slate-900">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</span>
-                                                <span class="text-sm text-slate-600">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</span>
-                                            </div>
-                                        @endforeach
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-bold text-slate-900">Fees</h3>
+                            <div class="space-y-6">
+                                @foreach ($feeSections as $section)
+                                    <div class="space-y-3">
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">{{ $section['label'] }}</h4>
+                                            @if(!empty($section['badge']))
+                                                <span class="rounded-full bg-teal-50 px-2.5 py-0.5 text-[10px] font-semibold text-teal-700 border border-teal-200/60">{{ $section['badge'] }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="space-y-2">
+                                            @foreach ($section['rows'] as $row)
+                                                <div class="hub-fee-row flex w-full items-center justify-between gap-4 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+                                                    <span class="text-sm font-semibold text-slate-800">{{ $row['level'] !== '' ? $row['level'] : '-' }}</span>
+                                                    <span class="text-sm font-bold text-slate-900">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</span>
+                                                    <span class="text-sm text-slate-500">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
-                                </section>
-                            @endforeach
+                                @endforeach
+                            </div>
                         </div>
                     @endif
 
                     @if (! empty($progressionCards))
-                        <h3 class="mt-8 text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
-                        <div class="mt-3 space-y-3">
-                            @foreach ($progressionCards as $item)
-                                <section class="border-t border-slate-200 pt-3 first:border-t-0 first:pt-0">
-                                    <h4 class="text-base font-semibold text-slate-800">{{ $item['level'] }}</h4>
-                                    <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $item['details'] }}</p>
-                                </section>
-                            @endforeach
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
+                            <div class="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                                @foreach ($progressionCards as $item)
+                                    <div class="p-5 space-y-1">
+                                        <h4 class="text-base font-bold text-slate-800">{{ $item['level'] }}</h4>
+                                        <p class="text-sm leading-relaxed text-slate-600">{{ $item['details'] }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     @endif
-                </article>
+                </div>
 
-                <aside class="border-t border-slate-200 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+                {{-- Sidebar Quick Facts Card --}}
+                <aside class="sticky top-6 min-w-0 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm lg:col-span-1">
                     <h2 class="text-lg font-bold text-slate-900">Quick Facts</h2>
                     <dl class="mt-4 space-y-3 text-sm">
                         <div>
                             <dt class="font-semibold text-slate-500">Code</dt>
-                            <dd class="mt-1 font-bold text-slate-900">{{ $course->code }}</dd>
+                            <dd class="mt-0.5 font-bold text-slate-900">{{ $course->code }}</dd>
                         </div>
-                        <div class="border-t border-slate-200 pt-3">
+                        <div class="border-t border-slate-100 pt-3">
                             <dt class="font-semibold text-slate-500">Timeline</dt>
-                            <dd class="mt-1 font-bold text-slate-900">{{ $course->timeline ?: 'Self paced' }}</dd>
+                            <dd class="mt-0.5 font-bold text-slate-900">{{ $course->timeline ?: 'Self paced' }}</dd>
                         </div>
                     </dl>
+                    
                     @if ($isLockedCourse)
-                        <button type="button" disabled class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-slate-200 px-5 py-3 text-sm font-bold text-slate-500 cursor-not-allowed">Enrollment Locked</button>
+                        <button type="button" disabled class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-slate-100 px-5 py-3 text-sm font-bold text-slate-400 cursor-not-allowed border border-slate-200">Enrollment Locked</button>
                     @else
-                        <a href="{{ route('enroll') }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] hover:bg-yellow-300">Enroll in This Track</a>
+                        <a href="{{ route('enroll') }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300">Enroll in This Track</a>
                     @endif
 
-                    <div class="mt-6 border-t border-slate-200 pt-4">
+                    <div class="mt-6 border-t border-slate-100 pt-4">
                         <h3 class="text-sm font-bold text-slate-900">Rating</h3>
-                        <div class="mt-2 flex items-center gap-1 text-sm">
-                            @for ($star = 1; $star <= 5; $star++)
-                                @if ($star <= floor($avgRating))
-                                    <i class="fa-solid fa-star text-yellow-500"></i>
-                                @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
-                                    <i class="fa-solid fa-star-half-stroke text-yellow-500"></i>
-                                @else
-                                    <i class="fa-regular fa-star text-slate-300"></i>
-                                @endif
-                            @endfor
-                            <span class="ml-1 text-sm font-semibold text-slate-700">{{ $avgRating > 0 ? $avgRating.'/5' : 'N/A' }}</span>
+                        <div class="mt-2 flex items-center gap-1.5 text-sm">
+                            <div class="flex items-center gap-1 text-sm">
+                                @for ($star = 1; $star <= 5; $star++)
+                                    @if ($star <= floor($avgRating))
+                                        <i class="fa-solid fa-star text-yellow-500"></i>
+                                    @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
+                                        <i class="fa-solid fa-star-half-stroke text-yellow-500"></i>
+                                    @else
+                                        <i class="fa-regular fa-star text-slate-300"></i>
+                                    @endif
+                                @endfor
+                            </div>
+                            <span class="font-semibold text-slate-700">{{ $avgRating > 0 ? $avgRating.'/5' : 'N/A' }}</span>
                         </div>
                         <p class="mt-1 text-xs text-slate-500">{{ $ratingCount }} {{ Str::plural('review', $ratingCount) }}</p>
                     </div>
                 </aside>
+
             </div>
         </section>
 
