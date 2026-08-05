@@ -78,6 +78,22 @@ class HubPostForm
                             ->visible(fn (callable $get): bool => in_array($get('type'), ['blog', 'tip_trick'], true)),
                     ]),
 
+                Section::make('Tip & Trick Details')
+                    ->schema([
+                        Textarea::make('code_snippet')
+                            ->label('Code Snippet')
+                            ->rows(4)
+                            ->columnSpanFull()
+                            ->helperText('Formatted code snippet displayed on the tip card.'),
+
+                        Textarea::make('pro_tip')
+                            ->label('Pro Tip / Key Takeaway')
+                            ->rows(2)
+                            ->columnSpanFull()
+                            ->helperText('Highlighted callout box for quick tips.'),
+                    ])
+                    ->visible(fn (callable $get): bool => $get('type') === 'tip_trick'),
+
                 Section::make('Video Details')
                     ->schema([
                         TextInput::make('youtube_url')

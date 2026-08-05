@@ -21,6 +21,9 @@ class HubPost extends Model
         'category',
         'excerpt',
         'content',
+        'code_snippet',
+        'pro_tip',
+        'extra',
         'youtube_url',
         'video_id',
         'opportunity_link',
@@ -32,6 +35,7 @@ class HubPost extends Model
     protected $casts = [
         'is_published' => 'boolean',
         'opportunity_deadline' => 'date',
+        'extra' => 'array',
     ];
 
     public const TYPES = [
@@ -73,6 +77,11 @@ class HubPost extends Model
         return $this->belongsTo(User::class, 'author_id');
     }
 
+    public function media(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Media::class, 'mediable');
+    }
+
     public static function extractYoutubeId(?string $url): ?string
     {
         if (empty($url)) {
@@ -112,6 +121,21 @@ class HubPost extends Model
         $minutes = (int) ceil($wordCount / 200);
 
         return max(1, $minutes);
+    }
+
+    public function getCoverImageUrlAttribute(): ?string
+    {
+        if (! $this->relationLoaded('media')) {
+            $this->load('media');
+        }
+
+        $imageMedia = $this->media->first(fn (Media $m) => $m->is_image);
+
+        if ($imageMedia) {
+            return \App\Support\PublicDiskPath::url($imageMedia->path);
+        }
+
+        return null;
     }
 
     public function scopePublished(Builder $query): Builder

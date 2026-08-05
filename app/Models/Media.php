@@ -72,4 +72,55 @@ class Media extends Model
     {
         return Storage::disk($this->disk)->url($this->path);
     }
+
+    public function getFormattedSizeAttribute(): string
+    {
+        $bytes = $this->size_bytes;
+        if ($bytes >= 1073741824) {
+            return number_format($bytes / 1073741824, 2).' GB';
+        }
+        if ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 1).' MB';
+        }
+        if ($bytes >= 1024) {
+            return number_format($bytes / 1024, 0).' KB';
+        }
+
+        return $bytes.' B';
+    }
+
+    public function getFileIconAttribute(): string
+    {
+        $mime = strtolower($this->mime_type ?? '');
+        $ext = strtolower(pathinfo($this->original_name ?? '', PATHINFO_EXTENSION));
+
+        if (str_contains($mime, 'pdf') || $ext === 'pdf') {
+            return 'fa-solid fa-file-pdf text-rose-600';
+        }
+        if (str_contains($mime, 'presentation') || str_contains($mime, 'powerpoint') || in_array($ext, ['ppt', 'pptx'], true)) {
+            return 'fa-solid fa-file-powerpoint text-amber-600';
+        }
+        if (str_contains($mime, 'word') || str_contains($mime, 'document') || in_array($ext, ['doc', 'docx'], true)) {
+            return 'fa-solid fa-file-word text-blue-600';
+        }
+        if (str_contains($mime, 'sheet') || str_contains($mime, 'excel') || in_array($ext, ['xls', 'xlsx', 'csv'], true)) {
+            return 'fa-solid fa-file-excel text-emerald-600';
+        }
+        if (str_contains($mime, 'image') || in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'], true)) {
+            return 'fa-solid fa-file-image text-indigo-600';
+        }
+        if (str_contains($mime, 'video') || in_array($ext, ['mp4', 'mov', 'avi', 'webm'], true)) {
+            return 'fa-solid fa-file-video text-purple-600';
+        }
+
+        return 'fa-solid fa-file-lines text-slate-500';
+    }
+
+    public function getIsImageAttribute(): bool
+    {
+        $mime = strtolower($this->mime_type ?? '');
+        $ext = strtolower(pathinfo($this->original_name ?? '', PATHINFO_EXTENSION));
+
+        return str_contains($mime, 'image') || in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'], true);
+    }
 }

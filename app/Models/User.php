@@ -388,6 +388,40 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->role === 'instructor';
     }
 
+    public function isBlogger(): bool
+    {
+        return $this->role === 'blogger';
+    }
+
+    public function isResearcher(): bool
+    {
+        return $this->role === 'researcher';
+    }
+
+    public function isEmployer(): bool
+    {
+        return $this->role === 'employer';
+    }
+
+    public function canSubmitType(string $type): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if (! $this->is_active) {
+            return false;
+        }
+
+        return match ($type) {
+            'blog' => $this->isBlogger(),
+            'tip_trick' => $this->isResearcher() || $this->isInstructor(),
+            'opportunity' => $this->isEmployer(),
+            'video' => $this->isInstructor(),
+            default => false,
+        };
+    }
+
     public function isEnrolledInCourse(int $courseId): bool
     {
         return $this->courses()->where('courses.id', $courseId)->exists();

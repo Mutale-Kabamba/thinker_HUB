@@ -219,6 +219,13 @@ Route::get('/courses', function () use ($loadPublicCourses) {
 
 Route::get('/hub', App\Livewire\Public\HubIndex::class)->name('hub.index');
 Route::get('/hub/{post:slug}', App\Livewire\Public\HubShow::class)->name('hub.show');
+Route::get('/media/{media}/download', function (App\Models\Media $media) {
+    if (! Illuminate\Support\Facades\Storage::disk($media->disk)->exists($media->path)) {
+        abort(404, 'Requested media file not found.');
+    }
+
+    return Illuminate\Support\Facades\Storage::disk($media->disk)->download($media->path, $media->original_name);
+})->name('media.download');
 
 
 Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = null) use ($courseSlug, $databaseReady) {

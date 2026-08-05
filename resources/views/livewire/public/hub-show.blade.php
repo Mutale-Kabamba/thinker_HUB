@@ -19,7 +19,7 @@
                         </span>
                     @elseif ($post->type === 'opportunity')
                         <span class="bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-sm">
-                            <i class="fa-solid fa-briefcase mr-1"></i> Opportunity
+                            <i class="fa-solid fa-briefcase mr-1"></i> {{ $post->extra['opportunity_type'] ?? 'Opportunity' }}
                         </span>
                     @elseif ($post->type === 'tip_trick')
                         <span class="bg-teal-600 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-sm">
@@ -101,10 +101,60 @@
                     </div>
                 @endif
 
-                {{-- Excerpt Box --}}
+                {{-- Opportunity Structured Data Table Header --}}
+                @if ($post->type === 'opportunity')
+                    <div class="mb-10 bg-white rounded-[2rem] p-6 border border-emerald-100 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Host / Organization</p>
+                            <p class="text-sm font-bold text-emerald-800 mt-1">
+                                {{ $post->extra['provider'] ?? ($post->author->name ?? 'Thinker HUB') }}
+                            </p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Location</p>
+                            <p class="text-sm font-bold text-slate-800 mt-1">
+                                <i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>
+                                {{ $post->extra['location'] ?? 'Remote' }}
+                            </p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Compensation / Prize</p>
+                            <p class="text-sm font-bold text-slate-800 mt-1">
+                                <i class="fa-solid fa-coins text-amber-500 mr-1"></i>
+                                {{ $post->extra['compensation'] ?? 'Competitive' }}
+                            </p>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Excerpt / Core Summary Box --}}
                 @if ($post->excerpt)
                     <div class="mb-8 p-6 bg-teal-50/80 border-l-4 border-teal-600 rounded-r-3xl text-slate-800 text-base sm:text-lg font-medium leading-relaxed shadow-2xs">
                         {{ $post->excerpt }}
+                    </div>
+                @endif
+
+                {{-- Code Snippet Box (For Tips & Tricks) --}}
+                @if ($post->code_snippet)
+                    <div class="mb-8 rounded-2xl bg-slate-900 p-5 text-teal-300 font-mono text-sm shadow-xl border border-slate-800 overflow-x-auto">
+                        <div class="flex items-center justify-between text-xs text-slate-400 mb-3 pb-2 border-b border-slate-800">
+                            <span class="flex items-center gap-1.5 font-bold text-teal-400">
+                                <i class="fa-solid fa-code"></i> Code Snippet
+                            </span>
+                            <span class="text-[11px] bg-slate-800 px-2.5 py-0.5 rounded text-slate-300">Syntax Preview</span>
+                        </div>
+                        <pre class="overflow-x-auto"><code>{{ $post->code_snippet }}</code></pre>
+                    </div>
+                @endif
+
+                {{-- Pro Tip Callout Box (For Tips & Tricks) --}}
+                @if ($post->pro_tip)
+                    <div class="mb-8 rounded-2xl bg-amber-50 p-5 border border-amber-200 text-amber-900 text-sm flex items-start gap-3 shadow-xs">
+                        <i class="fa-solid fa-lightbulb text-amber-500 text-xl mt-0.5 shrink-0"></i>
+                        <div>
+                            <h4 class="font-bold text-amber-950 uppercase tracking-wider text-xs mb-1">Pro Tip &amp; Best Practice</h4>
+                            <p class="leading-relaxed font-medium">{{ $post->pro_tip }}</p>
+                        </div>
                     </div>
                 @endif
 
@@ -115,6 +165,44 @@
                     </div>
                 @endif
 
+                {{-- Media Attachments Section --}}
+                @if ($post->media && $post->media->isNotEmpty())
+                    <div class="mt-12 p-6 sm:p-8 rounded-[2rem] bg-white border border-slate-200 shadow-sm">
+                        <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-4">
+                            <i class="fa-solid fa-folder-closed text-teal-700 text-xl"></i>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">Downloadable Media &amp; Resources</h3>
+                                <p class="text-xs text-slate-500">Attached files, slide decks, rulebooks, or cheat sheets</p>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            @foreach ($post->media as $item)
+                                <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/80 transition-colors flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3 truncate">
+                                        <i class="{{ $item->file_icon }} text-2xl shrink-0"></i>
+                                        <div class="truncate">
+                                            <p class="text-xs font-bold text-slate-900 truncate" title="{{ $item->original_name }}">
+                                                {{ $item->original_name }}
+                                            </p>
+                                            <p class="text-[11px] text-slate-500 mt-0.5">
+                                                {{ $item->formatted_size }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <a
+                                        href="{{ route('media.download', $item->id) }}"
+                                        class="inline-flex items-center gap-1.5 rounded-full bg-[#0a2d27] px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#11443c] shrink-0 transition"
+                                    >
+                                        <i class="fa-solid fa-download text-[10px]"></i> Download
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 {{-- Opportunity Action Container --}}
                 @if ($post->type === 'opportunity')
                     <div class="mt-12 p-8 rounded-[2.5rem] bg-gradient-to-br from-emerald-900 to-[#0a2d27] text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-emerald-800">
@@ -122,7 +210,7 @@
                             <span class="inline-block bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-2 border border-emerald-400/20">
                                 Opportunity Action
                             </span>
-                            <h3 class="text-xl font-bold text-white">Interested in this opportunity?</h3>
+                            <h3 class="text-xl font-bold text-white">Ready to apply for this opportunity?</h3>
                             @if ($post->opportunity_deadline)
                                 <p class="text-xs text-slate-300 mt-1">
                                     <i class="fa-regular fa-calendar-check text-yellow-400 mr-1"></i>

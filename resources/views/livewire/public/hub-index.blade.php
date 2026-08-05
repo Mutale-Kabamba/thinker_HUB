@@ -35,20 +35,30 @@
                     </div>
                 </div>
 
-                {{-- Submit Resource CTA Button --}}
-                <div class="mt-6 flex justify-center">
-                    <button
-                        wire:click="openSubmitModal"
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-6 py-2.5 text-xs font-bold text-[#0a2d27] shadow-md hover:bg-white transition-all transform hover:-translate-y-0.5"
-                    >
-                        <i class="fa-solid fa-plus"></i> Submit Resource / Opportunity
-                    </button>
+                {{-- Submit / Register Contributor CTA Button --}}
+                <div class="mt-6 flex flex-wrap justify-center gap-3">
+                    @auth
+                        <button
+                            wire:click="openSubmitModal"
+                            type="button"
+                            class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-6 py-2.5 text-xs font-bold text-[#0a2d27] shadow-md hover:bg-white transition-all transform hover:-translate-y-0.5"
+                        >
+                            <i class="fa-solid fa-plus"></i> Submit Resource / Opportunity
+                        </button>
+                    @else
+                        <button
+                            wire:click="openRegisterModal"
+                            type="button"
+                            class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-6 py-2.5 text-xs font-bold text-[#0a2d27] shadow-md hover:bg-white transition-all transform hover:-translate-y-0.5"
+                        >
+                            <i class="fa-solid fa-user-plus"></i> Register to Submit (Blogger / Researcher / Employer)
+                        </button>
+                    @endauth
                 </div>
 
                 {{-- Notice Banner --}}
                 @if ($submitNoticeMessage)
-                    <div class="mx-auto mt-6 max-w-xl p-4 bg-emerald-500/20 border border-emerald-400/40 rounded-2xl text-emerald-200 text-xs font-semibold flex items-center justify-between gap-3">
+                    <div class="mx-auto mt-6 max-w-xl p-4 bg-emerald-500/20 border border-emerald-400/40 rounded-2xl text-emerald-200 text-xs font-semibold flex items-center justify-between gap-3 shadow-md">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
                             <span>{{ $submitNoticeMessage }}</span>
@@ -151,7 +161,7 @@
                     <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($posts as $post)
                             @if ($post->type === 'video')
-                                {{-- Expressive Video Card --}}
+                                {{-- 1. Video Tutorial Card --}}
                                 <article class="group bg-white rounded-[2rem] overflow-hidden shadow-xs hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/80 hover:border-rose-300 flex flex-col justify-between">
                                     <div>
                                         <div class="relative aspect-video overflow-hidden bg-slate-900 cursor-pointer" wire:click="openVideoModal({{ $post->id }})">
@@ -174,6 +184,11 @@
                                             <span class="absolute top-3 left-3 bg-rose-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
                                                 <i class="fa-solid fa-video mr-1"></i> Video Tutorial
                                             </span>
+                                            @if ($post->media->isNotEmpty())
+                                                <span class="absolute bottom-3 left-3 bg-indigo-900/90 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-xs flex items-center gap-1 shadow-sm">
+                                                    <i class="fa-solid fa-paperclip"></i> {{ $post->media->count() }} Attached
+                                                </span>
+                                            @endif
                                             <span class="absolute bottom-3 right-3 bg-black/80 text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-md backdrop-blur-xs">
                                                 YouTube
                                             </span>
@@ -210,51 +225,177 @@
                                     </div>
                                 </article>
 
+                            @elseif ($post->type === 'tip_trick')
+                                {{-- 2. Tips & Tricks Card (Styled with top hero cover image like Video cards) --}}
+                                <article class="group bg-white rounded-[2rem] overflow-hidden shadow-xs hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/80 hover:border-teal-300 flex flex-col justify-between">
+                                    <div>
+                                        {{-- Top Hero Image / Gradient Cover --}}
+                                        <a href="{{ route('hub.show', $post->slug) }}" class="relative block aspect-video overflow-hidden bg-slate-900">
+                                            @if ($post->cover_image_url)
+                                                <img
+                                                    src="{{ $post->cover_image_url }}"
+                                                    alt="{{ $post->title }}"
+                                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                >
+                                            @else
+                                                <div class="w-full h-full bg-gradient-to-br from-[#0a2d27] via-emerald-900 to-slate-950 p-6 pt-12 flex flex-col justify-between relative overflow-hidden">
+                                                    <div class="absolute -right-4 -bottom-4 text-white/5 text-8xl font-black select-none pointer-events-none">
+                                                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                                    </div>
+                                                    <div class="my-auto z-10">
+                                                        <p class="text-white text-base font-extrabold line-clamp-2 leading-tight tracking-tight drop-shadow-sm">
+                                                            {{ $post->title }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/5 transition-colors"></div>
+
+                                            <span class="absolute top-3 left-3 bg-teal-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                                                <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Tip &amp; Trick
+                                            </span>
+
+                                            <span class="absolute top-3 right-3 bg-black/70 text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-full backdrop-blur-xs">
+                                                {{ $post->category }}
+                                            </span>
+
+                                            @if ($post->media->isNotEmpty())
+                                                <span class="absolute bottom-3 left-3 bg-teal-900/90 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-xs flex items-center gap-1 shadow-sm">
+                                                    <i class="fa-solid fa-paperclip"></i> {{ $post->media->count() }} Attached
+                                                </span>
+                                            @endif
+                                        </a>
+
+                                        {{-- Body Content --}}
+                                        <div class="p-6">
+                                            <div class="flex items-center gap-2 mb-2.5">
+                                                <span class="text-xs font-bold text-teal-700 bg-teal-50 px-3 py-0.5 rounded-full border border-teal-100">
+                                                    {{ $post->category }}
+                                                </span>
+                                                <span class="text-xs text-slate-400 font-medium">• {{ $post->created_at->format('M j, Y') }}</span>
+                                            </div>
+
+                                            <h3 class="text-lg font-bold text-slate-900 group-hover:text-teal-700 transition-colors leading-snug cursor-pointer line-clamp-2">
+                                                <a href="{{ route('hub.show', $post->slug) }}">{{ $post->title }}</a>
+                                            </h3>
+
+                                            @if ($post->excerpt)
+                                                <p class="mt-2 text-xs text-slate-600 leading-relaxed font-medium line-clamp-2">
+                                                    <strong class="text-slate-900">Insight:</strong> {{ $post->excerpt }}
+                                                </p>
+                                            @endif
+
+                                            @if ($post->code_snippet)
+                                                <div class="mt-3.5 rounded-xl bg-slate-900 p-3 text-slate-100 text-[11px] font-mono overflow-x-auto border border-slate-800 shadow-inner">
+                                                    <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1 border-b border-slate-800 pb-1">
+                                                        <span><i class="fa-solid fa-code text-teal-400 mr-1"></i> Code Preview</span>
+                                                    </div>
+                                                    <pre class="line-clamp-2 overflow-hidden"><code>{{ $post->code_snippet }}</code></pre>
+                                                </div>
+                                            @elseif ($post->pro_tip)
+                                                <div class="mt-3.5 rounded-xl bg-amber-50 p-3 border border-amber-200 text-amber-900 text-xs flex items-start gap-2 shadow-2xs">
+                                                    <i class="fa-solid fa-lightbulb text-amber-500 mt-0.5 text-sm shrink-0"></i>
+                                                    <p class="leading-tight line-clamp-2">
+                                                        <strong class="font-bold">Pro Tip:</strong> {{ $post->pro_tip }}
+                                                    </p>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    {{-- Card Footer --}}
+                                    <div class="px-6 pb-6 pt-3 border-t border-slate-100 flex items-center justify-between">
+                                        <span class="text-xs text-slate-400 font-medium">By {{ $post->author?->name ?: 'Researcher' }}</span>
+                                        <a
+                                            href="{{ route('hub.show', $post->slug) }}"
+                                            class="inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-teal-800 transition-colors"
+                                        >
+                                            Read Tip <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i>
+                                        </a>
+                                    </div>
+                                </article>
+
                             @elseif ($post->type === 'opportunity')
-                                {{-- Expressive Opportunity Card --}}
+                                {{-- 3. Opportunity Card --}}
                                 <article class="group bg-white rounded-[2rem] p-6 shadow-xs hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/80 hover:border-emerald-300 flex flex-col justify-between">
                                     <div>
-                                        <div class="flex items-center justify-between gap-2 mb-4">
-                                            <span class="bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
-                                                <i class="fa-solid fa-briefcase mr-1"></i> Opportunity
+                                        <div class="flex items-center justify-between gap-2 mb-3">
+                                            <span class="bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
+                                                <i class="fa-solid fa-briefcase mr-1"></i> {{ $post->extra['opportunity_type'] ?? 'Opportunity' }}
                                             </span>
                                             @if ($post->opportunity_deadline)
                                                 @php
                                                     $isPast = $post->opportunity_deadline->isPast() && ! $post->opportunity_deadline->isToday();
                                                 @endphp
                                                 @if ($isPast)
-                                                    <span class="bg-slate-100 text-slate-500 text-[11px] font-bold px-3 py-1 rounded-full">
+                                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                                                         Closed
                                                     </span>
                                                 @else
-                                                    <span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
-                                                        <i class="fa-regular fa-clock"></i> Deadline: {{ $post->opportunity_deadline->format('M j') }}
+                                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                                        <i class="fa-regular fa-clock text-[10px]"></i> {{ $post->opportunity_deadline->format('M j') }}
                                                     </span>
                                                 @endif
                                             @endif
                                         </div>
 
-                                        <div class="mb-2.5">
-                                            <span class="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-0.5 rounded-full border border-emerald-100">
-                                                {{ $post->category }}
-                                            </span>
+                                        {{-- Header: Provider & Title --}}
+                                        <div class="mb-2">
+                                            <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">
+                                                {{ $post->extra['provider'] ?? ($post->author->name ?? 'Thinker HUB') }}
+                                            </p>
+                                            <h3 class="text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug line-clamp-2">
+                                                <a href="{{ route('hub.show', $post->slug) }}">{{ $post->title }}</a>
+                                            </h3>
                                         </div>
 
-                                        <h3 class="text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug line-clamp-2">
-                                            <a href="{{ route('hub.show', $post->slug) }}">{{ $post->title }}</a>
-                                        </h3>
+                                        {{-- Meta Grid / Badges --}}
+                                        <div class="my-3 grid grid-cols-2 gap-2 text-xs">
+                                            <div class="bg-slate-50 p-2 rounded-xl border border-slate-100 flex items-center gap-1.5">
+                                                <i class="fa-solid fa-location-dot text-emerald-600"></i>
+                                                <span class="font-semibold text-slate-700 truncate">
+                                                    {{ $post->extra['location'] ?? 'Remote' }}
+                                                </span>
+                                            </div>
+                                            <div class="bg-slate-50 p-2 rounded-xl border border-slate-100 flex items-center gap-1.5">
+                                                <i class="fa-solid fa-coins text-amber-500"></i>
+                                                <span class="font-semibold text-slate-700 truncate">
+                                                    {{ $post->extra['compensation'] ?? 'Competitive' }}
+                                                </span>
+                                            </div>
+                                        </div>
 
-                                        @if ($post->excerpt)
-                                            <p class="mt-3 text-xs text-slate-600 leading-relaxed line-clamp-3">
+                                        {{-- Key Requirements Bullet List --}}
+                                        @if (!empty($post->extra['requirements']))
+                                            <div class="mt-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
+                                                <p class="text-[11px] font-bold text-emerald-900 uppercase tracking-wider mb-1">Key Requirements:</p>
+                                                <ul class="text-xs text-slate-600 space-y-1 pl-4 list-disc">
+                                                    @foreach (array_slice($post->extra['requirements'], 0, 2) as $req)
+                                                        <li class="line-clamp-1">{{ $req }}</li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        @elseif ($post->excerpt)
+                                            <p class="mt-2 text-xs text-slate-600 leading-relaxed line-clamp-2">
                                                 {{ $post->excerpt }}
                                             </p>
                                         @endif
                                     </div>
 
                                     <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                                        <span class="text-xs text-slate-400 font-medium">
-                                            Posted {{ $post->created_at->diffForHumans() }}
-                                        </span>
+                                        <div class="flex items-center gap-1">
+                                            @if ($post->media->isNotEmpty())
+                                                <span class="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+                                                    <i class="fa-solid fa-paperclip"></i> Spec Doc
+                                                </span>
+                                            @else
+                                                <span class="text-xs text-slate-400 font-medium">
+                                                    {{ $post->created_at->diffForHumans() }}
+                                                </span>
+                                            @endif
+                                        </div>
+
                                         @if ($post->opportunity_link)
                                             <a
                                                 href="{{ $post->opportunity_link }}"
@@ -262,7 +403,7 @@
                                                 rel="noopener noreferrer"
                                                 class="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors"
                                             >
-                                                Apply <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                                Apply Now <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
                                             </a>
                                         @else
                                             <a
@@ -276,22 +417,23 @@
                                 </article>
 
                             @else
-                                {{-- Expressive Blog / Tip Card --}}
-                                <article class="group bg-white rounded-[2rem] p-6 shadow-xs hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/80 hover:border-teal-300 flex flex-col justify-between">
+                                {{-- 4. Short Blog Card --}}
+                                <article class="group bg-white rounded-[2rem] p-6 shadow-xs hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/80 hover:border-indigo-300 flex flex-col justify-between">
                                     <div>
                                         <div class="flex items-center justify-between gap-2 mb-4">
-                                            @if ($post->type === 'tip_trick')
-                                                <span class="bg-teal-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
-                                                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Tip &amp; Trick
-                                                </span>
-                                            @else
-                                                <span class="bg-indigo-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
-                                                    <i class="fa-solid fa-newspaper mr-1"></i> Article
-                                                </span>
-                                            @endif
-                                            <span class="text-xs font-medium text-slate-400 flex items-center gap-1">
-                                                <i class="fa-regular fa-clock"></i> {{ $post->reading_time }} min read
+                                            <span class="bg-indigo-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
+                                                <i class="fa-solid fa-newspaper mr-1"></i> Article
                                             </span>
+                                            <div class="flex items-center gap-2">
+                                                @if ($post->media->isNotEmpty())
+                                                    <span class="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-indigo-200 flex items-center gap-1">
+                                                        <i class="fa-solid fa-paperclip"></i> Attachment
+                                                    </span>
+                                                @endif
+                                                <span class="text-xs font-medium text-slate-400 flex items-center gap-1">
+                                                    <i class="fa-regular fa-clock"></i> {{ $post->reading_time }} min read
+                                                </span>
+                                            </div>
                                         </div>
 
                                         <div class="mb-2.5">
@@ -300,7 +442,7 @@
                                             </span>
                                         </div>
 
-                                        <h3 class="text-lg font-bold text-slate-900 group-hover:text-teal-700 transition-colors leading-snug line-clamp-2">
+                                        <h3 class="text-lg font-bold text-slate-900 group-hover:text-indigo-700 transition-colors leading-snug line-clamp-2">
                                             <a href="{{ route('hub.show', $post->slug) }}">{{ $post->title }}</a>
                                         </h3>
 
@@ -309,11 +451,19 @@
                                                 {{ $post->excerpt }}
                                             </p>
                                         @endif
+
+                                        {{-- Scannable Content Bullet Highlights --}}
+                                        @if ($post->content)
+                                            <div class="mt-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/80 text-xs text-slate-700">
+                                                <p class="font-bold text-indigo-900 text-[11px] uppercase tracking-wider mb-1">Key Takeaway:</p>
+                                                <p class="line-clamp-2 text-slate-600 italic">"{{ Str::limit(strip_tags($post->content), 120) }}"</p>
+                                            </div>
+                                        @endif
                                     </div>
 
                                     <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
                                         <div class="flex items-center gap-2">
-                                            <div class="w-7 h-7 rounded-full bg-teal-100 text-teal-800 font-bold text-xs flex items-center justify-center">
+                                            <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-800 font-bold text-xs flex items-center justify-center">
                                                 {{ strtoupper(substr($post->author->name ?? 'T', 0, 1)) }}
                                             </div>
                                             <span class="text-xs font-semibold text-slate-700 truncate max-w-[100px]">
@@ -323,9 +473,9 @@
 
                                         <a
                                             href="{{ route('hub.show', $post->slug) }}"
-                                            class="inline-flex items-center gap-1 rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#11443c]"
+                                            class="inline-flex items-center gap-1 rounded-full bg-indigo-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-indigo-950"
                                         >
-                                            Read More <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i>
+                                            Read Article <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i>
                                         </a>
                                     </div>
                                 </article>
@@ -362,10 +512,10 @@
         </section>
     </main>
 
-    {{-- Submit Resource Modal --}}
+    {{-- Dynamic Adaptive Submit Resource Modal with Media Attachment Support --}}
     @if ($showSubmitModal)
         <div
-            class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+            class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
             wire:click.self="closeSubmitModal"
             @keydown.escape.window="$wire.closeSubmitModal()"
         >
@@ -379,118 +529,250 @@
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                     <span class="bg-yellow-400 text-[#0a2d27] text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                        Resource Submission
+                        Community Submission
                     </span>
-                    <h2 class="text-2xl font-black text-white mt-2">Submit a Resource or Opportunity</h2>
+                    <h2 class="text-2xl font-black text-white mt-2">Submit Resource or Opportunity</h2>
                     <p class="text-xs text-slate-300 mt-1">
                         @if (auth()->user()?->isAdmin())
-                            Publish a new item directly to the Knowledge Hub.
+                            Publish directly to the Knowledge &amp; Opportunities Hub.
                         @else
-                            Submissions will be reviewed and approved by an Admin before going public.
+                            Submissions are reviewed by an Admin before going live.
                         @endif
                     </p>
+
+                    {{-- Role-Based Dynamic Type Switcher Tabs --}}
+                    <div class="mt-6 flex items-center gap-1.5 overflow-x-auto no-scrollbar bg-white/10 p-1.5 rounded-full border border-white/15">
+                        @if (auth()->user()?->canSubmitType('tip_trick'))
+                            <button
+                                type="button"
+                                wire:click="setSubmitType('tip_trick')"
+                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'tip_trick' ? 'bg-teal-500 text-white shadow-md' : 'text-slate-200 hover:text-white' }}"
+                            >
+                                <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Tip / Trick (Researcher)
+                            </button>
+                        @endif
+
+                        @if (auth()->user()?->canSubmitType('blog'))
+                            <button
+                                type="button"
+                                wire:click="setSubmitType('blog')"
+                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'blog' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-200 hover:text-white' }}"
+                            >
+                                <i class="fa-solid fa-newspaper mr-1"></i> Short Blog (Blogger)
+                            </button>
+                        @endif
+
+                        @if (auth()->user()?->canSubmitType('opportunity'))
+                            <button
+                                type="button"
+                                wire:click="setSubmitType('opportunity')"
+                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'opportunity' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-200 hover:text-white' }}"
+                            >
+                                <i class="fa-solid fa-briefcase mr-1"></i> Opportunity (Employer)
+                            </button>
+                        @endif
+
+                        @if (auth()->user()?->canSubmitType('video'))
+                            <button
+                                type="button"
+                                wire:click="setSubmitType('video')"
+                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'video' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-200 hover:text-white' }}"
+                            >
+                                <i class="fa-solid fa-video mr-1"></i> Video
+                            </button>
+                        @endif
+                    </div>
                 </div>
 
                 <form wire:submit.prevent="submitResource" class="p-6 sm:p-8 overflow-y-auto grow space-y-5">
+                    {{-- Common Title --}}
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Title *</label>
                         <input
                             type="text"
                             wire:model="submitTitle"
-                            placeholder="Resource title..."
+                            placeholder="e.g. Mastering Flexbox Alignment or Senior Developer Role..."
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             required
                         >
                         @error('submitTitle') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Type *</label>
-                            <select
-                                wire:model.live="submitType"
-                                class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                            >
-                                <option value="blog">Short Blog</option>
-                                <option value="tip_trick">Tip &amp; Trick</option>
-                                <option value="video">Video Tutorial</option>
-                                <option value="opportunity">Opportunity</option>
-                            </select>
-                            @error('submitType') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Category *</label>
-                            <input
-                                type="text"
-                                wire:model="submitCategory"
-                                placeholder="e.g. Programming, Career, Technology"
-                                class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                                required
-                            >
-                            @error('submitCategory') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-                    </div>
-
-                    @if ($submitType === 'video')
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">YouTube URL *</label>
-                            <input
-                                type="url"
-                                wire:model="submitYoutubeUrl"
-                                placeholder="https://www.youtube.com/watch?v=..."
-                                class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                            >
-                            @error('submitYoutubeUrl') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-                    @endif
-
                     @if ($submitType === 'opportunity')
+                        {{-- Opportunity Specific Adaptive Fields --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">External Application Link</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Organization / Host *</label>
                                 <input
-                                    type="url"
-                                    wire:model="submitOpportunityLink"
-                                    placeholder="https://example.com/apply"
+                                    type="text"
+                                    wire:model="submitProvider"
+                                    placeholder="e.g. Thinker HUB, Google, Remote Co..."
                                     class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                    required
                                 >
-                                @error('submitOpportunityLink') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                                @error('submitProvider') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Deadline Date</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Opportunity Type *</label>
+                                <select
+                                    wire:model="submitOpportunityType"
+                                    class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                >
+                                    <option value="Job">Job</option>
+                                    <option value="Hackathon">Hackathon</option>
+                                    <option value="Internship">Internship</option>
+                                    <option value="Scholarship">Scholarship</option>
+                                    <option value="Promo Code">Promo Code</option>
+                                    <option value="Event">Event</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Location</label>
+                                <input
+                                    type="text"
+                                    wire:model="submitLocation"
+                                    placeholder="e.g. Remote, Lusaka Zambia, Hybrid"
+                                    class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                >
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Compensation / Prize</label>
+                                <input
+                                    type="text"
+                                    wire:model="submitCompensation"
+                                    placeholder="e.g. $1,500/mo, $5,000 Prize, Free"
+                                    class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Application Link</label>
+                                <input
+                                    type="url"
+                                    wire:model="submitOpportunityLink"
+                                    placeholder="https://company.com/careers/apply"
+                                    class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                >
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Application Deadline</label>
                                 <input
                                     type="date"
                                     wire:model="submitOpportunityDeadline"
                                     class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
                                 >
-                                @error('submitOpportunityDeadline') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                             </div>
                         </div>
-                    @endif
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Brief Summary / Excerpt</label>
-                        <textarea
-                            wire:model="submitExcerpt"
-                            rows="2"
-                            placeholder="Short description displayed on resource cards..."
-                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                        ></textarea>
-                    </div>
-
-                    @if (in_array($submitType, ['blog', 'tip_trick', 'opportunity']))
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Full Content</label>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Requirements (One per line)</label>
                             <textarea
-                                wire:model="submitContent"
-                                rows="5"
-                                placeholder="Detailed content, steps, instructions, or requirements..."
+                                wire:model="submitRequirements"
+                                rows="3"
+                                placeholder="3+ years Laravel experience&#10;Strong Tailwind CSS skills..."
                                 class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             ></textarea>
                         </div>
+
+                    @else
+                        {{-- Tip/Trick, Blog, Video Fields --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Category / Track *</label>
+                                <input
+                                    type="text"
+                                    wire:model="submitCategory"
+                                    placeholder="e.g. Programming, Design, Career"
+                                    class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                    required
+                                >
+                            </div>
+
+                            @if ($submitType === 'video')
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">YouTube URL *</label>
+                                    <input
+                                        type="url"
+                                        wire:model="submitYoutubeUrl"
+                                        placeholder="https://www.youtube.com/watch?v=..."
+                                        class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                    >
+                                </div>
+                            @endif
+                        </div>
+
+                        @if ($submitType === 'tip_trick')
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Code Snippet (Optional)</label>
+                                <textarea
+                                    wire:model="submitCodeSnippet"
+                                    rows="3"
+                                    placeholder="Paste your code snippet here..."
+                                    class="w-full font-mono text-xs rounded-xl bg-slate-900 text-teal-300 border border-slate-800 px-4 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                ></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Pro Tip / Quick Takeaway</label>
+                                <textarea
+                                    wire:model="submitProTip"
+                                    rows="2"
+                                    placeholder="e.g. Always clear cache after updating environment variables!"
+                                    class="w-full rounded-xl bg-amber-50/60 border border-amber-200 px-4 py-2 text-xs font-medium text-amber-900 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                                ></textarea>
+                            </div>
+                        @endif
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Summary / Excerpt</label>
+                            <textarea
+                                wire:model="submitExcerpt"
+                                rows="2"
+                                placeholder="Short overview displayed on resource cards..."
+                                class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                            ></textarea>
+                        </div>
+
+                        @if ($submitType === 'blog' || $submitType === 'tip_trick')
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Full Article / Content</label>
+                                <textarea
+                                    wire:model="submitContent"
+                                    rows="4"
+                                    placeholder="Write your complete article or detailed tip walkthrough..."
+                                    class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                ></textarea>
+                            </div>
+                        @endif
                     @endif
+
+                    {{-- Multi-Format Media Upload Component --}}
+                    <div class="rounded-2xl border-2 border-dashed border-slate-200 p-4 bg-slate-50/70 text-center">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 cursor-pointer">
+                            <i class="fa-solid fa-cloud-arrow-up text-teal-600 text-lg mr-1"></i> Attach Media Files (PDF, PPT, Word, Image, MP4)
+                        </label>
+                        <p class="text-[11px] text-slate-500 mb-2">Upload slide decks, specification documents, or code cheat sheets (Up to 50MB per file)</p>
+                        <input
+                            type="file"
+                            wire:model="submitFiles"
+                            multiple
+                            accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.mp4"
+                            class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer"
+                        >
+                        @error('submitFiles.*') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+
+                        <div wire:loading wire:target="submitFiles" class="mt-2 text-xs text-teal-600 font-semibold flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Uploading files...
+                        </div>
+                    </div>
 
                     <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
                         <button
@@ -502,9 +784,105 @@
                         </button>
                         <button
                             type="submit"
-                            class="px-6 py-2.5 rounded-full bg-[#0a2d27] text-white text-xs font-bold shadow-md hover:bg-[#11443c] transition"
+                            class="px-6 py-2.5 rounded-full bg-[#0a2d27] text-white text-xs font-bold shadow-md hover:bg-[#11443c] transition flex items-center gap-1.5"
                         >
-                            Submit Resource
+                            <i class="fa-solid fa-paperplane text-[11px]"></i> Submit Resource
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    {{-- Contributor Registration Modal --}}
+    @if ($showRegisterModal)
+        <div
+            class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+            wire:click.self="closeRegisterModal"
+            @keydown.escape.window="$wire.closeRegisterModal()"
+        >
+            <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden relative border border-slate-100 p-6 sm:p-8">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-100">Contributor Signup</span>
+                        <h3 class="text-xl font-black text-slate-900 mt-1">Register to Publish Resources</h3>
+                    </div>
+                    <button wire:click="closeRegisterModal" type="button" class="text-slate-400 hover:text-slate-700 bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <form wire:submit.prevent="registerContributor" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Full Name *</label>
+                        <input
+                            type="text"
+                            wire:model="regName"
+                            placeholder="John Doe"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                            required
+                        >
+                        @error('regName') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Address *</label>
+                        <input
+                            type="email"
+                            wire:model="regEmail"
+                            placeholder="john@example.com"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                            required
+                        >
+                        @error('regEmail') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Role / Specialization *</label>
+                        <select
+                            wire:model="regRole"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                        >
+                            <option value="blogger">Blogger (Short Blogs)</option>
+                            <option value="researcher">Researcher (Tips &amp; Tricks)</option>
+                            <option value="employer">Employer (Opportunities &amp; Jobs)</option>
+                        </select>
+                        <p class="text-[11px] text-slate-500 mt-1">Select your specialty. All contributor registrations require Admin approval before posts can go live.</p>
+                        @error('regRole') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password *</label>
+                            <input
+                                type="password"
+                                wire:model="regPassword"
+                                placeholder="••••••••"
+                                class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                required
+                            >
+                            @error('regPassword') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Confirm Password *</label>
+                            <input
+                                type="password"
+                                wire:model="regPasswordConfirmation"
+                                placeholder="••••••••"
+                                class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                        <span class="text-xs text-slate-500">Already registered? <a href="{{ route('login') }}" class="text-teal-700 font-bold hover:underline">Log in</a></span>
+                        <button
+                            type="submit"
+                            class="px-6 py-2.5 rounded-full bg-[#0a2d27] text-white text-xs font-bold shadow-md hover:bg-[#11443c] transition flex items-center gap-1.5"
+                        >
+                            <i class="fa-solid fa-user-check text-[11px]"></i> Register Account
                         </button>
                     </div>
                 </form>

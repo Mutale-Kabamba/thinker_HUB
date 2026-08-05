@@ -180,4 +180,120 @@ class HubIndexTest extends TestCase
         $response->assertSee('https://external-jobs.com/apply/123');
         $response->assertSee('Apply / Access Opportunity');
     }
+
+    public function test_dynamic_submission_modal_routes_opportunity_and_tips(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin);
+
+        Livewire::test(HubIndex::class)
+            ->call('openSubmitModal')
+            ->set('submitType', 'tip_trick')
+            ->set('submitTitle', 'Clever Eloquent Query Tip')
+            ->set('submitCategory', 'Programming')
+            ->set('submitExcerpt', 'Use chunking to optimize memory.')
+            ->set('submitCodeSnippet', 'User::chunk(100, function ($users) {});')
+            ->set('submitProTip', 'Always index foreign keys!')
+            ->call('submitResource');
+
+        $this->assertDatabaseHas('hub_posts', [
+            'title' => 'Clever Eloquent Query Tip',
+            'type' => 'tip_trick',
+            'code_snippet' => 'User::chunk(100, function ($users) {});',
+            'pro_tip' => 'Always index foreign keys!',
+            'is_published' => true,
+        ]);
+
+        Livewire::test(HubIndex::class)
+            ->call('openSubmitModal')
+            ->set('submitType', 'opportunity')
+            ->set('submitTitle', 'Full Stack Developer Internship')
+            ->set('submitProvider', 'TechHub Africa')
+            ->set('submitOpportunityType', 'Internship')
+            ->set('submitLocation', 'Remote')
+            ->set('submitCompensation', '$1,200/mo')
+            ->set('submitRequirements', "3+ years PHP\nVue.js experience")
+            ->set('submitOpportunityLink', 'https://techhub.africa/apply')
+            ->call('submitResource');
+
+        $this->assertDatabaseHas('opportunities', [
+            'title' => 'Full Stack Developer Internship',
+            'provider' => 'TechHub Africa',
+            'type' => 'Internship',
+            'link_url' => 'https://techhub.africa/apply',
+        ]);
+    }
+
+    public function test_media_attachment_submission_and_download_route(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $file = \Illuminate\Http\UploadedFile::fake()->create('cheat-sheet.pdf', 500, 'application/pdf');
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin);
+
+        Livewire::test(HubIndex::class)
+            ->call('openSubmitModal')
+            ->set('submitType', 'tip_trick')
+            ->set('submitTitle', 'Laravel Performance Cheat Sheet')
+            ->set('submitCategory', 'Programming')
+            ->set('submitFiles', [$file])
+            ->call('submitResource');
+
+        $post = HubPost::where('title', 'Laravel Performance Cheat Sheet')->first();
+        $this->assertNotNull($post);
+        $this->assertCount(1, $post->media);
+
+        $media = $post->media->first();
+        $this->assertEquals('cheat-sheet.pdf', $media->original_name);
+
+        $downloadResponse = $this->get(route('media.download', $media->id));
+        $downloadResponse->assertOk();
+    }
+
+    public function test_header_shows_dashboard_for_authenticated_user_and_login_for_guests(): void
+    {
+        $guestResponse = $this->get('/hub');
+        $guestResponse->assertOk();
+        $guestResponse->assertSee('Login');
+        $guestResponse->assertDontSee('Dashboard (');
+
+        $user = User::factory()->create(['name' => 'Alex Student', 'role' => 'student']);
+        $authResponse = $this->actingAs($user)->get('/hub');
+        $authResponse->assertOk();
+        $authResponse->assertSee('Dashboard (Alex)');
+    }
+
+    public function test_contributor_registration_creates_inactive_user_pending_admin_approval(): void
+    {
+        Livewire::test(HubIndex::class)
+            ->set('regName', 'Jane Blogger')
+            ->set('regEmail', 'jane@blogger.com')
+            ->set('regRole', 'blogger')
+            ->set('regPassword', 'secret1234')
+            ->set('regPasswordConfirmation', 'secret1234')
+            ->call('registerContributor');
+
+        $user = User::where('email', 'jane@blogger.com')->first();
+        $this->assertNotNull($user);
+        $this->assertEquals('blogger', $user->role);
+        $this->assertFalse($user->is_active); // Inactive until approved by Admin!
+    }
+
+    public function test_contributor_roles_enforce_submission_permissions(): void
+    {
+        $blogger = User::factory()->create(['role' => 'blogger', 'is_active' => true]);
+        $researcher = User::factory()->create(['role' => 'researcher', 'is_active' => true]);
+        $employer = User::factory()->create(['role' => 'employer', 'is_active' => true]);
+
+        $this->assertTrue($blogger->canSubmitType('blog'));
+        $this->assertFalse($blogger->canSubmitType('opportunity'));
+
+        $this->assertTrue($researcher->canSubmitType('tip_trick'));
+        $this->assertFalse($researcher->canSubmitType('blog'));
+
+        $this->assertTrue($employer->canSubmitType('opportunity'));
+        $this->assertFalse($employer->canSubmitType('tip_trick'));
+    }
 }

@@ -8,7 +8,7 @@
     ];
 @endphp
 
-<header class="hub-public-header sticky top-0 z-50 py-4">
+<header class="hub-public-header sticky top-0 z-50 py-4 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
         <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2 text-xl font-bold text-slate-900">
             <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
@@ -18,14 +18,29 @@
             @foreach ($navItems as $item)
                 <a
                     href="{{ route($item['route']) }}"
-                    class="{{ request()->routeIs($item['route']) ? 'bg-teal-100/80 text-teal-700' : 'hover:text-teal-700 transition-colors' }}"
+                    class="{{ request()->routeIs($item['route']) ? 'bg-teal-100/80 text-teal-700 px-3 py-1.5 rounded-full font-bold' : 'px-3 py-1.5 hover:text-teal-700 transition-colors' }}"
                 >{{ $item['label'] }}</a>
             @endforeach
         </nav>
 
-        <div class="hidden md:flex items-center gap-6">
-            <a href="{{ route('login') }}" class="hub-public-auth-link text-sm font-bold text-slate-700 transition-colors">Login</a>
-            <a href="{{ route('enroll') }}" class="hub-public-cta inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold transition duration-300 ease-out focus:outline-none focus:ring-4 focus:ring-teal-200/70">Enroll Now</a>
+        <div class="hidden md:flex items-center gap-4">
+            @auth
+                <a
+                    href="{{ route('dashboard') }}"
+                    class="inline-flex items-center gap-2 rounded-full bg-[#0a2d27] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#11443c] transition-all"
+                >
+                    <i class="fa-solid fa-gauge"></i> Dashboard ({{ Str::words(auth()->user()->name, 1, '') }})
+                </a>
+                <form method="POST" action="{{ route('logout') }}" class="inline">
+                    @csrf
+                    <button type="submit" class="text-xs font-bold text-slate-500 hover:text-rose-600 transition-colors">
+                        Logout
+                    </button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="hub-public-auth-link text-xs font-bold text-slate-700 hover:text-teal-700 transition-colors">Login</a>
+                <a href="{{ route('enroll') }}" class="hub-public-cta inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#11443c] transition duration-300">Enroll Now</a>
+            @endauth
         </div>
 
         <button class="text-2xl text-slate-700 md:hidden" @click="mobileMenu = !mobileMenu" aria-label="Toggle menu">
@@ -34,17 +49,32 @@
     </div>
 
     <div class="border-t border-slate-200/80 bg-white/95 md:hidden" x-show="mobileMenu" x-cloak x-transition>
-        <nav class="hub-public-nav flex flex-col gap-4 p-6 font-semibold text-slate-700">
+        <nav class="hub-public-nav flex flex-col gap-3 p-6 font-semibold text-slate-700">
             @foreach ($navItems as $item)
                 <a
                     href="{{ route($item['route']) }}"
-                    class="{{ request()->routeIs($item['route']) ? 'bg-teal-100/80 text-teal-700' : '' }}"
+                    class="{{ request()->routeIs($item['route']) ? 'bg-teal-100/80 text-teal-700 p-2 rounded-lg' : 'p-2' }}"
                 >{{ $item['label'] }}</a>
             @endforeach
-            <div class="pt-4 flex gap-4">
-                <a href="{{ route('login') }}" class="hub-public-auth-link flex-1 rounded-xl border border-slate-200 py-3 text-center text-slate-700 transition-colors">Login</a>
-                <a href="{{ route('register') }}" class="hub-public-cta flex-1 rounded-xl py-3 text-center font-bold transition duration-300 ease-out">Join</a>
-            </div>
+
+            @auth
+                <div class="pt-4 border-t border-slate-100 flex flex-col gap-2">
+                    <a href="{{ route('dashboard') }}" class="w-full rounded-xl bg-[#0a2d27] py-3 text-center text-xs font-bold text-white shadow-sm">
+                        <i class="fa-solid fa-gauge mr-1"></i> Dashboard ({{ auth()->user()->name }})
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="w-full rounded-xl border border-slate-200 py-2.5 text-center text-xs font-bold text-rose-600 hover:bg-rose-50 transition">
+                            Log Out
+                        </button>
+                    </form>
+                </div>
+            @else
+                <div class="pt-4 flex gap-4 border-t border-slate-100">
+                    <a href="{{ route('login') }}" class="hub-public-auth-link flex-1 rounded-xl border border-slate-200 py-3 text-center text-slate-700 transition-colors">Login</a>
+                    <a href="{{ route('register') }}" class="hub-public-cta flex-1 rounded-xl py-3 text-center font-bold transition duration-300 ease-out">Join</a>
+                </div>
+            @endauth
         </nav>
     </div>
 </header>

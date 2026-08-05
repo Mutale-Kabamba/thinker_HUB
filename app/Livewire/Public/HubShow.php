@@ -17,7 +17,7 @@ class HubShow extends Component
             abort(404);
         }
 
-        $this->post = $post->load(['author:id,name,profile_photo_path']);
+        $this->post = $post->load(['author:id,name,profile_photo_path', 'media']);
     }
 
     public function render(): View
