@@ -2,6 +2,7 @@
     $navItems = [
         ['label' => 'Home', 'route' => 'home'],
         ['label' => 'Courses', 'route' => 'landing.courses'],
+        ['label' => 'Hub', 'route' => 'hub.index'],
         ['label' => 'Instructors', 'route' => 'landing.instructors'],
         ['label' => 'Contact', 'route' => 'landing.contact'],
     ];

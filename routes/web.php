@@ -217,6 +217,10 @@ Route::get('/courses', function () use ($loadPublicCourses) {
     ]);
 })->name('landing.courses');
 
+Route::get('/hub', App\Livewire\Public\HubIndex::class)->name('hub.index');
+Route::get('/hub/{post:slug}', App\Livewire\Public\HubShow::class)->name('hub.show');
+
+
 Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = null) use ($courseSlug, $databaseReady) {
     if (! $databaseReady() || ! Schema::hasTable('courses')) {
         abort(404);

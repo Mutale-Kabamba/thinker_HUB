@@ -1,0 +1,707 @@
+[
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Weekly Quiz 1: Advanced MS Word Formatting",
+    "description": "Weekly Quiz 1 covering Section Breaks, Styles, Non-Printing Characters, Tables, Table of Contents, Templates, and Page Numbering.",
+    "publish_at": "2026-08-14 18:00:00",
+    "time_limit_minutes": 20,
+    "shuffle_questions": true,
+    "show_results": true,
+    "pass_percentage": 60,
+    "is_active": true,
+    "questions": [
+      {
+        "type": "multiple_choice",
+        "question": "Which section break type allows a user to switch page orientation from portrait to landscape on a specific page without pushing content to an unwanted blank page?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Page Break",
+            "is_correct": false
+          },
+          {
+            "text": "Section Break (Next Page)",
+            "is_correct": true
+          },
+          {
+            "text": "Column Break",
+            "is_correct": false
+          },
+          {
+            "text": "Section Break (Continuous)",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "What happens when you modify the Heading 1 style in a Word document?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Only the currently highlighted text is updated.",
+            "is_correct": false
+          },
+          {
+            "text": "All text previously formatted with Heading 1 automatically updates across the entire document.",
+            "is_correct": true
+          },
+          {
+            "text": "A new template file is created automatically.",
+            "is_correct": false
+          },
+          {
+            "text": "All Heading 2 styles are deleted.",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "In Microsoft Word, what non-printing character is represented by a dot (·) between words?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Paragraph mark",
+            "is_correct": false
+          },
+          {
+            "text": "Tab key press",
+            "is_correct": false
+          },
+          {
+            "text": "Space bar press",
+            "is_correct": true
+          },
+          {
+            "text": "Soft line break",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "True/False: To maintain separate page numbering schemes (e.g., Roman numerals for introduction and Arabic numbers for main text), you must unlink the \"Link to Previous\" option in the header/footer settings across section breaks.",
+        "points": 2,
+        "options": [
+          {
+            "text": "True",
+            "is_correct": true
+          },
+          {
+            "text": "False",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "Which feature in MS Word automatically compiles document headings into a structured outline with corresponding page numbers?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Mail Merge",
+            "is_correct": false
+          },
+          {
+            "text": "Automated Table of Contents",
+            "is_correct": true
+          },
+          {
+            "text": "Index Generator",
+            "is_correct": false
+          },
+          {
+            "text": "Track Changes",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "What is the default file extension for a reusable Microsoft Word Template?",
+        "points": 2,
+        "options": [
+          {
+            "text": ".docx",
+            "is_correct": false
+          },
+          {
+            "text": ".pdf",
+            "is_correct": false
+          },
+          {
+            "text": ".dotx",
+            "is_correct": true
+          },
+          {
+            "text": ".txt",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "Which key combination inserts an explicit Manual Page Break in Microsoft Word?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Shift + Enter",
+            "is_correct": false
+          },
+          {
+            "text": "Ctrl + Enter",
+            "is_correct": true
+          },
+          {
+            "text": "Alt + Enter",
+            "is_correct": false
+          },
+          {
+            "text": "Tab + Enter",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "When adjusting table layout, what does the \"Repeat Header Rows\" feature do?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Duplicates the first row of data at the bottom of the table.",
+            "is_correct": false
+          },
+          {
+            "text": "Automatically repeats the table column headings at the top of every new page the table spans.",
+            "is_correct": true
+          },
+          {
+            "text": "Converts the table into an Excel spreadsheet.",
+            "is_correct": false
+          },
+          {
+            "text": "Locks the table against editing.",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "To restrict editing in a document so that users can only fill in form controls, which protection setting should be applied?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Mark as Final",
+            "is_correct": false
+          },
+          {
+            "text": "Encrypt with Password",
+            "is_correct": false
+          },
+          {
+            "text": "Restrict Editing -> Filling in forms",
+            "is_correct": true
+          },
+          {
+            "text": "Read-Only Recommended",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "What is the function of Shift + Enter in Microsoft Word?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Inserts a paragraph break (¶).",
+            "is_correct": false
+          },
+          {
+            "text": "Inserts a soft line break without starting a new paragraph.",
+            "is_correct": true
+          },
+          {
+            "text": "Saves the document.",
+            "is_correct": false
+          },
+          {
+            "text": "Opens the Print menu.",
+            "is_correct": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Weekly Quiz 2: Mail Merge & Collaborative Workflows",
+    "description": "Weekly Quiz 2 covering Mail Merge data pipelines, conditional IF rules, Track Changes, document comparison, form controls, and .dotx templates.",
+    "publish_at": "2026-08-21 18:00:00",
+    "time_limit_minutes": 20,
+    "shuffle_questions": true,
+    "show_results": true,
+    "pass_percentage": 60,
+    "is_active": true,
+    "questions": [
+      {
+        "type": "multiple_choice",
+        "question": "What are the two mandatory files required to execute a Mail Merge in MS Word?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Master Document and Data Source",
+            "is_correct": true
+          },
+          {
+            "text": "Template file and Macro file",
+            "is_correct": false
+          },
+          {
+            "text": "Word document and PDF export",
+            "is_correct": false
+          },
+          {
+            "text": "Style sheet and Image file",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "In Mail Merge, which field rule allows you to insert conditional text based on recipient data?",
+        "points": 2,
+        "options": [
+          {
+            "text": "NEXT IF",
+            "is_correct": false
+          },
+          {
+            "text": "IF...THEN...ELSE",
+            "is_correct": true
+          },
+          {
+            "text": "MERGE REC",
+            "is_correct": false
+          },
+          {
+            "text": "ASK",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "When Track Changes is enabled, how are deleted text sections displayed by default?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Highlighted in yellow",
+            "is_correct": false
+          },
+          {
+            "text": "Marked with a strikethrough or shown in revision balloons",
+            "is_correct": true
+          },
+          {
+            "text": "Completely erased without trace",
+            "is_correct": false
+          },
+          {
+            "text": "Converted into footnotes",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "Which tab in MS Word contains the controls for inserting Form Content Controls (e.g., Dropdown lists, Date Pickers)?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Insert Tab",
+            "is_correct": false
+          },
+          {
+            "text": "Layout Tab",
+            "is_correct": false
+          },
+          {
+            "text": "Developer Tab",
+            "is_correct": true
+          },
+          {
+            "text": "References Tab",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "True/False: Accepting a tracked edit converts the suggested change into permanent document text.",
+        "points": 2,
+        "options": [
+          {
+            "text": "True",
+            "is_correct": true
+          },
+          {
+            "text": "False",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "What file format is commonly used as a Data Source for Word Mail Merge operations?",
+        "points": 2,
+        "options": [
+          {
+            "text": ".xlsx (Excel Spreadsheet)",
+            "is_correct": true
+          },
+          {
+            "text": ".mp4 (Video file)",
+            "is_correct": false
+          },
+          {
+            "text": ".png (Image file)",
+            "is_correct": false
+          },
+          {
+            "text": ".exe (Executable file)",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "Which feature allows you to compare two versions of a Word document side-by-side and generate a third document highlighting all differences?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Track Changes",
+            "is_correct": false
+          },
+          {
+            "text": "Compare Documents",
+            "is_correct": true
+          },
+          {
+            "text": "Combine Styles",
+            "is_correct": false
+          },
+          {
+            "text": "Document Inspector",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "What happens if you save a file with a .dotx extension?",
+        "points": 2,
+        "options": [
+          {
+            "text": "It overwrites the MS Word program.",
+            "is_correct": false
+          },
+          {
+            "text": "Opening it creates a new untitled .docx copy, preserving the original file as an untouched template.",
+            "is_correct": true
+          },
+          {
+            "text": "It encrypts the hard drive.",
+            "is_correct": false
+          },
+          {
+            "text": "It converts text to plain ASCII code.",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "In Track Changes, what does selecting \"Original\" view do?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Shows the document in its final state with all edits accepted.",
+            "is_correct": false
+          },
+          {
+            "text": "Displays the document in its initial state before any revisions were made.",
+            "is_correct": true
+          },
+          {
+            "text": "Opens the original template.",
+            "is_correct": false
+          },
+          {
+            "text": "Deletes all comments permanently.",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "Which Content Control type should be used to restrict user entries to a pre-defined set of options in a form?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Plain Text Content Control",
+            "is_correct": false
+          },
+          {
+            "text": "Drop-Down List Content Control",
+            "is_correct": true
+          },
+          {
+            "text": "Picture Content Control",
+            "is_correct": false
+          },
+          {
+            "text": "Building Block Gallery Control",
+            "is_correct": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Weekly Quiz 3: MS Excel Formulas & Budgeting",
+    "description": "Weekly Quiz 3 covering cell referencing rules, statutory calculations (PAYE, NAPSA, VAT), VLOOKUP/XLOOKUP, Data Validation, Tables, PivotTables, and sheet protection.",
+    "publish_at": "2026-08-28 18:00:00",
+    "time_limit_minutes": 20,
+    "shuffle_questions": true,
+    "show_results": true,
+    "pass_percentage": 60,
+    "is_active": true,
+    "questions": [
+      {
+        "type": "multiple_choice",
+        "question": "If cell A1 contains 100 and cell B1 contains formula =$A$1 * 2, what value will be displayed in B1 if copied to B2?",
+        "points": 2,
+        "options": [
+          {
+            "text": "0",
+            "is_correct": false
+          },
+          {
+            "text": "100",
+            "is_correct": false
+          },
+          {
+            "text": "200",
+            "is_correct": true
+          },
+          {
+            "text": "#REF!",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "Which formula correctly calculates 16% Value Added Tax (VAT) on an amount in cell D5?",
+        "points": 2,
+        "options": [
+          {
+            "text": "=D5 + 16",
+            "is_correct": false
+          },
+          {
+            "text": "=D5 * 0.16",
+            "is_correct": true
+          },
+          {
+            "text": "=D5 / 0.16",
+            "is_correct": false
+          },
+          {
+            "text": "=VAT(D5)",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "In the function =VLOOKUP(E5, A2:D100, 3, FALSE), what does the number 3 represent?",
+        "points": 2,
+        "options": [
+          {
+            "text": "The row number to return.",
+            "is_correct": false
+          },
+          {
+            "text": "The column index number in the table array from which to retrieve data.",
+            "is_correct": true
+          },
+          {
+            "text": "The number of matching records to find.",
+            "is_correct": false
+          },
+          {
+            "text": "The percentage tolerance level.",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "Which Excel feature allows you to restrict user data entry in a cell to whole numbers between 1 and 100?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Conditional Formatting",
+            "is_correct": false
+          },
+          {
+            "text": "Data Validation",
+            "is_correct": true
+          },
+          {
+            "text": "PivotTable",
+            "is_correct": false
+          },
+          {
+            "text": "AutoFilter",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "True/False: XLOOKUP can search for values both to the left and to the right of the lookup column.",
+        "points": 2,
+        "options": [
+          {
+            "text": "True",
+            "is_correct": true
+          },
+          {
+            "text": "False",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "What does the #VALUE! error in Excel signify?",
+        "points": 2,
+        "options": [
+          {
+            "text": "The column is too narrow to display numbers.",
+            "is_correct": false
+          },
+          {
+            "text": "A formula has an incorrect data type (e.g., trying to add text to a number).",
+            "is_correct": true
+          },
+          {
+            "text": "A cell reference is missing.",
+            "is_correct": false
+          },
+          {
+            "text": "Division by zero occurred.",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "Which shortcut converts a standard data range into an official Excel Table?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Ctrl + T",
+            "is_correct": true
+          },
+          {
+            "text": "Ctrl + Shift + L",
+            "is_correct": false
+          },
+          {
+            "text": "Alt + F1",
+            "is_correct": false
+          },
+          {
+            "text": "Ctrl + P",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "Which tool is best suited to rapidly summarize, aggregate, and analyze 5,000 rows of sales data without writing formulas?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Mail Merge",
+            "is_correct": false
+          },
+          {
+            "text": "PivotTable",
+            "is_correct": true
+          },
+          {
+            "text": "Goal Seek",
+            "is_correct": false
+          },
+          {
+            "text": "Text to Columns",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "What formula would you use to calculate the total sales for only the \"Hardware\" category in column B, with amounts in column C?",
+        "points": 2,
+        "options": [
+          {
+            "text": "=COUNTIF(B:B, \"Hardware\")",
+            "is_correct": false
+          },
+          {
+            "text": "=SUMIF(B:B, \"Hardware\", C:C)",
+            "is_correct": true
+          },
+          {
+            "text": "=SUM(C:C)",
+            "is_correct": false
+          },
+          {
+            "text": "=AVERAGEIF(B:B, \"Hardware\", C:C)",
+            "is_correct": false
+          }
+        ]
+      },
+      {
+        "type": "multiple_choice",
+        "question": "In Excel worksheet protection, which property must be unchecked for input cells before protecting the sheet?",
+        "points": 2,
+        "options": [
+          {
+            "text": "Hidden",
+            "is_correct": false
+          },
+          {
+            "text": "Locked",
+            "is_correct": true
+          },
+          {
+            "text": "Formula View",
+            "is_correct": false
+          },
+          {
+            "text": "AutoFit",
+            "is_correct": false
+          }
+        ]
+      }
+    ]
+  }
+]
