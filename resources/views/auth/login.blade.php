@@ -213,9 +213,11 @@
                     body: JSON.stringify({ id_token: idToken, ...payload }),
                 });
 
-                const responsePayload = await response.json();
-
                 if (!response.ok) {
+                    if (response.status === 419 || (responsePayload.message || '').toLowerCase().includes('csrf') || (responsePayload.message || '').toLowerCase().includes('session')) {
+                        throw new Error('Session refreshed. Please click Continue with Google to sign in.');
+                    }
+
                     if ((responsePayload.message || '').includes('Complete setup fields')) {
                         return { requiresEnrollment: true };
                     }

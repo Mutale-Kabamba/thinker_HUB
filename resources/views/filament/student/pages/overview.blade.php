@@ -410,6 +410,13 @@
                                 <span class="hub-chip hub-chip-primary" style="font-size:0.68rem;flex-shrink:0;">{{ $item['type'] }}</span>
                             </div>
                         </a>
+                    @empty
+                        <p class="hub-copy">No materials yet.</p>
+                    @endforelse
+                </div>
+            </section>
+        </section>
+
         {{-- ===== PAYMENTS & RECEIPTS TAB ===== --}}
         <section id="payments" class="hub-shell" x-show="activeSection === 'payments'" x-cloak>
             <section class="hub-card">
