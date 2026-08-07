@@ -25,13 +25,6 @@ class CohortBroadcast extends Mailable
     {
         return new Envelope(
             subject: $this->subjectLine,
-            using: [
-                static function ($message): void {
-                    $headers = $message->getHeaders();
-                    $headers->addTextHeader('X-Auto-Response-Suppress', 'All');
-                    $headers->addTextHeader('Auto-Submitted', 'auto-generated');
-                },
-            ],
         );
     }
 
@@ -39,6 +32,7 @@ class CohortBroadcast extends Mailable
     {
         return new Content(
             view: 'emails.cohort-broadcast',
+            text: 'emails.cohort-broadcast-text',
         );
     }
 }

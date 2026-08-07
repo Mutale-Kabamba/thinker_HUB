@@ -79,31 +79,13 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureMailDeliverabilityHeaders(): void
     {
-        $listUnsubscribe = (string) config('mail.deliverability.list_unsubscribe', '');
-        $listUnsubscribePost = (string) config('mail.deliverability.list_unsubscribe_post', '');
-        $messageIdDomain = trim((string) config('mail.deliverability.message_id_domain', ''));
+        $messageIdDomain = trim((string) config('mail.deliverability.message_id_domain', 'oristudiozm.com'));
 
-        $this->app['events']->listen(MessageSending::class, function (MessageSending $event) use ($listUnsubscribe, $listUnsubscribePost, $messageIdDomain): void {
+        $this->app['events']->listen(MessageSending::class, function (MessageSending $event) use ($messageIdDomain): void {
             $headers = $event->message->getHeaders();
 
             if ($messageIdDomain !== '' && ! $headers->has('Message-ID') && method_exists($headers, 'addIdHeader')) {
-                $headers->addIdHeader('Message-ID', Str::uuid().'@'.$messageIdDomain);
-            }
-
-            if (! $headers->has('Auto-Submitted')) {
-                $headers->addTextHeader('Auto-Submitted', 'auto-generated');
-            }
-
-            if (! $headers->has('X-Auto-Response-Suppress')) {
-                $headers->addTextHeader('X-Auto-Response-Suppress', 'All');
-            }
-
-            if ($listUnsubscribe !== '' && ! $headers->has('List-Unsubscribe')) {
-                $headers->addTextHeader('List-Unsubscribe', $listUnsubscribe);
-            }
-
-            if ($listUnsubscribePost !== '' && ! $headers->has('List-Unsubscribe-Post')) {
-                $headers->addTextHeader('List-Unsubscribe-Post', $listUnsubscribePost);
+                $headers->addIdHeader('Message-ID', (string) Str::uuid().'@'.$messageIdDomain);
             }
         });
     }

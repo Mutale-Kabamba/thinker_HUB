@@ -29,15 +29,10 @@ class StudentApprovedMail extends Mailable
 
     public function envelope(): Envelope
     {
+        $subject = 'think.er HUB: Your student account is active ('.$this->student->name.')';
+
         return new Envelope(
-            subject: 'Your account is now active',
-            using: [
-                static function ($message): void {
-                    $headers = $message->getHeaders();
-                    $headers->addTextHeader('X-Auto-Response-Suppress', 'All');
-                    $headers->addTextHeader('Auto-Submitted', 'auto-generated');
-                },
-            ],
+            subject: $subject,
         );
     }
 
@@ -45,6 +40,7 @@ class StudentApprovedMail extends Mailable
     {
         return new Content(
             view: 'emails.student-approved',
+            text: 'emails.student-approved-text',
         );
     }
 

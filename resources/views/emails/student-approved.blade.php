@@ -16,13 +16,13 @@
                     <tr>
                         <td style="padding:32px 32px 28px;background:linear-gradient(135deg,#0a2d27 0%,#115e59 100%);color:#ffffff;">
                             <div style="display:inline-block;padding:4px 12px;background:rgba(255,255,255,0.12);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#99f6e4;">
-                                think.er HUB &bull; Account Approved
+                                think.er HUB &bull; Student Account
                             </div>
-                            <h1 style="margin:14px 0 6px;font-size:26px;line-height:1.25;color:#ffffff;font-weight:800;letter-spacing:-0.02em;">
-                                Welcome Aboard! 🎉
+                            <h1 style="margin:14px 0 6px;font-size:24px;line-height:1.25;color:#ffffff;font-weight:800;letter-spacing:-0.02em;">
+                                Welcome to think.er HUB
                             </h1>
                             <p style="margin:0;font-size:14px;line-height:1.5;color:#ccfbf1;">
-                                Your registration has been verified and your student account is now fully active.
+                                Your course enrollment has been verified and your portal is ready.
                             </p>
                         </td>
                     </tr>
@@ -132,8 +132,9 @@
                 </table>
 
                 <!-- Bottom Branding -->
-                <p style="margin:16px 0 0;font-size:11px;color:#94a3b8;text-align:center;">
-                    &copy; {{ date('Y') }} think.er HUB &bull; Livingstone, Zambia
+                <p style="margin:16px 0 0;font-size:11px;color:#94a3b8;text-align:center;line-height:1.5;">
+                    &copy; {{ date('Y') }} think.er HUB &bull; 10A Off Natwange Street, Airport, Livingstone, Zambia<br>
+                    Official learning platform by <a href="{{ config('app.url') }}" style="color:#0f766e;text-decoration:underline;">oristudiozm.com</a>
                 </p>
             </td>
         </tr>
