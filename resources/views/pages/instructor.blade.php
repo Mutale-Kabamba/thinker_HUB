@@ -220,7 +220,7 @@
                         <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Network</a></li>
                         <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
                         @auth
-                            <li><a href="{{ route('dashboard') }}" class="transition hover:text-[#0a2d27]">Dashboard</a></li>
+                            <li><a href="{{ route('dashboard') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
                         @else
                             <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
                         @endauth
@@ -231,7 +231,7 @@
                     <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
                     <div class="mt-4 space-y-2.5 text-sm text-slate-500">
                         <p><span class="font-semibold text-slate-700">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
-                        <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-[#0a2d27] hover:underline">thinker.learn@gmail.com</a></p>
+                        <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-[#0a2d27] hover:underline">thinkerhub@oristudiozm.com</a></p>
                     </div>
                 </div>
             </div>

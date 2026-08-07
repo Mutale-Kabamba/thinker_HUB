@@ -69,7 +69,7 @@
 
                     <h2 class="text-lg font-bold text-slate-900">5. Contact</h2>
                         <p><span class="font-semibold text-slate-900">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-2 text-slate-900 font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
-                        <p><span class="font-semibold text-slate-900">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-slate-900">thinker.learn@gmail.com</a></p>
+                        <p><span class="font-semibold text-slate-900">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-slate-900">thinkerhub@oristudiozm.com</a></p>
                         <p><span class="font-semibold text-slate-900">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
                         <div class="pt-1 flex items-center gap-5 text-slate-500">
                             <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>

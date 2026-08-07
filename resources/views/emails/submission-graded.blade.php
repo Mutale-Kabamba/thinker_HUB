@@ -1,29 +1,28 @@
 <x-mail::message>
-# ✅ Your Submission Was Reviewed
+# 🎉 Your Submission Was Reviewed & Graded
 
-Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
+Hello {{ $recipientName ?? $notifiable->name ?? 'Learner' }},
 
-Great news — your {{ $submissionType }} has been reviewed by your instructor.
+Great news! Your instructor has reviewed and assessed your {{ $submissionType }}.
 
 <x-mail::panel>
-**{{ ucfirst($submissionType) }}:** {{ $itemTitle }}
-
-**Score:** {{ $scoreOrGrade !== null ? $scoreOrGrade : 'N/A' }}
+**{{ ucfirst($submissionType) }}:** {{ $itemTitle }}  
+**Result / Score:** **{{ $scoreOrGrade !== null ? $scoreOrGrade : 'Assessed' }}**  
 
 @if($feedback)
-**Instructor Feedback:**
+**Instructor Feedback:**  
 > {{ $feedback }}
 @else
-*No additional feedback was provided.*
+*Your submission was reviewed successfully with no additional notes.*
 @endif
 </x-mail::panel>
 
 <x-mail::button :url="route('dashboard')" color="success">
-View Results
+View Detailed Results on Dashboard &rarr;
 </x-mail::button>
 
-Keep up the great work!
+Keep up the outstanding effort and momentum in your studies!
 
-Best regards,<br>
-{{ $signerName ?? config('app.name') }}
+Best regards,  
+**{{ $signerName ?? config('app.name') }}**
 </x-mail::message>

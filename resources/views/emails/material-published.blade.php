@@ -1,30 +1,27 @@
 <x-mail::message>
-# 📚 New Learning Material
+# 📚 New Learning Material Published
 
-Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
+Hello {{ $recipientName ?? $notifiable->name ?? 'Learner' }},
 
-New learning material has been published for you to explore.
+New learning materials have been uploaded to support your coursework. Take some time to review and download the resources.
 
 <x-mail::panel>
-**Title:** {{ $material->title }}
-
-**Course:** {{ $material->course?->name ?? 'General' }}
-
-**Type:** {{ ucfirst($material->type ?? 'Document') }}
+**Course:** {{ $material->course?->title ?? $material->course?->name ?? 'Course Offering' }}  
+**Title:** {{ $material->title }}  
+**Resource Type:** {{ ucfirst($material->type ?? 'Document / Slide') }}  
 
 @if($material->description)
-**About:** {{ Str::limit(strip_tags($material->description), 150) }}
+**Overview:**  
+{{ Str::limit(strip_tags($material->description), 180) }}
 @endif
 </x-mail::panel>
 
-Take some time to go through the material — it will help you stay on track.
-
 <x-mail::button :url="route('dashboard')" color="primary">
-View Material
+Access Learning Material &rarr;
 </x-mail::button>
 
-Happy learning!
+Happy learning and upskilling!
 
-Best regards,<br>
-{{ $signerName ?? config('app.name') }}
+Best regards,  
+**{{ $signerName ?? config('app.name') }}**
 </x-mail::message>

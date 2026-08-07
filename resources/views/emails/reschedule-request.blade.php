@@ -1,28 +1,32 @@
-@component('mail::message')
-# Reschedule Request
+<x-mail::message>
+# ⏳ Reschedule Request Received
 
-Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
+Hello {{ $recipientName ?? $notifiable->name ?? 'Instructor' }},
 
-**{{ $studentName }}** has requested to reschedule a session.
+**{{ $studentName }}** has requested to reschedule an upcoming course session.
 
-@component('mail::panel')
-**Course:** {{ $session->course->title ?? 'Course' }}
-**Original Date:** {{ $session->session_date->format('l, M j, Y') }} at {{ $session->start_time }}
-**Reason:** {{ $reason }}
+<x-mail::panel>
+**Course:** {{ $session->course->title ?? $session->course->name ?? 'Course' }}  
+**Original Session:** {{ $session->session_date->format('l, M j, Y') }} at {{ $session->start_time }}  
+
 @if ($preferredDate)
-**Preferred Date:** {{ $preferredDate }}
+**Requested Date:** {{ $preferredDate }}  
 @endif
+
 @if ($preferredTime)
-**Preferred Time:** {{ $preferredTime }}
+**Requested Time:** {{ $preferredTime }}  
 @endif
-@endcomponent
 
-Please review and take action from your dashboard.
+**Reason for Request:**  
+{{ $reason }}
+</x-mail::panel>
 
-@component('mail::button', ['url' => url('/teach/schedule')])
-View Schedule
-@endcomponent
+Please review the requested changes and approve or decline from your instructor schedule dashboard.
 
-Regards,<br>
-{{ $signerName ?? config('app.name') }}
-@endcomponent
+<x-mail::button :url="url('/teach/schedule')" color="primary">
+Review & Manage Schedule &rarr;
+</x-mail::button>
+
+Best regards,  
+**{{ $signerName ?? config('app.name') }}**
+</x-mail::message>

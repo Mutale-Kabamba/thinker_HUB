@@ -1,30 +1,27 @@
 <x-mail::message>
-# 📝 New Assignment
+# 📝 New Assignment Posted
 
-Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
+Hello {{ $recipientName ?? $notifiable->name ?? 'Learner' }},
 
-A new assignment has been posted and is waiting for you.
+A new assignment has been posted for your course. Please review the details and start your submission early.
 
 <x-mail::panel>
-**Assignment:** {{ $assignment->name }}
-
-**Course:** {{ $assignment->course?->name ?? 'General' }}
-
-**Due Date:** {{ $assignment->due_date?->format('M d, Y \a\t h:i A') ?? 'No deadline' }}
+**Course:** {{ $assignment->course?->title ?? $assignment->course?->name ?? 'Course Offering' }}  
+**Assignment:** {{ $assignment->name }}  
+**Due Date:** {{ $assignment->due_date?->format('l, M j, Y \a\t h:i A') ?? 'No deadline specified' }}  
 
 @if($assignment->description)
-**Description:** {{ Str::limit(strip_tags($assignment->description), 150) }}
+**Summary:**  
+{{ Str::limit(strip_tags($assignment->description), 180) }}
 @endif
 </x-mail::panel>
 
-Don't wait until the last minute — start working on it now!
-
 <x-mail::button :url="route('dashboard')" color="primary">
-View Assignment
+View Assignment on Dashboard &rarr;
 </x-mail::button>
 
-If you have any questions, reach out to your instructor.
+If you have questions or need guidance on this assignment, reach out to your course instructor.
 
-Best regards,<br>
-{{ $signerName ?? config('app.name') }}
+Best regards,  
+**{{ $signerName ?? config('app.name') }}**
 </x-mail::message>

@@ -229,7 +229,7 @@
                         <p>We retain personal data only for as long as necessary to fulfil the purposes described above, or as required by applicable Zambian legislation. Academic records may be retained for a reasonable period after account closure for certification verification.</p>
 
                         <h3 class="mt-4 text-base font-bold text-slate-900">8. Contact</h3>
-                        <p>For any data protection enquiries, contact us at: <a href="mailto:thinker.learn@gmail.com" class="text-teal-700 underline">thinker.learn@gmail.com</a></p>
+                        <p>For any data protection enquiries, contact us at: <a href="mailto:thinkerhub@oristudiozm.com" class="text-teal-700 underline">thinkerhub@oristudiozm.com</a></p>
                         <p>Address: 10A Off Natwange Street, Airport, Livingstone, Zambia</p>
                     </div>
                 </template>
@@ -279,7 +279,7 @@
                         <p>In accordance with the <strong>Data Protection Act No. 3 of 2021</strong>, we obtain your consent before setting any non-essential cookies. You may change your preference at any time by clearing your browser cookies and revisiting the site.</p>
 
                         <h3 class="mt-4 text-base font-bold text-slate-900">5. Contact</h3>
-                        <p>Questions about our cookie practices? Email us at <a href="mailto:thinker.learn@gmail.com" class="text-teal-700 underline">thinker.learn@gmail.com</a>.</p>
+                        <p>Questions about our cookie practices? Email us at <a href="mailto:thinkerhub@oristudiozm.com" class="text-teal-700 underline">thinkerhub@oristudiozm.com</a>.</p>
                     </div>
                 </template>
 
@@ -327,7 +327,7 @@
                         <p>We may update these terms from time to time. Continued use of the platform after changes constitutes acceptance of the revised terms.</p>
 
                         <h3 class="mt-4 text-base font-bold text-slate-900">10. Contact</h3>
-                        <p>For questions about these terms, contact: <a href="mailto:thinker.learn@gmail.com" class="text-teal-700 underline">thinker.learn@gmail.com</a></p>
+                        <p>For questions about these terms, contact: <a href="mailto:thinkerhub@oristudiozm.com" class="text-teal-700 underline">thinkerhub@oristudiozm.com</a></p>
                         <p>Address: 10A Off Natwange Street, Airport, Livingstone, Zambia</p>
                     </div>
                 </template>
