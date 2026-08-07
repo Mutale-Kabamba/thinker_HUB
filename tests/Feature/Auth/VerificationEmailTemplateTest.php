@@ -32,7 +32,7 @@ class VerificationEmailTemplateTest extends TestCase
         Notification::assertSentTo($student, QueuedVerifyEmail::class, function (QueuedVerifyEmail $notification, array $channels) use ($student) {
             $mail = $notification->toMail($student);
 
-            return $mail->greeting === 'Hello, Student John'
+            return $mail->greeting === 'Hello Student!'
                 && $mail->salutation === "Regards,\nAdmin Jane"
                 && $mail->subject === 'Verify Email Address';
         });

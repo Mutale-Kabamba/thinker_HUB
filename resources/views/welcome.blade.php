@@ -437,7 +437,7 @@
                         <div class="mt-4 space-y-2.5 text-sm text-slate-500">
                             <p><span class="font-semibold text-slate-700">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
                             <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinkerhub@oristudiozm.com</a></p>
-                            <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
+                            <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airport, Livingstone Zambia</p>
                         </div>
                         <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
                             <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
