@@ -103,6 +103,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->hasMany(Certificate::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public function badges(): BelongsToMany
     {
         return $this->belongsToMany(Badge::class, 'user_badge')

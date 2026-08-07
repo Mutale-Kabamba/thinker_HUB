@@ -128,6 +128,31 @@ class Course extends Model
         return $this->hasMany(CourseRating::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function getNumericFee(): float
+    {
+        $fees = trim((string) $this->fees);
+
+        if ($fees === '') {
+            return 0.0;
+        }
+
+        if (preg_match_all('/\d+(?:[.,]\d+)?/', $fees, $matches) !== false) {
+            foreach ($matches[0] ?? [] as $rawAmount) {
+                $normalized = (float) str_replace(',', '', (string) $rawAmount);
+                if ($normalized > 0) {
+                    return $normalized;
+                }
+            }
+        }
+
+        return 0.0;
+    }
+
     public function averageRating(): float
     {
         if (array_key_exists('ratings_avg_rating', $this->getAttributes())) {

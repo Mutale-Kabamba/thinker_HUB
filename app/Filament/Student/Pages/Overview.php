@@ -37,6 +37,8 @@ class Overview extends Page
 
     public array $assessmentSummary = [];
 
+    public array $payments = [];
+
     public function mount(): void
     {
         $user = auth()->user();
@@ -106,6 +108,7 @@ class Overview extends Page
             ['label' => 'Assignments', 'section' => 'assignments'],
             ['label' => 'Assessments', 'section' => 'assessments'],
             ['label' => 'Materials', 'section' => 'materials'],
+            ['label' => 'Payments & Receipts', 'section' => 'payments'],
         ];
 
         $this->materials = $visibleMaterials
@@ -164,6 +167,21 @@ class Overview extends Page
                 ->values()
                 ->all(),
         ];
+
+        $this->payments = $user->payments()
+            ->with('course')
+            ->latest()
+            ->get()
+            ->map(fn (\App\Models\Payment $p): array => [
+                'reference' => $p->reference,
+                'course' => $p->course?->title ?? 'Course Tuition Fee',
+                'amount' => $p->formattedAmount(),
+                'method' => str_replace('_', ' ', $p->payment_method) . ' (' . strtoupper($p->provider ?? 'Gateway') . ')',
+                'status' => $p->status,
+                'paid_at' => $p->paid_at?->format('M j, Y') ?? $p->created_at->format('M j, Y'),
+                'receipt_url' => route('payment.receipt', $p->reference),
+            ])
+            ->toArray();
 
         $this->loadCalendar(Carbon::today(), $visibleAssignments, $assessmentRecords, $assignmentSubmissions, $assessmentSubmissions);
     }

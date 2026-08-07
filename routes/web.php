@@ -3,6 +3,7 @@
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\InstructorApplicationController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Assessment;
 use App\Models\AssessmentSubmission;
@@ -229,6 +230,10 @@ Route::get('/media/{media}/download', function (App\Models\Media $media) {
     return Illuminate\Support\Facades\Storage::disk($media->disk)->download($media->path, $media->original_name);
 })->name('media.download');
 
+Route::get('/checkout/{course}', [PaymentController::class, 'showCheckout'])->name('checkout.show');
+Route::get('/courses/{course}/enroll', [PaymentController::class, 'showCheckout']);
+Route::post('/courses/{course}/pay', [PaymentController::class, 'processPayment'])->name('checkout.process');
+Route::get('/payments/receipt/{reference}', [PaymentController::class, 'showReceipt'])->name('payment.receipt');
 
 Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = null) use ($courseSlug, $databaseReady) {
     if (! $databaseReady() || ! Schema::hasTable('courses')) {

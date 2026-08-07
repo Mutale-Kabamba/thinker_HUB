@@ -427,8 +427,12 @@
                     <span class="text-sm font-semibold text-white">{{ $avgRating > 0 ? $avgRating : '' }}</span>
                     <span class="text-sm text-slate-400">({{ $ratingCount }} {{ Str::plural('review', $ratingCount) }})</span>
                 </div>
-                <div class="mt-8">
-                    <a href="{{ route('landing.courses') }}" class="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
+                <div class="mt-8 flex flex-wrap items-center gap-4">
+                    <a href="{{ route('checkout.show', $course) }}" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] shadow-lg shadow-yellow-400/20 transition hover:bg-yellow-300">
+                        <i class="fa-solid fa-credit-card"></i>
+                        Enroll &amp; Pay (Instant Access)
+                    </a>
+                    <a href="{{ route('landing.courses') }}" class="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10">
                         <i class="fa-solid fa-arrow-left"></i>
                         Back to Courses
                     </a>

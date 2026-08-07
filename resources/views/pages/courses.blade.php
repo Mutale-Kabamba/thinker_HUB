@@ -117,13 +117,21 @@
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ $course->timeline ?: 'Self paced' }}</span>
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $studentsCount }} Students</span>
                                 </div>
-                                <div class="mt-4 flex items-center justify-between gap-3">
-                                    <a
-                                        href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
-                                        class="inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#11443c]"
-                                    >
-                                        Open Course Page
-                                    </a>
+                                <div class="mt-4 flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <a
+                                            href="{{ route('checkout.show', $course) }}"
+                                            class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm"
+                                        >
+                                            Enroll &amp; Pay
+                                        </a>
+                                        <a
+                                            href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
+                                            class="inline-flex items-center justify-center rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
+                                        >
+                                            Details
+                                        </a>
+                                    </div>
 
                                     @if ($isOpenEnrollment)
                                         <span
