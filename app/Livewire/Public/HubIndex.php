@@ -37,6 +37,15 @@ class HubIndex extends Component
     public string $regRole = 'blogger'; // blogger | researcher | employer
     public string $regPassword = '';
     public string $regPasswordConfirmation = '';
+    public string $regBio = '';
+    public string $regWhatsapp = '';
+    public string $regLinkedinUrl = '';
+    public string $regFacebookUrl = '';
+    public string $regPortfolioUrl = '';
+    public string $regGithubUrl = '';
+    public string $regInstagramUrl = '';
+    public string $regCompany = '';
+    public string $regSpecialty = '';
 
     // Resource Submission form attributes
     public string $submitTitle = '';
@@ -67,6 +76,14 @@ class HubIndex extends Component
         'type' => ['except' => 'all'],
         'category' => ['except' => 'all'],
     ];
+
+    public function mount(): void
+    {
+        if (request()->boolean('register') || request()->query('action') === 'register' || request()->boolean('registerModal')) {
+            $this->openRegisterModal();
+        }
+    }
+
 
     public function openSubmitModal(): void
     {
@@ -116,6 +133,13 @@ class HubIndex extends Component
         $this->regRole = 'blogger';
         $this->regPassword = '';
         $this->regPasswordConfirmation = '';
+        $this->regBio = '';
+        $this->regWhatsapp = '';
+        $this->regLinkedinUrl = '';
+        $this->regPortfolioUrl = '';
+        $this->regGithubUrl = '';
+        $this->regCompany = '';
+        $this->regSpecialty = '';
         $this->showRegisterModal = true;
     }
 
@@ -131,6 +155,13 @@ class HubIndex extends Component
             'regEmail' => 'required|string|email|max:255|unique:users,email',
             'regRole' => 'required|string|in:blogger,researcher,employer',
             'regPassword' => 'required|string|min:8|same:regPasswordConfirmation',
+            'regBio' => 'nullable|string|max:1000',
+            'regWhatsapp' => 'nullable|string|max:50',
+            'regLinkedinUrl' => 'nullable|url|max:255',
+            'regPortfolioUrl' => 'nullable|url|max:255',
+            'regGithubUrl' => 'nullable|url|max:255',
+            'regCompany' => 'nullable|string|max:255',
+            'regSpecialty' => 'nullable|string|max:255',
         ]);
 
         $roleTitle = match ($this->regRole) {
@@ -146,9 +177,18 @@ class HubIndex extends Component
             'role' => $this->regRole,
             'is_active' => false, // Pending Admin approval!
             'password' => Hash::make($this->regPassword),
+            'bio' => $this->regBio ?: null,
+            'whatsapp' => $this->regWhatsapp ?: null,
+            'linkedin_url' => $this->regLinkedinUrl ?: null,
+            'facebook_url' => $this->regFacebookUrl ?: null,
+            'portfolio_url' => $this->regPortfolioUrl ?: null,
+            'github_url' => $this->regGithubUrl ?: null,
+            'instagram_url' => $this->regInstagramUrl ?: null,
+            'company' => $this->regCompany ?: null,
+            'specialty' => $this->regSpecialty ?: null,
         ]);
 
-        $this->submitNoticeMessage = "Registration received! Your request for an approved {$roleTitle} account is pending Admin review. You will be notified once activated.";
+        $this->submitNoticeMessage = "Registration received! Your request for an approved {$roleTitle} profile has been submitted to Admin for review. Once approved, your account will be activated and listed on our Knowledge Network directory.";
         $this->closeRegisterModal();
     }
 

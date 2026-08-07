@@ -34,8 +34,11 @@ class ProfileUpdateRequest extends FormRequest
             'proficiency' => ['nullable', 'string', 'max:255'],
             'occupation' => ['nullable', 'string', 'max:255'],
             'whatsapp' => ['nullable', 'string', 'max:50'],
+            'whatsapp_number' => ['nullable', 'string', 'max:50'],
             'linkedin_url' => ['nullable', 'url', 'max:255'],
             'facebook_url' => ['nullable', 'url', 'max:255'],
+            'github_url' => ['nullable', 'url', 'max:255'],
+            'instagram_url' => ['nullable', 'url', 'max:255'],
             'bio' => ['nullable', 'string', 'max:2000'],
         ];
     }

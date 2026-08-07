@@ -100,6 +100,18 @@ class InstructorResource extends Resource
                     ->maxLength(500)
                     ->placeholder('https://facebook.com/...'),
 
+                TextInput::make('github_url')
+                    ->label('GitHub URL')
+                    ->url()
+                    ->maxLength(500)
+                    ->placeholder('https://github.com/...'),
+
+                TextInput::make('instagram_url')
+                    ->label('Instagram URL')
+                    ->url()
+                    ->maxLength(500)
+                    ->placeholder('https://instagram.com/...'),
+
                 Toggle::make('is_active')
                     ->label('Active')
                     ->default(true),

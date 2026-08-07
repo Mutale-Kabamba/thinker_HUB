@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+[x-cloak] {
+    display: none !important;
+}
+
 :root {
 	--edu-ink: #11243b;
 	--edu-ink-soft: #47607b;

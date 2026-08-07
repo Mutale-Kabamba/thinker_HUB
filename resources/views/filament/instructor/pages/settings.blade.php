@@ -111,6 +111,22 @@
                         @enderror
                     </div>
 
+                    <div>
+                        <label for="instr_github" class="hub-eyebrow">GitHub URL</label>
+                        <input id="instr_github" name="github_url" type="url" value="{{ old('github_url', $user->github_url) }}" class="hub-input" placeholder="https://github.com/yourusername">
+                        @error('github_url')
+                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="instr_instagram" class="hub-eyebrow">Instagram URL</label>
+                        <input id="instr_instagram" name="instagram_url" type="url" value="{{ old('instagram_url', $user->instagram_url) }}" class="hub-input" placeholder="https://instagram.com/yourusername">
+                        @error('instagram_url')
+                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
                         <button type="submit" class="hub-btn hub-btn-primary">Save Details</button>
                         @if (session('status') === 'profile-updated')

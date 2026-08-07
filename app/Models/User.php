@@ -45,6 +45,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         'whatsapp',
         'linkedin_url',
         'facebook_url',
+        'github_url',
+        'instagram_url',
+        'company',
+        'portfolio_url',
+        'specialty',
     ];
 
     /**
@@ -432,12 +437,23 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return PublicDiskPath::url($this->profile_photo_path);
     }
 
+    public function isContributor(): bool
+    {
+        return in_array($this->role, ['blogger', 'researcher', 'employer'], true);
+    }
+
+    public function isStudent(): bool
+    {
+        return $this->role === 'student' || empty($this->role);
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return match ($panel->getId()) {
             'admin' => $this->isAdmin(),
-            'student' => ! $this->isAdmin() && ! $this->isInstructor(),
             'instructor' => $this->isInstructor() && $this->is_active,
+            'contributor' => $this->isContributor(),
+            'student' => $this->isStudent(),
             default => false,
         };
     }

@@ -296,4 +296,15 @@ class HubIndexTest extends TestCase
         $this->assertTrue($employer->canSubmitType('opportunity'));
         $this->assertFalse($employer->canSubmitType('tip_trick'));
     }
+
+    public function test_navigating_to_hub_with_register_query_param_opens_contributor_modal(): void
+    {
+        $response = $this->get(route('hub.index', ['register' => 1]));
+        $response->assertOk();
+        $response->assertSee('Register to Publish Resources');
+
+        Livewire::withQueryParams(['register' => 1])
+            ->test(HubIndex::class)
+            ->assertSet('showRegisterModal', true);
+    }
 }

@@ -797,93 +797,219 @@
     {{-- Contributor Registration Modal --}}
     @if ($showRegisterModal)
         <div
-            class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+            class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 lg:p-8"
             wire:click.self="closeRegisterModal"
             @keydown.escape.window="$wire.closeRegisterModal()"
         >
-            <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden relative border border-slate-100 p-6 sm:p-8">
-                <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-100">Contributor Signup</span>
-                        <h3 class="text-xl font-black text-slate-900 mt-1">Register to Publish Resources</h3>
+            <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative border border-slate-100 transform transition-all duration-300">
+                
+                {{-- Header --}}
+                <div class="bg-[#0a2d27] px-6 py-6 sm:px-10 sm:py-8 text-white relative overflow-hidden">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-start justify-between gap-4">
+                        <div class="space-y-1.5">
+                            <span class="inline-block text-[10px] font-extrabold uppercase tracking-widest text-yellow-400 bg-yellow-400/15 px-3.5 py-1 rounded-full border border-yellow-400/30">
+                                Contributor Signup
+                            </span>
+                            <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight pt-1">
+                                Register to Publish Resources
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-300 font-medium">
+                                Join our network to publish blogs, research tips, or job opportunities.
+                            </p>
+                        </div>
+                        <button
+                            wire:click="closeRegisterModal"
+                            type="button"
+                            class="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 mt-0.5"
+                            aria-label="Close modal"
+                        >
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
                     </div>
-                    <button wire:click="closeRegisterModal" type="button" class="text-slate-400 hover:text-slate-700 bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center transition">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
                 </div>
 
-                <form wire:submit.prevent="registerContributor" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Full Name *</label>
-                        <input
-                            type="text"
-                            wire:model="regName"
-                            placeholder="John Doe"
-                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                            required
-                        >
-                        @error('regName') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Address *</label>
-                        <input
-                            type="email"
-                            wire:model="regEmail"
-                            placeholder="john@example.com"
-                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                            required
-                        >
-                        @error('regEmail') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Role / Specialization *</label>
-                        <select
-                            wire:model="regRole"
-                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                        >
-                            <option value="blogger">Blogger (Short Blogs)</option>
-                            <option value="researcher">Researcher (Tips &amp; Tricks)</option>
-                            <option value="employer">Employer (Opportunities &amp; Jobs)</option>
-                        </select>
-                        <p class="text-[11px] text-slate-500 mt-1">Select your specialty. All contributor registrations require Admin approval before posts can go live.</p>
-                        @error('regRole') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <form wire:submit.prevent="registerContributor" class="p-6 sm:p-10 space-y-6 max-h-[80vh] overflow-y-auto">
+                    
+                    {{-- Personal Information --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password *</label>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Full Name <span class="text-rose-500">*</span></label>
+                            <input
+                                type="text"
+                                wire:model="regName"
+                                placeholder="John Doe"
+                                class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                                required
+                            >
+                            @error('regName') <span class="text-xs text-rose-600 mt-1.5 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Email Address <span class="text-rose-500">*</span></label>
+                            <input
+                                type="email"
+                                wire:model="regEmail"
+                                placeholder="john@example.com"
+                                class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                                required
+                            >
+                            @error('regEmail') <span class="text-xs text-rose-600 mt-1.5 block">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    {{-- Role & Specialty --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">Role / Specialization <span class="text-rose-500">*</span></label>
+                        <select
+                            wire:model.live="regRole"
+                            class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-semibold text-slate-900 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200 cursor-pointer"
+                        >
+                            <option value="blogger">Blogger (Short Blogs &amp; Tech Articles)</option>
+                            <option value="researcher">Researcher (Tips, Tricks &amp; Code Walkthroughs)</option>
+                            <option value="employer">Employer (Opportunities &amp; Job Postings)</option>
+                        </select>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Select your specialty. All contributor registrations require admin approval before posts go live.</p>
+                        @error('regRole') <span class="text-xs text-rose-600 mt-1.5 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        @if ($regRole === 'employer')
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-2">Company / Organization <span class="text-rose-500">*</span></label>
+                                <input
+                                    type="text"
+                                    wire:model="regCompany"
+                                    placeholder="e.g. Thinker HUB"
+                                    class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                                >
+                                @error('regCompany') <span class="text-xs text-rose-600 mt-1.5 block">{{ $message }}</span> @enderror
+                            </div>
+                        @endif
+
+                        <div class="{{ $regRole === 'employer' ? '' : 'sm:col-span-2' }}">
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Technical Specialty / Track</label>
+                            <input
+                                type="text"
+                                wire:model="regSpecialty"
+                                placeholder="e.g. Full Stack, AI/ML, Cloud Architecture"
+                                class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                            >
+                        </div>
+                    </div>
+
+                    {{-- Bio --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">Bio / Profile Summary</label>
+                        <textarea
+                            wire:model="regBio"
+                            rows="3"
+                            placeholder="Tell the community about your expertise, background, and what you plan to share..."
+                            class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 p-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200 resize-none"
+                        ></textarea>
+                    </div>
+
+                    {{-- Social & Contact Links --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">Social &amp; Contact Links</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">WhatsApp Phone / Link</label>
+                                <input
+                                    type="text"
+                                    wire:model="regWhatsapp"
+                                    placeholder="+260..."
+                                    class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-3.5 py-2.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">LinkedIn URL</label>
+                                <input
+                                    type="url"
+                                    wire:model="regLinkedinUrl"
+                                    placeholder="https://linkedin.com/in/..."
+                                    class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-3.5 py-2.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Facebook URL</label>
+                                <input
+                                    type="url"
+                                    wire:model="regFacebookUrl"
+                                    placeholder="https://facebook.com/..."
+                                    class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-3.5 py-2.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">GitHub / Portfolio</label>
+                                <input
+                                    type="url"
+                                    wire:model="regGithubUrl"
+                                    placeholder="https://github.com/..."
+                                    class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-3.5 py-2.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                                >
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Instagram URL</label>
+                                <input
+                                    type="url"
+                                    wire:model="regInstagramUrl"
+                                    placeholder="https://instagram.com/..."
+                                    class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-3.5 py-2.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Security --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Password <span class="text-rose-500">*</span></label>
                             <input
                                 type="password"
                                 wire:model="regPassword"
                                 placeholder="••••••••"
-                                class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
                                 required
                             >
-                            @error('regPassword') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                            @error('regPassword') <span class="text-xs text-rose-600 mt-1.5 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Confirm Password *</label>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Confirm Password <span class="text-rose-500">*</span></label>
                             <input
                                 type="password"
                                 wire:model="regPasswordConfirmation"
                                 placeholder="••••••••"
-                                class="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
                                 required
                             >
                         </div>
                     </div>
 
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                        <span class="text-xs text-slate-500">Already registered? <a href="{{ route('login') }}" class="text-teal-700 font-bold hover:underline">Log in</a></span>
-                        <button
-                            type="submit"
-                            class="px-6 py-2.5 rounded-full bg-[#0a2d27] text-white text-xs font-bold shadow-md hover:bg-[#11443c] transition flex items-center gap-1.5"
-                        >
-                            <i class="fa-solid fa-user-check text-[11px]"></i> Register Account
-                        </button>
+                    {{-- Actions --}}
+                    <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <span class="text-xs text-slate-500">
+                            Already registered? <a href="{{ route('login') }}" class="text-teal-700 font-bold hover:underline">Log in</a>
+                        </span>
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <button
+                                wire:click="closeRegisterModal"
+                                type="button"
+                                class="flex-1 sm:flex-none px-6 py-3 rounded-full bg-slate-100 text-slate-600 text-xs font-bold hover:bg-slate-200 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                class="flex-1 sm:flex-none px-8 py-3 rounded-full bg-[#0a2d27] text-white text-xs font-bold shadow-md hover:bg-[#11443c] hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+                            >
+                                <span wire:loading.remove wire:target="registerContributor">Register</span>
+                                <span wire:loading wire:target="registerContributor" class="flex items-center gap-2">
+                                    <i class="fa-solid fa-spinner fa-spin text-xs"></i> Processing...
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -980,20 +1106,18 @@
                         <li><a href="{{ route('hub.index') }}" class="transition hover:text-[#0a2d27]">Knowledge Hub</a></li>
                         <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Instructors</a></li>
                         <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
+                        @auth
+                            <li><a href="{{ route('dashboard') }}" class="transition hover:text-[#0a2d27]">Dashboard</a></li>
+                        @else
+                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
+                        @endauth
                     </ul>
                 </div>
 
                 <div>
                     <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
                     <div class="mt-4 space-y-2.5 text-sm text-slate-500">
-                        <div class="relative" x-data="{ phoneMenu: false }">
-                            <span class="font-semibold text-slate-700">Phone:</span>
-                            <button type="button" @click="phoneMenu = !phoneMenu" class="ml-1 text-[#0a2d27] underline-offset-2 hover:underline">+260772640546</button>
-                            <div x-show="phoneMenu" x-transition @click.outside="phoneMenu = false" class="absolute left-0 z-20 mt-2 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg" style="display: none;">
-                                <a href="tel:+260772640546" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-phone text-teal-600"></i>Call</a>
-                                <a href="https://wa.me/260772640546" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-brands fa-whatsapp text-green-600"></i>WhatsApp</a>
-                            </div>
-                        </div>
+                        <p><span class="font-semibold text-slate-700">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
                         <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinker.learn@gmail.com</a></p>
                         <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
                     </div>
@@ -1017,4 +1141,5 @@
             </div>
         </div>
     </footer>
+    @include('partials.legal-modals')
 </div>

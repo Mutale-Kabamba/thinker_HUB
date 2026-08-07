@@ -68,8 +68,7 @@
                     <p>We request consent for non-essential cookies as required by applicable law. You can change your preference by clearing cookies and revisiting the site.</p>
 
                     <h2 class="text-lg font-bold text-slate-900">5. Contact</h2>
-                    <div class="space-y-3 text-slate-500">
-                        <p><span class="font-semibold text-slate-900">Phone:</span> <span class="ml-2 text-slate-900">+260772640546</span></p>
+                        <p><span class="font-semibold text-slate-900">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-2 text-slate-900 font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
                         <p><span class="font-semibold text-slate-900">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-slate-900">thinker.learn@gmail.com</a></p>
                         <p><span class="font-semibold text-slate-900">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
                         <div class="pt-1 flex items-center gap-5 text-slate-500">
@@ -95,5 +94,7 @@
             </div>
         </div>
     </footer>
+
+    @include('partials.legal-modals')
 </body>
 </html>
