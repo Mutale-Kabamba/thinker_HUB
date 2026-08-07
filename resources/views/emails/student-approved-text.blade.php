@@ -1,6 +1,10 @@
 think.er HUB - Account Activation
 
-Hi {{ $student->name }},
+@php
+    $rawStudentName = trim((string) ($student->name ?? ''));
+    $studentFirstName = $rawStudentName !== '' ? (explode(' ', $rawStudentName)[0] ?? $rawStudentName) : 'Learner';
+@endphp
+Hello {{ $studentFirstName }}!
 
 Great news! Your student registration has been approved and your account is now active.
 

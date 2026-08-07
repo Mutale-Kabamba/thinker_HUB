@@ -41,8 +41,12 @@
                     <!-- Personalized Greeting -->
                     <tr>
                         <td style="padding:28px 32px 12px;">
+                            @php
+                                $rawStudentName = trim((string) ($student->name ?? ''));
+                                $studentFirstName = $rawStudentName !== '' ? (explode(' ', $rawStudentName)[0] ?? $rawStudentName) : 'Learner';
+                            @endphp
                             <p style="margin:0;font-size:16px;line-height:1.5;color:#0f172a;font-weight:700;">
-                                Hi {{ $student->name }},
+                                Hello {{ $studentFirstName }}!
                             </p>
                             <p style="margin:8px 0 0;font-size:14px;line-height:1.65;color:#475569;">
                                 We're thrilled to have you! You now have full access to your student dashboard, coursework, learning materials, and live schedule.

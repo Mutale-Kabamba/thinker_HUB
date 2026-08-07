@@ -73,6 +73,26 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Assessment::class, AssessmentPolicy::class);
         Gate::policy(Quiz::class, QuizPolicy::class);
 
+        \Illuminate\Auth\Notifications\ResetPassword::toMailUsing(function ($notifiable, string $token) {
+            $resetUrl = url(route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ], false));
+
+            $rawName = trim((string) ($notifiable->name ?? ''));
+            $firstName = $rawName !== '' ? (explode(' ', $rawName)[0] ?? $rawName) : '';
+            $greeting = $firstName !== '' ? "Hello {$firstName}!" : "Hello!";
+
+            return (new \Illuminate\Notifications\Messages\MailMessage)
+                ->subject('Thinker HUB: Reset Password')
+                ->greeting($greeting)
+                ->line('You are receiving this email because we received a password reset request for your account.')
+                ->action('Reset Password', $resetUrl)
+                ->line('This password reset link will expire in ' . config('auth.passwords.'.config('auth.defaults.passwords').'.expire') . ' minutes.')
+                ->line('If you did not request a password reset, no further action is required.')
+                ->salutation("Regards,\n" . config('app.name', 'Thinker HUB'));
+        });
+
         $this->configureMailDeliverabilityHeaders();
         $this->configureMailSslPeerName();
     }

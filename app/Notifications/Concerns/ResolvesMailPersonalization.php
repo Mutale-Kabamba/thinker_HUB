@@ -8,7 +8,13 @@ trait ResolvesMailPersonalization
     {
         $name = trim((string) ($notifiable->name ?? ''));
 
-        return $name !== '' ? $name : 'there';
+        if ($name === '') {
+            return 'there';
+        }
+
+        $parts = preg_split('/\s+/', $name);
+
+        return $parts[0] ?? $name;
     }
 
     protected function resolveSignerName(): string

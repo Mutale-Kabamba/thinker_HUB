@@ -12,14 +12,14 @@ class QueuedVerifyEmail extends VerifyEmail
     public function toMail($notifiable): MailMessage
     {
         $verificationUrl = $this->verificationUrl($notifiable);
-        $recipientName = trim((string) ($notifiable->name ?? ''));
-        $signerName = trim((string) ($this->signerName ?: config('app.name')));
+        $rawName = trim((string) ($notifiable->name ?? ''));
+        $firstName = $rawName !== '' ? (explode(' ', $rawName)[0] ?? $rawName) : '';
+        $greeting = $firstName !== '' ? "Hello {$firstName}!" : "Hello!";
+        $signerName = trim((string) ($this->signerName ?: config('app.name', 'Thinker HUB')));
 
         return (new MailMessage)
             ->subject(__('Verify Email Address'))
-            ->greeting(__('Hello, :name', [
-                'name' => $recipientName !== '' ? $recipientName : __('there'),
-            ]))
+            ->greeting($greeting)
             ->line(__('Please click the button below to verify your email address.'))
             ->action(__('Verify Email Address'), $verificationUrl)
             ->line(__('If you did not create an account, no further action is required.'))

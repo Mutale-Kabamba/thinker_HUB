@@ -1,7 +1,11 @@
 <x-mail::message>
-# 📬 New Student Submission Received
+# 📤 Assignment Submission Received
 
-Hello {{ $recipientName ?? $notifiable->name ?? 'Instructor' }},
+@php
+    $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Instructor'));
+    $firstName = explode(' ', $rawName)[0] ?? $rawName;
+@endphp
+Hello {{ $firstName }}!
 
 A learner has submitted coursework that is awaiting your review and evaluation.
 

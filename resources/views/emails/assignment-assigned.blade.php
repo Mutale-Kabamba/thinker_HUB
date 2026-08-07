@@ -1,7 +1,11 @@
 <x-mail::message>
 # 📝 New Assignment Posted
 
-Hello {{ $recipientName ?? $notifiable->name ?? 'Learner' }},
+@php
+    $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Learner'));
+    $firstName = explode(' ', $rawName)[0] ?? $rawName;
+@endphp
+Hello {{ $firstName }}!
 
 A new assignment has been posted for your course. Please review the details and start your submission early.
 

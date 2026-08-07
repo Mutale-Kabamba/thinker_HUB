@@ -1,7 +1,11 @@
 <x-mail::message>
-# 📅 Reschedule Request Update
+# ℹ️ Reschedule Request Update
 
-Hello {{ $recipientName ?? $notifiable->name ?? 'Learner' }},
+@php
+    $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Learner'));
+    $firstName = explode(' ', $rawName)[0] ?? $rawName;
+@endphp
+Hello {{ $firstName }}!
 
 Your request to reschedule **{{ $courseName }}** could not be accommodated at this time.
 

@@ -1,7 +1,11 @@
 <x-mail::message>
-# 🗓️ Course Session Rescheduled
+# 📅 Live Session Rescheduled
 
-Hello {{ $recipientName ?? $notifiable->name ?? 'Learner' }},
+@php
+    $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Learner'));
+    $firstName = explode(' ', $rawName)[0] ?? $rawName;
+@endphp
+Hello {{ $firstName }}!
 
 Please take note that a scheduled live session for **{{ $courseName }}** has been moved to a new time.
 

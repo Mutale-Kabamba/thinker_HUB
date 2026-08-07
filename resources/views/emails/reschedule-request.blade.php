@@ -1,7 +1,11 @@
 <x-mail::message>
-# ⏳ Reschedule Request Received
+# 🔄 Session Reschedule Request
 
-Hello {{ $recipientName ?? $notifiable->name ?? 'Instructor' }},
+@php
+    $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Instructor'));
+    $firstName = explode(' ', $rawName)[0] ?? $rawName;
+@endphp
+Hello {{ $firstName }}!
 
 **{{ $studentName }}** has requested to reschedule an upcoming course session.
 

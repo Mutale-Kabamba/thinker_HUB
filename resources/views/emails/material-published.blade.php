@@ -1,7 +1,11 @@
 <x-mail::message>
-# 📚 New Learning Material Published
+# 📚 New Learning Material Available
 
-Hello {{ $recipientName ?? $notifiable->name ?? 'Learner' }},
+@php
+    $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Learner'));
+    $firstName = explode(' ', $rawName)[0] ?? $rawName;
+@endphp
+Hello {{ $firstName }}!
 
 New learning materials have been uploaded to support your coursework. Take some time to review and download the resources.
 
