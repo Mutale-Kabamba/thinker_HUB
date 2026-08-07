@@ -168,7 +168,7 @@
                     </article>
 
                     <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600"><i class="fa-solid fa-user-shield"></i></div>
                         <h3 class="mt-4 text-lg font-bold text-slate-900">Controlled Access by Role</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">Guide each user into admin, instructor, or student views with the permissions they need.</p>
                     </article>

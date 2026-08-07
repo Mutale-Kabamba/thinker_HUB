@@ -116,7 +116,7 @@
                                 <span style="font-weight:600;font-size:0.8rem;color:var(--hub-ink);">{{ $record['session_title'] }}</span>
                                 <span style="font-size:0.72rem;color:var(--hub-muted);margin-left:0.35rem;">{{ $record['course_title'] }} · {{ $record['session_date'] }}</span>
                             </div>
-                            <span style="flex-shrink:0;font-size:0.7rem;font-weight:700;padding:0.15rem 0.55rem;border-radius:99px;color:#fff;background:{{ match($record['status']) { 'present' => '#16a34a', 'late' => '#d97706', default => '#dc2626' } }};">
+                            <span style="flex-shrink:0;font-size:0.7rem;font-weight:700;padding:0.15rem 0.55rem;border-radius:99px;color:#fff;background:{{ match($record['status']) { 'present' => '#16a34a', 'late' => '#d97706', 'apology' => '#6366f1', default => '#dc2626' } }};">
                                 {{ ucfirst($record['status']) }}
                             </span>
                         </div>

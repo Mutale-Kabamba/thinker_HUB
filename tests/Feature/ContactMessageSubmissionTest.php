@@ -75,4 +75,21 @@ class ContactMessageSubmissionTest extends TestCase
                 && $mail->bodyText === 'I want to discuss sponsorship options.';
         });
     }
+
+    public function test_contact_message_mailable_renders_view_properly(): void
+    {
+        $mailable = new ContactMessageMail(
+            name: 'Alice Wonder',
+            email: 'alice@example.com',
+            contactSubject: 'General Inquiry',
+            bodyText: 'Hello, I have a question about classes.',
+        );
+
+        $html = $mailable->render();
+
+        $this->assertStringContainsString('Alice Wonder', $html);
+        $this->assertStringContainsString('alice@example.com', $html);
+        $this->assertStringContainsString('General Inquiry', $html);
+        $this->assertStringContainsString('Hello, I have a question about classes.', $html);
+    }
 }

@@ -16,10 +16,13 @@ class Attendance extends Model
 
     public const STATUS_LATE = 'late';
 
+    public const STATUS_APOLOGY = 'apology';
+
     public const STATUSES = [
         self::STATUS_PRESENT,
         self::STATUS_ABSENT,
         self::STATUS_LATE,
+        self::STATUS_APOLOGY,
     ];
 
     protected $fillable = [

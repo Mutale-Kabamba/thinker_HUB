@@ -31,6 +31,13 @@ class StudentApprovedMail extends Mailable
     {
         return new Envelope(
             subject: 'Your account is now active',
+            using: [
+                static function ($message): void {
+                    $headers = $message->getHeaders();
+                    $headers->addTextHeader('X-Auto-Response-Suppress', 'All');
+                    $headers->addTextHeader('Auto-Submitted', 'auto-generated');
+                },
+            ],
         );
     }
 
