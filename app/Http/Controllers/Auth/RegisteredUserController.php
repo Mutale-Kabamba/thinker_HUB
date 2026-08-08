@@ -140,7 +140,10 @@ class RegisteredUserController extends Controller
         }
 
         if ($requiresPaymentApproval) {
-            return redirect()->route('login')->with('status', PaymentApprovalMessage::forCourse($course));
+            Auth::login($user);
+
+            return redirect()->route('checkout.show', $course)
+                ->with('status', 'Complete your enrollment payment via our payment gateway simulator.');
         }
 
         Auth::login($user);
@@ -168,7 +171,7 @@ class RegisteredUserController extends Controller
             ->all();
 
         try {
-            Mail::to($recipients)->send(new NewStudentRegistrationAlertMail(
+            Mail::to($recipients)->queue(new NewStudentRegistrationAlertMail(
                 student: $student,
                 course: $course,
                 requiresPaymentApproval: $requiresPaymentApproval,

@@ -57,7 +57,7 @@ class ContactMessageController extends Controller
         }
 
         try {
-            Mail::to($recipients)->send(new ContactMessageMail(
+            Mail::to($recipients)->queue(new ContactMessageMail(
                 name: $validated['name'],
                 email: $validated['email'],
                 contactSubject: $subject,

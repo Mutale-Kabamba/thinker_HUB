@@ -29,7 +29,10 @@ class CoursePaymentGatewayTest extends TestCase
         $response->assertSee('Web Development Bootcamp');
         $response->assertSee('WEB101');
         $response->assertSee('Mobile Money');
-        $response->assertSee('Card (Visa/MC)');
+        $response->assertSee('Card');
+        $response->assertSee('Airtel Money');
+        $response->assertSee('MTN MoMo');
+        $response->assertSee('Zamtel Kwacha');
     }
 
     public function test_student_can_simulate_mobile_money_payment_and_activate_enrollment(): void

@@ -63,6 +63,8 @@
                                 value="{{ $course->id }}"
                                 data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}"
                                 data-payment-message="{{ $course->payment_contact_message }}"
+                                data-title="{{ $course->title }}"
+                                data-fee="{{ method_exists($course, 'getNumericFee') ? $course->getNumericFee() : 1500 }}"
                                 @selected((string) old('course_id') === (string) $course->id)
                                 @disabled($isLockedCourse)
                             >
@@ -157,7 +159,12 @@
                         <option value="">Select course</option>
                         @foreach ($courses as $course)
                             @php $isLockedCourse = $course->is_open_enrollment === false; @endphp
-                            <option value="{{ $course->id }}" data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}" data-payment-message="{{ $course->payment_contact_message }}" @disabled($isLockedCourse)>
+                            <option value="{{ $course->id }}"
+                                data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}"
+                                data-payment-message="{{ $course->payment_contact_message }}"
+                                data-title="{{ $course->title }}"
+                                data-fee="{{ method_exists($course, 'getNumericFee') ? $course->getNumericFee() : 1500 }}"
+                                @disabled($isLockedCourse)>
                                 {{ $course->code }} - {{ $course->title }}{{ $isLockedCourse ? ' (Locked)' : '' }}
                             </option>
                         @endforeach
@@ -175,9 +182,17 @@
                 </div>
             </div>
 
-            <div id="google-payment-notice" class="mt-4 hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                <p class="font-semibold">Notice: Online Payment Coming Soon.</p>
-                <p id="google-payment-notice-message" class="mt-1">For this paid course, the registration team will reach out soon.</p>
+            <div id="google-payment-notice" class="mt-4 hidden rounded-2xl border border-teal-200 bg-teal-50/80 p-4 text-xs text-teal-950 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-200">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="font-bold flex items-center gap-1.5 text-teal-900 dark:text-teal-200">
+                        <i class="fa-solid fa-bolt text-amber-500"></i>
+                        Interactive Payment Gateway
+                    </span>
+                    <span class="rounded-full bg-teal-200/60 px-2.5 py-0.5 text-[10px] font-bold uppercase text-teal-900 dark:bg-teal-800 dark:text-teal-100">Instant Activation</span>
+                </div>
+                <p id="google-payment-notice-message" class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Complete setup to proceed to our simulated Mobile Money (Airtel, MTN, Zamtel) or Card checkout for instant enrollment activation.
+                </p>
             </div>
 
             <div class="mt-4 space-y-3">
@@ -252,6 +267,39 @@
                 });
                 updateNotice(modalCourseSelect, modalPaymentNotice, modalPaymentNoticeMessage);
             }
+
+            // Intercept form submission to show checkout modal if paid course
+            var registerForm = document.querySelector('form[action="{{ route('register') }}"]');
+            if (registerForm) {
+                registerForm.addEventListener('submit', function (e) {
+                    var selectEl = document.getElementById('course_id');
+                    var option = selectEl.options[selectEl.selectedIndex];
+                    var requiresPayment = option && option.getAttribute('data-requires-payment') === '1';
+
+                    if (requiresPayment) {
+                        e.preventDefault(); // Stop standard registration
+
+                        // Copy fields to modal
+                        document.querySelector('#chk-guest-fields input[name="name"]').value = document.getElementById('name').value;
+                        document.querySelector('#chk-guest-fields input[name="email"]').value = document.getElementById('email').value;
+                        document.querySelector('#chk-guest-fields input[name="password"]').value = document.getElementById('password').value;
+                        document.querySelector('#chk-guest-fields input[name="password_confirmation"]').value = document.getElementById('password_confirmation').value;
+
+                        var courseId = option.value;
+                        var courseTitle = option.getAttribute('data-title');
+                        var fee = option.getAttribute('data-fee');
+                        var track = document.getElementById('track').value;
+
+                        // Open modal
+                        if (typeof window.openCheckoutModal === 'function') {
+                            window.openCheckoutModal(courseId, courseTitle, fee, track);
+                        } else {
+                            console.error("Checkout modal script not loaded.");
+                            registerForm.submit(); // fallback
+                        }
+                    }
+                });
+            }
         })();
     </script>
 
@@ -324,7 +372,30 @@
                     throw new Error(result.message || 'Social sign-in failed.');
                 }
 
-                window.location.assign(result.redirect || "{{ route('dashboard', absolute: false) }}");
+                if (result.redirect && result.redirect.includes('/checkout/')) {
+                    // Hide the enrollment modal
+                    hideEnrollmentModal();
+
+                    // Get course details from the modal select
+                    const selectEl = document.getElementById('google_modal_course_id');
+                    const option = selectEl.options[selectEl.selectedIndex];
+                    const courseId = option.value;
+                    const courseTitle = option.getAttribute('data-title');
+                    const fee = option.getAttribute('data-fee');
+                    const track = document.getElementById('google_modal_track').value;
+
+                    // The user is authenticated on the backend now, so hide guest fields
+                    const guestFields = document.getElementById('chk-guest-fields');
+                    if (guestFields) guestFields.classList.add('hidden');
+
+                    if (typeof window.openCheckoutModal === 'function') {
+                        window.openCheckoutModal(courseId, courseTitle, fee, track);
+                    } else {
+                        window.location.assign(result.redirect);
+                    }
+                } else {
+                    window.location.assign(result.redirect || "{{ route('dashboard', absolute: false) }}");
+                }
             };
 
             const setIdleButtons = () => {

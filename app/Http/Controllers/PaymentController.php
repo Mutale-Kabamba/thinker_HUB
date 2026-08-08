@@ -85,9 +85,12 @@ class PaymentController extends Controller
             Auth::login($student);
         }
 
-        // Activate student status
-        if (! $student->is_active) {
-            $student->update(['is_active' => true]);
+        // Activate student status and ensure email is marked verified (critical for Google auth accounts)
+        if (! $student->is_active || ! $student->email_verified_at) {
+            $student->update([
+                'is_active' => true,
+                'email_verified_at' => $student->email_verified_at ?? now(),
+            ]);
         }
 
         // Create or get enrollment
@@ -128,17 +131,17 @@ class PaymentController extends Controller
 
         // Send payment receipt to student
         try {
-            Mail::to($student->email)->send(new PaymentReceiptMail($student, $course, $payment));
+            Mail::to($student->email)->queue(new PaymentReceiptMail($student, $course, $payment));
         } catch (\Throwable $e) {
-            Log::error('Failed to send payment receipt email: ' . $e->getMessage());
+            Log::error('Failed to queue payment receipt email: ' . $e->getMessage());
         }
 
         // Notify admins about successful enrollment and payment
         try {
             $adminEmail = config('mail.admin_alert_to', 'thinkerhub@oristudiozm.com');
-            Mail::to($adminEmail)->send(new NewStudentRegistrationAlertMail($student, $course, false));
+            Mail::to($adminEmail)->queue(new NewStudentRegistrationAlertMail($student, $course, false));
         } catch (\Throwable $e) {
-            Log::error('Failed to notify admin about paid enrollment: ' . $e->getMessage());
+            Log::error('Failed to queue admin about paid enrollment: ' . $e->getMessage());
         }
 
         if ($request->wantsJson() || $request->ajax()) {

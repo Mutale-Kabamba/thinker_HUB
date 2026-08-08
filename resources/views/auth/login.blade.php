@@ -104,9 +104,17 @@
                 </div>
             </div>
 
-            <div id="google-login-payment-notice" class="mt-4 hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                <p class="font-semibold">Notice: Online Payment Coming Soon.</p>
-                <p id="google-login-payment-notice-message" class="mt-1">For this paid course, the registration team will reach out soon.</p>
+            <div id="google-login-payment-notice" class="mt-4 hidden rounded-2xl border border-teal-200 bg-teal-50/80 p-4 text-xs text-teal-950 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-200">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="font-bold flex items-center gap-1.5 text-teal-900 dark:text-teal-200">
+                        <i class="fa-solid fa-bolt text-amber-500"></i>
+                        Interactive Payment Gateway
+                    </span>
+                    <span class="rounded-full bg-teal-200/60 px-2.5 py-0.5 text-[10px] font-bold uppercase text-teal-900 dark:bg-teal-800 dark:text-teal-100">Instant Activation</span>
+                </div>
+                <p id="google-login-payment-notice-message" class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Complete setup to proceed to our simulated Mobile Money (Airtel, MTN, Zamtel) or Card checkout for instant enrollment activation.
+                </p>
             </div>
 
             <div class="mt-4 space-y-3">
@@ -212,6 +220,10 @@
                     },
                     body: JSON.stringify({ id_token: idToken, ...payload }),
                 });
+
+                // Parse body first — needed for both success and error branches
+                let responsePayload = {};
+                try { responsePayload = await response.json(); } catch (_) { /* non-JSON body */ }
 
                 if (!response.ok) {
                     if (response.status === 419 || (responsePayload.message || '').toLowerCase().includes('csrf') || (responsePayload.message || '').toLowerCase().includes('session')) {

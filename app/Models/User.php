@@ -108,6 +108,16 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->hasMany(Payment::class);
     }
 
+    /**
+     * Whether this account was created / authenticated via Google (Firebase).
+     * Google has already verified the email address for these accounts,
+     * so they must never be shown the email-verification wall.
+     */
+    public function isGoogleAccount(): bool
+    {
+        return filled($this->firebase_uid);
+    }
+
     public function badges(): BelongsToMany
     {
         return $this->belongsToMany(Badge::class, 'user_badge')

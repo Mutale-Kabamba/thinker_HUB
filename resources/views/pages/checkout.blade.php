@@ -4,504 +4,492 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @include('partials.seo-meta', [
-        'title' => 'Course Enrollment Checkout | ' . $course->title,
-        'description' => 'Secure course enrollment and simulated payment gateway for ' . $course->title . ' on think.er HUB.',
+        'title' => 'Checkout — ' . $course->title . ' | think.er HUB',
+        'description' => 'Complete your enrollment for ' . $course->title . '.',
         'type' => 'website',
         'indexable' => false,
     ])
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
+    <style>
+        body {
+            background: #f0faf8;
+            background-image: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 28px,
+                rgba(13,148,136,.06) 28px,
+                rgba(13,148,136,.06) 30px
+            );
+            min-height: 100vh;
+        }
+
+        /* Sheet card */
+        .pay-card { background:#fff; border-radius:20px; box-shadow:0 8px 40px rgba(10,45,39,.10); width:100%; max-width:420px; }
+
+        /* Tabs */
+        .tab-bar { display:flex; border-bottom:1.5px solid #e8f5f3; }
+        .tab-item { flex:1; padding:13px 0 11px; font-size:.78rem; font-weight:600; color:#9db5b2; text-align:center; cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-1.5px; transition:all .18s; user-select:none; }
+        .tab-item.active { color:#0a2d27; border-bottom-color:#0d9488; }
+
+        /* Provider row */
+        .provider-row { display:flex; align-items:center; gap:14px; padding:14px 20px; cursor:pointer; border-radius:12px; transition:background .15s; }
+        .provider-row:hover { background:#f0faf8; }
+        .provider-row.selected { background:#e6f7f5; }
+        .provider-logo { width:44px; height:44px; border-radius:10px; border:1.5px solid #e8f5f3; object-fit:contain; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
+        .provider-logo img { width:36px; height:36px; object-fit:contain; }
+        .provider-name { font-size:.875rem; font-weight:600; color:#0a2d27; flex:1; }
+        .provider-arrow { color:#b2d0cc; font-size:.75rem; transition:transform .18s; }
+        .provider-row.selected .provider-arrow { transform:rotate(90deg); color:#0d9488; }
+        .provider-divider { height:1px; background:#f0faf8; margin:0 20px; }
+
+        /* Expanded form */
+        .provider-form { padding:16px 20px 20px; background:#f7fdfb; border-top:1px solid #e8f5f3; }
+        .form-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#9db5b2; margin-bottom:6px; display:block; }
+        .form-input { width:100%; border:1.5px solid #d4eae7; border-radius:10px; padding:10px 14px; font-size:.85rem; color:#0a2d27; outline:none; transition:border-color .15s, box-shadow .15s; background:#fff; }
+        .form-input:focus { border-color:#0d9488; box-shadow:0 0 0 3px rgba(13,148,136,.10); }
+        .input-prefix { display:flex; }
+        .input-prefix-label { border:1.5px solid #d4eae7; border-right:none; border-radius:10px 0 0 10px; padding:10px 12px; font-size:.8rem; font-weight:700; color:#9db5b2; background:#f0faf8; }
+        .input-prefix .form-input { border-radius:0 10px 10px 0; }
+
+        /* Card preview */
+        .card-preview { border-radius:14px; background:linear-gradient(135deg, #0a2d27 0%, #0f766e 100%); padding:20px; color:#fff; position:relative; overflow:hidden; margin-bottom:14px; }
+        .card-preview::before { content:''; position:absolute; top:-30px; right:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.06); }
+        .card-preview::after { content:''; position:absolute; bottom:-40px; right:20px; width:90px; height:90px; border-radius:50%; background:rgba(255,255,255,.04); }
+
+        /* OTP boxes */
+        .otp-box { width:40px; height:48px; border:1.5px solid #d4eae7; border-radius:10px; text-align:center; font-size:1.2rem; font-weight:700; color:#0a2d27; outline:none; transition:border-color .15s, box-shadow .15s; }
+        .otp-box:focus { border-color:#0d9488; box-shadow:0 0 0 3px rgba(13,148,136,.10); }
+
+        /* Pay button */
+        .pay-btn { width:100%; background:#0a2d27; color:#fff; border:none; border-radius:12px; padding:14px; font-size:.9rem; font-weight:700; cursor:pointer; transition:background .18s, transform .12s; }
+        .pay-btn:hover { background:#0f3d35; }
+        .pay-btn:active { transform:scale(.98); }
+        .pay-btn:disabled { opacity:.55; cursor:not-allowed; }
+
+        /* Amount badge */
+        .amount-chip { background:#e6f7f5; color:#0d9488; font-size:.75rem; font-weight:700; padding:4px 10px; border-radius:99px; }
+
+        /* USSD/OTP modal overlay */
+        .modal-overlay { background:rgba(10,45,39,.60); backdrop-filter:blur(4px); }
+
+        /* Spinner */
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .spinner { animation:spin .7s linear infinite; }
+
+        /* Pulse dots */
+        @keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+        .blink-dot { animation:blink 1.4s infinite both; }
+        .blink-dot:nth-child(2) { animation-delay:.2s; }
+        .blink-dot:nth-child(3) { animation-delay:.4s; }
+    </style>
 </head>
-<body class="bg-[#f8fcf9] text-slate-900 font-sans antialiased min-h-screen flex flex-col justify-between" x-data="paymentGateway()">
+<body class="flex flex-col" x-data="checkout()">
 
-    @include('partials.public-header')
+    {{-- Minimal top bar --}}
+    <div class="w-full bg-white/90 backdrop-blur-sm border-b border-teal-100/60 py-3 px-6 flex items-center justify-between">
+        <a href="{{ url('/') }}" class="font-black text-[#0a2d27] text-base tracking-tight">think.er<span class="text-teal-600">HUB</span></a>
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+            <i class="fa-solid fa-lock text-teal-500 text-[10px]"></i>
+            Secure checkout
+        </div>
+    </div>
 
-    <main class="py-12 lg:py-16 flex-1">
-        <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            
-            <!-- Page Header -->
-            <div class="mb-8 text-center sm:text-left">
-                <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-700 hover:text-teal-900 transition mb-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Back to Course Details
-                </a>
-                <h1 class="text-3xl font-black text-slate-900 sm:text-4xl">Enrollment &amp; Payment Gateway</h1>
-                <p class="mt-2 text-sm text-slate-600">Complete your course enrollment via our secure payment gateway simulator.</p>
+    <main class="flex-1 flex items-start justify-center py-10 px-4">
+        <div class="w-full max-w-xl">
+
+            {{-- ── Order info ── --}}
+            <div class="mb-5 px-1">
+                <p class="text-xs font-semibold text-teal-600 uppercase tracking-widest mb-1">Enrollment Payment</p>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h1 class="text-lg font-black text-[#0a2d27] leading-tight">{{ $course->title }}</h1>
+                        <p class="text-xs text-slate-400 mt-0.5">{{ $course->code }} &bull; Level: <span class="font-semibold text-slate-600" x-text="track"></span></p>
+                    </div>
+                    <span class="amount-chip shrink-0 ml-4 mt-1">ZMW {{ number_format($feeAmount, 2) }}</span>
+                </div>
             </div>
 
-            <div class="grid gap-8 lg:grid-cols-[1.5fr_1fr] items-start">
-                
-                <!-- Left: Payment Form & Gateway Simulator -->
-                <div class="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-                    
-                    <form method="POST" action="{{ route('checkout.process', $course) }}" id="payment-form" @submit.prevent="submitPayment()">
-                        @csrf
+            {{-- ── Main payment card ── --}}
+            <div class="pay-card">
 
-                        <!-- Step 1: Student Details (if not authenticated) -->
-                        @guest
-                            <div class="mb-8 pb-8 border-b border-slate-200">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-teal-100 text-teal-800 text-xs font-black">1</span>
-                                        Student Information
-                                    </h2>
-                                    <a href="{{ route('login') }}" class="text-xs font-semibold text-teal-700 hover:underline">Already have an account? Sign In</a>
-                                </div>
+                <form method="POST" action="{{ route('checkout.process', $course) }}" id="payment-form" @submit.prevent="submitPayment()">
+                    @csrf
+                    <input type="hidden" name="payment_method" :value="paymentMethod">
+                    <input type="hidden" name="provider" :value="provider">
+                    <input type="hidden" name="track" :value="track">
 
-                                <div class="space-y-4">
-                                    <div>
-                                        <label for="name" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Full Name</label>
-                                        <input type="text" id="name" name="name" x-model="student.name" placeholder="Mutale Kabamba" required class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none">
-                                        @error('name') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
-                                    </div>
-
-                                    <div>
-                                        <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Email Address (for course access &amp; receipt)</label>
-                                        <input type="email" id="email" name="email" x-model="student.email" placeholder="kabamba@example.com" required class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none">
-                                        @error('email') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
-                                    </div>
-
-                                    <div class="grid gap-4 sm:grid-cols-2">
-                                        <div>
-                                            <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Create Password</label>
-                                            <input type="password" id="password" name="password" x-model="student.password" placeholder="••••••••" required class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none">
-                                        </div>
-                                        <div>
-                                            <label for="password_confirmation" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Confirm Password</label>
-                                            <input type="password" id="password_confirmation" name="password_confirmation" x-model="student.password_confirmation" placeholder="••••••••" required class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @else
-                            <div class="mb-6 rounded-2xl bg-teal-50/80 border border-teal-200 p-4 flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="h-10 w-10 rounded-full bg-[#0a2d27] text-white flex items-center justify-center font-bold text-sm">
-                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                    </div>
-                                    <div>
-                                        <p class="text-xs font-semibold uppercase tracking-wider text-teal-800">Enrolling as</p>
-                                        <p class="text-sm font-bold text-slate-900">{{ Auth::user()->name }} <span class="text-xs font-normal text-slate-500">({{ Auth::user()->email }})</span></p>
-                                    </div>
-                                </div>
-                                <span class="inline-flex items-center rounded-full bg-teal-200/60 px-3 py-1 text-xs font-bold text-teal-900">
-                                    Logged In
-                                </span>
-                            </div>
-                        @endguest
-
-                        <!-- Step 2: Course Level / Track Selection -->
-                        <div class="mb-8">
-                            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-3">
-                                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-teal-100 text-teal-800 text-xs font-black">@guest 2 @else 1 @endguest</span>
-                                Select Learning Level
-                            </h2>
-                            <div class="grid grid-cols-3 gap-3">
-                                <template x-for="lvl in ['Beginner', 'Intermediate', 'Advanced']" :key="lvl">
-                                    <button 
-                                        type="button" 
-                                        @click="track = lvl" 
-                                        :class="track === lvl ? 'border-teal-600 bg-teal-50/60 text-teal-950 ring-2 ring-teal-600/20' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'"
-                                        class="rounded-2xl border p-3.5 text-center transition cursor-pointer"
-                                    >
-                                        <p class="font-bold text-sm" x-text="lvl"></p>
-                                        <p class="text-[11px] text-slate-500 mt-0.5" x-text="lvl === 'Beginner' ? 'Foundational' : (lvl === 'Intermediate' ? 'Core Skills' : 'Mastery')"></p>
-                                    </button>
-                                </template>
-                            </div>
-                            <input type="hidden" name="track" :value="track">
+                    {{-- ── Guest student info ── --}}
+                    @guest
+                    <div class="p-5 pb-0">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Your Details</p>
+                            <a href="{{ route('login') }}" class="text-[11px] font-semibold text-teal-600 hover:underline">Sign in instead</a>
                         </div>
-
-                        <!-- Step 3: Payment Method Tabs & Simulator -->
-                        <div class="mb-8">
-                            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4">
-                                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-teal-100 text-teal-800 text-xs font-black">@guest 3 @else 2 @endguest</span>
-                                Choose Payment Method
-                            </h2>
-
-                            <!-- Payment Tabs -->
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6 p-1 bg-slate-100 rounded-2xl">
-                                <button type="button" @click="paymentMethod = 'mobile_money'" :class="paymentMethod === 'mobile_money' ? 'bg-white text-slate-900 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'" class="rounded-xl py-2.5 px-3 text-xs text-center transition cursor-pointer flex items-center justify-center gap-1.5">
-                                    <i class="fa-solid fa-mobile-screen-button text-teal-600"></i>
-                                    <span>Mobile Money</span>
-                                </button>
-                                <button type="button" @click="paymentMethod = 'card'" :class="paymentMethod === 'card' ? 'bg-white text-slate-900 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'" class="rounded-xl py-2.5 px-3 text-xs text-center transition cursor-pointer flex items-center justify-center gap-1.5">
-                                    <i class="fa-regular fa-credit-card text-teal-600"></i>
-                                    <span>Card (Visa/MC)</span>
-                                </button>
-                                <button type="button" @click="paymentMethod = 'bank_transfer'" :class="paymentMethod === 'bank_transfer' ? 'bg-white text-slate-900 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'" class="rounded-xl py-2.5 px-3 text-xs text-center transition cursor-pointer flex items-center justify-center gap-1.5">
-                                    <i class="fa-solid fa-building-columns text-teal-600"></i>
-                                    <span>Bank Transfer</span>
-                                </button>
-                                <button type="button" @click="paymentMethod = 'demo'" :class="paymentMethod === 'demo' ? 'bg-white text-slate-900 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'" class="rounded-xl py-2.5 px-3 text-xs text-center transition cursor-pointer flex items-center justify-center gap-1.5">
-                                    <i class="fa-solid fa-bolt text-amber-500"></i>
-                                    <span>1-Click Test</span>
-                                </button>
-                            </div>
-
-                            <input type="hidden" name="payment_method" :value="paymentMethod">
-                            <input type="hidden" name="provider" :value="provider">
-
-                            <!-- Tab 1: Mobile Money Simulator -->
-                            <div x-show="paymentMethod === 'mobile_money'" x-transition class="space-y-5">
-                                <div>
-                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Select Mobile Network</label>
-                                    <div class="grid grid-cols-3 gap-3">
-                                        <button type="button" @click="provider = 'airtel'; phoneNumber = '0977264054'" :class="provider === 'airtel' ? 'border-red-500 bg-red-50/50 ring-2 ring-red-500/20' : 'border-slate-200 bg-white'" class="rounded-2xl border p-3 flex flex-col items-center justify-center gap-1 transition cursor-pointer">
-                                            <span class="inline-block h-3 w-3 rounded-full bg-red-600"></span>
-                                            <span class="text-xs font-bold text-slate-900">Airtel Money</span>
-                                            <span class="text-[10px] text-slate-500">097 / 077</span>
-                                        </button>
-                                        <button type="button" @click="provider = 'mtn'; phoneNumber = '0966123456'" :class="provider === 'mtn' ? 'border-amber-400 bg-amber-50/50 ring-2 ring-amber-400/20' : 'border-slate-200 bg-white'" class="rounded-2xl border p-3 flex flex-col items-center justify-center gap-1 transition cursor-pointer">
-                                            <span class="inline-block h-3 w-3 rounded-full bg-amber-400"></span>
-                                            <span class="text-xs font-bold text-slate-900">MTN MoMo</span>
-                                            <span class="text-[10px] text-slate-500">096 / 076</span>
-                                        </button>
-                                        <button type="button" @click="provider = 'zamtel'; phoneNumber = '0955987654'" :class="provider === 'zamtel' ? 'border-emerald-500 bg-emerald-50/50 ring-2 ring-emerald-500/20' : 'border-slate-200 bg-white'" class="rounded-2xl border p-3 flex flex-col items-center justify-center gap-1 transition cursor-pointer">
-                                            <span class="inline-block h-3 w-3 rounded-full bg-emerald-600"></span>
-                                            <span class="text-xs font-bold text-slate-900">Zamtel Kwacha</span>
-                                            <span class="text-[10px] text-slate-500">095 / 075</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label for="phone_number" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Mobile Money Number</label>
-                                    <div class="relative">
-                                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-sm font-bold text-slate-400">+260</span>
-                                        <input type="tel" id="phone_number" name="phone_number" x-model="phoneNumber" placeholder="977264054" class="w-full rounded-xl border border-slate-300 pl-16 pr-4 py-3 text-sm focus:border-teal-500 focus:outline-none">
-                                    </div>
-                                    <p class="mt-1.5 text-xs text-slate-500">A simulated USSD authorization prompt will be triggered for this number.</p>
-                                </div>
-                            </div>
-
-                            <!-- Tab 2: Credit / Debit Card Simulator -->
-                            <div x-show="paymentMethod === 'card'" x-transition class="space-y-4">
-                                <!-- Card Preview -->
-                                <div class="rounded-2xl bg-gradient-to-tr from-[#0a2d27] to-[#115e59] p-5 text-white shadow-md relative overflow-hidden">
-                                    <div class="flex justify-between items-center mb-6">
-                                        <span class="text-xs font-bold tracking-widest uppercase text-teal-300">THINKER HUB CARD</span>
-                                        <i class="fa-brands fa-cc-visa text-2xl"></i>
-                                    </div>
-                                    <p class="text-lg tracking-widest font-mono mb-4" x-text="cardNumber ? cardNumber : '•••• •••• •••• 4242'"></p>
-                                    <div class="flex justify-between text-xs font-medium">
-                                        <div>
-                                            <p class="text-[10px] uppercase text-teal-200/80">Cardholder</p>
-                                            <p class="font-bold tracking-wide uppercase" x-text="cardHolder ? cardHolder : 'MUTALE KABAMBA'"></p>
-                                        </div>
-                                        <div>
-                                            <p class="text-[10px] uppercase text-teal-200/80">Expires</p>
-                                            <p class="font-bold tracking-wide" x-text="cardExpiry ? cardExpiry : '12/28'"></p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card Form Inputs -->
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Card Number</label>
-                                        <input type="text" name="card_number" x-model="cardNumber" placeholder="4242 4242 4242 4242" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none font-mono">
-                                    </div>
-
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Cardholder Name</label>
-                                            <input type="text" name="card_holder" x-model="cardHolder" placeholder="Mutale Kabamba" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none">
-                                        </div>
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Expiry</label>
-                                                <input type="text" x-model="cardExpiry" placeholder="12/28" class="w-full rounded-xl border border-slate-300 px-3 py-3 text-sm text-center focus:border-teal-500 focus:outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">CVV</label>
-                                                <input type="password" maxlength="4" placeholder="123" class="w-full rounded-xl border border-slate-300 px-3 py-3 text-sm text-center focus:border-teal-500 focus:outline-none">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex gap-2 pt-1">
-                                        <button type="button" @click="fillTestCard('success')" class="text-[11px] font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-lg px-2.5 py-1.5 transition">
-                                            + Fill Test Card (Visa Success)
-                                        </button>
-                                        <button type="button" @click="fillTestCard('3ds')" class="text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg px-2.5 py-1.5 transition">
-                                            + Test 3DS Secure OTP
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Tab 3: Bank Transfer Details -->
-                            <div x-show="paymentMethod === 'bank_transfer'" x-transition class="space-y-4">
-                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700 space-y-2">
-                                    <div class="flex justify-between py-1 border-b border-slate-200">
-                                        <span class="font-semibold text-slate-500">Bank Name:</span>
-                                        <span class="font-bold text-slate-900">Stanbic Bank Zambia / Zanaco</span>
-                                    </div>
-                                    <div class="flex justify-between py-1 border-b border-slate-200">
-                                        <span class="font-semibold text-slate-500">Account Name:</span>
-                                        <span class="font-bold text-slate-900">Ori Studio / Thinker HUB</span>
-                                    </div>
-                                    <div class="flex justify-between py-1 border-b border-slate-200">
-                                        <span class="font-semibold text-slate-500">Account Number:</span>
-                                        <span class="font-mono font-bold text-slate-900">9130004829104</span>
-                                    </div>
-                                    <div class="flex justify-between py-1">
-                                        <span class="font-semibold text-slate-500">Branch &amp; Code:</span>
-                                        <span class="font-bold text-slate-900">Livingstone (Branch 04)</span>
-                                    </div>
-                                </div>
-                                <p class="text-xs text-slate-500">Simulate direct EFT transfer confirmation below to receive instant activation and digital voucher.</p>
-                            </div>
-
-                            <!-- Tab 4: 1-Click Sandbox Test -->
-                            <div x-show="paymentMethod === 'demo'" x-transition class="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 space-y-2">
-                                <p class="font-bold text-sm flex items-center gap-1.5 text-amber-950">
-                                    <i class="fa-solid fa-bolt text-amber-600"></i>
-                                    Instant Sandbox Demo Checkout
-                                </p>
-                                <p>This one-click simulation approves your enrollment instantly without requiring real payment or test card entries.</p>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="pt-2">
-                            <button 
-                                type="submit" 
-                                :disabled="isProcessing"
-                                class="w-full rounded-full bg-[#0a2d27] py-4 px-8 text-sm font-bold text-white shadow-lg shadow-[#0a2d27]/20 transition duration-300 hover:bg-[#115e59] focus:outline-none focus:ring-4 focus:ring-teal-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
-                            >
-                                <template x-if="!isProcessing">
-                                    <span>Complete Enrollment Payment (ZMW {{ number_format($feeAmount, 2) }}) &rarr;</span>
-                                </template>
-                                <template x-if="isProcessing">
-                                    <span class="flex items-center gap-2">
-                                        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        <span x-text="processingStep">Processing...</span>
-                                    </span>
-                                </template>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Right: Course Order Summary Card -->
-                <div class="space-y-6">
-                    <div class="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Order Summary</h3>
-                        
-                        <div class="flex items-start gap-4 pb-6 border-b border-slate-100">
-                            <div class="h-12 w-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-800 font-bold text-sm shrink-0">
-                                {{ substr($course->code, 0, 3) }}
+                        <div class="space-y-3 pb-5 border-b border-slate-100">
+                            <div>
+                                <label class="form-label">Full Name</label>
+                                <input type="text" name="name" x-model="student.name" placeholder="Your full name" class="form-input" required>
+                                @error('name')<p class="mt-1 text-[11px] text-red-500">{{ $message }}</p>@enderror
                             </div>
                             <div>
-                                <span class="inline-block px-2.5 py-0.5 bg-teal-100 text-teal-800 rounded-md text-[11px] font-bold uppercase tracking-wide">
-                                    {{ $course->code }}
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" x-model="student.email" placeholder="you@email.com" class="form-input" required>
+                                @error('email')<p class="mt-1 text-[11px] text-red-500">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="form-label">Password</label>
+                                    <input type="password" name="password" x-model="student.password" placeholder="••••••••" class="form-input" required>
+                                </div>
+                                <div>
+                                    <label class="form-label">Confirm</label>
+                                    <input type="password" name="password_confirmation" x-model="student.password_confirmation" placeholder="••••••••" class="form-input" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @else
+                    <div class="px-5 pt-5 pb-4 border-b border-slate-100 flex items-center gap-3">
+                        <div class="h-9 w-9 rounded-full bg-teal-800 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-bold text-[#1e1e3f] truncate">{{ Auth::user()->name }}</p>
+                            <p class="text-[11px] text-slate-400 truncate">{{ Auth::user()->email }}</p>
+                        </div>
+                        <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full shrink-0">✓ Signed in</span>
+                    </div>
+                    @endguest
+
+                    {{-- ── Level selector ── --}}
+                    <div class="px-5 pt-4 pb-4 border-b border-slate-100">
+                        <p class="form-label mb-3">Select Level</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            @foreach(['Beginner', 'Intermediate', 'Advanced'] as $lvl)
+                            <button type="button" @click="track = '{{ $lvl }}'"
+                                    :class="track === '{{ $lvl }}' ? 'border-teal-600 bg-teal-50 text-teal-800' : 'border-slate-200 text-slate-500 hover:border-teal-200'"
+                                    class="rounded-xl border py-2.5 text-xs font-bold transition cursor-pointer">
+                                {{ $lvl }}
+                            </button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- ── Tabs ── --}}
+                    <div class="tab-bar px-1">
+                        <button type="button" @click="tab = 'mobile'" class="tab-item" :class="tab === 'mobile' && 'active'">
+                            <i class="fa-solid fa-mobile-screen-button mb-1 text-[14px]"></i><br>
+                            Mobile Money
+                        </button>
+                        <button type="button" @click="tab = 'card'" class="tab-item" :class="tab === 'card' && 'active'">
+                            <i class="fa-solid fa-credit-card mb-1 text-[14px]"></i><br>
+                            Card
+                        </button>
+                        <button type="button" @click="tab = 'demo'; paymentMethod = 'demo'" class="tab-item" :class="tab === 'demo' && 'active'">
+                            <i class="fa-solid fa-bolt mb-1 text-[14px]"></i><br>
+                            Sandbox
+                        </button>
+                    </div>
+
+                    {{-- ── Mobile Money ── --}}
+                    <div x-show="tab === 'mobile'" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                        <div class="py-2">
+                            {{-- Zamtel --}}
+                            <div>
+                                <div class="provider-row" :class="provider === 'zamtel' && 'selected'"
+                                     @click="selectProvider('zamtel', '0955987654')">
+                                    <img src="{{ asset('images/momo/zamtel.png') }}" alt="Zamtel Kwacha" class="h-10 w-10 object-contain rounded-lg border border-slate-100 bg-white">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="provider-name">Zamtel Kwacha</p>
+                                        <p class="text-[10px] text-slate-400">095 / 075</p>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right provider-arrow"></i>
+                                </div>
+                                <div x-show="provider === 'zamtel'" x-transition class="provider-form">
+                                    @include('partials.checkout-momo-form', ['color' => 'green'])
+                                </div>
+                                <div class="provider-divider"></div>
+                            </div>
+                            {{-- MTN --}}
+                            <div>
+                                <div class="provider-row" :class="provider === 'mtn' && 'selected'"
+                                     @click="selectProvider('mtn', '0966123456')">
+                                    <img src="{{ asset('images/momo/mtn.png') }}" alt="MTN MoMo" class="h-10 w-10 object-contain rounded-lg border border-slate-100 bg-white">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="provider-name">MTN MoMo</p>
+                                        <p class="text-[10px] text-slate-400">096 / 076</p>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right provider-arrow"></i>
+                                </div>
+                                <div x-show="provider === 'mtn'" x-transition class="provider-form">
+                                    @include('partials.checkout-momo-form', ['color' => 'amber'])
+                                </div>
+                                <div class="provider-divider"></div>
+                            </div>
+                            {{-- Airtel --}}
+                            <div>
+                                <div class="provider-row" :class="provider === 'airtel' && 'selected'"
+                                     @click="selectProvider('airtel', '0977264054')">
+                                    <img src="{{ asset('images/momo/airtel.png') }}" alt="Airtel Money" class="h-10 w-10 object-contain rounded-lg border border-slate-100 bg-white">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="provider-name">Airtel Money</p>
+                                        <p class="text-[10px] text-slate-400">097 / 077</p>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right provider-arrow"></i>
+                                </div>
+                                <div x-show="provider === 'airtel'" x-transition class="provider-form">
+                                    @include('partials.checkout-momo-form', ['color' => 'red'])
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ── Card ── --}}
+                    <div x-show="tab === 'card'" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="p-5">
+                        <div class="flex items-center gap-2 mb-4">
+                            <img src="{{ asset('images/momo/visa.png') }}" alt="Visa" class="h-6 object-contain">
+                            <img src="{{ asset('images/momo/Mastercard-logo.svg') }}" alt="Mastercard" class="h-6 object-contain">
+                            <span class="text-[10px] text-slate-400 ml-1">Accepted cards</span>
+                        </div>
+                        {{-- Card preview --}}
+                        <div class="card-preview mb-4" :class="showCvvFocus && 'opacity-60'">
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="text-[10px] font-bold tracking-widest text-teal-200 uppercase">think.er HUB</span>
+                                <i class="fa-brands fa-cc-visa text-xl text-white/80"></i>
+                            </div>
+                            <p class="font-mono text-lg tracking-[.18em] font-bold mb-4" x-text="cardNumber || '•••• •••• •••• ••••'"></p>
+                            <div class="flex justify-between text-xs">
+                                <div>
+                                    <p class="text-teal-200/60 text-[9px] uppercase tracking-wider">Cardholder</p>
+                                    <p class="font-bold uppercase" x-text="cardHolder || 'YOUR NAME'"></p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-teal-200/60 text-[9px] uppercase tracking-wider">Expires</p>
+                                    <p class="font-bold" x-text="cardExpiry || 'MM/YY'"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="form-label">Card Number</label>
+                                <input type="text" name="card_number" x-model="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19"
+                                       class="form-input font-mono">
+                            </div>
+                            <div>
+                                <label class="form-label">Cardholder Name</label>
+                                <input type="text" name="card_holder" x-model="cardHolder" placeholder="Name on card" class="form-input">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="form-label">Expiry</label>
+                                    <input type="text" x-model="cardExpiry" placeholder="MM/YY" maxlength="5" class="form-input text-center">
+                                </div>
+                                <div>
+                                    <label class="form-label">CVV</label>
+                                    <input type="password" maxlength="4" placeholder="•••"
+                                           @focus="showCvvFocus=true" @blur="showCvvFocus=false"
+                                           class="form-input text-center">
+                                </div>
+                            </div>
+                            <button type="button" @click="fillTestCard()" class="text-[11px] text-teal-600 font-semibold hover:underline">
+                                + Use test card (Visa 4242)
+                            </button>
+                        </div>
+                    </div>
+
+
+
+                    {{-- ── Demo ── --}}
+                    <div x-show="tab === 'demo'" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="p-5">
+                        <div class="rounded-xl border border-dashed border-teal-200 bg-teal-50/50 p-4">
+                            <p class="text-xs font-bold text-teal-800 mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt text-amber-500"></i> Sandbox Demo Mode
+                            </p>
+                            <p class="text-[11px] text-slate-500">Instantly approves enrollment without real payment — for testing only.</p>
+                        </div>
+                    </div>
+
+                    {{-- ── Pay button ── --}}
+                    <div class="px-5 pb-5 pt-3">
+                        <button type="submit" :disabled="isProcessing" class="pay-btn flex items-center justify-center gap-2">
+                            <template x-if="!isProcessing">
+                                <span>Pay ZMW {{ number_format($feeAmount, 2) }}</span>
+                            </template>
+                            <template x-if="isProcessing">
+                                <span class="flex items-center gap-2">
+                                    <svg class="spinner h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span x-text="processingStep"></span>
                                 </span>
-                                <h4 class="font-bold text-slate-900 mt-1 text-base leading-snug">{{ $course->title }}</h4>
-                                <p class="text-xs text-slate-500 mt-0.5">Level: <span class="font-semibold text-slate-700" x-text="track"></span></p>
-                            </div>
-                        </div>
+                            </template>
+                        </button>
 
-                        <!-- Pricing Breakdown -->
-                        <div class="py-4 space-y-2.5 text-sm border-b border-slate-100">
-                            <div class="flex justify-between text-slate-600">
-                                <span>Course Tuition Fee</span>
-                                <span class="font-semibold text-slate-900">ZMW {{ number_format($feeAmount, 2) }}</span>
-                            </div>
-                            <div class="flex justify-between text-slate-600">
-                                <span>Digital Portal &amp; Materials</span>
-                                <span class="font-semibold text-emerald-600">Included (Free)</span>
-                            </div>
-                            <div class="flex justify-between text-slate-600">
-                                <span>Verified Certificate</span>
-                                <span class="font-semibold text-emerald-600">Included (Free)</span>
-                            </div>
-                        </div>
-
-                        <!-- Total Due -->
-                        <div class="pt-4 flex justify-between items-baseline">
-                            <span class="text-base font-bold text-slate-900">Total Payable</span>
-                            <div class="text-right">
-                                <span class="text-2xl font-black text-[#0a2d27]">ZMW {{ number_format($feeAmount, 2) }}</span>
-                                <p class="text-[11px] text-slate-400">One-time enrollment fee</p>
-                            </div>
-                        </div>
+                        <p class="mt-3 text-center text-[10px] text-slate-400 flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-shield-halved text-teal-400"></i>
+                            Encrypted simulated checkout &bull; Instant receipt on confirmation
+                        </p>
                     </div>
 
-                    <!-- Security & Trust Badges -->
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
-                        <div class="flex items-center gap-3 text-xs text-slate-600">
-                            <i class="fa-solid fa-shield-halved text-teal-600 text-base"></i>
-                            <span>256-Bit SSL Encrypted Simulated Checkout</span>
-                        </div>
-                        <div class="flex items-center gap-3 text-xs text-slate-600">
-                            <i class="fa-solid fa-bolt text-amber-500 text-base"></i>
-                            <span>Instant Course Access &amp; Dashboard Activation</span>
-                        </div>
-                        <div class="flex items-center gap-3 text-xs text-slate-600">
-                            <i class="fa-solid fa-file-invoice text-teal-600 text-base"></i>
-                            <span>Official Printable Payment Receipt &amp; Voucher</span>
-                        </div>
-                    </div>
-                </div>
+                </form>
+            </div>
 
+            {{-- Back link --}}
+            <div class="mt-4 text-center">
+                <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
+                   class="text-xs text-slate-400 hover:text-slate-600 transition">
+                    ← Back to course
+                </a>
             </div>
 
         </div>
     </main>
 
-    <!-- Interactive Mobile Money USSD Push Prompt Simulation Modal -->
-    <div 
-        x-show="showMomoModal" 
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
-        style="display: none;"
-    >
-        <div class="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl text-center border border-slate-100">
-            <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-teal-50 text-teal-700 animate-pulse">
-                <i class="fa-solid fa-mobile-screen-button text-2xl"></i>
+    {{-- ━━━━━━━━━━━━━━━━━━━━━ MODALS ━━━━━━━━━━━━━━━━━━━━━ --}}
+
+    {{-- USSD modal --}}
+    <div x-show="showMomoModal"
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+         class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none;">
+        <div class="pay-card p-6 text-center w-full max-w-xs">
+            <div class="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-mobile-screen-button text-teal-600 text-lg"></i>
             </div>
-            <h3 class="text-xl font-bold text-slate-900">USSD Push Prompt Sent!</h3>
-            <p class="mt-2 text-sm text-slate-600">
-                A prompt of <strong class="text-slate-900">ZMW {{ number_format($feeAmount, 2) }}</strong> has been sent to <strong class="text-teal-700" x-text="'+260 ' + phoneNumber"></strong>.
+            <h3 class="text-base font-black text-[#0a2d27]">USSD Push Sent</h3>
+            <p class="text-xs text-slate-400 mt-1.5">
+                Approve <strong class="text-[#0a2d27]">ZMW {{ number_format($feeAmount, 2) }}</strong> on <strong class="text-teal-600" x-text="'+260 ' + phoneNumber"></strong>
             </p>
 
-            <!-- Simulated Phone Screen Box -->
-            <div class="mt-5 rounded-2xl border-2 border-dashed border-teal-300 bg-teal-50/50 p-4 text-left">
-                <p class="text-[11px] font-bold uppercase tracking-wider text-teal-800">Phone Simulator:</p>
-                <p class="mt-1 text-xs text-slate-700">"Authorize payment of ZMW {{ number_format($feeAmount, 2) }} to think.er HUB? Enter PIN:"</p>
-                <div class="mt-2 flex items-center justify-center gap-2">
-                    <span class="inline-block h-3 w-3 rounded-full bg-slate-800"></span>
-                    <span class="inline-block h-3 w-3 rounded-full bg-slate-800"></span>
-                    <span class="inline-block h-3 w-3 rounded-full bg-slate-800"></span>
-                    <span class="inline-block h-3 w-3 rounded-full bg-slate-800"></span>
+            <div class="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3 text-left">
+                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Phone screen</p>
+                <p class="text-xs text-slate-600 mt-1">"Pay ZMW {{ number_format($feeAmount, 2) }} to think.er HUB?"</p>
+                <div class="flex gap-1.5 mt-2">
+                    <span class="blink-dot h-2 w-2 rounded-full bg-teal-500"></span>
+                    <span class="blink-dot h-2 w-2 rounded-full bg-teal-500"></span>
+                    <span class="blink-dot h-2 w-2 rounded-full bg-teal-500"></span>
                 </div>
             </div>
 
-            <div class="mt-6 flex flex-col gap-2">
-                <button type="button" @click="confirmMomoSuccess()" class="w-full rounded-xl bg-teal-700 py-3 text-sm font-bold text-white hover:bg-teal-800 transition cursor-pointer">
-                    Simulate PIN Authorization &amp; Approve
-                </button>
-                <button type="button" @click="showMomoModal = false; isProcessing = false" class="text-xs text-slate-500 hover:text-slate-700 py-2">
-                    Cancel Simulation
-                </button>
+            <div class="mt-5 space-y-2">
+                <button type="button" @click="confirmMomoSuccess()" class="pay-btn">Approve &amp; Enter PIN ✓</button>
+                <button type="button" @click="showMomoModal = false; isProcessing = false"
+                        class="w-full text-xs text-slate-400 hover:text-slate-600 py-2 cursor-pointer transition">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Interactive 3D Secure OTP Modal for Card Simulation -->
-    <div 
-        x-show="showOtpModal" 
-        x-transition 
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
-        style="display: none;"
-    >
-        <div class="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl text-center border border-slate-100">
-            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-                <i class="fa-solid fa-lock text-xl"></i>
+    {{-- 3DS OTP modal --}}
+    <div x-show="showOtpModal"
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+         class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none;">
+        <div class="pay-card p-6 text-center w-full max-w-xs">
+            <div class="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-lock text-teal-600 text-lg"></i>
             </div>
-            <h3 class="text-xl font-bold text-slate-900">Verified by Visa / 3DS OTP</h3>
-            <p class="mt-2 text-xs text-slate-600">Enter the simulated SMS One-Time Password sent to your phone:</p>
+            <h3 class="text-base font-black text-[#0a2d27]">3D Secure — OTP</h3>
+            <p class="text-xs text-slate-400 mt-1.5">Enter the 6-digit code sent to your phone</p>
 
-            <div class="mt-4">
-                <input type="text" x-model="otpCode" maxlength="6" class="w-48 mx-auto text-center rounded-xl border border-slate-300 py-2.5 text-lg font-mono tracking-widest font-bold focus:border-teal-500 focus:outline-none">
-                <p class="mt-2 text-[11px] text-slate-500">Test OTP Code: <strong class="text-teal-700">123456</strong></p>
+            <div class="mt-4 flex justify-center gap-2">
+                <template x-for="i in 6" :key="i">
+                    <input type="text" maxlength="1" class="otp-box"
+                           x-model="otpDigits[i-1]"
+                           @input="focusNext($event, i)"
+                           @keydown.backspace="focusPrev($event, i)">
+                </template>
             </div>
+            <p class="mt-2 text-[10px] text-slate-400">Test OTP: <strong class="text-teal-600">1 2 3 4 5 6</strong></p>
 
-            <div class="mt-6 flex flex-col gap-2">
-                <button type="button" @click="confirmOtpSuccess()" class="w-full rounded-xl bg-[#0a2d27] py-3 text-sm font-bold text-white hover:bg-[#115e59] transition cursor-pointer">
-                    Authorize Transaction
-                </button>
-                <button type="button" @click="showOtpModal = false; isProcessing = false" class="text-xs text-slate-500 hover:text-slate-700 py-2">
-                    Cancel
-                </button>
+            <div class="mt-5 space-y-2">
+                <button type="button" @click="confirmOtpSuccess()" class="pay-btn">Authorise Transaction</button>
+                <button type="button" @click="showOtpModal = false; isProcessing = false"
+                        class="w-full text-xs text-slate-400 hover:text-slate-600 py-2 cursor-pointer transition">Cancel</button>
             </div>
         </div>
     </div>
-
-    <footer class="bg-white border-t border-slate-200 py-8 text-center text-xs text-slate-500">
-        <p>&copy; {{ date('Y') }} think.er HUB &bull; 10A Off Natwange Street, Airport, Livingstone, Zambia</p>
-    </footer>
 
     <script>
-        function paymentGateway() {
+        function checkout() {
             return {
+                tab: 'mobile',
                 track: 'Beginner',
                 paymentMethod: 'mobile_money',
-                provider: 'airtel',
-                phoneNumber: '0977264054',
-                cardNumber: '4242 4242 4242 4242',
-                cardHolder: 'Mutale Kabamba',
-                cardExpiry: '12/28',
-                otpCode: '123456',
+                provider: '',
+                phoneNumber: '',
+                cardNumber: '',
+                cardHolder: '',
+                cardExpiry: '',
+                showCvvFocus: false,
                 isProcessing: false,
-                processingStep: 'Processing...',
+                processingStep: 'Processing…',
                 showMomoModal: false,
                 showOtpModal: false,
-                student: {
-                    name: '',
-                    email: '',
-                    password: '',
-                    password_confirmation: ''
+                otpDigits: ['','','','','',''],
+                student: { name:'', email:'', password:'', password_confirmation:'' },
+
+                get otpCode() { return this.otpDigits.join(''); },
+
+                selectProvider(p, phone) {
+                    this.provider = this.provider === p ? '' : p;
+                    if (this.provider) {
+                        this.phoneNumber = phone;
+                        this.paymentMethod = 'mobile_money';
+                    }
                 },
 
-                fillTestCard(type) {
-                    this.paymentMethod = 'card';
+                fillTestCard() {
                     this.cardNumber = '4242 4242 4242 4242';
-                    this.cardHolder = 'Mutale Kabamba';
+                    this.cardHolder = '{{ Auth::check() ? Auth::user()->name : "Test User" }}';
                     this.cardExpiry = '12/28';
+                    this.paymentMethod = 'card';
+                },
+
+                focusNext(e, i) {
+                    if (e.target.value && i < 6) e.target.closest('.flex').querySelectorAll('input')[i]?.focus();
+                },
+                focusPrev(e, i) {
+                    if (!e.target.value && i > 1) e.target.closest('.flex').querySelectorAll('input')[i-2]?.focus();
                 },
 
                 submitPayment() {
-                    if (this.paymentMethod === 'mobile_money') {
+                    // Sync paymentMethod with active tab
+                    if (this.tab === 'card') this.paymentMethod = 'card';
+                    if (this.tab === 'demo') this.paymentMethod = 'demo';
+
+                    if (this.tab === 'mobile' || this.paymentMethod === 'mobile_money') {
                         this.isProcessing = true;
-                        this.processingStep = 'Sending USSD prompt...';
-                        setTimeout(() => {
-                            this.showMomoModal = true;
-                        }, 600);
+                        this.processingStep = 'Sending USSD prompt…';
+                        setTimeout(() => { this.showMomoModal = true; }, 600);
                         return;
                     }
-
-                    if (this.paymentMethod === 'card' && this.cardNumber.includes('4242')) {
+                    if (this.tab === 'card') {
                         this.isProcessing = true;
-                        this.processingStep = 'Connecting to 3D-Secure...';
-                        setTimeout(() => {
-                            this.showOtpModal = true;
-                        }, 600);
+                        this.processingStep = 'Connecting to 3D-Secure…';
+                        setTimeout(() => { this.showOtpModal = true; }, 600);
                         return;
                     }
-
                     this.dispatchForm();
                 },
 
                 confirmMomoSuccess() {
                     this.showMomoModal = false;
-                    this.processingStep = 'Confirming Mobile Money payment...';
+                    this.processingStep = 'Confirming payment…';
                     this.dispatchForm();
                 },
-
                 confirmOtpSuccess() {
                     this.showOtpModal = false;
-                    this.processingStep = 'Verifying 3D-Secure OTP...';
+                    this.processingStep = 'Verifying OTP…';
                     this.dispatchForm();
                 },
-
                 dispatchForm() {
                     this.isProcessing = true;
-                    const form = document.getElementById('payment-form');
-                    form.submit();
+                    document.getElementById('payment-form').submit();
                 }
             }
         }
