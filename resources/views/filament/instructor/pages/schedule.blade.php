@@ -199,35 +199,35 @@
                     <div class="hub-day-agenda">
                         <div class="hub-day-agenda-header">
                             <div>
-                                <h3 class="hub-day-title">{{ $dayViewData['day_name'] }}, {{ $dayViewData['formatted_date'] }}</h3>
-                                <p class="hub-day-subtitle">{{ count($dayViewData['sessions']) }} class session(s) scheduled</p>
+                                <h3 class="hub-day-title">{{ $dayViewData['day_name'] ?? '' }}, {{ $dayViewData['formatted_date'] ?? '' }}</h3>
+                                <p class="hub-day-subtitle">{{ count($dayViewData['sessions'] ?? []) }} class session(s) scheduled</p>
                             </div>
-                            @if ($dayViewData['is_today'])
+                            @if (!empty($dayViewData['is_today']))
                                 <span class="hub-today-badge-subtle">Today</span>
                             @endif
                         </div>
 
                         <div class="hub-day-agenda-list">
-                            @forelse ($dayViewData['sessions'] as $s)
+                            @forelse ($dayViewData['sessions'] ?? [] as $s)
                                 <article wire:click="openSessionDetails({{ $s['id'] }})"
-                                         class="hub-day-session-card is-{{ $s['status'] }}">
+                                         class="hub-day-session-card is-{{ $s['status'] ?? 'scheduled' }}">
                                     <div class="hub-day-time-badge">
-                                        <span class="hub-day-time-start">{{ $s['start_time'] }}</span>
-                                        <span class="hub-day-time-end">{{ $s['end_time'] }}</span>
+                                        <span class="hub-day-time-start">{{ $s['start_time'] ?? '—' }}</span>
+                                        <span class="hub-day-time-end">{{ $s['end_time'] ?? '—' }}</span>
                                     </div>
 
                                     <div class="hub-day-card-body">
                                         <div class="hub-day-card-meta">
-                                            @if ($s['course_code'])
+                                            @if (!empty($s['course_code']))
                                                 <span class="hub-code-badge">{{ $s['course_code'] }}</span>
                                             @endif
                                             <span class="hub-type-badge">{{ $s['type_label'] ?? 'Group' }}</span>
-                                            <span class="hub-status-micro-pill is-{{ $s['status'] }}">
-                                                <span class="hub-status-dot is-{{ $s['status'] }}"></span>
-                                                {{ ucfirst($s['status']) }}
+                                            <span class="hub-status-micro-pill is-{{ $s['status'] ?? 'scheduled' }}">
+                                                <span class="hub-status-dot is-{{ $s['status'] ?? 'scheduled' }}"></span>
+                                                {{ ucfirst($s['status'] ?? 'scheduled') }}
                                             </span>
                                         </div>
-                                        <h4 class="hub-day-session-title">{{ $s['title'] }}</h4>
+                                        <h4 class="hub-day-session-title">{{ $s['title'] ?? 'Session' }}</h4>
                                         <p class="hub-day-course-name">{{ $s['course_title'] ?? '' }}</p>
                                     </div>
 
