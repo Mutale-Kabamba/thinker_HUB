@@ -47,6 +47,18 @@ class Assignments extends Page
 
             return;
         }
+
+        $existing = AssignmentSubmission::query()
+            ->where('assignment_id', $assignmentId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing && ($existing->grade !== null || in_array($existing->status, ['Graded', 'Checked'], true))) {
+            Notification::make()->title('This assignment has already been graded and cannot be resubmitted.')->warning()->send();
+
+            return;
+        }
+
         $draft = $this->submissionDrafts[$assignmentId] ?? [];
         $content = trim((string) ($draft['text'] ?? ''));
         $link = isset($draft['link']) ? trim((string) $draft['link']) : null;
@@ -95,6 +107,17 @@ class Assignments extends Page
         $user = auth()->user();
 
         if (! $user) {
+            return;
+        }
+
+        $existing = AssignmentSubmission::query()
+            ->where('assignment_id', $assignmentId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing && ($existing->grade !== null || in_array($existing->status, ['Graded', 'Checked'], true))) {
+            Notification::make()->title('Graded submissions cannot be deleted.')->warning()->send();
+
             return;
         }
 
@@ -164,26 +187,32 @@ class Assignments extends Page
             ->orderByRaw('due_date is null')
             ->orderBy('due_date')
             ->get()
-            ->map(fn (Assignment $item) => [
-                'course' => $item->course?->title ?? 'Unassigned course',
-                'id' => $item->id,
-                'name' => $item->name,
-                'description' => $item->description ?? '',
-                'file_path' => $item->file_path,
-                'scope' => $scopeLabels[$item->scope] ?? ucfirst($item->scope),
-                'due' => optional($item->due_date)?->format('Y-m-d') ?? 'No due date',
-                'status' => $submissions->get($item->id)?->status ?? 'Not submitted',
-                'submitted_at' => optional($submissions->get($item->id)?->submitted_at)?->format('Y-m-d H:i') ?: '-',
-                'submission' => [
-                    'id' => $submissions->get($item->id)?->id,
-                    'text' => $submissions->get($item->id)?->content ?? '',
-                    'file' => $submissions->get($item->id)?->file_path ?? null,
-                    'link' => $submissions->get($item->id)?->link ?? null,
-                    'video' => $submissions->get($item->id)?->video_url ?? null,
-                ],
-                'grade' => $submissions->get($item->id)?->grade,
-                'feedback' => $submissions->get($item->id)?->feedback,
-            ])
+            ->map(function (Assignment $item) use ($submissions, $scopeLabels): array {
+                $sub = $submissions->get($item->id);
+                $isGraded = $sub && ($sub->grade !== null || in_array($sub->status, ['Graded', 'Checked'], true));
+
+                return [
+                    'course' => $item->course?->title ?? 'Unassigned course',
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'description' => $item->description ?? '',
+                    'file_path' => $item->file_path,
+                    'scope' => $scopeLabels[$item->scope] ?? ucfirst($item->scope),
+                    'due' => optional($item->due_date)?->format('Y-m-d') ?? 'No due date',
+                    'status' => $sub?->status ?? 'Not submitted',
+                    'submitted_at' => optional($sub?->submitted_at)?->format('Y-m-d H:i') ?: '-',
+                    'is_graded' => $isGraded,
+                    'submission' => [
+                        'id' => $sub?->id,
+                        'text' => $sub?->content ?? '',
+                        'file' => $sub?->file_path ?? null,
+                        'link' => $sub?->link ?? null,
+                        'video' => $sub?->video_url ?? null,
+                    ],
+                    'grade' => $sub?->grade,
+                    'feedback' => $sub?->feedback,
+                ];
+            })
             ->values()
             ->all();
 

@@ -107,7 +107,7 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Course Item</span>
-                    <span class="detail-value">{{ $course->code }} ({{ $student->track ?? 'Standard' }})</span>
+                    <span class="detail-value">{{ $course->title }} &bull; {{ $course->code }} ({{ $student->track ?? 'Standard' }})</span>
                 </div>
 
                 <div class="dotted-line"></div>

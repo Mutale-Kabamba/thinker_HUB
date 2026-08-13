@@ -46,7 +46,11 @@
                                         <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assessment', 'id' => $assessment['id']])), @js($assessment['name'] . '.' . pathinfo($assessment['file_path'], PATHINFO_EXTENSION)))" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View file">View</button>
                                         <button type="button" wire:click="downloadFile({{ $assessment['id'] }})" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#6d28d9;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Download file">Download</button>
                                     @endif
-                                    <button type="button" @click="toggle({{ $assessment['id'] }}, 'submit')" :style="expanded === {{ $assessment['id'] }} && panel === 'submit' ? 'background:#0d9488;color:#fff;border-color:#0d9488;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0d9488;font-weight:600;transition:all 0.15s;" title="Submit work">Submit</button>
+                                    @if (!empty($assessment['is_graded']))
+                                        <button type="button" disabled style="background:var(--hub-surface-soft, rgba(148,163,184,0.12));border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:not-allowed;color:var(--hub-muted);opacity:0.55;font-weight:600;" title="Assessment is graded — submissions locked">Submit</button>
+                                    @else
+                                        <button type="button" @click="toggle({{ $assessment['id'] }}, 'submit')" :style="expanded === {{ $assessment['id'] }} && panel === 'submit' ? 'background:#0d9488;color:#fff;border-color:#0d9488;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0d9488;font-weight:600;transition:all 0.15s;" title="Submit work">Submit</button>
+                                    @endif
                                     <button type="button" @click="toggle({{ $assessment['id'] }}, 'details')" :style="expanded === {{ $assessment['id'] }} && panel === 'details' ? 'background:#475569;color:#fff;border-color:#475569;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#475569;font-weight:600;transition:all 0.15s;" title="View details">Details</button>
                                 </div>
                             </td>
@@ -102,7 +106,11 @@
                             <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assessment', 'id' => $assessment['id']])), @js($assessment['name'] . '.' . pathinfo($assessment['file_path'], PATHINFO_EXTENSION)))" class="hub-action-btn" style="color:#0e7490;">View</button>
                             <button type="button" wire:click="downloadFile({{ $assessment['id'] }})" class="hub-action-btn" style="color:#6d28d9;">Download</button>
                         @endif
-                        <button type="button" @click="toggle({{ $assessment['id'] }}, 'submit')" class="hub-action-btn" :style="expanded === {{ $assessment['id'] }} && panel === 'submit' ? 'background:#0d9488;color:#fff;border-color:#0d9488;' : ''" style="color:#0d9488;">Submit</button>
+                        @if (!empty($assessment['is_graded']))
+                            <button type="button" disabled class="hub-action-btn" style="background:var(--hub-surface-soft, rgba(148,163,184,0.12));color:var(--hub-muted);cursor:not-allowed;opacity:0.55;" title="Assessment is graded — submissions locked">Submit</button>
+                        @else
+                            <button type="button" @click="toggle({{ $assessment['id'] }}, 'submit')" class="hub-action-btn" :style="expanded === {{ $assessment['id'] }} && panel === 'submit' ? 'background:#0d9488;color:#fff;border-color:#0d9488;' : ''" style="color:#0d9488;">Submit</button>
+                        @endif
                         <button type="button" @click="toggle({{ $assessment['id'] }}, 'details')" class="hub-action-btn" :style="expanded === {{ $assessment['id'] }} && panel === 'details' ? 'background:#475569;color:#fff;border-color:#475569;' : ''" style="color:#475569;">Details</button>
                     </div>
 

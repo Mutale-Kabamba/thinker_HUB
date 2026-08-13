@@ -46,7 +46,8 @@ class MaterialPublishedNotification extends Notification
             ->actions([
                 Action::make('view')
                     ->label('View materials')
-                    ->url('/learn/materials'),
+                    ->url('/learn/materials')
+                    ->markAsRead(),
             ])
             ->getDatabaseMessage();
     }

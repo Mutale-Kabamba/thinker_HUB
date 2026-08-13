@@ -234,6 +234,19 @@ Route::get('/checkout/{course}', [PaymentController::class, 'showCheckout'])->na
 Route::get('/courses/{course}/enroll', [PaymentController::class, 'showCheckout']);
 Route::post('/courses/{course}/pay', [PaymentController::class, 'processPayment'])->name('checkout.process');
 Route::get('/payments/receipt/{reference}', [PaymentController::class, 'showReceipt'])->name('payment.receipt');
+Route::get('/payments/status/{reference}', [PaymentController::class, 'checkStatus'])->name('payment.status');
+Route::post('/api/payments/webhook/broadpay', [PaymentController::class, 'handleWebhook'])->name('payment.webhook.broadpay');
+Route::post('/payments/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
+
+Route::post('/notifications/{id}/read', function (string $id) {
+    auth()->user()?->notifications()->where('id', $id)->update(['read_at' => now()]);
+    return response()->json(['success' => true]);
+})->middleware('auth')->name('notifications.read');
+
+Route::post('/notifications/{id}/clear', function (string $id) {
+    auth()->user()?->notifications()->where('id', $id)->delete();
+    return response()->json(['success' => true]);
+})->middleware('auth')->name('notifications.clear');
 
 Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = null) use ($courseSlug, $databaseReady) {
     if (! $databaseReady() || ! Schema::hasTable('courses')) {

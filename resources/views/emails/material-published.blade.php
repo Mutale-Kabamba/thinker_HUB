@@ -1,5 +1,5 @@
 <x-mail::message>
-# 📚 New Learning Material Available
+# New Learning Material Available
 
 @php
     $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Learner'));

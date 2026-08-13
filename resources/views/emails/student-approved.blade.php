@@ -90,7 +90,7 @@
                                     </td>
                                     <td style="padding:14px 20px;font-size:13px;font-weight:700;">
                                         <span style="display:inline-block;padding:3px 10px;background:#dcfce7;color:#15803d;border-radius:999px;">
-                                            ✓ Active & Verified
+                                            Active & Verified
                                         </span>
                                     </td>
                                 </tr>

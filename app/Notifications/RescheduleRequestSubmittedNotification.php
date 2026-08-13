@@ -35,7 +35,8 @@ class RescheduleRequestSubmittedNotification extends Notification
                 ->actions([
                     Action::make('view')
                         ->label('View schedule')
-                        ->url('/learn/schedule'),
+                        ->url('/learn/schedule')
+                        ->markAsRead(),
                 ])
                 ->getDatabaseMessage(),
             [

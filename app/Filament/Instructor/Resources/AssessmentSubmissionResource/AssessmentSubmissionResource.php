@@ -87,17 +87,17 @@ class AssessmentSubmissionResource extends Resource
                                 Placeholder::make('submission_file')
                                     ->label('Uploaded File')
                                     ->content(fn ($record): HtmlString => $record?->file_path
-                                        ? new HtmlString('<a href="/storage/' . e($record->file_path) . '" target="_blank" style="color:#0e7490;text-decoration:underline;">📄 ' . e(basename($record->file_path)) . '</a>')
+                                        ? new HtmlString('<a href="/storage/' . e($record->file_path) . '" target="_blank" style="color:#0e7490;text-decoration:underline;display:inline-flex;align-items:center;gap:0.3rem;"><svg style="width:1rem;height:1rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ' . e(basename($record->file_path)) . '</a>')
                                         : new HtmlString('<span style="color:#9ca3af;">No file uploaded</span>')),
                                 Placeholder::make('submission_link')
                                     ->label('Link')
                                     ->content(fn ($record): HtmlString => $record?->link
-                                        ? new HtmlString('<a href="' . e($record->link) . '" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">🔗 ' . e(\Illuminate\Support\Str::limit($record->link, 50)) . '</a>')
+                                        ? new HtmlString('<a href="' . e($record->link) . '" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;display:inline-flex;align-items:center;gap:0.3rem;"><svg style="width:1rem;height:1rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> ' . e(\Illuminate\Support\Str::limit($record->link, 50)) . '</a>')
                                         : new HtmlString('<span style="color:#9ca3af;">No link provided</span>')),
                                 Placeholder::make('submission_video')
                                     ->label('Video URL')
                                     ->content(fn ($record): HtmlString => $record?->video_url
-                                        ? new HtmlString('<a href="' . e($record->video_url) . '" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">🎬 ' . e(\Illuminate\Support\Str::limit($record->video_url, 50)) . '</a>')
+                                        ? new HtmlString('<a href="' . e($record->video_url) . '" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;display:inline-flex;align-items:center;gap:0.3rem;"><svg style="width:1rem;height:1rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> ' . e(\Illuminate\Support\Str::limit($record->video_url, 50)) . '</a>')
                                         : new HtmlString('<span style="color:#9ca3af;">No video provided</span>')),
                             ])
                             ->columnSpan(1),

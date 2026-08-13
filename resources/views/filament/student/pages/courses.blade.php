@@ -69,13 +69,13 @@
                                     <button
                                         type="button"
                                         wire:click="setRating({{ $course['id'] }}, {{ $star }})"
-                                        style="background:none;border:none;cursor:pointer;font-size:1.1rem;line-height:1;padding:0;"
+                                        style="background:none;border:none;cursor:pointer;line-height:1;padding:0;"
                                         title="Rate {{ $star }} star{{ $star > 1 ? 's' : '' }}"
                                     >
                                         @if ((int) ($ratingInputs[$course['id']] ?? 0) >= $star)
-                                            <span aria-hidden="true" style="color:#f59e0b;">★</span>
+                                            <x-heroicon-s-star style="width:1.15rem;height:1.15rem;color:#f59e0b;" />
                                         @else
-                                            <span aria-hidden="true" style="color:#94a3b8;">☆</span>
+                                            <x-heroicon-o-star style="width:1.15rem;height:1.15rem;color:#94a3b8;" />
                                         @endif
                                     </button>
                                 @endfor
@@ -112,7 +112,10 @@
                                             <p style="margin:0;font-size:0.76rem;font-weight:700;color:var(--hub-ink);">{{ $review['user_name'] }}</p>
                                             <div style="display:flex;align-items:center;gap:0.35rem;">
                                                 <span style="font-size:0.72rem;color:var(--hub-muted);">{{ $review['created_at'] }}</span>
-                                                <span style="font-size:0.72rem;font-weight:700;color:#b45309;">{{ $review['rating'] }}/5</span>
+                                                <span style="font-size:0.72rem;font-weight:700;color:#b45309;display:inline-flex;align-items:center;gap:0.15rem;">
+                                                    <x-heroicon-s-star style="width:0.75rem;height:0.75rem;color:#f59e0b;" />
+                                                    {{ $review['rating'] }}/5
+                                                </span>
                                             </div>
                                         </div>
                                         @if (!empty($review['review']))
@@ -129,12 +132,21 @@
                             <button type="button" disabled class="hub-btn hub-btn-muted" style="opacity:0.6;cursor:not-allowed;">Unavailable</button>
                         @elseif ($course['enrolled'])
                             @if ($course['certificate_claimed'])
-                                <a href="{{ url('/learn/certificates') }}" class="hub-btn hub-btn-muted" style="text-decoration:none;">🎓 View Certificate</a>
+                                <a href="{{ url('/learn/certificates') }}" class="hub-btn hub-btn-muted" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.35rem;">
+                                    <x-heroicon-o-academic-cap style="width:1rem;height:1rem;" />
+                                    <span>View Certificate</span>
+                                </a>
                             @elseif ($course['certificate_eligible'])
-                                <button type="button" wire:click="claimCertificate({{ $course['id'] }})" class="hub-btn hub-btn-primary">🎓 Claim Certificate</button>
+                                <button type="button" wire:click="claimCertificate({{ $course['id'] }})" class="hub-btn hub-btn-primary" style="display:inline-flex;align-items:center;gap:0.35rem;">
+                                    <x-heroicon-o-academic-cap style="width:1rem;height:1rem;" />
+                                    <span>Claim Certificate</span>
+                                </button>
                             @elseif ($course['certificate_lock_reason'])
                                 <div style="display:flex;flex-direction:column;gap:0.25rem;">
-                                    <button type="button" disabled class="hub-btn hub-btn-muted" style="opacity:0.6;cursor:not-allowed;" title="{{ $course['certificate_lock_reason'] }}">🔒 Certificate locked</button>
+                                    <button type="button" disabled class="hub-btn hub-btn-muted" style="opacity:0.6;cursor:not-allowed;display:inline-flex;align-items:center;gap:0.35rem;" title="{{ $course['certificate_lock_reason'] }}">
+                                        <x-heroicon-o-lock-closed style="width:0.95rem;height:0.95rem;" />
+                                        <span>Certificate locked</span>
+                                    </button>
                                     <p style="margin:0;font-size:0.72rem;color:var(--hub-muted);">{{ $course['certificate_lock_reason'] }}</p>
                                 </div>
                             @endif

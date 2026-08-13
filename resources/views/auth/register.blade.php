@@ -58,13 +58,17 @@
                     <select id="course_id" name="course_id" required class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
                         <option value="">Select course</option>
                         @foreach ($courses as $course)
-                            @php $isLockedCourse = $course->is_open_enrollment === false; @endphp
+                            @php
+                                $isLockedCourse = $course->is_open_enrollment === false;
+                                $feesByLevel = method_exists($course, 'getLevelFees') ? $course->getLevelFees() : ['Beginner' => 1500, 'Intermediate' => 1500, 'Advanced' => 1500];
+                            @endphp
                             <option
                                 value="{{ $course->id }}"
                                 data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}"
                                 data-payment-message="{{ $course->payment_contact_message }}"
                                 data-title="{{ $course->title }}"
                                 data-fee="{{ method_exists($course, 'getNumericFee') ? $course->getNumericFee() : 1500 }}"
+                                data-fees-by-level="{{ json_encode($feesByLevel) }}"
                                 @selected((string) old('course_id') === (string) $course->id)
                                 @disabled($isLockedCourse)
                             >
@@ -84,6 +88,18 @@
                         @endforeach
                     </select>
                     <x-input-error :messages="$errors->get('track')" class="mt-2" />
+                </div>
+            </div>
+
+            {{-- Dynamic Level Fee Display --}}
+            <div id="reg-level-amount" class="hidden rounded-xl border border-teal-200 bg-teal-50/90 px-3.5 py-2.5 dark:border-teal-800 dark:bg-teal-950/50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-tag text-teal-600 text-xs"></i>
+                        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Level Fee:</span>
+                        <span id="reg-selected-level-pill" class="rounded-md bg-teal-100 px-2 py-0.5 text-[11px] font-bold text-teal-800 dark:bg-teal-900 dark:text-teal-200">Beginner</span>
+                    </div>
+                    <span id="reg-amount-display" class="text-sm font-black text-teal-800 dark:text-teal-200">ZMW 1,500.00</span>
                 </div>
             </div>
 
@@ -158,12 +174,16 @@
                     <select id="google_modal_course_id" class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
                         <option value="">Select course</option>
                         @foreach ($courses as $course)
-                            @php $isLockedCourse = $course->is_open_enrollment === false; @endphp
+                            @php
+                                $isLockedCourse = $course->is_open_enrollment === false;
+                                $feesByLevel = method_exists($course, 'getLevelFees') ? $course->getLevelFees() : ['Beginner' => 1500, 'Intermediate' => 1500, 'Advanced' => 1500];
+                            @endphp
                             <option value="{{ $course->id }}"
                                 data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}"
                                 data-payment-message="{{ $course->payment_contact_message }}"
                                 data-title="{{ $course->title }}"
                                 data-fee="{{ method_exists($course, 'getNumericFee') ? $course->getNumericFee() : 1500 }}"
+                                data-fees-by-level="{{ json_encode($feesByLevel) }}"
                                 @disabled($isLockedCourse)>
                                 {{ $course->code }} - {{ $course->title }}{{ $isLockedCourse ? ' (Locked)' : '' }}
                             </option>
@@ -182,7 +202,17 @@
                 </div>
             </div>
 
-            <div id="google-payment-notice" class="mt-4 hidden rounded-2xl border border-teal-200 bg-teal-50/80 p-4 text-xs text-teal-950 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-200">
+            {{-- Dynamic Level Amount Card for Google Modal --}}
+            <div id="google-modal-level-amount" class="mt-3 hidden items-center justify-between rounded-xl border border-teal-200 bg-teal-50/90 px-3.5 py-2.5 dark:border-teal-800 dark:bg-teal-950/50">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-tag text-teal-600 text-xs"></i>
+                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Level Fee:</span>
+                    <span id="google-modal-selected-level-pill" class="rounded-md bg-teal-100 px-2 py-0.5 text-[11px] font-bold text-teal-800 dark:bg-teal-900 dark:text-teal-200">Beginner</span>
+                </div>
+                <span id="google-modal-amount-display" class="text-sm font-black text-teal-800 dark:text-teal-200">ZMW 1,500.00</span>
+            </div>
+
+            <div id="google-payment-notice" class="mt-3 hidden rounded-2xl border border-teal-200 bg-teal-50/80 p-4 text-xs text-teal-950 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-200">
                 <div class="flex items-center justify-between mb-1">
                     <span class="font-bold flex items-center gap-1.5 text-teal-900 dark:text-teal-200">
                         <i class="fa-solid fa-bolt text-amber-500"></i>
@@ -191,7 +221,7 @@
                     <span class="rounded-full bg-teal-200/60 px-2.5 py-0.5 text-[10px] font-bold uppercase text-teal-900 dark:bg-teal-800 dark:text-teal-100">Instant Activation</span>
                 </div>
                 <p id="google-payment-notice-message" class="text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Complete setup to proceed to our simulated Mobile Money (Airtel, MTN, Zamtel) or Card checkout for instant enrollment activation.
+                    Complete setup to proceed to Mobile Money (Airtel, MTN, Zamtel) or Card checkout for instant enrollment activation.
                 </p>
             </div>
 
@@ -230,42 +260,95 @@
 
         (function () {
             var pageCourseSelect = document.getElementById('course_id');
+            var pageTrackSelect = document.getElementById('track');
             var pagePaymentNotice = document.getElementById('payment-notice');
             var pagePaymentNoticeMessage = document.getElementById('payment-notice-message');
+            var pageLevelAmount = document.getElementById('reg-level-amount');
+            var pageLevelPill = document.getElementById('reg-selected-level-pill');
+            var pageAmountDisplay = document.getElementById('reg-amount-display');
+
             var modalCourseSelect = document.getElementById('google_modal_course_id');
+            var modalTrackSelect = document.getElementById('google_modal_track');
             var modalPaymentNotice = document.getElementById('google-payment-notice');
             var modalPaymentNoticeMessage = document.getElementById('google-payment-notice-message');
+            var modalLevelAmount = document.getElementById('google-modal-level-amount');
+            var modalLevelPill = document.getElementById('google-modal-selected-level-pill');
+            var modalAmountDisplay = document.getElementById('google-modal-amount-display');
 
-            var updateNotice = function (selectEl, noticeEl, messageEl) {
-                if (!selectEl || !noticeEl || !messageEl) {
+            window.getFeeForSelection = function (courseSelect, trackSelect) {
+                if (!courseSelect || !courseSelect.value) return 0;
+                var opt = courseSelect.options[courseSelect.selectedIndex];
+                if (!opt) return 0;
+                var track = trackSelect ? trackSelect.value : 'Beginner';
+                var defaultFee = parseFloat(opt.getAttribute('data-fee') || '0') || 1500;
+                try {
+                    var map = JSON.parse(opt.getAttribute('data-fees-by-level') || '{}');
+                    if (track && map && map[track]) {
+                        return parseFloat(map[track]);
+                    }
+                } catch (e) {}
+                return defaultFee;
+            };
+
+            var updateNotice = function (courseSelect, trackSelect, noticeEl, messageEl, amountCardEl, pillEl, amountDisplayEl) {
+                if (!courseSelect || !noticeEl || !messageEl) {
                     return;
                 }
 
-                var option = selectEl.options[selectEl.selectedIndex];
+                var option = courseSelect.options[courseSelect.selectedIndex];
                 var requiresPayment = option && option.getAttribute('data-requires-payment') === '1';
-                var message = option && option.getAttribute('data-payment-message');
+                var courseTitle = option ? option.getAttribute('data-title') || option.textContent.trim() : '';
+                var selectedTrack = trackSelect ? trackSelect.value : '';
+                var fee = window.getFeeForSelection(courseSelect, trackSelect);
+                var formattedFee = 'ZMW ' + Number(fee).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                if (amountCardEl) {
+                    if (courseSelect.value && selectedTrack) {
+                        amountCardEl.classList.remove('hidden');
+                        amountCardEl.classList.add('flex');
+                        if (pillEl) pillEl.textContent = selectedTrack;
+                        if (amountDisplayEl) amountDisplayEl.textContent = formattedFee;
+                    } else if (courseSelect.value) {
+                        amountCardEl.classList.remove('hidden');
+                        amountCardEl.classList.add('flex');
+                        if (pillEl) pillEl.textContent = 'Standard';
+                        if (amountDisplayEl) amountDisplayEl.textContent = formattedFee;
+                    } else {
+                        amountCardEl.classList.add('hidden');
+                        amountCardEl.classList.remove('flex');
+                    }
+                }
 
                 noticeEl.classList.toggle('hidden', !requiresPayment);
 
                 if (requiresPayment) {
-                    messageEl.textContent = message && message.trim() !== ''
-                        ? message
-                        : 'For this paid course, the registration team will reach out soon.';
+                    var trackSuffix = selectedTrack ? ' (' + selectedTrack + ')' : '';
+                    messageEl.textContent = 'Complete setup for ' + (courseTitle ? courseTitle + trackSuffix : 'this course') + ' at ' + formattedFee + ' to proceed to Mobile Money (Airtel, MTN, Zamtel) or Card checkout for instant enrollment activation.';
                 }
             };
 
             if (pageCourseSelect && pagePaymentNotice && pagePaymentNoticeMessage) {
                 pageCourseSelect.addEventListener('change', function () {
-                    updateNotice(pageCourseSelect, pagePaymentNotice, pagePaymentNoticeMessage);
+                    updateNotice(pageCourseSelect, pageTrackSelect, pagePaymentNotice, pagePaymentNoticeMessage, pageLevelAmount, pageLevelPill, pageAmountDisplay);
                 });
-                updateNotice(pageCourseSelect, pagePaymentNotice, pagePaymentNoticeMessage);
+                if (pageTrackSelect) {
+                    pageTrackSelect.addEventListener('change', function () {
+                        updateNotice(pageCourseSelect, pageTrackSelect, pagePaymentNotice, pagePaymentNoticeMessage, pageLevelAmount, pageLevelPill, pageAmountDisplay);
+                    });
+                }
+                updateNotice(pageCourseSelect, pageTrackSelect, pagePaymentNotice, pagePaymentNoticeMessage, pageLevelAmount, pageLevelPill, pageAmountDisplay);
             }
 
             if (modalCourseSelect && modalPaymentNotice && modalPaymentNoticeMessage) {
                 modalCourseSelect.addEventListener('change', function () {
-                    updateNotice(modalCourseSelect, modalPaymentNotice, modalPaymentNoticeMessage);
+                    updateNotice(modalCourseSelect, modalTrackSelect, modalPaymentNotice, modalPaymentNoticeMessage, modalLevelAmount, modalLevelPill, modalAmountDisplay);
                 });
-                updateNotice(modalCourseSelect, modalPaymentNotice, modalPaymentNoticeMessage);
+                if (modalTrackSelect) {
+                    modalTrackSelect.addEventListener('change', function () {
+                        updateNotice(modalCourseSelect, modalTrackSelect, modalPaymentNotice, modalPaymentNoticeMessage, modalLevelAmount, modalLevelPill, modalAmountDisplay);
+                    });
+                }
+                updateNotice(modalCourseSelect, modalTrackSelect, modalPaymentNotice, modalPaymentNoticeMessage, modalLevelAmount, modalLevelPill, modalAmountDisplay);
             }
 
             // Intercept form submission to show checkout modal if paid course
@@ -287,10 +370,10 @@
 
                         var courseId = option.value;
                         var courseTitle = option.getAttribute('data-title');
-                        var fee = option.getAttribute('data-fee');
                         var track = document.getElementById('track').value;
+                        var fee = window.getFeeForSelection(selectEl, document.getElementById('track'));
 
-                        // Open modal
+                        // Open modal with exact level & fee
                         if (typeof window.openCheckoutModal === 'function') {
                             window.openCheckoutModal(courseId, courseTitle, fee, track);
                         } else {
@@ -378,11 +461,14 @@
 
                     // Get course details from the modal select
                     const selectEl = document.getElementById('google_modal_course_id');
+                    const trackEl = document.getElementById('google_modal_track');
                     const option = selectEl.options[selectEl.selectedIndex];
                     const courseId = option.value;
                     const courseTitle = option.getAttribute('data-title');
-                    const fee = option.getAttribute('data-fee');
-                    const track = document.getElementById('google_modal_track').value;
+                    const track = trackEl ? trackEl.value : 'Beginner';
+                    const fee = typeof window.getFeeForSelection === 'function'
+                        ? window.getFeeForSelection(selectEl, trackEl)
+                        : (option.getAttribute('data-fee') || 1500);
 
                     // The user is authenticated on the backend now, so hide guest fields
                     const guestFields = document.getElementById('chk-guest-fields');

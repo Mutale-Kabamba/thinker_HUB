@@ -166,7 +166,7 @@
             <template x-if="viewerType === 'docx'">
                 <div style="width:100%;height:75vh;overflow:auto;background:#fff;border-radius:8px;" class="doc-viewer-frame">
                     <div x-show="viewerLoading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:0.6rem;color:#6b7280;">
-                        <span style="font-size:1.5rem;">📄</span>
+                        <x-heroicon-o-document-text style="width:2rem;height:2rem;color:#6b7280;" />
                         <p style="margin:0;font-size:0.85rem;">Loading document…</p>
                     </div>
                     <article x-show="!viewerLoading" class="doc-reader" x-html="viewerDocxHtml"></article>
@@ -174,7 +174,9 @@
             </template>
             <template x-if="viewerType === 'presentation'">
                 <div style="text-align:center;padding:2.5rem 1.5rem;align-self:center;">
-                    <span style="font-size:2.4rem;">📊</span>
+                    <div style="display:flex;justify-content:center;margin-bottom:0.5rem;">
+                        <x-heroicon-o-presentation-chart-bar style="width:3rem;height:3rem;color:#0d9488;" />
+                    </div>
                     <p style="font-size:1rem;font-weight:700;color:#1f2937;margin:0.6rem 0 0.2rem;">Presentation</p>
                     <p style="font-size:0.82rem;color:#6b7280;margin:0 0 1.1rem;word-break:break-word;" x-text="viewerName"></p>
                     <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">

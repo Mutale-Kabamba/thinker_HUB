@@ -45,6 +45,18 @@ class Assessments extends Page
 
             return;
         }
+
+        $existing = AssessmentSubmission::query()
+            ->where('assessment_id', $assessmentId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing && (($existing->score !== null && $existing->score !== '-') || in_array($existing->status, ['Graded', 'Checked'], true))) {
+            Notification::make()->title('This assessment has already been graded and cannot be resubmitted.')->warning()->send();
+
+            return;
+        }
+
         $draft = $this->submissionDrafts[$assessmentId] ?? [];
         $content = trim((string) ($draft['text'] ?? ''));
         $link = isset($draft['link']) ? trim((string) $draft['link']) : null;
@@ -82,6 +94,17 @@ class Assessments extends Page
         $user = auth()->user();
 
         if (! $user) {
+            return;
+        }
+
+        $existing = AssessmentSubmission::query()
+            ->where('assessment_id', $assessmentId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing && (($existing->score !== null && $existing->score !== '-') || in_array($existing->status, ['Graded', 'Checked'], true))) {
+            Notification::make()->title('Graded submissions cannot be deleted.')->warning()->send();
+
             return;
         }
 
@@ -141,25 +164,32 @@ class Assessments extends Page
             ->released()
             ->latest()
             ->get()
-            ->map(fn (Assessment $item): array => [
-                'id' => $item->id,
-                'name' => $item->name ?: 'Assessment',
-                'description' => $item->description ?? '',
-                'course' => $item->course?->title ?? 'Unassigned course',
-                'file_path' => $item->file_path,
-                'score' => $submissions->get($item->id)?->score ?? $item->score ?? '-',
-                'due_date' => $item->due_date?->format('Y-m-d') ?? '-',
-                'updated_at' => $item->updated_at?->format('Y-m-d') ?? '-',
-                'submission_status' => $submissions->get($item->id)?->status ?? 'Not submitted',
-                'submission' => [
-                    'id' => $submissions->get($item->id)?->id,
-                    'text' => $submissions->get($item->id)?->content ?? '',
-                    'file' => $submissions->get($item->id)?->file_path ?? null,
-                    'link' => $submissions->get($item->id)?->link ?? null,
-                    'video' => $submissions->get($item->id)?->video_url ?? null,
-                ],
-                'feedback' => $submissions->get($item->id)?->feedback,
-            ])
+            ->map(function (Assessment $item) use ($submissions): array {
+                $sub = $submissions->get($item->id);
+                $score = $sub?->score ?? $item->score ?? '-';
+                $isGraded = $sub && (($sub->score !== null && $sub->score !== '-') || in_array($sub->status, ['Graded', 'Checked'], true));
+
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name ?: 'Assessment',
+                    'description' => $item->description ?? '',
+                    'course' => $item->course?->title ?? 'Unassigned course',
+                    'file_path' => $item->file_path,
+                    'score' => $score,
+                    'due_date' => $item->due_date?->format('Y-m-d') ?? '-',
+                    'updated_at' => $item->updated_at?->format('Y-m-d') ?? '-',
+                    'submission_status' => $sub?->status ?? 'Not submitted',
+                    'is_graded' => $isGraded,
+                    'submission' => [
+                        'id' => $sub?->id,
+                        'text' => $sub?->content ?? '',
+                        'file' => $sub?->file_path ?? null,
+                        'link' => $sub?->link ?? null,
+                        'video' => $sub?->video_url ?? null,
+                    ],
+                    'feedback' => $sub?->feedback,
+                ];
+            })
             ->values()
             ->all();
 

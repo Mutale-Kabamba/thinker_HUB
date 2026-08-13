@@ -39,6 +39,16 @@ class StudentPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Student/Pages'), for: 'App\Filament\Student\Pages')
             ->userMenuItems([
                 MenuItem::make()
+                    ->label('Instructor Hub')
+                    ->icon('heroicon-o-academic-cap')
+                    ->url('/teach')
+                    ->visible(fn (): bool => (bool) auth()->user()?->isInstructor() && (bool) auth()->user()?->is_active),
+                MenuItem::make()
+                    ->label('Contributor Desk')
+                    ->icon('heroicon-o-sparkles')
+                    ->url('/contribute')
+                    ->visible(fn (): bool => (bool) auth()->user()?->isContributor()),
+                MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')
                     ->url(fn (): string => route('filament.student.pages.settings')),

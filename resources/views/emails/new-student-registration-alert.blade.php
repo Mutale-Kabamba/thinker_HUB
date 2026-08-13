@@ -101,7 +101,7 @@
                                     <tr>
                                         <td style="padding:16px 20px;">
                                             <div style="font-size:13px;line-height:1.45;color:#92400e;font-weight:700;">
-                                                ⏳ Status: Pending Verification & Payment Approval
+                                                Status: Pending Verification & Payment Approval
                                             </div>
                                             <div style="margin-top:4px;font-size:12px;line-height:1.5;color:#78350f;">
                                                 Please confirm proof of payment on the admin panel before activating this student.
@@ -114,7 +114,7 @@
                                     <tr>
                                         <td style="padding:16px 20px;">
                                             <div style="font-size:13px;line-height:1.45;color:#166534;font-weight:700;">
-                                                ✓ Status: Active & Ready
+                                                Status: Active & Ready
                                             </div>
                                             <div style="margin-top:4px;font-size:12px;line-height:1.5;color:#14532d;">
                                                 No manual payment verification is required for this registration.

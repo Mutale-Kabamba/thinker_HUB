@@ -1,324 +1,657 @@
 <x-filament-panels::page>
-    <div class="hub-shell">
-        <section class="hub-card" style="padding:0.75rem 1rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
-                <div>
-                    <p class="hub-eyebrow">My Schedule</p>
-                    <h2 class="hub-title" style="font-size:1.1rem;">Session Timetable & Progress</h2>
-                </div>
-                <div style="display:flex;gap:0.4rem;">
-                    <button wire:click="$set('viewMode', 'calendar')" class="hub-btn {{ $viewMode === 'calendar' ? 'hub-btn-primary' : 'hub-btn-muted' }}" style="font-size:0.72rem;padding:0.3rem 0.6rem;">📅 Calendar</button>
-                    <button wire:click="$set('viewMode', 'list')" class="hub-btn {{ $viewMode === 'list' ? 'hub-btn-primary' : 'hub-btn-muted' }}" style="font-size:0.72rem;padding:0.3rem 0.6rem;">📋 List</button>
-                </div>
-            </div>
-        </section>
+    <div class="hub-schedule-workspace">
 
-        <section class="hub-card" style="padding:0.75rem 1rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">
-                <div>
-                    <p class="hub-eyebrow">Reschedule Requests</p>
-                    <h3 class="hub-title" style="font-size:0.95rem;">Manage Your Request Updates</h3>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;">
-                    <label style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.72rem;color:var(--hub-muted);font-weight:600;">
-                        <input type="checkbox" wire:model.live="showRequestHistory">
-                        Show history
-                    </label>
-                    <span class="hub-chip hub-chip-primary">{{ count($rescheduleRequests) }} {{ $showRequestHistory ? 'recent' : 'pending' }}</span>
-                </div>
+        {{-- 1. TOP INTERACTIVE TIMETABLE CONTROL BAR --}}
+        <header class="hub-schedule-topbar">
+            <div class="hub-topbar-left">
+                <h2 class="hub-topbar-title">
+                    <x-heroicon-o-calendar-days class="hub-topbar-title-icon" />
+                    <span>Interactive Timetable</span>
+                </h2>
             </div>
 
-            <div style="margin-top:0.65rem;display:grid;gap:0.5rem;">
-                @forelse ($rescheduleRequests as $request)
-                    <article style="border:1px solid var(--hub-border);border-radius:10px;padding:0.55rem 0.65rem;background:var(--hub-surface-soft);">
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap;">
-                            <div>
-                                <p style="font-size:0.8rem;font-weight:700;color:var(--hub-ink);margin:0;">Session #{{ $request['session_id'] }}</p>
-                                <p style="font-size:0.74rem;color:var(--hub-muted);margin:0.15rem 0 0;">{{ $request['message'] }}</p>
+            <div class="hub-topbar-right">
+                <nav class="hub-segmented-tabs">
+                    <button type="button"
+                            wire:click="setRangeMode('month')"
+                            class="hub-tab {{ $rangeMode === 'month' ? 'is-active' : '' }}">
+                        Month
+                    </button>
+                    <button type="button"
+                            wire:click="setRangeMode('week')"
+                            class="hub-tab {{ $rangeMode === 'week' ? 'is-active' : '' }}">
+                        Week
+                    </button>
+                    <button type="button"
+                            wire:click="setRangeMode('day')"
+                            class="hub-tab {{ $rangeMode === 'day' ? 'is-active' : '' }}">
+                        Day
+                    </button>
+                    <button type="button"
+                            wire:click="setRangeMode('custom')"
+                            class="hub-tab {{ $rangeMode === 'custom' ? 'is-active' : '' }}">
+                        Custom
+                    </button>
+                </nav>
+
+                <div class="hub-nav-cluster">
+                    <div class="hub-nav-arrows">
+                        <button type="button"
+                                wire:click="previousPeriod"
+                                class="hub-nav-arrow-btn"
+                                title="Previous Period">
+                            <x-heroicon-o-chevron-left style="width:0.85rem;height:0.85rem;" />
+                        </button>
+                        <button type="button"
+                                wire:click="goToToday"
+                                class="hub-today-btn">
+                            Today
+                        </button>
+                        <button type="button"
+                                wire:click="nextPeriod"
+                                class="hub-nav-arrow-btn"
+                                title="Next Period">
+                            <x-heroicon-o-chevron-right style="width:0.85rem;height:0.85rem;" />
+                        </button>
+                    </div>
+
+                    <h3 class="hub-current-period-title">
+                        {{ $periodTitle }}
+                    </h3>
+                </div>
+            </div>
+        </header>
+
+        {{-- 2. MAIN 2-COLUMN SCHEDULE GRID --}}
+        <div class="hub-schedule-main-grid">
+
+            {{-- LEFT COLUMN: CALENDAR / TIMETABLE PANE --}}
+            <section class="hub-schedule-card">
+                <div class="hub-pane-header">
+                    <div class="hub-pane-title-group">
+                        @if ($rangeMode === 'month')
+                            <x-heroicon-o-calendar class="hub-pane-icon" />
+                            <h3 class="hub-pane-title">Monthly Calendar</h3>
+                        @elseif ($rangeMode === 'week')
+                            <x-heroicon-o-calendar-days class="hub-pane-icon" />
+                            <h3 class="hub-pane-title">Weekly Timetable</h3>
+                        @elseif ($rangeMode === 'day')
+                            <x-heroicon-o-clock class="hub-pane-icon" />
+                            <h3 class="hub-pane-title">Daily Agenda</h3>
+                        @else
+                            <x-heroicon-o-calendar-days class="hub-pane-icon" />
+                            <h3 class="hub-pane-title">Custom Timetable</h3>
+                        @endif
+                    </div>
+                    <span class="hub-pane-hint">Click class for details</span>
+                </div>
+
+                {{-- Custom Date Bounds Toolbar (When rangeMode === 'custom') --}}
+                @if ($rangeMode === 'custom')
+                    <div class="hub-custom-date-bar">
+                        <label>
+                            <span>From:</span>
+                            <input type="date" wire:model.live="customStartDate">
+                        </label>
+                        <label>
+                            <span>To:</span>
+                            <input type="date" wire:model.live="customEndDate">
+                        </label>
+                        <span class="hub-custom-date-hint">Showing dates within your bounds.</span>
+                    </div>
+                @endif
+
+                {{-- MONTH VIEW --}}
+                @if ($rangeMode === 'month')
+                    <div class="hub-month-grid">
+                        <div class="hub-month-dow-header">
+                            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                        </div>
+
+                        <div class="hub-month-body">
+                            @foreach ($calendarWeeks as $week)
+                                <div class="hub-month-row">
+                                    @foreach ($week as $day)
+                                        <div class="hub-month-cell {{ $day['is_today'] ? 'is-today' : '' }} {{ ! $day['in_month'] ? 'is-dimmed' : '' }}"
+                                             @if (count($day['sessions']) > 0)
+                                                 wire:click="openSessionDetails({{ $day['sessions'][0]['id'] }})"
+                                                 title="{{ count($day['sessions']) }} session(s) on {{ $day['date_full'] }}"
+                                             @endif
+                                        >
+                                            <div class="hub-month-cell-header">
+                                                <span class="hub-month-day-num {{ $day['is_today'] ? 'is-today-badge' : '' }}">{{ $day['date'] }}</span>
+                                                @if (count($day['sessions']) > 1)
+                                                    <span class="hub-month-more-badge">+{{ count($day['sessions']) }}</span>
+                                                @endif
+                                            </div>
+
+                                            <div class="hub-month-cell-events">
+                                                @foreach ($day['sessions'] as $s)
+                                                    <button type="button"
+                                                            wire:click.stop="openSessionDetails({{ $s['id'] }})"
+                                                            class="hub-month-event-item"
+                                                            title="{{ $s['course_code'] ? $s['course_code'].' · ' : '' }}{{ $s['title'] }} ({{ $s['start_time'] }})">
+                                                        <span class="hub-event-indicator is-{{ $s['status'] }}"></span>
+                                                        <span class="hub-event-time">{{ $s['start_time'] }}</span>
+                                                        <span class="hub-event-title">{{ $s['course_code'] ? $s['course_code'].' · ' : '' }}{{ $s['title'] }}</span>
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- WEEK VIEW --}}
+                @if ($rangeMode === 'week')
+                    <div class="hub-week-grid">
+                        @foreach ($weekDays as $day)
+                            <div class="hub-week-column {{ $day['is_today'] ? 'is-today' : '' }}">
+                                <div class="hub-week-column-header">
+                                    <span class="hub-week-day-name">{{ $day['day_name'] }}</span>
+                                    <span class="hub-week-day-num {{ $day['is_today'] ? 'is-today-pill' : '' }}">{{ $day['date_num'] }}</span>
+                                    @if ($day['is_today'])
+                                        <span class="hub-week-today-tag">TODAY</span>
+                                    @endif
+                                </div>
+
+                                <div class="hub-week-column-sessions">
+                                    @forelse ($day['sessions'] as $s)
+                                        <article wire:click="openSessionDetails({{ $s['id'] }})"
+                                                 class="hub-week-session-card is-{{ $s['status'] }}">
+                                            <div class="hub-week-session-top">
+                                                <span class="hub-week-session-time">{{ $s['start_time'] }}</span>
+                                                <span class="hub-status-micro-pill is-{{ $s['status'] }}">
+                                                    {{ ucfirst($s['status']) }}
+                                                </span>
+                                            </div>
+
+                                            <h4 class="hub-week-session-title">
+                                                @if ($s['course_code'])
+                                                    <span class="hub-code-prefix">{{ $s['course_code'] }}</span> ·
+                                                @endif
+                                                {{ $s['title'] }}
+                                            </h4>
+
+                                            @if (!empty($s['instructor_name']))
+                                                <div class="hub-week-session-user">
+                                                    <x-heroicon-o-user class="hub-user-icon" />
+                                                    <span>{{ $s['instructor_name'] }}</span>
+                                                </div>
+                                            @endif
+                                        </article>
+                                    @empty
+                                        <div class="hub-week-empty-day">
+                                            <span>—</span>
+                                        </div>
+                                    @endforelse
+                                </div>
                             </div>
-                            <span class="hub-chip {{ match($request['decision_status']) { 'accepted' => 'hub-chip-green', 'declined' => 'hub-chip-gray', default => 'hub-chip-amber' } }}" style="font-size:0.68rem;">
+                        @endforeach
+                    </div>
+                @endif
+
+                {{-- DAY VIEW --}}
+                @if ($rangeMode === 'day')
+                    <div class="hub-day-agenda">
+                        <div class="hub-day-agenda-header">
+                            <div>
+                                <h3 class="hub-day-title">{{ $dayViewData['day_name'] }}, {{ $dayViewData['formatted_date'] }}</h3>
+                                <p class="hub-day-subtitle">{{ count($dayViewData['sessions']) }} class session(s) scheduled</p>
+                            </div>
+                            @if ($dayViewData['is_today'])
+                                <span class="hub-today-badge-subtle">Today</span>
+                            @endif
+                        </div>
+
+                        <div class="hub-day-agenda-list">
+                            @forelse ($dayViewData['sessions'] as $s)
+                                <article wire:click="openSessionDetails({{ $s['id'] }})"
+                                         class="hub-day-session-card is-{{ $s['status'] }}">
+                                    <div class="hub-day-time-badge">
+                                        <span class="hub-day-time-start">{{ $s['start_time'] }}</span>
+                                        <span class="hub-day-time-end">{{ $s['end_time'] }}</span>
+                                    </div>
+
+                                    <div class="hub-day-card-body">
+                                        <div class="hub-day-card-meta">
+                                            @if ($s['course_code'])
+                                                <span class="hub-code-badge">{{ $s['course_code'] }}</span>
+                                            @endif
+                                            <span class="hub-type-badge">{{ $s['type_label'] ?? 'Group' }}</span>
+                                            <span class="hub-status-micro-pill is-{{ $s['status'] }}">
+                                                <span class="hub-status-dot is-{{ $s['status'] }}"></span>
+                                                {{ ucfirst($s['status']) }}
+                                            </span>
+                                        </div>
+                                        <h4 class="hub-day-session-title">{{ $s['title'] }}</h4>
+                                        <p class="hub-day-course-name">{{ $s['course_title'] ?? '' }}</p>
+                                    </div>
+
+                                    <div class="hub-day-card-action">
+                                        <x-heroicon-o-chevron-right class="hub-chevron-icon" />
+                                    </div>
+                                </article>
+                            @empty
+                                <div class="hub-empty-state">
+                                    <x-heroicon-o-calendar class="hub-empty-icon" />
+                                    <p style="margin:0;font-size:0.75rem;">No classes scheduled on this day.</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                @endif
+
+                {{-- CUSTOM VIEW --}}
+                @if ($rangeMode === 'custom')
+                    <div class="hub-custom-grid">
+                        @foreach ($customDays as $day)
+                            <div class="hub-custom-day-cell {{ $day['is_today'] ? 'is-today' : '' }}">
+                                <div class="hub-custom-day-header">
+                                    <span class="hub-custom-day-name">{{ $day['day_name'] }}</span>
+                                    <span class="hub-custom-day-num {{ $day['is_today'] ? 'is-today-badge' : '' }}">{{ $day['date_num'] }}</span>
+                                </div>
+                                <div class="hub-custom-day-sessions">
+                                    @forelse ($day['sessions'] as $s)
+                                        <button type="button"
+                                                wire:click="openSessionDetails({{ $s['id'] }})"
+                                                class="hub-custom-session-btn"
+                                                title="{{ $s['title'] }} ({{ $s['start_time'] }})">
+                                            <span class="hub-event-indicator is-{{ $s['status'] }}"></span>
+                                            <span class="hub-custom-time">{{ $s['start_time'] }}</span>
+                                            <span class="hub-custom-title">{{ $s['title'] }}</span>
+                                        </button>
+                                    @empty
+                                        <span class="hub-custom-empty">—</span>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </section>
+
+            {{-- RIGHT COLUMN: FILTER BY STATUS & SESSION LIST PANE --}}
+            <aside class="hub-schedule-card">
+                <div class="hub-pane-header">
+                    <div class="hub-pane-title-group">
+                        <x-heroicon-o-funnel class="hub-pane-icon" />
+                        <h3 class="hub-pane-title">Filter by Status</h3>
+                    </div>
+                    <span class="hub-pane-count-badge">{{ count($filteredSessions) }} in view</span>
+                </div>
+
+                {{-- Status Filter Pills --}}
+                <div class="hub-side-status-filters">
+                    <button type="button"
+                            wire:click="setFilterStatus('')"
+                            class="hub-filter-pill {{ $filterStatus === '' ? 'is-active' : '' }}">
+                        <span>All ({{ $statusCounts['all'] }})</span>
+                    </button>
+                    <button type="button"
+                            wire:click="setFilterStatus('scheduled')"
+                            class="hub-filter-pill {{ $filterStatus === 'scheduled' ? 'is-active' : '' }}">
+                        <span class="hub-status-dot is-scheduled"></span>
+                        <span>Scheduled ({{ $statusCounts['scheduled'] }})</span>
+                    </button>
+                    <button type="button"
+                            wire:click="setFilterStatus('completed')"
+                            class="hub-filter-pill {{ $filterStatus === 'completed' ? 'is-active' : '' }}">
+                        <span class="hub-status-dot is-completed"></span>
+                        <span>Completed ({{ $statusCounts['completed'] }})</span>
+                    </button>
+                    <button type="button"
+                            wire:click="setFilterStatus('rescheduled')"
+                            class="hub-filter-pill {{ $filterStatus === 'rescheduled' ? 'is-active' : '' }}">
+                        <span class="hub-status-dot is-rescheduled"></span>
+                        <span>Rescheduled ({{ $statusCounts['rescheduled'] }})</span>
+                    </button>
+                    <button type="button"
+                            wire:click="setFilterStatus('cancelled')"
+                            class="hub-filter-pill {{ $filterStatus === 'cancelled' ? 'is-active' : '' }}">
+                        <span class="hub-status-dot is-cancelled"></span>
+                        <span>Cancelled ({{ $statusCounts['cancelled'] }})</span>
+                    </button>
+                </div>
+
+                {{-- Quick Search Input --}}
+                <div class="hub-side-search-box">
+                    <x-heroicon-o-magnifying-glass class="hub-search-icon" />
+                    <input type="text"
+                           wire:model.live.debounce.300ms="searchSession"
+                           placeholder="Search topic, course or code..."
+                           class="hub-search-input">
+                </div>
+
+                {{-- Scrollable Session Card List --}}
+                <div class="hub-side-session-list">
+                    @forelse ($filteredSessions as $s)
+                        <article wire:click="openSessionDetails({{ $s['id'] }})"
+                                 class="hub-side-session-card is-{{ $s['status'] }}">
+                            <div class="hub-side-card-top">
+                                <div>
+                                    @if ($s['course_code'])
+                                        <span class="hub-side-card-code">{{ $s['course_code'] }}</span>
+                                    @endif
+                                    <span class="hub-side-card-type">· {{ $s['type_label'] ?? 'Group' }}</span>
+                                </div>
+                                <span class="hub-status-micro-pill is-{{ $s['status'] }}">
+                                    {{ ucfirst($s['status']) }}
+                                </span>
+                            </div>
+
+                            <h4 class="hub-side-card-title">{{ $s['title'] }}</h4>
+
+                            <div class="hub-side-card-meta">
+                                <div class="hub-side-card-meta-item">
+                                    <x-heroicon-o-calendar style="width:0.75rem;height:0.75rem;shrink:0;" />
+                                    <span>{{ $s['session_date'] }} · {{ $s['start_time'] }} - {{ $s['end_time'] }}</span>
+                                </div>
+                                @if (!empty($s['instructor_name']))
+                                    <div class="hub-side-card-meta-item">
+                                        <x-heroicon-o-user style="width:0.75rem;height:0.75rem;shrink:0;" />
+                                        <span>{{ $s['instructor_name'] }}</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </article>
+                    @empty
+                        <div class="hub-empty-state" style="padding:1.75rem 1rem;">
+                            <x-heroicon-o-calendar-days class="hub-empty-icon" />
+                            <p style="margin:0;font-size:0.75rem;">No sessions match your filter.</p>
+                        </div>
+                    @endforelse
+                </div>
+            </aside>
+        </div>
+
+        {{-- 3. BOTTOM SECTION 1: RESCHEDULE REQUESTS --}}
+        <div class="hub-reschedule-card">
+            <div class="hub-reschedule-header">
+                <div class="hub-reschedule-title-group">
+                    <x-heroicon-o-arrow-path class="hub-pane-icon" />
+                    <h3 class="hub-pane-title">Reschedule Requests</h3>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    <label class="hub-toggle-history-label">
+                        <input type="checkbox" wire:model.live="showRequestHistory">
+                        <span>Show history</span>
+                    </label>
+                    <span class="hub-counter-badge">{{ count($rescheduleRequests) }} {{ $showRequestHistory ? 'in history' : 'pending' }}</span>
+                </div>
+            </div>
+
+            @if (count($rescheduleRequests) > 0)
+                <div class="hub-reschedule-list">
+                    @foreach ($rescheduleRequests as $request)
+                        <div class="hub-reschedule-item">
+                            <div class="hub-reschedule-meta">
+                                <span class="hub-reschedule-session">Session #{{ $request['session_id'] }}</span>
+                                <span class="hub-reschedule-msg">{{ $request['message'] }}</span>
+                                @if ($request['preferred_date'])
+                                    <span class="hub-reschedule-pref">Prefers {{ $request['preferred_date'] }} @if ($request['preferred_time']) at {{ $request['preferred_time'] }} @endif</span>
+                                @endif
+                            </div>
+                            <span class="hub-status-micro-pill is-{{ $request['decision_status'] }}">
                                 {{ ucfirst($request['decision_status']) }}
                             </span>
                         </div>
-                        <p style="margin:0.25rem 0 0;font-size:0.72rem;color:var(--hub-muted);">
-                            Reason: {{ $request['reason'] ?: 'Not provided' }}
-                            @if ($request['preferred_date'])
-                                · Preferred {{ $request['preferred_date'] }}
-                                @if ($request['preferred_time']) at {{ $request['preferred_time'] }} @endif
-                            @endif
-                            @if ($request['created_at'])
-                                · {{ $request['created_at'] }}
-                            @endif
-                        </p>
-                    </article>
-                @empty
-                    <p class="hub-copy" style="color:var(--hub-muted);text-align:center;">
-                        {{ $showRequestHistory ? 'No reschedule requests yet.' : 'No pending reschedule requests.' }}
-                    </p>
-                @endforelse
-            </div>
-        </section>
+                    @endforeach
+                </div>
+            @else
+                <p class="hub-reschedule-empty-text">No pending reschedule requests.</p>
+            @endif
+        </div>
 
-        {{-- Course Progress Tracker --}}
-        @if (count($courseProgress) > 0)
-            <section class="hub-card" style="padding:0.75rem 1rem;">
-                <h3 class="hub-title" style="font-size:0.92rem;margin-bottom:0.65rem;">📊 Course Progress</h3>
-                <div class="hub-grid hub-grid-2 hub-progress-grid">
+        {{-- 4. BOTTOM SECTION 2: COURSE PROGRESS & ATTENDANCE --}}
+        @if (count($courseProgress) > 0 || count($attendanceSummary) > 0)
+            <div class="hub-progress-card">
+                <div class="hub-pane-header" style="border-bottom:none;padding-bottom:0.15rem;">
+                    <div class="hub-pane-title-group">
+                        <x-heroicon-o-chart-bar-square class="hub-pane-icon" />
+                        <h3 class="hub-pane-title">Course Progress</h3>
+                    </div>
+                </div>
+
+                <div class="hub-progress-items">
                     @foreach ($courseProgress as $progress)
-                        <div style="padding:0.5rem 0;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">
-                                <div>
-                                    <span style="font-weight:700;font-size:0.82rem;color:var(--hub-ink);">{{ $progress['course_title'] }}</span>
-                                    <span style="font-size:0.7rem;color:var(--hub-muted);margin-left:0.3rem;">{{ $progress['course_code'] }}</span>
+                        <div class="hub-progress-item">
+                            <div class="hub-progress-meta">
+                                <span class="hub-progress-course-name">{{ $progress['course_title'] }} <span style="color:var(--hub-muted);font-weight:400;">({{ $progress['course_code'] }})</span></span>
+                                <span class="hub-progress-fraction">{{ $progress['completed'] }}/{{ $progress['total'] }} ({{ $progress['percentage'] }}%)</span>
+                            </div>
+                            <div class="hub-progress-track">
+                                <div class="hub-progress-fill" style="width: {{ $progress['percentage'] }}%;"></div>
+                            </div>
+                        </div>
+                    @endforeach
+
+                    @if (count($attendanceSummary) > 0)
+                        @foreach ($attendanceSummary as $summary)
+                            <div class="hub-progress-item" style="margin-top:0.35rem;padding-top:0.35rem;border-top:1px solid var(--hub-border);">
+                                <div class="hub-progress-meta">
+                                    <span class="hub-progress-course-name">{{ $summary['course_title'] }} (Attendance)</span>
+                                    <span class="hub-progress-fraction {{ $summary['percentage'] >= 75 ? 'is-good' : 'is-warning' }}">
+                                        {{ $summary['attended'] }}/{{ $summary['total'] }} ({{ $summary['percentage'] }}%)
+                                    </span>
                                 </div>
-                                <span style="font-size:0.75rem;font-weight:700;color:var(--hub-primary);">{{ $progress['completed'] }}/{{ $progress['total'] }} ({{ $progress['percentage'] }}%)</span>
-                            </div>
-                            <div style="height:8px;background:var(--hub-border);border-radius:99px;overflow:hidden;">
-                                <div style="height:100%;width:{{ $progress['percentage'] }}%;background:var(--hub-primary);border-radius:99px;transition:width 0.3s;"></div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </section>
-        @endif
-
-        <section class="hub-card" style="padding:0.75rem 1rem;">
-            <h3 class="hub-title" style="font-size:0.92rem;margin-bottom:0.65rem;">✅ My Attendance</h3>
-
-            @if (count($attendanceSummary) === 0 && count($attendanceRecords) === 0)
-                <p class="hub-copy" style="color:var(--hub-muted);">No attendance recorded yet — it will appear here once your instructor marks a session.</p>
-            @endif
-
-            @if (count($attendanceSummary) > 0)
-                <div class="hub-grid hub-grid-2 hub-progress-grid" style="margin-bottom:0.75rem;">
-                    @foreach ($attendanceSummary as $summary)
-                        <div style="padding:0.5rem 0;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">
-                                <div>
-                                    <span style="font-weight:700;font-size:0.82rem;color:var(--hub-ink);">{{ $summary['course_title'] }}</span>
-                                    <span style="font-size:0.7rem;color:var(--hub-muted);margin-left:0.3rem;">{{ $summary['course_code'] }}</span>
+                                <div class="hub-progress-track">
+                                    <div class="hub-progress-fill {{ $summary['percentage'] >= 75 ? 'is-good' : 'is-warning' }}" style="width: {{ $summary['percentage'] }}%;"></div>
                                 </div>
-                                <span style="font-size:0.75rem;font-weight:700;color:var(--hub-primary);">{{ $summary['attended'] }}/{{ $summary['total'] }} ({{ $summary['percentage'] }}%)</span>
                             </div>
-                            <div style="height:8px;background:var(--hub-border);border-radius:99px;overflow:hidden;">
-                                <div style="height:100%;width:{{ $summary['percentage'] }}%;background:var(--hub-primary);border-radius:99px;transition:width 0.3s;"></div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
+                        @endforeach
 
-            @if (count($attendanceRecords) > 0)
-                <div class="hub-stack">
-                    @foreach ($attendanceRecords as $record)
-                        <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;border:1px solid var(--hub-border);border-radius:10px;padding:0.5rem 0.65rem;">
-                            <div style="min-width:0;">
-                                <span style="font-weight:600;font-size:0.8rem;color:var(--hub-ink);">{{ $record['session_title'] }}</span>
-                                <span style="font-size:0.72rem;color:var(--hub-muted);margin-left:0.35rem;">{{ $record['course_title'] }} · {{ $record['session_date'] }}</span>
-                            </div>
-                            <span style="flex-shrink:0;font-size:0.7rem;font-weight:700;padding:0.15rem 0.55rem;border-radius:99px;color:#fff;background:{{ match($record['status']) { 'present' => '#16a34a', 'late' => '#d97706', 'apology' => '#6366f1', default => '#dc2626' } }};">
-                                {{ ucfirst($record['status']) }}
-                            </span>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </section>
-
-        {{-- ===== CALENDAR VIEW ===== --}}
-        @if ($viewMode === 'calendar')
-            <section class="hub-card" style="padding:0.75rem 1rem;">
-                {{-- Month Navigation --}}
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
-                    <button wire:click="previousMonth" class="hub-btn hub-btn-muted" style="font-size:0.78rem;padding:0.3rem 0.6rem;">← Prev</button>
-                    <h3 style="font-weight:700;font-size:0.95rem;color:var(--hub-ink);">
-                        {{ \Carbon\Carbon::createFromDate($calendarYear, $calendarMonth, 1)->format('F Y') }}
-                    </h3>
-                    <button wire:click="nextMonth" class="hub-btn hub-btn-muted" style="font-size:0.78rem;padding:0.3rem 0.6rem;">Next →</button>
-                </div>
-
-                {{-- Calendar Grid --}}
-                <div style="overflow-x:auto;">
-                    <table class="hub-calendar-table" style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:500px;">
-                        <thead>
-                            <tr>
-                                @foreach (['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $day)
-                                    <th style="padding:0.4rem 0.2rem;font-size:0.7rem;font-weight:700;color:var(--hub-muted);text-align:center;border-bottom:1px solid var(--hub-border);">{{ $day }}</th>
+                        @if (count($attendanceRecords) > 0)
+                            <div class="hub-attendance-log">
+                                @foreach ($attendanceRecords as $rec)
+                                    <div class="hub-attendance-log-row">
+                                        <span class="hub-log-session-name">{{ $rec['session_title'] }}</span>
+                                        <span class="hub-status-micro-pill is-{{ $rec['status'] }}">{{ ucfirst($rec['status']) }}</span>
+                                    </div>
                                 @endforeach
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($calendarWeeks as $week)
-                                <tr>
-                                    @foreach ($week as $day)
-                                        <td style="
-                                            vertical-align:top;
-                                            padding:0.3rem;
-                                            height:5.5rem;
-                                            border:1px solid var(--hub-border);
-                                            {{ ! $day['in_month'] ? 'opacity:0.35;' : '' }}
-                                            {{ $day['is_today'] ? 'background:var(--hub-primary-soft);' : '' }}
-                                        ">
-                                            <div class="hub-calendar-day-num" style="font-size:0.7rem;font-weight:{{ $day['is_today'] ? '800' : '600' }};color:{{ $day['is_today'] ? 'var(--hub-primary)' : 'var(--hub-ink)' }};margin-bottom:0.2rem;">
-                                                {{ $day['date'] }}
-                                            </div>
-                                            @foreach ($day['sessions'] as $calSession)
-                                                <div class="hub-calendar-session" style="
-                                                    margin-bottom:0.15rem;
-                                                    padding:0.15rem 0.25rem;
-                                                    border-radius:4px;
-                                                    font-size:0.6rem;
-                                                    line-height:1.3;
-                                                    overflow:hidden;
-                                                    white-space:nowrap;
-                                                    text-overflow:ellipsis;
-                                                    cursor:default;
-                                                    background:{{ match($calSession['status']) {
-                                                        'completed' => '#dcfce7',
-                                                        'rescheduled' => '#fef3c7',
-                                                        'cancelled' => '#fee2e2',
-                                                        default => '#e0f2fe',
-                                                    } }};
-                                                    color:{{ match($calSession['status']) {
-                                                        'completed' => '#166534',
-                                                        'rescheduled' => '#92400e',
-                                                        'cancelled' => '#991b1b',
-                                                        default => '#0c4a6e',
-                                                    } }};
-                                                " title="{{ $calSession['title'] }} ({{ $calSession['start_time'] }}) — {{ ucfirst($calSession['status']) }}">
-                                                    <span style="font-weight:700;">{{ $calSession['start_time'] }}</span>
-                                                    {{ $calSession['course_code'] ?: $calSession['title'] }}
-                                                </div>
-                                            @endforeach
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                {{-- Legend --}}
-                <div class="hub-legend" style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.6rem;font-size:0.65rem;color:var(--hub-muted);">
-                    <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e0f2fe;margin-right:3px;"></span> Scheduled</span>
-                    <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#dcfce7;margin-right:3px;"></span> Completed</span>
-                    <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fef3c7;margin-right:3px;"></span> Rescheduled</span>
-                    <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fee2e2;margin-right:3px;"></span> Cancelled</span>
-                </div>
-            </section>
-        @endif
-
-        {{-- ===== LIST VIEW ===== --}}
-        {{-- Filter --}}
-        <section class="hub-card" style="padding:0.75rem 1rem;">
-            <div class="hub-schedule-filters" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
-                <div>
-                    <label style="font-size:0.72rem;font-weight:600;color:var(--hub-muted);">Filter by Status</label>
-                    <select wire:model.live="filterStatus" style="display:block;margin-top:0.15rem;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
-                        <option value="">All Sessions</option>
-                        <option value="scheduled">Scheduled</option>
-                        <option value="completed">Completed</option>
-                        <option value="rescheduled">Rescheduled</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-                <div class="hub-filter-count" style="margin-left:auto;align-self:flex-end;">
-                    <span class="hub-chip hub-chip-primary">{{ count($sessions) }} sessions</span>
+                            </div>
+                        @endif
+                    @endif
                 </div>
             </div>
-        </section>
+        @endif
 
-        @if ($viewMode === 'list')
-            {{-- Sessions List --}}
-            @forelse ($sessions as $session)
-                <article class="hub-card" style="border-left:4px solid {{ match($session['status']) { 'completed' => '#16a34a', 'rescheduled' => '#d97706', 'cancelled' => '#dc2626', default => ($session['is_today'] ? '#0f766e' : 'var(--hub-border)') } }};">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap;">
+        {{-- 5. POP-UP MODAL 1: CLASS DETAILS POP-UP --}}
+        @if ($showSessionDetailsModal && $selectedSessionDetails)
+            <div class="hub-modal-overlay">
+                <div class="hub-modal-card" style="max-width:480px;padding:1.25rem;">
+                    {{-- Header --}}
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem;padding-bottom:0.75rem;border-bottom:1px solid var(--hub-border);">
                         <div>
-                            <p style="font-weight:700;color:var(--hub-ink);font-size:0.88rem;">
-                                {{ $session['course_title'] }}
-                                @if ($session['title'])
-                                    <span style="font-weight:400;color:var(--hub-muted);"> — {{ $session['title'] }}</span>
+                            <div style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;margin-bottom:0.25rem;">
+                                @if ($selectedSessionDetails['course_code'])
+                                    <span class="hub-code-badge">{{ $selectedSessionDetails['course_code'] }}</span>
                                 @endif
-                            </p>
-                            <p style="font-size:0.72rem;color:var(--hub-muted);margin-top:0.15rem;">{{ $session['course_code'] }}</p>
+                                <span class="hub-type-badge">{{ $selectedSessionDetails['type_label'] }}</span>
+                                <span class="hub-status-micro-pill is-{{ $selectedSessionDetails['status'] }}">
+                                    <span class="hub-status-dot is-{{ $selectedSessionDetails['status'] }}"></span>
+                                    {{ ucfirst($selectedSessionDetails['status']) }}
+                                </span>
+                            </div>
+                            <h3 class="hub-title" style="font-size:1.05rem;margin:0.2rem 0 0;">{{ $selectedSessionDetails['title'] }}</h3>
+                            <p style="font-size:0.75rem;color:var(--hub-muted);margin:0.1rem 0 0;">{{ $selectedSessionDetails['course_title'] }}</p>
                         </div>
-                        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
-                            @if ($session['is_today'])
-                                <span class="hub-chip hub-chip-green" style="font-size:0.65rem;">Today</span>
-                            @endif
-                            <span class="hub-chip {{ $session['type'] === 'group' ? 'hub-chip-green' : 'hub-chip-primary' }}" style="font-size:0.65rem;">{{ $session['type_label'] }}</span>
-                            <span class="hub-chip {{ match($session['status']) { 'completed' => 'hub-chip-green', 'rescheduled' => 'hub-chip-amber', 'cancelled' => 'hub-chip-gray', default => 'hub-chip-primary' } }}" style="font-size:0.65rem;">{{ ucfirst($session['status']) }}</span>
-                        </div>
+                        <button type="button"
+                                wire:click="closeSessionDetails"
+                                style="background:var(--hub-surface-soft);border:1px solid var(--hub-border);border-radius:999px;width:1.65rem;height:1.65rem;display:flex;align-items:center;justify-content:center;color:var(--hub-muted);cursor:pointer;"
+                                title="Close dialog">
+                            <x-heroicon-o-x-mark style="width:0.95rem;height:0.95rem;" />
+                        </button>
                     </div>
 
-                    <div class="hub-session-meta" style="margin-top:0.5rem;display:flex;gap:1.2rem;flex-wrap:wrap;font-size:0.78rem;color:var(--hub-muted);">
-                        <span>📅 {{ $session['session_date'] }}</span>
-                        <span>🕐 {{ $session['start_time'] }} – {{ $session['end_time'] }}</span>
-                        @if ($session['instructor_name'])
-                            <span>👨‍🏫 {{ $session['instructor_name'] }}</span>
+                    {{-- Body --}}
+                    <div style="display:flex;flex-direction:column;gap:0.55rem;margin:0.85rem 0;">
+                        {{-- Date & Time --}}
+                        <div style="display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0.75rem;background:var(--hub-surface-soft);border-radius:8px;border:1px solid var(--hub-border);">
+                            <x-heroicon-o-calendar-days style="width:1.15rem;height:1.15rem;color:var(--hub-primary);shrink:0;" />
+                            <div>
+                                <p style="font-size:0.78rem;font-weight:700;color:var(--hub-ink);margin:0;">{{ $selectedSessionDetails['session_date'] }}</p>
+                                <p style="font-size:0.7rem;color:var(--hub-muted);margin:0.05rem 0 0;">{{ $selectedSessionDetails['start_time'] }} – {{ $selectedSessionDetails['end_time'] }}</p>
+                            </div>
+                        </div>
+
+                        {{-- Instructor Info --}}
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.55rem 0.75rem;background:var(--hub-surface-soft);border-radius:8px;border:1px solid var(--hub-border);flex-wrap:wrap;gap:0.4rem;">
+                            <div style="display:flex;align-items:center;gap:0.45rem;">
+                                <x-heroicon-o-academic-cap style="width:1.15rem;height:1.15rem;color:var(--hub-primary);" />
+                                <div>
+                                    <p style="font-size:0.78rem;font-weight:700;color:var(--hub-ink);margin:0;">{{ $selectedSessionDetails['instructor_name'] }}</p>
+                                    <p style="font-size:0.65rem;color:var(--hub-muted);margin:0.02rem 0 0;">Course Instructor</p>
+                                </div>
+                            </div>
+                            @if ($selectedSessionDetails['instructor_whatsapp'])
+                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $selectedSessionDetails['instructor_whatsapp']) }}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="hub-btn hub-btn-muted"
+                                   style="font-size:0.7rem;padding:0.22rem 0.55rem;border-radius:999px;text-decoration:none;display:inline-flex;align-items:center;gap:0.25rem;">
+                                    <x-heroicon-o-chat-bubble-left-right style="width:0.8rem;height:0.8rem;" />
+                                    <span>WhatsApp</span>
+                                </a>
+                            @endif
+                        </div>
+
+                        {{-- Virtual Meeting Link --}}
+                        @if ($selectedSessionDetails['meeting_link'])
+                            <div style="padding:0.55rem 0.75rem;background:color-mix(in oklab, var(--hub-primary-soft) 20%, var(--hub-surface));border-radius:8px;border:1px solid var(--hub-primary);display:flex;justify-content:space-between;align-items:center;gap:0.4rem;flex-wrap:wrap;">
+                                <div style="min-width:0;flex:1;">
+                                    <p style="font-size:0.75rem;font-weight:700;color:var(--hub-ink);margin:0;">Virtual Classroom Link</p>
+                                    <p style="font-size:0.65rem;color:var(--hub-muted);margin:0.02rem 0 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $selectedSessionDetails['meeting_link'] }}</p>
+                                </div>
+                                <a href="{{ $selectedSessionDetails['meeting_link'] }}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="hub-btn hub-btn-primary"
+                                   style="font-size:0.72rem;padding:0.28rem 0.75rem;border-radius:999px;text-decoration:none;display:inline-flex;align-items:center;gap:0.3rem;">
+                                    <x-heroicon-o-video-camera style="width:0.85rem;height:0.85rem;" />
+                                    <span>Join Class</span>
+                                </a>
+                            </div>
+                        @endif
+
+                        {{-- Agenda & Notes --}}
+                        @if ($selectedSessionDetails['notes'])
+                            <div style="padding:0.55rem 0.75rem;background:var(--hub-surface-soft);border-radius:8px;border:1px solid var(--hub-border);">
+                                <p style="font-size:0.68rem;font-weight:700;color:var(--hub-muted);margin:0 0 0.15rem;text-transform:uppercase;">Session Agenda / Notes</p>
+                                <p style="font-size:0.75rem;color:var(--hub-ink);margin:0;line-height:1.4;">{{ $selectedSessionDetails['notes'] }}</p>
+                            </div>
                         @endif
                     </div>
 
-                    @if ($session['status'] === 'rescheduled' && $session['rescheduled_date'])
-                        <div style="margin-top:0.4rem;padding:0.4rem 0.6rem;background:var(--hub-primary-soft);border-radius:6px;font-size:0.75rem;color:var(--hub-ink);">
-                            <strong>📅 Rescheduled to:</strong> {{ $session['rescheduled_date'] }}
-                            at {{ $session['rescheduled_start_time'] }}
-                            @if ($session['rescheduled_end_time']) – {{ $session['rescheduled_end_time'] }} @endif
+                    {{-- Footer --}}
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:0.4rem;flex-wrap:wrap;padding-top:0.75rem;border-top:1px solid var(--hub-border);">
+                        <div>
+                            @if ($selectedSessionDetails['status'] === 'scheduled')
+                                <button type="button"
+                                        wire:click="openRescheduleFromDetails"
+                                        class="hub-btn hub-btn-muted"
+                                        style="font-size:0.72rem;padding:0.25rem 0.65rem;border-radius:999px;border:1px solid var(--hub-border);cursor:pointer;display:inline-flex;align-items:center;gap:0.25rem;">
+                                    <x-heroicon-o-arrow-path style="width:0.78rem;height:0.78rem;" />
+                                    <span>Request Reschedule</span>
+                                </button>
+                            @endif
                         </div>
-                    @endif
 
-                    @if ($session['notes'])
-                        <p style="margin-top:0.4rem;font-size:0.75rem;color:var(--hub-muted);font-style:italic;">📝 {{ $session['notes'] }}</p>
-                    @endif
-
-                    {{-- Reschedule Request Button --}}
-                    @if ($session['can_add_to_calendar'] || (in_array($session['status'], ['scheduled', 'rescheduled']) && ! $session['is_past']))
-                        <div style="margin-top:0.6rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
-                            @if ($session['can_add_to_calendar'])
-                                <a href="{{ $session['google_calendar_url'] }}" target="_blank" rel="noopener noreferrer" class="hub-btn hub-btn-primary" style="font-size:0.72rem;padding:0.3rem 0.6rem;">
-                                    📅 Add to Google Calendar
+                        <div style="display:flex;align-items:center;gap:0.35rem;">
+                            @if ($selectedSessionDetails['google_calendar_url'])
+                                <a href="{{ $selectedSessionDetails['google_calendar_url'] }}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="hub-btn hub-btn-muted"
+                                   style="font-size:0.72rem;padding:0.25rem 0.65rem;border-radius:999px;text-decoration:none;display:inline-flex;align-items:center;gap:0.25rem;">
+                                    <x-heroicon-o-arrow-top-right-on-square style="width:0.78rem;height:0.78rem;" />
+                                    <span>Sync Calendar</span>
                                 </a>
                             @endif
-                            <button wire:click="openRescheduleRequest({{ $session['id'] }})" class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;">
-                                🔄 Request Reschedule
+                            <button type="button"
+                                    wire:click="closeSessionDetails"
+                                    class="hub-btn hub-btn-primary"
+                                    style="font-size:0.72rem;padding:0.28rem 0.85rem;border-radius:999px;cursor:pointer;">
+                                Done
                             </button>
                         </div>
-                    @endif
+                    </div>
+                </div>
+            </div>
+        @endif
 
-                    {{-- Reschedule Request Form --}}
-                    @if ($rescheduleRequestSessionId === $session['id'])
-                        <div style="margin-top:0.6rem;padding:0.7rem;border:1px solid var(--hub-border);border-radius:8px;background:var(--hub-surface-soft);">
-                            <p style="font-weight:700;font-size:0.8rem;color:var(--hub-ink);margin-bottom:0.5rem;">Request Reschedule</p>
-                            <div style="margin-bottom:0.5rem;">
-                                <label style="font-size:0.7rem;font-weight:600;color:var(--hub-muted);">Reason <span style="color:#dc2626;">*</span></label>
-                                <textarea wire:model="rescheduleRequestReason" rows="2" placeholder="Why do you need this session rescheduled?" style="display:block;width:100%;margin-top:0.15rem;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);resize:vertical;"></textarea>
+        {{-- 6. POP-UP MODAL 2: RESCHEDULE REQUEST FORM --}}
+        @if ($rescheduleRequestSessionId)
+            <div class="hub-modal-overlay">
+                <div class="hub-modal-card" style="max-width:440px;padding:1.25rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.65rem;padding-bottom:0.55rem;border-bottom:1px solid var(--hub-border);">
+                        <div style="display:flex;align-items:center;gap:0.35rem;">
+                            <x-heroicon-o-arrow-path style="width:1rem;height:1rem;color:var(--hub-primary);" />
+                            <h3 class="hub-title" style="font-size:0.95rem;margin:0;">Request Session Reschedule</h3>
+                        </div>
+                        <button type="button" wire:click="cancelRescheduleRequest" style="background:transparent;border:none;color:var(--hub-muted);cursor:pointer;">
+                            <x-heroicon-o-x-mark style="width:0.95rem;height:0.95rem;" />
+                        </button>
+                    </div>
+
+                    <p style="font-size:0.72rem;color:var(--hub-muted);margin-bottom:0.75rem;">
+                        Your instructor and administration will be notified with your requested date and rationale.
+                    </p>
+
+                    <div style="display:flex;flex-direction:column;gap:0.65rem;">
+                        <div>
+                            <label style="display:block;font-size:0.72rem;font-weight:700;color:var(--hub-ink);margin-bottom:0.2rem;">
+                                Reason for Rescheduling <span style="color:var(--hub-danger);">*</span>
+                            </label>
+                            <textarea wire:model="rescheduleRequestReason"
+                                      rows="3"
+                                      placeholder="Please explain why you need to reschedule..."
+                                      class="fi-input"
+                                      style="width:100%;font-size:0.75rem;padding:0.45rem;border-radius:6px;"></textarea>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;">
+                            <div>
+                                <label style="display:block;font-size:0.7rem;font-weight:700;color:var(--hub-ink);margin-bottom:0.15rem;">
+                                    Preferred Date
+                                </label>
+                                <input type="date"
+                                       wire:model="reschedulePreferredDate"
+                                       class="fi-input"
+                                       style="width:100%;font-size:0.72rem;padding:0.3rem 0.45rem;border-radius:6px;">
                             </div>
-                            <div class="hub-form-row" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;">
-                                <div>
-                                    <label style="font-size:0.7rem;font-weight:600;color:var(--hub-muted);">Preferred Date (optional)</label>
-                                    <input type="date" wire:model="reschedulePreferredDate" style="display:block;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
-                                </div>
-                                <div>
-                                    <label style="font-size:0.7rem;font-weight:600;color:var(--hub-muted);">Preferred Time (optional)</label>
-                                    <input type="time" wire:model="reschedulePreferredTime" style="display:block;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
-                                </div>
-                            </div>
-                            <div style="display:flex;gap:0.5rem;">
-                                <button wire:click="submitRescheduleRequest" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.35rem 0.7rem;">Send Request</button>
-                                <button wire:click="cancelRescheduleRequest" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.35rem 0.7rem;">Cancel</button>
+                            <div>
+                                <label style="display:block;font-size:0.7rem;font-weight:700;color:var(--hub-ink);margin-bottom:0.15rem;">
+                                    Preferred Time
+                                </label>
+                                <input type="time"
+                                       wire:model="reschedulePreferredTime"
+                                       class="fi-input"
+                                       style="width:100%;font-size:0.72rem;padding:0.3rem 0.45rem;border-radius:6px;">
                             </div>
                         </div>
-                    @endif
-                </article>
-            @empty
-                <section class="hub-card" style="text-align:center;padding:2rem 1rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" style="width:2.5rem;height:2.5rem;color:var(--hub-muted);margin:0 auto 0.5rem;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                    </svg>
-                    <p style="margin:0;font-size:0.8rem;color:var(--hub-muted);font-weight:600;">No sessions scheduled yet</p>
-                    <p style="margin:0.2rem 0 0;font-size:0.72rem;color:var(--hub-muted);">Your instructor will add sessions to your enrolled courses.</p>
-                </section>
-            @endforelse
+                    </div>
+
+                    <div style="display:flex;justify-content:flex-end;gap:0.4rem;margin-top:1rem;padding-top:0.65rem;border-top:1px solid var(--hub-border);">
+                        <button type="button"
+                                wire:click="cancelRescheduleRequest"
+                                class="hub-btn hub-btn-muted"
+                                style="font-size:0.72rem;padding:0.3rem 0.75rem;border-radius:999px;cursor:pointer;">
+                            Cancel
+                        </button>
+                        <button type="button"
+                                wire:click="submitRescheduleRequest"
+                                class="hub-btn hub-btn-primary"
+                                style="font-size:0.72rem;padding:0.3rem 0.95rem;border-radius:999px;cursor:pointer;">
+                            Send Request
+                        </button>
+                    </div>
+                </div>
+            </div>
         @endif
+
     </div>
 </x-filament-panels::page>

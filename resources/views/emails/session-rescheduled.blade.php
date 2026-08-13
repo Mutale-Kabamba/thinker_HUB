@@ -1,5 +1,5 @@
 <x-mail::message>
-# 📅 Live Session Rescheduled
+# Live Session Rescheduled
 
 @php
     $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Learner'));

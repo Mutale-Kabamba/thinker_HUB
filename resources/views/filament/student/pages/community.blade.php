@@ -6,10 +6,11 @@
         <section style="padding:0.15rem 0 0;display:flex;justify-content:center;">
             <button type="button" wire:click="$set('tab','leaderboard')"
                 style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.28rem 0.8rem;border-radius:999px;border:1px solid var(--hub-border);background:rgba(255,255,255,.5);backdrop-filter:blur(8px);box-shadow:0 6px 16px rgba(15,23,42,.06);cursor:pointer;font-size:0.76rem;font-weight:600;color:var(--hub-ink);">
-                <span style="font-size:0.9rem;">⚡</span>
+                <x-heroicon-s-bolt style="width:0.95rem;height:0.95rem;color:#eab308;" />
                 <span>{{ number_format($this->myXp['xp']) }} XP</span>
                 <span style="color:var(--hub-muted);">·</span>
-                <span>🏅 {{ $this->myXp['badge_count'] }} {{ Str::plural('badge', $this->myXp['badge_count']) }}</span>
+                <x-heroicon-s-star style="width:0.9rem;height:0.9rem;color:#f59e0b;" />
+                <span>{{ $this->myXp['badge_count'] }} {{ Str::plural('badge', $this->myXp['badge_count']) }}</span>
                 @if (count($this->myXp['badge_icons']) > 0)
                     <span style="letter-spacing:0.1em;">{{ implode('', $this->myXp['badge_icons']) }}</span>
                 @endif
@@ -32,8 +33,9 @@
                     @endif
                 </button>
                 <button type="button" wire:click="$set('tab','leaderboard')"
-                    style="flex:1;padding:0.4rem 0.5rem;border-radius:999px;border:none;cursor:pointer;font-size:0.8rem;font-weight:700;letter-spacing:.01em;{{ $tab === 'leaderboard' ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;box-shadow:0 8px 18px rgba(14,116,144,.26);' : 'background:transparent;color:var(--hub-ink);' }}">
-                    🏆 Leaderboard
+                    style="flex:1;padding:0.4rem 0.5rem;border-radius:999px;border:none;cursor:pointer;font-size:0.8rem;font-weight:700;letter-spacing:.01em;display:inline-flex;align-items:center;justify-content:center;gap:0.35rem;{{ $tab === 'leaderboard' ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;box-shadow:0 8px 18px rgba(14,116,144,.26);' : 'background:transparent;color:var(--hub-ink);' }}">
+                    <x-heroicon-o-trophy style="width:0.95rem;height:0.95rem;" />
+                    <span>Leaderboard</span>
                 </button>
                 </div>
             </div>
@@ -62,11 +64,15 @@
                                     <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.12rem;font-size:0.72rem;color:var(--hub-muted);">
                                         @if ($person['shared_count'] > 0)
                                             <span title="{{ implode(' · ', $person['shared_courses']) }}"
-                                                style="background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 14%);color:#0f766e;border-radius:999px;padding:0.04rem 0.45rem;font-weight:600;">
-                                                📚 {{ $person['shared_count'] }} {{ Str::plural('course', $person['shared_count']) }} together
+                                                style="background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 14%);color:#0f766e;border-radius:999px;padding:0.04rem 0.45rem;font-weight:600;display:inline-flex;align-items:center;gap:0.25rem;">
+                                                <x-heroicon-o-book-open style="width:0.75rem;height:0.75rem;" />
+                                                <span>{{ $person['shared_count'] }} {{ Str::plural('course', $person['shared_count']) }} together</span>
                                             </span>
                                         @endif
-                                        <span>⚡ {{ number_format($person['xp']) }}</span>
+                                        <span style="display:inline-flex;align-items:center;gap:0.2rem;">
+                                            <x-heroicon-s-bolt style="width:0.75rem;height:0.75rem;color:#eab308;" />
+                                            {{ number_format($person['xp']) }}
+                                        </span>
                                         @if (count($person['badge_icons']) > 0)
                                             <span style="letter-spacing:0.08em;">{{ implode('', $person['badge_icons']) }}</span>
                                         @endif
@@ -74,7 +80,10 @@
                                 </div>
                                 <div style="display:flex;gap:0.35rem;flex:0 0 auto;">
                                     @if ($person['friendship']['state'] === 'friends')
-                                        <span style="font-size:0.72rem;color:#0f766e;font-weight:600;">Friends ✓</span>
+                                        <span style="font-size:0.72rem;color:#0f766e;font-weight:600;display:inline-flex;align-items:center;gap:0.2rem;">
+                                            <x-heroicon-s-check-circle style="width:0.85rem;height:0.85rem;" />
+                                            <span>Friends</span>
+                                        </span>
                                     @elseif ($person['friendship']['state'] === 'sent')
                                         <span style="font-size:0.72rem;color:var(--hub-muted);">Request sent</span>
                                         <button type="button" wire:click="removeFriend({{ $person['id'] }})"
@@ -168,10 +177,12 @@
         @if ($tab === 'leaderboard')
             @php
                 $leaderboard = $this->leaderboard;
-                $medals = [1 => '🥇', 2 => '🥈', 3 => '🥉'];
             @endphp
             <section class="hub-card" style="padding:0.85rem 1rem;">
-                <h3 class="hub-title" style="font-size:0.95rem;margin:0 0 0.5rem;">🏆 Leaderboard</h3>
+                <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.5rem;">
+                    <x-heroicon-o-trophy style="width:1.15rem;height:1.15rem;color:var(--hub-primary);" />
+                    <h3 class="hub-title" style="font-size:0.95rem;margin:0;">Leaderboard</h3>
+                </div>
                 <p class="hub-copy" style="color:var(--hub-muted);font-size:0.76rem;margin:0 0 0.6rem;">Top students by XP — earn XP by passing quizzes, keeping streaks, and completing courses.</p>
 
                 @if ($leaderboard['rows']->count() === 0)
@@ -181,8 +192,8 @@
                         @foreach ($leaderboard['rows'] as $row)
                             @php $isMe = $row['user_id'] === auth()->id(); @endphp
                             <div style="display:flex;align-items:center;gap:0.55rem;padding:0.42rem 0.6rem;border-radius:0.5rem;border:1px solid {{ $isMe ? 'color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%)' : 'var(--hub-border)' }};{{ $isMe ? 'background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);' : '' }}">
-                                <span style="min-width:1.9rem;text-align:center;font-size:0.85rem;font-weight:700;color:var(--hub-ink);">
-                                    {{ $medals[$row['rank']] ?? '#'.$row['rank'] }}
+                                <span style="min-width:1.9rem;text-align:center;font-size:0.85rem;font-weight:700;color:{{ $row['rank'] <= 3 ? 'var(--hub-primary)' : 'var(--hub-ink)' }};">
+                                    #{{ $row['rank'] }}
                                 </span>
                                 <span style="flex:1;font-size:0.85rem;font-weight:{{ $isMe ? '700' : '500' }};color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                     {{ $row['name'] }}{{ $isMe ? ' (you)' : '' }}
@@ -190,8 +201,14 @@
                                 @if (count($row['badge_icons']) > 0)
                                     <span style="font-size:0.82rem;letter-spacing:0.08em;" title="{{ $row['badge_count'] }} {{ Str::plural('badge', $row['badge_count']) }}">{{ implode('', $row['badge_icons']) }}</span>
                                 @endif
-                                <span style="font-size:0.74rem;color:var(--hub-muted);">🏅 {{ $row['badge_count'] }}</span>
-                                <span style="font-size:0.8rem;font-weight:700;color:#0f766e;min-width:3.6rem;text-align:right;">⚡ {{ number_format($row['xp']) }}</span>
+                                <span style="font-size:0.74rem;color:var(--hub-muted);display:inline-flex;align-items:center;gap:0.2rem;">
+                                    <x-heroicon-s-star style="width:0.75rem;height:0.75rem;color:#f59e0b;" />
+                                    {{ $row['badge_count'] }}
+                                </span>
+                                <span style="font-size:0.8rem;font-weight:700;color:#0f766e;min-width:4.2rem;text-align:right;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.2rem;">
+                                    <x-heroicon-s-bolt style="width:0.75rem;height:0.75rem;color:#eab308;" />
+                                    {{ number_format($row['xp']) }}
+                                </span>
                             </div>
                         @endforeach
 
@@ -204,8 +221,14 @@
                                     @if (count($row['badge_icons']) > 0)
                                         <span style="font-size:0.82rem;letter-spacing:0.08em;">{{ implode('', $row['badge_icons']) }}</span>
                                     @endif
-                                    <span style="font-size:0.74rem;color:var(--hub-muted);">🏅 {{ $row['badge_count'] }}</span>
-                                    <span style="font-size:0.8rem;font-weight:700;color:#0f766e;min-width:3.6rem;text-align:right;">⚡ {{ number_format($row['xp']) }}</span>
+                                    <span style="font-size:0.74rem;color:var(--hub-muted);display:inline-flex;align-items:center;gap:0.2rem;">
+                                        <x-heroicon-s-star style="width:0.75rem;height:0.75rem;color:#f59e0b;" />
+                                        {{ $row['badge_count'] }}
+                                    </span>
+                                    <span style="font-size:0.8rem;font-weight:700;color:#0f766e;min-width:4.2rem;text-align:right;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.2rem;">
+                                        <x-heroicon-s-bolt style="width:0.75rem;height:0.75rem;color:#eab308;" />
+                                        {{ number_format($row['xp']) }}
+                                    </span>
                                 </div>
                             </div>
                         @endif
@@ -458,9 +481,18 @@
 
                         {{-- Stats row --}}
                         <div style="display:flex;gap:0.5rem;">
-                            <span style="flex:1;text-align:center;padding:0.4rem 0.3rem;border:1px solid var(--hub-border);border-radius:0.5rem;font-size:0.76rem;color:var(--hub-ink);">⚡ <strong>{{ number_format($profileUser['xp']) }}</strong> XP</span>
-                            <span style="flex:1;text-align:center;padding:0.4rem 0.3rem;border:1px solid var(--hub-border);border-radius:0.5rem;font-size:0.76rem;color:var(--hub-ink);">🏅 <strong>{{ $profileUser['badge_count'] }}</strong> {{ Str::plural('badge', $profileUser['badge_count']) }}</span>
-                            <span style="flex:1;text-align:center;padding:0.4rem 0.3rem;border:1px solid var(--hub-border);border-radius:0.5rem;font-size:0.76rem;color:var(--hub-ink);">📚 <strong>{{ $profileUser['courses_count'] }}</strong> {{ Str::plural('course', $profileUser['courses_count']) }}</span>
+                            <span style="flex:1;text-align:center;padding:0.4rem 0.3rem;border:1px solid var(--hub-border);border-radius:0.5rem;font-size:0.76rem;color:var(--hub-ink);display:inline-flex;align-items:center;justify-content:center;gap:0.25rem;">
+                                <x-heroicon-s-bolt style="width:0.8rem;height:0.8rem;color:#eab308;" />
+                                <strong>{{ number_format($profileUser['xp']) }}</strong> XP
+                            </span>
+                            <span style="flex:1;text-align:center;padding:0.4rem 0.3rem;border:1px solid var(--hub-border);border-radius:0.5rem;font-size:0.76rem;color:var(--hub-ink);display:inline-flex;align-items:center;justify-content:center;gap:0.25rem;">
+                                <x-heroicon-s-star style="width:0.8rem;height:0.8rem;color:#f59e0b;" />
+                                <strong>{{ $profileUser['badge_count'] }}</strong> {{ Str::plural('badge', $profileUser['badge_count']) }}
+                            </span>
+                            <span style="flex:1;text-align:center;padding:0.4rem 0.3rem;border:1px solid var(--hub-border);border-radius:0.5rem;font-size:0.76rem;color:var(--hub-ink);display:inline-flex;align-items:center;justify-content:center;gap:0.25rem;">
+                                <x-heroicon-o-book-open style="width:0.8rem;height:0.8rem;color:var(--hub-primary);" />
+                                <strong>{{ $profileUser['courses_count'] }}</strong> {{ Str::plural('course', $profileUser['courses_count']) }}
+                            </span>
                         </div>
 
                         {{-- Badge showcase --}}
@@ -471,7 +503,7 @@
                                     @foreach ($profileUser['badges'] as $badge)
                                         <span title="{{ $badge['description'] }}"
                                             style="font-size:0.76rem;padding:0.22rem 0.6rem;border-radius:999px;border:1px solid var(--hub-border);background:var(--hub-surface);color:var(--hub-ink);">
-                                            {{ $badge['icon'] }} {{ $badge['name'] }}
+                                            {{ $badge['name'] }}
                                         </span>
                                     @endforeach
                                 </div>
@@ -492,7 +524,10 @@
                         @if (! $profileUser['is_self'])
                             <div style="display:flex;justify-content:center;gap:0.4rem;padding-top:0.2rem;border-top:1px solid var(--hub-border);">
                                 @if ($profileUser['friendship']['state'] === 'friends')
-                                    <span style="font-size:0.8rem;color:#0f766e;font-weight:600;padding:0.35rem 0;">Friends ✓</span>
+                                    <span style="font-size:0.8rem;color:#0f766e;font-weight:600;padding:0.35rem 0;display:inline-flex;align-items:center;gap:0.25rem;">
+                                        <x-heroicon-s-check-circle style="width:0.95rem;height:0.95rem;" />
+                                        <span>Friends</span>
+                                    </span>
                                 @elseif ($profileUser['friendship']['state'] === 'sent')
                                     <span style="font-size:0.8rem;color:var(--hub-muted);padding:0.35rem 0;">Request sent</span>
                                     <button type="button" wire:click="removeFriend({{ $profileUser['id'] }})"

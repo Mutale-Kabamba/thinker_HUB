@@ -26,7 +26,8 @@ class CertificateIssuedNotification extends Notification
             ->actions([
                 Action::make('view')
                     ->label('View certificates')
-                    ->url('/learn/certificates'),
+                    ->url('/learn/certificates')
+                    ->markAsRead(),
             ])
             ->getDatabaseMessage();
     }

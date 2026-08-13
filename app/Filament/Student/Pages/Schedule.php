@@ -27,20 +27,52 @@ class Schedule extends Page
 
     protected string $view = 'filament.student.pages.schedule';
 
+    public string $rangeMode = 'month'; // 'day', 'week', 'month', 'custom'
+
+    public string $currentDate = '';
+
+    public ?string $customStartDate = null;
+
+    public ?string $customEndDate = null;
+
+    public string $filterStatus = ''; // '' for all, 'scheduled', 'completed', 'rescheduled', 'cancelled'
+
+    public string $searchSession = '';
+
+    public string $periodTitle = '';
+
+    public array $statusCounts = [
+        'all' => 0,
+        'scheduled' => 0,
+        'completed' => 0,
+        'rescheduled' => 0,
+        'cancelled' => 0,
+    ];
+
     public array $sessions = [];
 
-    public array $courseProgress = [];
+    public array $filteredSessions = [];
+
+    public array $weekDays = [];
+
+    public array $dayViewData = [];
 
     public array $calendarWeeks = [];
+
+    public array $customDays = [];
 
     public string $calendarMonth = '';
 
     public string $calendarYear = '';
 
-    public string $filterStatus = '';
+    // Modal state for session details pop-up
+    public ?int $selectedSessionId = null;
 
-    public string $viewMode = 'calendar';
+    public ?array $selectedSessionDetails = null;
 
+    public bool $showSessionDetailsModal = false;
+
+    // Reschedule request drawer/form state
     public ?int $rescheduleRequestSessionId = null;
 
     public string $rescheduleRequestReason = '';
@@ -51,23 +83,63 @@ class Schedule extends Page
 
     public array $rescheduleRequests = [];
 
+    public bool $showRequestHistory = false;
+
+    // Analytics & Progress
+    public array $courseProgress = [];
+
     public array $attendanceSummary = [];
 
     public array $attendanceRecords = [];
 
-    public bool $showRequestHistory = false;
-
     public function mount(): void
     {
         $now = Carbon::now();
+        $this->currentDate = $now->format('Y-m-d');
         $this->calendarMonth = $now->format('m');
         $this->calendarYear = $now->format('Y');
+        $this->customStartDate = $now->copy()->startOfWeek()->format('Y-m-d');
+        $this->customEndDate = $now->copy()->endOfWeek()->format('Y-m-d');
+
+        $this->loadData();
+    }
+
+    public function setRangeMode(string $mode): void
+    {
+        if (in_array($mode, ['day', 'week', 'month', 'custom'], true)) {
+            $this->rangeMode = $mode;
+            $this->loadData();
+        }
+    }
+
+    public function setFilterStatus(string $status): void
+    {
+        $this->filterStatus = $status;
         $this->loadData();
     }
 
     public function updatedFilterStatus(): void
     {
         $this->loadData();
+    }
+
+    public function updatedSearchSession(): void
+    {
+        $this->loadData();
+    }
+
+    public function updatedCustomStartDate(): void
+    {
+        if ($this->rangeMode === 'custom') {
+            $this->loadData();
+        }
+    }
+
+    public function updatedCustomEndDate(): void
+    {
+        if ($this->rangeMode === 'custom') {
+            $this->loadData();
+        }
     }
 
     public function updatedShowRequestHistory(): void
@@ -81,20 +153,113 @@ class Schedule extends Page
         $this->loadRescheduleRequests($user);
     }
 
-    public function previousMonth(): void
+    public function previousPeriod(): void
     {
-        $date = Carbon::createFromDate($this->calendarYear, $this->calendarMonth, 1)->subMonth();
-        $this->calendarMonth = $date->format('m');
-        $this->calendarYear = $date->format('Y');
+        $curr = Carbon::parse($this->currentDate);
+
+        if ($this->rangeMode === 'day') {
+            $this->currentDate = $curr->subDay()->format('Y-m-d');
+        } elseif ($this->rangeMode === 'week') {
+            $this->currentDate = $curr->subWeek()->format('Y-m-d');
+        } elseif ($this->rangeMode === 'month') {
+            $this->currentDate = $curr->subMonth()->format('Y-m-d');
+            $this->calendarMonth = Carbon::parse($this->currentDate)->format('m');
+            $this->calendarYear = Carbon::parse($this->currentDate)->format('Y');
+        }
+
         $this->loadData();
     }
 
-    public function nextMonth(): void
+    public function nextPeriod(): void
     {
-        $date = Carbon::createFromDate($this->calendarYear, $this->calendarMonth, 1)->addMonth();
-        $this->calendarMonth = $date->format('m');
-        $this->calendarYear = $date->format('Y');
+        $curr = Carbon::parse($this->currentDate);
+
+        if ($this->rangeMode === 'day') {
+            $this->currentDate = $curr->addDay()->format('Y-m-d');
+        } elseif ($this->rangeMode === 'week') {
+            $this->currentDate = $curr->addWeek()->format('Y-m-d');
+        } elseif ($this->rangeMode === 'month') {
+            $this->currentDate = $curr->addMonth()->format('Y-m-d');
+            $this->calendarMonth = Carbon::parse($this->currentDate)->format('m');
+            $this->calendarYear = Carbon::parse($this->currentDate)->format('Y');
+        }
+
         $this->loadData();
+    }
+
+    public function goToToday(): void
+    {
+        $now = Carbon::now();
+        $this->currentDate = $now->format('Y-m-d');
+        $this->calendarMonth = $now->format('m');
+        $this->calendarYear = $now->format('Y');
+        $this->loadData();
+    }
+
+    public function openSessionDetails(int $sessionId): void
+    {
+        $session = CourseSession::query()
+            ->with(['course', 'instructor'])
+            ->find($sessionId);
+
+        if (! $session) {
+            return;
+        }
+
+        $canAddToCalendar = in_array($session->status, ['scheduled', 'rescheduled'], true) && $session->effectiveEndAt()->isFuture();
+        $effectiveDate = $session->getEffectiveDate();
+
+        $this->selectedSessionId = $sessionId;
+        $this->selectedSessionDetails = [
+            'id' => $session->id,
+            'title' => $session->title ?: ($session->course->title ?? 'Class Session'),
+            'course_title' => $session->course->title ?? '—',
+            'course_code' => $session->course->code ?? '',
+            'type' => $session->type,
+            'type_label' => $session->type === 'one_on_one' ? 'One-On-One' : 'Cohort / Group',
+            'instructor_name' => $session->instructor?->name ?? 'Assigned Instructor',
+            'instructor_email' => $session->instructor?->email,
+            'instructor_whatsapp' => $session->instructor?->whatsapp,
+            'session_date' => $effectiveDate->format('l, F j, Y'),
+            'session_date_raw' => $effectiveDate->format('Y-m-d'),
+            'start_time' => Carbon::parse($session->getEffectiveStartTime())->format('g:i A'),
+            'end_time' => Carbon::parse($session->getEffectiveEndTime())->format('g:i A'),
+            'status' => $session->status,
+            'meeting_link' => $session->meeting_link,
+            'notes' => $session->notes,
+            'is_today' => $effectiveDate->isToday(),
+            'is_past' => $effectiveDate->isPast() && ! $effectiveDate->isToday(),
+            'can_add_to_calendar' => $canAddToCalendar,
+            'google_calendar_url' => $canAddToCalendar ? $this->buildGoogleCalendarUrl($session) : null,
+        ];
+
+        $this->showSessionDetailsModal = true;
+    }
+
+    public function closeSessionDetails(): void
+    {
+        $this->showSessionDetailsModal = false;
+        $this->selectedSessionId = null;
+        $this->selectedSessionDetails = null;
+    }
+
+    public function openClassModal(int $id): void
+    {
+        $this->openSessionDetails($id);
+    }
+
+    public function closeClassModal(): void
+    {
+        $this->closeSessionDetails();
+    }
+
+    public function openRescheduleFromDetails(): void
+    {
+        if ($this->selectedSessionId) {
+            $sessionId = $this->selectedSessionId;
+            $this->closeSessionDetails();
+            $this->openRescheduleRequest($sessionId);
+        }
     }
 
     public function openRescheduleRequest(int $sessionId): void
@@ -132,7 +297,6 @@ class Schedule extends Page
             return;
         }
 
-        // Notify the instructor (or admins if no instructor assigned)
         $recipients = collect();
 
         if ($session->instructor_id) {
@@ -142,7 +306,6 @@ class Schedule extends Page
             }
         }
 
-        // Also notify admins
         User::query()->where('role', 'admin')->each(fn ($admin) => $recipients->push($admin));
 
         $recipients->unique('id')->each(fn (User $recipient) => $recipient->notify(
@@ -168,7 +331,7 @@ class Schedule extends Page
         $this->loadData();
     }
 
-    protected function loadData(): void
+    public function loadData(): void
     {
         $user = auth()->user();
         if (! $user) {
@@ -176,20 +339,30 @@ class Schedule extends Page
         }
 
         $this->loadRescheduleRequests($user);
-
         $this->loadAttendance($user);
 
         $enrolledCourseIds = $user->courses()->pluck('courses.id')->all();
 
         if (empty($enrolledCourseIds)) {
             $this->sessions = [];
+            $this->filteredSessions = [];
             $this->courseProgress = [];
             $this->calendarWeeks = [];
+            $this->weekDays = [];
+            $this->dayViewData = [];
+            $this->customDays = [];
+            $this->statusCounts = [
+                'all' => 0,
+                'scheduled' => 0,
+                'completed' => 0,
+                'rescheduled' => 0,
+                'cancelled' => 0,
+            ];
 
             return;
         }
 
-        $query = CourseSession::query()
+        $allAccessibleQuery = CourseSession::query()
             ->with(['course', 'instructor'])
             ->where(function ($q) use ($enrolledCourseIds, $user) {
                 $q->where(function ($q2) use ($enrolledCourseIds) {
@@ -203,14 +376,21 @@ class Schedule extends Page
             ->orderBy('session_date')
             ->orderBy('start_time');
 
-        if ($this->filterStatus) {
-            $query->where('status', $this->filterStatus);
-        }
+        $allAccessibleSessions = $allAccessibleQuery->get();
 
-        $allSessions = $query->get();
+        // Calculate status counts across all accessible sessions
+        $this->statusCounts = [
+            'all' => $allAccessibleSessions->count(),
+            'scheduled' => $allAccessibleSessions->where('status', 'scheduled')->count(),
+            'completed' => $allAccessibleSessions->where('status', 'completed')->count(),
+            'rescheduled' => $allAccessibleSessions->where('status', 'rescheduled')->count(),
+            'cancelled' => $allAccessibleSessions->where('status', 'cancelled')->count(),
+        ];
 
-        $this->sessions = $allSessions->map(function (CourseSession $s): array {
+        // Format all sessions for structured consumption
+        $this->sessions = $allAccessibleSessions->map(function (CourseSession $s): array {
             $canAddToCalendar = in_array($s->status, ['scheduled', 'rescheduled'], true) && $s->effectiveEndAt()->isFuture();
+            $effectiveDate = $s->getEffectiveDate();
 
             return [
                 'id' => $s->id,
@@ -218,31 +398,191 @@ class Schedule extends Page
                 'course_code' => $s->course->code ?? '',
                 'type' => $s->type,
                 'type_label' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
-                'instructor_name' => $s->instructor?->name,
-                'title' => $s->title,
-                'session_date' => $s->session_date->format('D, M j, Y'),
-                'session_date_raw' => $s->session_date->format('Y-m-d'),
-                'start_time' => Carbon::parse($s->start_time)->format('g:i A'),
-                'end_time' => Carbon::parse($s->end_time)->format('g:i A'),
+                'instructor_name' => $s->instructor?->name ?? 'Instructor',
+                'title' => $s->title ?: ($s->course->title ?? 'Session'),
+                'session_date' => $effectiveDate->format('D, M j, Y'),
+                'session_date_raw' => $effectiveDate->format('Y-m-d'),
+                'start_time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A'),
+                'end_time' => Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
                 'status' => $s->status,
                 'rescheduled_date' => $s->rescheduled_date?->format('D, M j, Y'),
                 'rescheduled_date_raw' => $s->rescheduled_date?->format('Y-m-d'),
-                'rescheduled_start_time' => $s->rescheduled_start_time ? Carbon::parse($s->rescheduled_start_time)->format('g:i A') : null,
-                'rescheduled_end_time' => $s->rescheduled_end_time ? Carbon::parse($s->rescheduled_end_time)->format('g:i A') : null,
                 'notes' => $s->notes,
-                'is_today' => $s->getEffectiveDate()->isToday(),
-                'is_past' => $s->getEffectiveDate()->isPast() && ! $s->getEffectiveDate()->isToday(),
+                'is_today' => $effectiveDate->isToday(),
+                'is_past' => $effectiveDate->isPast() && ! $effectiveDate->isToday(),
                 'can_add_to_calendar' => $canAddToCalendar,
                 'google_calendar_url' => $canAddToCalendar ? $this->buildGoogleCalendarUrl($s) : null,
             ];
         })->all();
 
-        // Build calendar grid
-        $this->buildCalendar($allSessions);
+        // Compute date range based on rangeMode & currentDate
+        $refDate = filled($this->currentDate) ? Carbon::parse($this->currentDate) : Carbon::today();
+
+        if ($this->rangeMode === 'day') {
+            $startDate = $refDate->copy()->startOfDay();
+            $endDate = $refDate->copy()->endOfDay();
+            $this->periodTitle = $refDate->format('l, F j, Y');
+        } elseif ($this->rangeMode === 'week') {
+            $startDate = $refDate->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
+            $endDate = $refDate->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+            $this->periodTitle = $startDate->format('M j').' – '.$endDate->format('M j, Y');
+        } elseif ($this->rangeMode === 'month') {
+            $startDate = $refDate->copy()->startOfMonth()->startOfDay();
+            $endDate = $refDate->copy()->endOfMonth()->endOfDay();
+            $this->periodTitle = $refDate->format('F Y');
+            $this->calendarMonth = $refDate->format('m');
+            $this->calendarYear = $refDate->format('Y');
+        } else { // custom
+            $startDate = filled($this->customStartDate) ? Carbon::parse($this->customStartDate)->startOfDay() : $refDate->copy()->startOfWeek();
+            $endDate = filled($this->customEndDate) ? Carbon::parse($this->customEndDate)->endOfDay() : $refDate->copy()->endOfWeek();
+            $this->periodTitle = $startDate->format('M j, Y').' – '.$endDate->format('M j, Y');
+        }
+
+        // Filter sessions for Right Column List & Calendar Grid
+        $filtered = $allAccessibleSessions->filter(function (CourseSession $s) use ($startDate, $endDate): bool {
+            $effDate = $s->getEffectiveDate()->copy()->startOfDay();
+            if ($effDate->lt($startDate->copy()->startOfDay()) || $effDate->gt($endDate->copy()->endOfDay())) {
+                return false;
+            }
+
+            if ($this->filterStatus && $s->status !== $this->filterStatus) {
+                return false;
+            }
+
+            if (filled($this->searchSession)) {
+                $term = strtolower(trim($this->searchSession));
+                $matchTitle = str_contains(strtolower((string) $s->title), $term);
+                $matchCourse = str_contains(strtolower((string) ($s->course->title ?? '')), $term);
+                $matchCode = str_contains(strtolower((string) ($s->course->code ?? '')), $term);
+                if (! $matchTitle && ! $matchCourse && ! $matchCode) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        $this->filteredSessions = $filtered->map(function (CourseSession $s): array {
+            $canAddToCalendar = in_array($s->status, ['scheduled', 'rescheduled'], true) && $s->effectiveEndAt()->isFuture();
+            $effectiveDate = $s->getEffectiveDate();
+
+            return [
+                'id' => $s->id,
+                'course_title' => $s->course->title ?? '—',
+                'course_code' => $s->course->code ?? '',
+                'type' => $s->type,
+                'type_label' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
+                'instructor_name' => $s->instructor?->name ?? 'Instructor',
+                'title' => $s->title ?: ($s->course->title ?? 'Session'),
+                'session_date' => $effectiveDate->format('D, M j, Y'),
+                'session_date_raw' => $effectiveDate->format('Y-m-d'),
+                'start_time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A'),
+                'end_time' => Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
+                'status' => $s->status,
+                'notes' => $s->notes,
+                'is_today' => $effectiveDate->isToday(),
+                'is_past' => $effectiveDate->isPast() && ! $effectiveDate->isToday(),
+                'can_add_to_calendar' => $canAddToCalendar,
+                'google_calendar_url' => $canAddToCalendar ? $this->buildGoogleCalendarUrl($s) : null,
+            ];
+        })->values()->all();
+
+        // Index sessions by effective date for calendar grids
+        $sessionsByDate = [];
+        foreach ($allAccessibleSessions as $s) {
+            $effectiveDate = $s->getEffectiveDate()->format('Y-m-d');
+            $sessionsByDate[$effectiveDate][] = [
+                'id' => $s->id,
+                'title' => $s->title ?: ($s->course->title ?? '—'),
+                'course_code' => $s->course->code ?? '',
+                'course_title' => $s->course->title ?? '',
+                'start_time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A'),
+                'end_time' => Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
+                'status' => $s->status,
+                'type' => $s->type,
+                'type_label' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
+                'instructor_name' => $s->instructor?->name,
+            ];
+        }
+
+        // Build Week Days (7 days Monday - Sunday)
+        $this->weekDays = [];
+        $weekCursor = $refDate->copy()->startOfWeek(Carbon::MONDAY);
+        for ($i = 0; $i < 7; $i++) {
+            $dateStr = $weekCursor->format('Y-m-d');
+            $this->weekDays[] = [
+                'day_name' => $weekCursor->format('D'),
+                'day_full' => $weekCursor->format('l'),
+                'date_num' => $weekCursor->day,
+                'date_full' => $dateStr,
+                'is_today' => $weekCursor->isToday(),
+                'sessions' => $sessionsByDate[$dateStr] ?? [],
+            ];
+            $weekCursor->addDay();
+        }
+
+        // Build Day View
+        $dayStr = $refDate->format('Y-m-d');
+        $this->dayViewData = [
+            'date_full' => $dayStr,
+            'day_name' => $refDate->format('l'),
+            'formatted_date' => $refDate->format('F j, Y'),
+            'is_today' => $refDate->isToday(),
+            'sessions' => $sessionsByDate[$dayStr] ?? [],
+        ];
+
+        // Build Month Calendar (Sun-Sat grid)
+        $monthStart = $refDate->copy()->startOfMonth();
+        $monthEnd = $refDate->copy()->endOfMonth();
+        $calStart = $monthStart->copy()->startOfWeek(Carbon::SUNDAY);
+        $calEnd = $monthEnd->copy()->endOfWeek(Carbon::SATURDAY);
+
+        $this->calendarWeeks = [];
+        $calCursor = $calStart->copy();
+        $week = [];
+
+        while ($calCursor->lte($calEnd)) {
+            $dateStr = $calCursor->format('Y-m-d');
+            $week[] = [
+                'date' => $calCursor->day,
+                'date_full' => $dateStr,
+                'in_month' => $calCursor->month == $monthStart->month,
+                'is_today' => $calCursor->isToday(),
+                'sessions' => $sessionsByDate[$dateStr] ?? [],
+            ];
+
+            if (count($week) === 7) {
+                $this->calendarWeeks[] = $week;
+                $week = [];
+            }
+
+            $calCursor->addDay();
+        }
+
+        // Build Custom Range Days
+        $this->customDays = [];
+        if ($this->rangeMode === 'custom') {
+            $customCursor = $startDate->copy();
+            $maxDays = 60; // limit safety
+            $count = 0;
+            while ($customCursor->lte($endDate) && $count < $maxDays) {
+                $dateStr = $customCursor->format('Y-m-d');
+                $this->customDays[] = [
+                    'day_name' => $customCursor->format('D'),
+                    'day_full' => $customCursor->format('l'),
+                    'date_num' => $customCursor->day,
+                    'date_full' => $dateStr,
+                    'is_today' => $customCursor->isToday(),
+                    'sessions' => $sessionsByDate[$dateStr] ?? [],
+                ];
+                $customCursor->addDay();
+                $count++;
+            }
+        }
 
         // Course progress
         $this->courseProgress = [];
-        $grouped = $allSessions->groupBy('course_id');
+        $grouped = $allAccessibleSessions->groupBy('course_id');
         foreach ($grouped as $courseId => $courseSessions) {
             $total = $courseSessions->count();
             $completed = $courseSessions->where('status', 'completed')->count();
@@ -277,7 +617,6 @@ class Schedule extends Page
             ->groupBy(fn ($attendance) => $attendance->session->course_id)
             ->map(function ($courseAttendances) {
                 $total = $courseAttendances->count();
-                // Present and late both count as attended.
                 $attended = $courseAttendances->whereIn('status', ['present', 'late'])->count();
                 $course = $courseAttendances->first()->session->course;
 
@@ -323,52 +662,6 @@ class Schedule extends Page
             ->take(10)
             ->values()
             ->all();
-    }
-
-    protected function buildCalendar($allSessions): void
-    {
-        $monthStart = Carbon::createFromDate($this->calendarYear, $this->calendarMonth, 1)->startOfMonth();
-        $monthEnd = $monthStart->copy()->endOfMonth();
-
-        // Index sessions by their effective date
-        $sessionsByDate = [];
-        foreach ($allSessions as $s) {
-            $effectiveDate = $s->getEffectiveDate()->format('Y-m-d');
-            $sessionsByDate[$effectiveDate][] = [
-                'id' => $s->id,
-                'title' => $s->title ?: ($s->course->title ?? '—'),
-                'course_code' => $s->course->code ?? '',
-                'start_time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A'),
-                'status' => $s->status,
-                'type' => $s->type,
-            ];
-        }
-
-        // Build weeks array (Sun-Sat grid)
-        $calStart = $monthStart->copy()->startOfWeek(Carbon::SUNDAY);
-        $calEnd = $monthEnd->copy()->endOfWeek(Carbon::SATURDAY);
-
-        $this->calendarWeeks = [];
-        $current = $calStart->copy();
-        $week = [];
-
-        while ($current->lte($calEnd)) {
-            $dateStr = $current->format('Y-m-d');
-            $week[] = [
-                'date' => $current->day,
-                'date_full' => $dateStr,
-                'in_month' => $current->month == $monthStart->month,
-                'is_today' => $current->isToday(),
-                'sessions' => $sessionsByDate[$dateStr] ?? [],
-            ];
-
-            if (count($week) === 7) {
-                $this->calendarWeeks[] = $week;
-                $week = [];
-            }
-
-            $current->addDay();
-        }
     }
 
     protected function buildGoogleCalendarUrl(CourseSession $session): string

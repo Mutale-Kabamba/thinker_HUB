@@ -446,8 +446,12 @@
                                     <td>{{ $paymentItem['course'] }}</td>
                                     <td><strong style="color:var(--hub-teal);">{{ $paymentItem['amount'] }}</strong></td>
                                     <td style="text-transform:capitalize;">{{ $paymentItem['method'] }}</td>
-                                    <td>{{ $paymentItem['paid_at'] }}</td>
-                                    <td><span class="hub-chip hub-chip-green">✓ Verified</span></td>
+                                    <td>
+                                        <span class="hub-chip hub-chip-green" style="display:inline-flex;align-items:center;gap:0.25rem;">
+                                            <x-heroicon-s-check-circle style="width:0.85rem;height:0.85rem;" />
+                                            <span>Verified</span>
+                                        </span>
+                                    </td>
                                     <td style="text-align:right;">
                                         <a href="{{ $paymentItem['receipt_url'] }}" target="_blank" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.3rem 0.75rem;text-decoration:none;">
                                             View Receipt &rarr;

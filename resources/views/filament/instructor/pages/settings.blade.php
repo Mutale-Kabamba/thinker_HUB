@@ -144,8 +144,16 @@
                 <h2 class="hub-title">Recent Notifications</h2>
                 <div class="hub-stack" style="margin-top:0.65rem;">
                     @forelse ($latestNotifications as $note)
-                        <div style="border:1px solid var(--hub-border);border-radius:10px;padding:0.65rem;">
-                            {{ $note->data['message'] ?? ($note->data['title'] ?? 'Notification') }}
+                        <div x-data="{ cleared: false }" x-show="!cleared" x-transition.opacity
+                             @click="fetch('/notifications/{{ $note->id }}/clear', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }); cleared = true;"
+                             style="border:1px solid var(--hub-border);border-radius:10px;padding:0.65rem;cursor:pointer;transition:all 0.15s;"
+                             class="hover:opacity-80" title="Click to clear notification">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                                <div style="font-size:0.82rem;font-weight:500;">
+                                    {{ $note->data['message'] ?? ($note->data['title'] ?? 'Notification') }}
+                                </div>
+                                <span style="font-size:0.7rem;opacity:0.6;white-space:nowrap;">{{ $note->created_at?->diffForHumans() }}</span>
+                            </div>
                         </div>
                     @empty
                         <p class="hub-copy">{{ $canReadNotifications ? 'No notifications yet.' : 'Notifications are unavailable until migrations are applied.' }}</p>

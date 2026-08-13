@@ -1,5 +1,5 @@
 <x-mail::message>
-# 📤 Assignment Submission Received
+# Assignment Submission Received
 
 @php
     $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Instructor'));

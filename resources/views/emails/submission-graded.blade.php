@@ -1,5 +1,5 @@
 <x-mail::message>
-# 🎉 Your Submission Was Reviewed & Graded
+# Your Submission Was Reviewed & Graded
 
 Hello {{ $recipientName ?? $notifiable->name ?? 'Learner' }},
 

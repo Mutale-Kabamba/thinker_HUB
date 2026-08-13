@@ -63,7 +63,8 @@ class RescheduleRequestNotification extends Notification
                 ->actions([
                     Action::make('review')
                         ->label('Review request')
-                        ->url($url),
+                        ->url($url)
+                        ->markAsRead(),
                 ])
                 ->getDatabaseMessage(),
             [

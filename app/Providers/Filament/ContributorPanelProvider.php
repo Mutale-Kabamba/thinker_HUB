@@ -44,6 +44,16 @@ class ContributorPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Contributor/Pages'), for: 'App\\Filament\\Contributor\\Pages')
             ->userMenuItems([
                 MenuItem::make()
+                    ->label('Student Workspace')
+                    ->icon('heroicon-o-book-open')
+                    ->url('/learn')
+                    ->visible(fn (): bool => (bool) auth()->user()?->isStudent()),
+                MenuItem::make()
+                    ->label('Instructor Hub')
+                    ->icon('heroicon-o-academic-cap')
+                    ->url('/teach')
+                    ->visible(fn (): bool => (bool) auth()->user()?->isInstructor() && (bool) auth()->user()?->is_active),
+                MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')
                     ->url(fn (): string => route('filament.contributor.pages.settings')),

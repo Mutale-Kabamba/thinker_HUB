@@ -119,6 +119,22 @@ class FirebaseGoogleAuthController extends Controller
 
             $requiresPaymentApproval = $course->requiresPaymentApproval();
 
+            if ($requiresPaymentApproval) {
+                $request->session()->put('pending_registration', [
+                    'name' => $name !== '' ? $name : Str::before($email, '@'),
+                    'email' => $email,
+                    'firebase_uid' => $uid,
+                    'password' => Str::random(64),
+                    'track' => $track,
+                    'course_id' => $course->id,
+                ]);
+
+                return response()->json([
+                    'redirect' => route('checkout.show', [$course, 'track' => $track], absolute: false),
+                    'message' => 'Proceeding to course payment gateway.',
+                ]);
+            }
+
             $user = User::create([
                 'name' => $name !== '' ? $name : Str::before($email, '@'),
                 'email' => $email,
@@ -126,7 +142,7 @@ class FirebaseGoogleAuthController extends Controller
                 'password' => Str::random(64),
                 'role' => 'student',
                 'track' => $track,
-                'is_active' => ! $requiresPaymentApproval,
+                'is_active' => true,
                 'email_verified_at' => now(),
             ]);
 
@@ -135,7 +151,7 @@ class FirebaseGoogleAuthController extends Controller
                 'course_id' => $course->id,
             ]);
 
-            $this->notifyAdminsAboutNewStudent($user, $course, $requiresPaymentApproval);
+            $this->notifyAdminsAboutNewStudent($user, $course, false);
 
             $created = true;
         } else {
@@ -169,7 +185,7 @@ class FirebaseGoogleAuthController extends Controller
 
             if ($course) {
                 return response()->json([
-                    'redirect' => route('checkout.show', $course, absolute: false),
+                    'redirect' => route('checkout.show', [$course, 'track' => $user->track], absolute: false),
                     'message' => 'Proceeding to course payment gateway.',
                 ]);
             }

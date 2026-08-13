@@ -26,7 +26,8 @@ class CourseEnrolledNotification extends Notification
             ->actions([
                 Action::make('view')
                     ->label('View my courses')
-                    ->url('/learn/courses'),
+                    ->url('/learn/courses')
+                    ->markAsRead(),
             ])
             ->getDatabaseMessage();
     }

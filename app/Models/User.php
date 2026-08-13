@@ -37,6 +37,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         'password',
         'role',
         'is_active',
+        'email_verified_at',
         'track',
         'profile_photo_path',
         'proficiency',
@@ -433,6 +434,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             return false;
         }
 
+        if ($this->isInstructor()) {
+            // Dual-role (student + approved active instructor) automatically unlocks all contributor submissions
+            return in_array($type, ['blog', 'tip_trick', 'opportunity', 'video'], true);
+        }
+
         return match ($type) {
             'blog' => $this->isBlogger(),
             'tip_trick' => $this->isResearcher() || $this->isInstructor(),
@@ -454,24 +460,35 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
     public function isContributor(): bool
     {
-        return in_array($this->role, ['blogger', 'researcher', 'employer'], true);
+        // Dual-role (student + approved active instructor) automatically has full contributor access
+        return in_array($this->role, ['blogger', 'researcher', 'employer'], true)
+            || ($this->isInstructor() && $this->is_active);
     }
 
     public function isStudent(): bool
     {
-        return $this->role === 'student' || empty($this->role);
+        // Students and dual-role instructors/admins can access student learning features
+        return $this->role === 'student'
+            || $this->role === 'instructor'
+            || $this->role === 'admin'
+            || empty($this->role);
     }
 
     public function canAccessPanel(Panel $panel): bool
     {
+        if (! $this->is_active && ! $this->isAdmin()) {
+            return false;
+        }
+
         return match ($panel->getId()) {
             'admin' => $this->isAdmin(),
-            'instructor' => $this->isInstructor() && $this->is_active,
+            'instructor' => $this->isInstructor(),
             'contributor' => $this->isContributor(),
             'student' => $this->isStudent(),
             default => false,
         };
     }
+
 
     public function sendEmailVerificationNotification(?string $signerName = null): void
     {

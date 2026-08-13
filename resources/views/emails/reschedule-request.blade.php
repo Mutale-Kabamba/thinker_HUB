@@ -1,5 +1,5 @@
 <x-mail::message>
-# 🔄 Session Reschedule Request
+# Session Reschedule Request
 
 @php
     $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Instructor'));

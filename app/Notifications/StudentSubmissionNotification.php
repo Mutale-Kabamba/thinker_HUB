@@ -61,7 +61,8 @@ class StudentSubmissionNotification extends Notification
             ->actions([
                 Action::make('view')
                     ->label('View overview')
-                    ->url($url),
+                    ->url($url)
+                    ->markAsRead(),
             ])
             ->getDatabaseMessage();
     }

@@ -369,6 +369,1280 @@
     .hub-day-selected { outline: 2px solid #3b82f6; outline-offset: 1px; border-radius: 8px; }
     .hub-day:hover { background: var(--hub-surface); }
 
+    /* ============================================================ */
+    /* SCHEDULE & INTERACTIVE CALENDAR SYSTEM                       */
+    /* ============================================================ */
+    /* ============================================================ */
+    /* MODERN HIGH-DENSITY SCHEDULE & TIMETABLE SYSTEM (2-COLUMN)   */
+    /* ============================================================ */
+    .hub-schedule-workspace {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* 1. Top Control Bar */
+    .hub-schedule-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        padding: 0.55rem 0.85rem;
+        background: var(--hub-card);
+        border: 1px solid var(--hub-border);
+        border-radius: 12px;
+    }
+
+    .hub-topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+    }
+
+    .hub-topbar-title {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--hub-ink);
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin: 0;
+        letter-spacing: -0.01em;
+    }
+
+    .hub-topbar-title-icon {
+        width: 1.05rem;
+        height: 1.05rem;
+        color: var(--hub-primary);
+    }
+
+    .hub-topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        flex-wrap: wrap;
+    }
+
+    /* Segmented view switcher pills */
+    .hub-segmented-tabs {
+        display: inline-flex;
+        background: var(--hub-surface-soft);
+        border: 1px solid var(--hub-border);
+        border-radius: 8px;
+        padding: 2px;
+        gap: 2px;
+    }
+
+    .hub-tab {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--hub-muted);
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        padding: 0.22rem 0.65rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        line-height: 1.2;
+    }
+
+    .hub-tab:hover {
+        color: var(--hub-ink);
+    }
+
+    .hub-tab.is-active {
+        background: var(--hub-primary);
+        color: #ffffff !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        font-weight: 700;
+    }
+
+    /* Period Navigator */
+    .hub-nav-cluster {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .hub-nav-arrows {
+        display: inline-flex;
+        align-items: center;
+        background: var(--hub-surface-soft);
+        border: 1px solid var(--hub-border);
+        border-radius: 8px;
+        padding: 2px 4px;
+        gap: 2px;
+    }
+
+    .hub-nav-arrow-btn {
+        background: transparent;
+        border: none;
+        color: var(--hub-muted);
+        cursor: pointer;
+        padding: 2px;
+        display: flex;
+        align-items: center;
+        border-radius: 4px;
+        transition: color 0.12s;
+    }
+
+    .hub-nav-arrow-btn:hover {
+        color: var(--hub-ink);
+    }
+
+    .hub-today-btn {
+        background: transparent;
+        border: none;
+        color: var(--hub-primary);
+        font-size: 0.72rem;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 4px;
+        line-height: 1.2;
+        transition: opacity 0.12s;
+    }
+
+    .hub-today-btn:hover {
+        opacity: 0.85;
+    }
+
+    .hub-current-period-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--hub-ink);
+        margin: 0;
+        white-space: nowrap;
+        letter-spacing: -0.01em;
+    }
+
+    /* 2. Main 2-Column Schedule Grid */
+    .hub-schedule-main-grid {
+        display: grid;
+        grid-template-columns: 1.42fr 1fr;
+        gap: 0.75rem;
+        align-items: start;
+        width: 100%;
+    }
+
+    .hub-schedule-card {
+        background: var(--hub-card);
+        border: 1px solid var(--hub-border);
+        border-radius: 12px;
+        padding: 0.75rem 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .hub-pane-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 0.45rem;
+        border-bottom: 1px solid var(--hub-border);
+    }
+
+    .hub-pane-title-group {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .hub-pane-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--hub-ink);
+        margin: 0;
+    }
+
+    .hub-pane-icon {
+        width: 0.95rem;
+        height: 0.95rem;
+        color: var(--hub-primary);
+    }
+
+    .hub-pane-hint {
+        font-size: 0.62rem;
+        color: var(--hub-muted);
+        background: var(--hub-surface-soft);
+        padding: 0.12rem 0.4rem;
+        border-radius: 4px;
+        border: 1px solid var(--hub-border);
+    }
+
+    .hub-pane-count-badge {
+        font-size: 0.65rem;
+        color: var(--hub-muted);
+        font-weight: 600;
+    }
+
+    /* Status Filters (Side Panel) */
+    .hub-side-status-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .hub-filter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.68rem;
+        font-weight: 600;
+        padding: 0.18rem 0.45rem;
+        border-radius: 6px;
+        border: 1px solid var(--hub-border);
+        background: var(--hub-surface-soft);
+        color: var(--hub-muted);
+        cursor: pointer;
+        transition: all 0.12s ease;
+        line-height: 1.2;
+    }
+
+    .hub-filter-pill:hover {
+        border-color: var(--hub-primary);
+        color: var(--hub-ink);
+    }
+
+    .hub-filter-pill.is-active {
+        background: color-mix(in oklab, var(--hub-primary-soft) 28%, var(--hub-surface));
+        border-color: var(--hub-primary);
+        color: var(--hub-ink);
+        font-weight: 700;
+    }
+
+    .hub-filter-count {
+        font-size: 0.62rem;
+        opacity: 0.85;
+        font-weight: 700;
+    }
+
+    /* Status Dot Indicators */
+    .hub-status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .hub-status-dot.is-scheduled {
+        background: #14b8a6;
+        box-shadow: 0 0 5px rgba(20, 184, 166, 0.45);
+    }
+
+    .hub-status-dot.is-completed {
+        background: #10b981;
+        box-shadow: 0 0 5px rgba(16, 185, 129, 0.45);
+    }
+
+    .hub-status-dot.is-rescheduled {
+        background: #38bdf8;
+        box-shadow: 0 0 5px rgba(56, 189, 248, 0.45);
+    }
+
+    .hub-status-dot.is-cancelled {
+        background: #f43f5e;
+        box-shadow: 0 0 5px rgba(244, 63, 94, 0.45);
+    }
+
+    /* Search Box */
+    .hub-side-search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+
+    .hub-search-icon {
+        position: absolute;
+        left: 0.5rem;
+        width: 0.75rem;
+        height: 0.75rem;
+        color: var(--hub-muted);
+        pointer-events: none;
+    }
+
+    .hub-search-input {
+        width: 100%;
+        padding: 0.25rem 0.5rem 0.25rem 1.55rem;
+        font-size: 0.7rem;
+        border-radius: 6px;
+        border: 1px solid var(--hub-border);
+        background: var(--hub-surface-soft);
+        color: var(--hub-ink);
+        outline: none;
+        transition: border-color 0.15s ease;
+    }
+
+    .hub-search-input:focus {
+        border-color: var(--hub-primary);
+    }
+
+    /* Side Session List */
+    .hub-side-session-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        max-height: 420px;
+        overflow-y: auto;
+        padding-right: 2px;
+    }
+
+    .hub-side-session-card {
+        text-align: left;
+        background: var(--hub-surface-soft);
+        border: 1px solid var(--hub-border);
+        border-left: 3px solid var(--hub-primary);
+        border-radius: 8px;
+        padding: 0.55rem 0.7rem;
+        cursor: pointer;
+        transition: all 0.12s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .hub-side-session-card.is-scheduled { border-left-color: #14b8a6; }
+    .hub-side-session-card.is-completed { border-left-color: #10b981; }
+    .hub-side-session-card.is-rescheduled { border-left-color: #38bdf8; }
+    .hub-side-session-card.is-cancelled { border-left-color: #f43f5e; }
+
+    .hub-side-session-card:hover {
+        transform: translateY(-1px);
+        border-color: var(--hub-primary);
+        border-left-color: var(--hub-primary);
+        background: var(--hub-surface);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .hub-side-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.65rem;
+        gap: 0.4rem;
+    }
+
+    .hub-side-card-code {
+        color: var(--hub-primary);
+        font-weight: 800;
+    }
+
+    .hub-side-card-type {
+        color: var(--hub-muted);
+        font-size: 0.6rem;
+    }
+
+    .hub-side-card-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--hub-ink);
+        margin: 0;
+        line-height: 1.3;
+    }
+
+    .hub-side-card-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        font-size: 0.62rem;
+        color: var(--hub-muted);
+        margin-top: 0.1rem;
+    }
+
+    .hub-side-card-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    /* Custom Date Range Toolbar */
+    .hub-custom-date-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.45rem 0.75rem;
+        background: var(--hub-surface-soft);
+        border: 1px solid var(--hub-border);
+        border-radius: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 0.4rem;
+    }
+
+    .hub-custom-date-bar label {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--hub-muted);
+    }
+
+    .hub-custom-date-bar input[type="date"] {
+        padding: 0.2rem 0.45rem;
+        font-size: 0.7rem;
+        border-radius: 6px;
+        border: 1px solid var(--hub-border);
+        background: var(--hub-surface);
+        color: var(--hub-ink);
+    }
+
+    .hub-custom-date-hint {
+        font-size: 0.65rem;
+        color: var(--hub-muted);
+    }
+
+    /* ============================================================ */
+    /* MONTH VIEW                                                   */
+    /* ============================================================ */
+    .hub-month-grid {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 0.25rem;
+    }
+
+    .hub-month-dow-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.25rem;
+        text-align: center;
+        font-size: 0.62rem;
+        font-weight: 700;
+        color: var(--hub-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding-bottom: 0.3rem;
+        border-bottom: 1px solid var(--hub-border);
+    }
+
+    .hub-month-body {
+        display: grid;
+        gap: 0.25rem;
+        width: 100%;
+    }
+
+    .hub-month-row {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.25rem;
+        min-width: 0;
+    }
+
+    .hub-month-cell {
+        background: var(--hub-surface-soft);
+        border: 1px solid var(--hub-border);
+        border-radius: 8px;
+        padding: 0.25rem 0.3rem;
+        min-height: 68px;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        overflow: hidden;
+        transition: border-color 0.12s, background 0.12s;
+        cursor: pointer;
+    }
+
+    .hub-month-cell:hover {
+        border-color: var(--hub-primary);
+    }
+
+    .hub-month-cell.is-dimmed {
+        opacity: 0.28;
+        background: transparent;
+        border-color: transparent;
+        cursor: default;
+    }
+
+    .hub-month-cell.is-today {
+        background: color-mix(in oklab, var(--hub-primary-soft) 20%, var(--hub-surface)) !important;
+        border-color: var(--hub-primary) !important;
+    }
+
+    .hub-month-cell-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.15rem;
+        line-height: 1;
+    }
+
+    .hub-month-day-num {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--hub-ink);
+    }
+
+    .hub-month-day-num.is-today-badge {
+        background: var(--hub-primary);
+        color: #ffffff;
+        border-radius: 50%;
+        width: 1.1rem;
+        height: 1.1rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.6rem;
+        font-weight: 800;
+    }
+
+    .hub-month-more-badge {
+        font-size: 0.55rem;
+        font-weight: 700;
+        color: var(--hub-primary);
+        background: color-mix(in oklab, var(--hub-primary-soft) 30%, var(--hub-surface));
+        padding: 0.05rem 0.22rem;
+        border-radius: 4px;
+    }
+
+    .hub-month-cell-events {
+        display: flex;
+        flex-direction: column;
+        gap: 0.12rem;
+        overflow-y: auto;
+        max-height: 52px;
+        min-width: 0;
+    }
+
+    .hub-month-event-item {
+        text-align: left;
+        background: var(--hub-surface);
+        border: 1px solid var(--hub-border);
+        border-radius: 4px;
+        padding: 0.12rem 0.25rem;
+        font-size: 0.55rem;
+        color: var(--hub-ink);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+        width: 100%;
+        min-width: 0;
+        line-height: 1.2;
+        transition: transform 0.1s ease, border-color 0.1s ease;
+    }
+
+    .hub-month-event-item:hover {
+        transform: translateY(-1px);
+        border-color: var(--hub-primary);
+    }
+
+    .hub-event-indicator {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .hub-event-indicator.is-scheduled { background: #14b8a6; }
+    .hub-event-indicator.is-completed { background: #10b981; }
+    .hub-event-indicator.is-rescheduled { background: #38bdf8; }
+    .hub-event-indicator.is-cancelled { background: #f43f5e; }
+
+    .hub-event-time {
+        font-size: 0.52rem;
+        color: var(--hub-muted);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .hub-event-title {
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* ============================================================ */
+    /* WEEK VIEW                                                    */
+    /* ============================================================ */
+    .hub-week-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0.35rem;
+        width: 100%;
+        min-width: 0;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.25rem;
+    }
+
+    .hub-week-column {
+        background: var(--hub-surface-soft);
+        border: 1px solid var(--hub-border);
+        border-radius: 8px;
+        padding: 0.35rem 0.25rem;
+        display: flex;
+        flex-direction: column;
+        min-height: 340px;
+        min-width: 0;
+    }
+
+    .hub-week-column.is-today {
+        background: color-mix(in oklab, var(--hub-primary-soft) 16%, var(--hub-surface));
+        border-color: color-mix(in oklab, var(--hub-primary) 70%, var(--hub-border));
+    }
+
+    .hub-week-column-header {
+        text-align: center;
+        padding-bottom: 0.3rem;
+        border-bottom: 1px solid var(--hub-border);
+        margin-bottom: 0.3rem;
+    }
+
+    .hub-week-day-name {
+        display: block;
+        font-size: 0.58rem;
+        font-weight: 700;
+        color: var(--hub-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .hub-week-day-num {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--hub-ink);
+        margin-top: 0.02rem;
+        display: inline-block;
+    }
+
+    .hub-week-day-num.is-today-pill {
+        color: var(--hub-primary);
+    }
+
+    .hub-week-today-tag {
+        display: block;
+        font-size: 0.48rem;
+        font-weight: 800;
+        background: var(--hub-primary);
+        color: #ffffff;
+        padding: 0.04rem 0.25rem;
+        border-radius: 999px;
+        width: fit-content;
+        margin: 0.1rem auto 0;
+        letter-spacing: 0.03em;
+    }
+
+    .hub-week-column-sessions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        flex: 1;
+        overflow-y: auto;
+        min-width: 0;
+    }
+
+    .hub-week-session-card {
+        text-align: left;
+        background: var(--hub-surface);
+        border: 1px solid var(--hub-border);
+        border-radius: 6px;
+        padding: 0.3rem 0.35rem;
+        cursor: pointer;
+        transition: all 0.12s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        width: 100%;
+        min-width: 0;
+        border-left: 2.5px solid var(--hub-primary);
+    }
+
+    .hub-week-session-card.is-scheduled { border-left-color: #14b8a6; }
+    .hub-week-session-card.is-completed { border-left-color: #10b981; }
+    .hub-week-session-card.is-rescheduled { border-left-color: #38bdf8; }
+    .hub-week-session-card.is-cancelled { border-left-color: #f43f5e; }
+
+    .hub-week-session-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        border-color: var(--hub-primary);
+        border-left-color: var(--hub-primary);
+    }
+
+    .hub-week-session-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.15rem;
+    }
+
+    .hub-week-session-time {
+        font-size: 0.55rem;
+        font-weight: 700;
+        color: var(--hub-muted);
+    }
+
+    .hub-status-micro-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        font-size: 0.55rem;
+        font-weight: 700;
+        padding: 0.06rem 0.28rem;
+        border-radius: 4px;
+        background: var(--hub-surface-soft);
+        color: var(--hub-muted);
+    }
+
+    .hub-status-micro-pill.is-scheduled { color: #14b8a6; background: rgba(20, 184, 166, 0.12); }
+    .hub-status-micro-pill.is-completed { color: #10b981; background: rgba(16, 185, 129, 0.12); }
+    .hub-status-micro-pill.is-rescheduled { color: #38bdf8; background: rgba(56, 189, 248, 0.12); }
+    .hub-status-micro-pill.is-cancelled { color: #f43f5e; background: rgba(244, 63, 94, 0.12); }
+    .hub-status-micro-pill.is-accepted { color: #10b981; background: rgba(16, 185, 129, 0.12); }
+    .hub-status-micro-pill.is-declined { color: #94a3b8; background: rgba(148, 163, 184, 0.12); }
+    .hub-status-micro-pill.is-pending { color: #f59e0b; background: rgba(245, 158, 11, 0.12); }
+    .hub-status-micro-pill.is-present { color: #10b981; background: rgba(16, 185, 129, 0.12); }
+    .hub-status-micro-pill.is-late { color: #f59e0b; background: rgba(245, 158, 11, 0.12); }
+    .hub-status-micro-pill.is-apology { color: #38bdf8; background: rgba(56, 189, 248, 0.12); }
+
+    .hub-week-session-title {
+        font-size: 0.62rem;
+        font-weight: 700;
+        color: var(--hub-ink);
+        margin: 0;
+        line-height: 1.25;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .hub-code-prefix {
+        color: var(--hub-primary);
+        font-weight: 800;
+    }
+
+    .hub-week-session-user {
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+        font-size: 0.55rem;
+        color: var(--hub-muted);
+        margin-top: 0.05rem;
+    }
+
+    .hub-user-icon {
+        width: 0.6rem;
+        height: 0.6rem;
+    }
+
+    .hub-week-empty-day {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--hub-muted);
+        opacity: 0.35;
+        font-size: 0.75rem;
+    }
+
+    /* ============================================================ */
+    /* DAY VIEW (CHRONOLOGICAL AGENDA TIMELINE)                     */
+    /* ============================================================ */
+    .hub-day-agenda {
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        width: 100%;
+    }
+
+    .hub-day-agenda-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 0.45rem;
+        border-bottom: 1px solid var(--hub-border);
+    }
+
+    .hub-day-title {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--hub-ink);
+        margin: 0;
+    }
+
+    .hub-day-subtitle {
+        font-size: 0.68rem;
+        color: var(--hub-muted);
+        margin: 0.08rem 0 0;
+    }
+
+    .hub-today-badge-subtle {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--hub-primary);
+        background: color-mix(in oklab, var(--hub-primary-soft) 25%, var(--hub-surface));
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        border: 1px solid var(--hub-primary);
+    }
+
+    .hub-day-agenda-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        max-height: 420px;
+        overflow-y: auto;
+    }
+
+    .hub-day-session-card {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.55rem 0.75rem;
+        background: var(--hub-surface-soft);
+        border: 1px solid var(--hub-border);
+        border-left: 3.5px solid var(--hub-primary);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.12s ease;
+        width: 100%;
+        text-align: left;
+    }
+
+    .hub-day-session-card.is-scheduled { border-left-color: #14b8a6; }
+    .hub-day-session-card.is-completed { border-left-color: #10b981; }
+    .hub-day-session-card.is-rescheduled { border-left-color: #38bdf8; }
+    .hub-day-session-card.is-cancelled { border-left-color: #f43f5e; }
+
+    .hub-day-session-card:hover {
+        border-color: var(--hub-primary);
+        border-left-color: var(--hub-primary);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .hub-day-time-badge {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 58px;
+        text-align: center;
+    }
+
+    .hub-day-time-start {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--hub-ink);
+    }
+
+    .hub-day-time-end {
+        font-size: 0.6rem;
+        color: var(--hub-muted);
+    }
+
+    .hub-day-card-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .hub-day-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.15rem;
+    }
+
+    .hub-code-badge {
+        font-size: 0.62rem;
+        font-weight: 800;
+        color: var(--hub-primary);
+    }
+
+    .hub-type-badge {
+        font-size: 0.58rem;
+        color: var(--hub-muted);
+    }
+
+    .hub-day-session-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--hub-ink);
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .hub-day-course-name {
+        font-size: 0.68rem;
+        color: var(--hub-muted);
+        margin: 0.1rem 0 0;
+    }
+
+    .hub-day-card-action {
+        color: var(--hub-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hub-chevron-icon {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .hub-empty-state {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: var(--hub-muted);
+        background: var(--hub-surface-soft);
+        border-radius: 10px;
+        border: 1px dashed var(--hub-border);
+    }
+
+    .hub-empty-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        margin: 0 auto 0.35rem;
+        opacity: 0.4;
+    }
+
+    /* ============================================================ */
+    /* CUSTOM VIEW                                                  */
+    /* ============================================================ */
+    .hub-custom-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+        gap: 0.35rem;
+        width: 100%;
+        max-height: 420px;
+        overflow-y: auto;
+    }
+
+    .hub-custom-day-cell {
+        background: var(--hub-surface-soft);
+        border: 1px solid var(--hub-border);
+        border-radius: 8px;
+        padding: 0.35rem;
+        display: flex;
+        flex-direction: column;
+        min-height: 85px;
+        min-width: 0;
+    }
+
+    .hub-custom-day-cell.is-today {
+        background: color-mix(in oklab, var(--hub-primary-soft) 20%, var(--hub-surface));
+        border-color: var(--hub-primary);
+    }
+
+    .hub-custom-day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--hub-border);
+        padding-bottom: 0.15rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .hub-custom-day-name {
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: var(--hub-muted);
+    }
+
+    .hub-custom-day-num {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--hub-ink);
+    }
+
+    .hub-custom-day-num.is-today-badge {
+        color: var(--hub-primary);
+    }
+
+    .hub-custom-day-sessions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        flex: 1;
+        overflow-y: auto;
+        min-width: 0;
+    }
+
+    .hub-custom-session-btn {
+        text-align: left;
+        background: var(--hub-surface);
+        border: 1px solid var(--hub-border);
+        border-radius: 4px;
+        padding: 0.15rem 0.3rem;
+        font-size: 0.55rem;
+        color: var(--hub-ink);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .hub-custom-session-btn:hover {
+        border-color: var(--hub-primary);
+    }
+
+    .hub-custom-time {
+        font-size: 0.52rem;
+        color: var(--hub-muted);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .hub-custom-title {
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+
+    .hub-custom-empty {
+        font-size: 0.55rem;
+        color: var(--hub-muted);
+        opacity: 0.35;
+        margin: auto;
+    }
+
+    /* ============================================================ */
+    /* BOTTOM SECTIONS (RESCHEDULE & PROGRESS)                      */
+    /* ============================================================ */
+    .hub-reschedule-card,
+    .hub-progress-card {
+        background: var(--hub-card);
+        border: 1px solid var(--hub-border);
+        border-radius: 12px;
+        padding: 0.7rem 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        width: 100%;
+    }
+
+    .hub-reschedule-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .hub-reschedule-title-group {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .hub-counter-badge {
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 0.1rem 0.4rem;
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--hub-primary-soft) 30%, var(--hub-surface));
+        color: var(--hub-primary);
+    }
+
+    .hub-toggle-history-label {
+        font-size: 0.68rem;
+        color: var(--hub-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        cursor: pointer;
+    }
+
+    .hub-reschedule-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        margin-top: 0.2rem;
+    }
+
+    .hub-reschedule-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.45rem 0.65rem;
+        background: var(--hub-surface-soft);
+        border: 1px solid var(--hub-border);
+        border-radius: 8px;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .hub-reschedule-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.7rem;
+        flex-wrap: wrap;
+    }
+
+    .hub-reschedule-session {
+        font-weight: 700;
+        color: var(--hub-ink);
+    }
+
+    .hub-reschedule-msg {
+        color: var(--hub-muted);
+    }
+
+    .hub-reschedule-pref {
+        color: var(--hub-primary);
+        font-weight: 600;
+    }
+
+    .hub-reschedule-empty-text {
+        font-size: 0.72rem;
+        color: var(--hub-muted);
+        text-align: center;
+        margin: 0.25rem 0;
+        opacity: 0.8;
+    }
+
+    /* Course Progress & Attendance Bars */
+    .hub-progress-items {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .hub-progress-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .hub-progress-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.72rem;
+    }
+
+    .hub-progress-course-name {
+        font-weight: 700;
+        color: var(--hub-ink);
+    }
+
+    .hub-progress-fraction {
+        font-weight: 700;
+        color: var(--hub-primary);
+    }
+
+    .hub-progress-fraction.is-good { color: var(--hub-success); }
+    .hub-progress-fraction.is-warning { color: var(--hub-danger); }
+
+    .hub-progress-track {
+        height: 4px;
+        background: var(--hub-border);
+        border-radius: 999px;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    .hub-progress-fill {
+        height: 100%;
+        background: var(--hub-primary);
+        border-radius: 999px;
+        transition: width 0.3s ease;
+    }
+
+    .hub-progress-fill.is-good { background: var(--hub-success); }
+    .hub-progress-fill.is-warning { background: var(--hub-danger); }
+
+    .hub-attendance-log {
+        margin-top: 0.35rem;
+        padding-top: 0.35rem;
+        border-top: 1px solid var(--hub-border);
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .hub-attendance-log-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.65rem;
+    }
+
+    .hub-log-session-name {
+        color: var(--hub-ink);
+        font-weight: 500;
+    }
+
+    /* Custom Scrollbars */
+    .hub-side-session-list::-webkit-scrollbar,
+    .hub-week-grid::-webkit-scrollbar,
+    .hub-month-cell-events::-webkit-scrollbar,
+    .hub-day-agenda-list::-webkit-scrollbar,
+    .hub-custom-grid::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+    .hub-side-session-list::-webkit-scrollbar-track,
+    .hub-week-grid::-webkit-scrollbar-track,
+    .hub-day-agenda-list::-webkit-scrollbar-track,
+    .hub-custom-grid::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .hub-side-session-list::-webkit-scrollbar-thumb,
+    .hub-week-grid::-webkit-scrollbar-thumb,
+    .hub-day-agenda-list::-webkit-scrollbar-thumb,
+    .hub-custom-grid::-webkit-scrollbar-thumb {
+        background: var(--hub-border);
+        border-radius: 999px;
+    }
+    .hub-side-session-list::-webkit-scrollbar-thumb:hover,
+    .hub-week-grid::-webkit-scrollbar-thumb:hover,
+    .hub-day-agenda-list::-webkit-scrollbar-thumb:hover,
+    .hub-custom-grid::-webkit-scrollbar-thumb:hover {
+        background: var(--hub-primary);
+    }
+
+    .hub-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .hub-modal-card {
+        max-width: 540px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 1.5rem;
+        position: relative;
+        animation: popIn 0.2s ease-out;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35);
+        border-radius: 16px;
+        background: var(--hub-card);
+        border: 1px solid var(--hub-border);
+    }
+
     /* Keep admin data tables denser and closer to Filament compact layout. */
     .fi-panel-admin .hub-table {
         font-size: 0.76rem;
@@ -712,13 +1986,39 @@
             padding: 0.85rem !important;
         }
 
-        /* ---- Schedule calendar ---- */
+        /* ---- Schedule & Interactive Calendar Responsive Rules ---- */
+        .hub-schedule-topbar {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.5rem !important;
+        }
+
+        .hub-topbar-left,
+        .hub-topbar-right {
+            justify-content: space-between !important;
+            width: 100% !important;
+        }
+
+        .hub-schedule-main-grid {
+            grid-template-columns: 1fr !important;
+            gap: 0.75rem !important;
+        }
+
+        .hub-week-grid {
+            grid-template-columns: repeat(7, minmax(95px, 1fr)) !important;
+        }
+
+        .hub-modal-card {
+            padding: 1.15rem !important;
+            max-width: 100% !important;
+        }
+
         .hub-calendar-table {
-            min-width: 320px !important;
+            min-width: 300px !important;
         }
 
         .hub-calendar-table td {
-            height: 3.5rem !important;
+            height: 3.2rem !important;
             padding: 0.15rem !important;
         }
 
@@ -786,6 +2086,109 @@
         /* Course progress grid */
         .hub-progress-grid {
             grid-template-columns: 1fr !important;
+        }
+    }
+
+    /* Mobile screens (≤ 640px) */
+    @media (max-width: 640px) {
+        .hub-range-pills {
+            width: 100% !important;
+            justify-content: space-between !important;
+        }
+
+        .hub-range-btn {
+            flex: 1 !important;
+            text-align: center !important;
+            padding: 0.35rem 0.35rem !important;
+            font-size: 0.72rem !important;
+        }
+
+        .hub-schedule-controls {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.45rem !important;
+        }
+
+        .hub-period-nav {
+            justify-content: space-between !important;
+            width: 100% !important;
+        }
+
+        .hub-period-title {
+            text-align: center !important;
+            font-size: 0.85rem !important;
+            margin-top: 0.1rem !important;
+            display: block !important;
+            width: 100% !important;
+        }
+
+        /* Month calendar on mobile */
+        .hub-cal-dow-row {
+            font-size: 0.65rem !important;
+            gap: 2px !important;
+            padding-bottom: 0.3rem !important;
+            margin-bottom: 0.3rem !important;
+        }
+
+        .hub-cal-month-week {
+            gap: 3px !important;
+        }
+
+        .hub-cal-day-cell {
+            min-height: 48px !important;
+            padding: 0.25rem 0.15rem !important;
+            border-radius: 6px !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            cursor: pointer !important;
+        }
+
+        .hub-cal-day-header {
+            width: 100% !important;
+            justify-content: center !important;
+            position: relative !important;
+        }
+
+        .hub-cal-day-num {
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+        }
+
+        .hub-cal-count-badge {
+            font-size: 0.52rem !important;
+            padding: 0 0.25rem !important;
+            position: absolute !important;
+            right: 0 !important;
+            top: -2px !important;
+        }
+
+        /* Hide full text buttons inside cramped month grid on mobile */
+        .hub-cal-events-desktop {
+            display: none !important;
+        }
+
+        /* Show color-coded event dot indicators on mobile */
+        .hub-cal-events-mobile {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 3px !important;
+            margin-top: 0.25rem !important;
+        }
+
+        .hub-cal-dot {
+            width: 5px !important;
+            height: 5px !important;
+        }
+
+        /* Status filter pills on mobile */
+        .hub-status-filter-pills button {
+            flex: 1 1 auto !important;
+            text-align: center !important;
+            justify-content: center !important;
+            min-height: 32px !important;
+            font-size: 0.68rem !important;
         }
     }
 

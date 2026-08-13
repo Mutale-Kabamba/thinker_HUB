@@ -49,7 +49,11 @@
                                         <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assignment', 'id' => $assignment['id']])), @js($assignment['name'] . '.' . pathinfo($assignment['file_path'], PATHINFO_EXTENSION)))" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View file">View</button>
                                         <button type="button" wire:click="downloadFile({{ $assignment['id'] }})" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#6d28d9;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Download file">Download</button>
                                     @endif
-                                    <button type="button" @click="toggle({{ $assignment['id'] }}, 'submit')" :style="expanded === {{ $assignment['id'] }} && panel === 'submit' ? 'background:#0d9488;color:#fff;border-color:#0d9488;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0d9488;font-weight:600;transition:all 0.15s;" title="Submit work">Submit</button>
+                                    @if (!empty($assignment['is_graded']))
+                                        <button type="button" disabled style="background:var(--hub-surface-soft, rgba(148,163,184,0.12));border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:not-allowed;color:var(--hub-muted);opacity:0.55;font-weight:600;" title="Assignment is graded — submissions locked">Submit</button>
+                                    @else
+                                        <button type="button" @click="toggle({{ $assignment['id'] }}, 'submit')" :style="expanded === {{ $assignment['id'] }} && panel === 'submit' ? 'background:#0d9488;color:#fff;border-color:#0d9488;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0d9488;font-weight:600;transition:all 0.15s;" title="Submit work">Submit</button>
+                                    @endif
                                     <button type="button" @click="toggle({{ $assignment['id'] }}, 'details')" :style="expanded === {{ $assignment['id'] }} && panel === 'details' ? 'background:#475569;color:#fff;border-color:#475569;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#475569;font-weight:600;transition:all 0.15s;" title="View details">Details</button>
                                 </div>
                             </td>
@@ -101,13 +105,22 @@
                                             <div style="padding:0.55rem 0.75rem;background:#fff;border:1px solid var(--hub-border);border-radius:8px;margin-bottom:0.5rem;">
                                                 <p style="margin:0 0 0.3rem;font-size:0.76rem;font-weight:600;color:var(--hub-ink);text-transform:uppercase;letter-spacing:0.03em;">Your Submission</p>
                                                 @if (!empty($assignment['submission']['file']) && !empty($assignment['submission']['id']))
-                                                    <p style="margin:0.15rem 0;font-size:0.8rem;">📄 <a href="#" @click.prevent="openViewer(@js(route('file.view', ['type' => 'submission', 'id' => $assignment['submission']['id']])), @js('Submission.' . pathinfo($assignment['submission']['file'], PATHINFO_EXTENSION)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">View uploaded file</a></p>
+                                                    <p style="margin:0.15rem 0;font-size:0.8rem;display:flex;align-items:center;gap:0.35rem;">
+                                                        <x-heroicon-o-document-text style="width:0.95rem;height:0.95rem;color:#0e7490;" />
+                                                        <a href="#" @click.prevent="openViewer(@js(route('file.view', ['type' => 'submission', 'id' => $assignment['submission']['id']])), @js('Submission.' . pathinfo($assignment['submission']['file'], PATHINFO_EXTENSION)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">View uploaded file</a>
+                                                    </p>
                                                 @endif
                                                 @if (!empty($assignment['submission']['link']))
-                                                    <p style="margin:0.15rem 0;font-size:0.8rem;">🔗 <a href="{{ $assignment['submission']['link'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assignment['submission']['link'], 60) }}</a></p>
+                                                    <p style="margin:0.15rem 0;font-size:0.8rem;display:flex;align-items:center;gap:0.35rem;">
+                                                        <x-heroicon-o-link style="width:0.95rem;height:0.95rem;color:#0e7490;" />
+                                                        <a href="{{ $assignment['submission']['link'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assignment['submission']['link'], 60) }}</a>
+                                                    </p>
                                                 @endif
                                                 @if (!empty($assignment['submission']['video']))
-                                                    <p style="margin:0.15rem 0;font-size:0.8rem;">🎬 <a href="{{ $assignment['submission']['video'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assignment['submission']['video'], 60) }}</a></p>
+                                                    <p style="margin:0.15rem 0;font-size:0.8rem;display:flex;align-items:center;gap:0.35rem;">
+                                                        <x-heroicon-o-video-camera style="width:0.95rem;height:0.95rem;color:#0e7490;" />
+                                                        <a href="{{ $assignment['submission']['video'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assignment['submission']['video'], 60) }}</a>
+                                                    </p>
                                                 @endif
                                             </div>
                                         @endif
@@ -128,21 +141,31 @@
                                         </h4>
                                         <button @click="expanded = null; panel = null;" style="background:none;border:none;cursor:pointer;color:var(--hub-muted);font-size:1.1rem;line-height:1;" title="Close">&times;</button>
                                     </div>
-                                    <div style="display:flex;flex-direction:column;gap:0.45rem;">
-                                        <textarea wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.text" class="hub-textarea" placeholder="Write your response here..." style="min-height:80px;font-size:0.82rem;"></textarea>
-                                        <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.link" class="hub-input" placeholder="Paste a link (optional)" style="font-size:0.82rem;" />
-                                        <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.video" class="hub-input" placeholder="Paste a video URL — YouTube, Vimeo, etc. (optional)" style="font-size:0.82rem;" />
-                                        <input type="file" wire:model="submissionDrafts.{{ $assignment['id'] }}.file" class="hub-input" style="font-size:0.82rem;" accept=".pdf,.doc,.docx,.txt,.csv,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif,.pptx,.xlsx" />
-                                    </div>
-                                    <div style="margin-top:0.6rem;display:flex;gap:0.45rem;flex-wrap:wrap;">
-                                        <button type="button" wire:click="submit({{ $assignment['id'] }})" class="hub-btn hub-btn-primary" style="font-size:0.8rem;padding:0.35rem 1rem;">
-                                            {{ $assignment['status'] === 'Not submitted' ? 'Submit' : 'Resubmit' }}
-                                        </button>
-                                        @if ($assignment['status'] !== 'Not submitted')
-                                            <button type="button" wire:click="removeSubmission({{ $assignment['id'] }})" class="hub-btn hub-btn-danger" style="font-size:0.8rem;padding:0.35rem 1rem;">Delete Submission</button>
-                                        @endif
-                                        <button type="button" @click="expanded = null; panel = null;" class="hub-btn hub-btn-secondary" style="font-size:0.8rem;padding:0.35rem 1rem;">Cancel</button>
-                                    </div>
+                                    @if (!empty($assignment['is_graded']))
+                                        <div style="padding:0.5rem 0.75rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-size:0.8rem;color:#166534;margin-bottom:0.6rem;">
+                                            <strong>Graded:</strong> This assignment has already been graded{{ $assignment['grade'] !== null ? ' (' . $assignment['grade'] . '%)' : '' }}. Further submissions and changes are locked.
+                                        </div>
+                                        <div style="display:flex;gap:0.45rem;flex-wrap:wrap;">
+                                            <button type="button" disabled class="hub-btn" style="font-size:0.8rem;padding:0.35rem 1rem;background:var(--hub-surface-soft, rgba(148,163,184,0.15));color:var(--hub-muted);opacity:0.55;cursor:not-allowed;border:1px solid var(--hub-border);">Submit</button>
+                                            <button type="button" @click="expanded = null; panel = null;" class="hub-btn hub-btn-secondary" style="font-size:0.8rem;padding:0.35rem 1rem;">Close</button>
+                                        </div>
+                                    @else
+                                        <div style="display:flex;flex-direction:column;gap:0.45rem;">
+                                            <textarea wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.text" class="hub-textarea" placeholder="Write your response here..." style="min-height:80px;font-size:0.82rem;"></textarea>
+                                            <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.link" class="hub-input" placeholder="Paste a link (optional)" style="font-size:0.82rem;" />
+                                            <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.video" class="hub-input" placeholder="Paste a video URL — YouTube, Vimeo, etc. (optional)" style="font-size:0.82rem;" />
+                                            <input type="file" wire:model="submissionDrafts.{{ $assignment['id'] }}.file" class="hub-input" style="font-size:0.82rem;" accept=".pdf,.doc,.docx,.txt,.csv,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif,.pptx,.xlsx" />
+                                        </div>
+                                        <div style="margin-top:0.6rem;display:flex;gap:0.45rem;flex-wrap:wrap;">
+                                            <button type="button" wire:click="submit({{ $assignment['id'] }})" class="hub-btn hub-btn-primary" style="font-size:0.8rem;padding:0.35rem 1rem;">
+                                                {{ $assignment['status'] === 'Not submitted' ? 'Submit' : 'Resubmit' }}
+                                            </button>
+                                            @if ($assignment['status'] !== 'Not submitted')
+                                                <button type="button" wire:click="removeSubmission({{ $assignment['id'] }})" class="hub-btn hub-btn-danger" style="font-size:0.8rem;padding:0.35rem 1rem;">Delete Submission</button>
+                                            @endif
+                                            <button type="button" @click="expanded = null; panel = null;" class="hub-btn hub-btn-secondary" style="font-size:0.8rem;padding:0.35rem 1rem;">Cancel</button>
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -186,7 +209,11 @@
                             <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assignment', 'id' => $assignment['id']])), @js($assignment['name'] . '.' . pathinfo($assignment['file_path'], PATHINFO_EXTENSION)))" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#0e7490;font-weight:600;">View</button>
                             <button type="button" wire:click="downloadFile({{ $assignment['id'] }})" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#6d28d9;font-weight:600;">Download</button>
                         @endif
-                        <button type="button" @click="toggle({{ $assignment['id'] }}, 'submit')" :style="expanded === {{ $assignment['id'] }} && panel === 'submit' ? 'background:#0d9488;color:#fff;border-color:#0d9488;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#0d9488;font-weight:600;">Submit</button>
+                        @if (!empty($assignment['is_graded']))
+                            <button type="button" disabled style="background:var(--hub-surface-soft, rgba(148,163,184,0.12));border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:not-allowed;color:var(--hub-muted);opacity:0.55;font-weight:600;" title="Assignment is graded — submissions locked">Submit</button>
+                        @else
+                            <button type="button" @click="toggle({{ $assignment['id'] }}, 'submit')" :style="expanded === {{ $assignment['id'] }} && panel === 'submit' ? 'background:#0d9488;color:#fff;border-color:#0d9488;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#0d9488;font-weight:600;">Submit</button>
+                        @endif
                         <button type="button" @click="toggle({{ $assignment['id'] }}, 'details')" :style="expanded === {{ $assignment['id'] }} && panel === 'details' ? 'background:#475569;color:#fff;border-color:#475569;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#475569;font-weight:600;">Details</button>
                     </div>
 
@@ -233,13 +260,22 @@
                                     <div style="padding:0.5rem 0.65rem;background:#fff;border:1px solid var(--hub-border);border-radius:8px;margin-bottom:0.5rem;">
                                         <p style="margin:0 0 0.25rem;font-size:0.74rem;font-weight:600;color:var(--hub-ink);text-transform:uppercase;">Your Submission</p>
                                         @if (!empty($assignment['submission']['file']) && !empty($assignment['submission']['id']))
-                                            <p style="margin:0.1rem 0;font-size:0.78rem;">📄 <a href="#" @click.prevent="openViewer(@js(route('file.view', ['type' => 'submission', 'id' => $assignment['submission']['id']])), @js('Submission.' . pathinfo($assignment['submission']['file'], PATHINFO_EXTENSION)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">View uploaded file</a></p>
+                                            <p style="margin:0.1rem 0;font-size:0.78rem;display:flex;align-items:center;gap:0.3rem;">
+                                                <x-heroicon-o-document-text style="width:0.9rem;height:0.9rem;color:#0e7490;" />
+                                                <a href="#" @click.prevent="openViewer(@js(route('file.view', ['type' => 'submission', 'id' => $assignment['submission']['id']])), @js('Submission.' . pathinfo($assignment['submission']['file'], PATHINFO_EXTENSION)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">View uploaded file</a>
+                                            </p>
                                         @endif
                                         @if (!empty($assignment['submission']['link']))
-                                            <p style="margin:0.1rem 0;font-size:0.78rem;">🔗 <a href="{{ $assignment['submission']['link'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assignment['submission']['link'], 40) }}</a></p>
+                                            <p style="margin:0.1rem 0;font-size:0.78rem;display:flex;align-items:center;gap:0.3rem;">
+                                                <x-heroicon-o-link style="width:0.9rem;height:0.9rem;color:#0e7490;" />
+                                                <a href="{{ $assignment['submission']['link'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assignment['submission']['link'], 40) }}</a>
+                                            </p>
                                         @endif
                                         @if (!empty($assignment['submission']['video']))
-                                            <p style="margin:0.1rem 0;font-size:0.78rem;">🎬 <a href="{{ $assignment['submission']['video'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assignment['submission']['video'], 40) }}</a></p>
+                                            <p style="margin:0.1rem 0;font-size:0.78rem;display:flex;align-items:center;gap:0.3rem;">
+                                                <x-heroicon-o-video-camera style="width:0.9rem;height:0.9rem;color:#0e7490;" />
+                                                <a href="{{ $assignment['submission']['video'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assignment['submission']['video'], 40) }}</a>
+                                            </p>
                                         @endif
                                     </div>
                                 @endif
@@ -258,21 +294,31 @@
                                 </h4>
                                 <button @click="expanded = null; panel = null;" style="background:none;border:none;cursor:pointer;color:var(--hub-muted);font-size:1.1rem;line-height:1;" title="Close">&times;</button>
                             </div>
-                            <div style="display:flex;flex-direction:column;gap:0.45rem;">
-                                <textarea wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.text" class="hub-textarea" placeholder="Write your response here..." style="min-height:80px;font-size:0.82rem;"></textarea>
-                                <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.link" class="hub-input" placeholder="Paste a link (optional)" style="font-size:0.82rem;" />
-                                <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.video" class="hub-input" placeholder="Video URL (optional)" style="font-size:0.82rem;" />
-                                <input type="file" wire:model="submissionDrafts.{{ $assignment['id'] }}.file" class="hub-input" style="font-size:0.82rem;" accept=".pdf,.doc,.docx,.txt,.csv,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif,.pptx,.xlsx" />
-                            </div>
-                            <div style="margin-top:0.6rem;display:flex;gap:0.4rem;flex-wrap:wrap;">
-                                <button type="button" wire:click="submit({{ $assignment['id'] }})" class="hub-btn hub-btn-primary" style="font-size:0.8rem;padding:0.35rem 1rem;">
-                                    {{ $assignment['status'] === 'Not submitted' ? 'Submit' : 'Resubmit' }}
-                                </button>
-                                @if ($assignment['status'] !== 'Not submitted')
-                                    <button type="button" wire:click="removeSubmission({{ $assignment['id'] }})" class="hub-btn hub-btn-danger" style="font-size:0.8rem;padding:0.35rem 1rem;">Delete</button>
-                                @endif
-                                <button type="button" @click="expanded = null; panel = null;" class="hub-btn hub-btn-secondary" style="font-size:0.8rem;padding:0.35rem 1rem;">Cancel</button>
-                            </div>
+                            @if (!empty($assignment['is_graded']))
+                                <div style="padding:0.5rem 0.75rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-size:0.8rem;color:#166534;margin-bottom:0.6rem;">
+                                    <strong>Graded:</strong> This assignment has already been graded{{ $assignment['grade'] !== null ? ' (' . $assignment['grade'] . '%)' : '' }}. Further submissions and changes are locked.
+                                </div>
+                                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                                    <button type="button" disabled class="hub-btn" style="font-size:0.8rem;padding:0.35rem 1rem;background:var(--hub-surface-soft, rgba(148,163,184,0.15));color:var(--hub-muted);opacity:0.55;cursor:not-allowed;border:1px solid var(--hub-border);">Submit</button>
+                                    <button type="button" @click="expanded = null; panel = null;" class="hub-btn hub-btn-secondary" style="font-size:0.8rem;padding:0.35rem 1rem;">Close</button>
+                                </div>
+                            @else
+                                <div style="display:flex;flex-direction:column;gap:0.45rem;">
+                                    <textarea wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.text" class="hub-textarea" placeholder="Write your response here..." style="min-height:80px;font-size:0.82rem;"></textarea>
+                                    <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.link" class="hub-input" placeholder="Paste a link (optional)" style="font-size:0.82rem;" />
+                                    <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.video" class="hub-input" placeholder="Video URL (optional)" style="font-size:0.82rem;" />
+                                    <input type="file" wire:model="submissionDrafts.{{ $assignment['id'] }}.file" class="hub-input" style="font-size:0.82rem;" accept=".pdf,.doc,.docx,.txt,.csv,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif,.pptx,.xlsx" />
+                                </div>
+                                <div style="margin-top:0.6rem;display:flex;gap:0.4rem;flex-wrap:wrap;">
+                                    <button type="button" wire:click="submit({{ $assignment['id'] }})" class="hub-btn hub-btn-primary" style="font-size:0.8rem;padding:0.35rem 1rem;">
+                                        {{ $assignment['status'] === 'Not submitted' ? 'Submit' : 'Resubmit' }}
+                                    </button>
+                                    @if ($assignment['status'] !== 'Not submitted')
+                                        <button type="button" wire:click="removeSubmission({{ $assignment['id'] }})" class="hub-btn hub-btn-danger" style="font-size:0.8rem;padding:0.35rem 1rem;">Delete</button>
+                                    @endif
+                                    <button type="button" @click="expanded = null; panel = null;" class="hub-btn hub-btn-secondary" style="font-size:0.8rem;padding:0.35rem 1rem;">Cancel</button>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>

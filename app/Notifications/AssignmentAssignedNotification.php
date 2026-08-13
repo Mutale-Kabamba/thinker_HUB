@@ -52,7 +52,8 @@ class AssignmentAssignedNotification extends Notification
             ->actions([
                 Action::make('view')
                     ->label('View assignments')
-                    ->url('/learn/assignments'),
+                    ->url('/learn/assignments')
+                    ->markAsRead(),
             ])
             ->getDatabaseMessage();
     }

@@ -30,7 +30,7 @@
                                 Official Payment Receipt
                             </div>
                             <h1 style="margin:14px 0 6px;font-size:24px;line-height:1.25;color:#ffffff;font-weight:800;letter-spacing:-0.02em;">
-                                Payment Confirmed! 💳
+                                Payment Confirmed!
                             </h1>
                             <p style="margin:0;font-size:14px;line-height:1.5;color:#ccfbf1;">
                                 Thank you for your enrollment payment. Your course access is fully active.
@@ -96,7 +96,7 @@
                                     </td>
                                     <td style="padding:14px 20px;font-size:13px;font-weight:700;">
                                         <span style="display:inline-block;padding:3px 10px;background:#dcfce7;color:#15803d;border-radius:999px;">
-                                            ✓ PAID &amp; VERIFIED
+                                            PAID &amp; VERIFIED
                                         </span>
                                     </td>
                                 </tr>

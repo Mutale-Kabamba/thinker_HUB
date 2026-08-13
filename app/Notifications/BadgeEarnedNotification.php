@@ -26,7 +26,8 @@ class BadgeEarnedNotification extends Notification
             ->actions([
                 Action::make('view')
                     ->label('View leaderboard')
-                    ->url('/learn/community?tab=leaderboard'),
+                    ->url('/learn/community?tab=leaderboard')
+                    ->markAsRead(),
             ])
             ->getDatabaseMessage();
     }
