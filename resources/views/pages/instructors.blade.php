@@ -18,7 +18,7 @@
     @include('partials.public-header')
 
     <main>
-        <section class="bg-[#0a2d27] relative overflow-hidden py-14 lg:py-16 text-white">
+        <section class="bg-[#0a2d27] relative overflow-hidden py-10 sm:py-14 lg:py-16 text-white">
             <div class="mx-auto max-w-7xl px-6 lg:px-8 text-center relative z-10">
                 <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">Thinker Hub Network</p>
                 <h1 class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">Knowledge &amp; Talent Network</h1>
@@ -77,98 +77,115 @@
                                 };
                                 $profileSlug = \Illuminate\Support\Str::slug($member->name ?: (string) $member->id);
                                 $avatarUrl = $member->getFilamentAvatarUrl();
+
+                                $skillsRaw = $member->specialty ?: $member->proficiency;
+                                $skills = [];
+                                if ($skillsRaw) {
+                                    $delimiter = str_contains($skillsRaw, '|') ? '|' : (str_contains($skillsRaw, ',') ? ',' : null);
+                                    $skills = $delimiter ? array_filter(array_map('trim', explode($delimiter, $skillsRaw))) : [trim($skillsRaw)];
+                                }
                             @endphp
 
-                            <article class="group bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+                            <article class="group bg-white rounded-2xl p-3 sm:p-3.5 shadow-sm border border-slate-200/80 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
                                 <div>
                                     {{-- Photo Header Container --}}
-                                    <div class="relative h-48 sm:h-52 w-full overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-3 flex items-center justify-center">
+                                    <div class="relative h-36 sm:h-44 md:h-48 w-full overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-2.5 flex items-center justify-center">
+                                        {{-- Role Badge Overlay --}}
+                                        <div class="absolute top-2 left-2 z-10">
+                                            <span class="inline-block px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-white/95 backdrop-blur-xs text-teal-800 shadow-xs border border-white/60">
+                                                {{ $roleTitle }}
+                                            </span>
+                                        </div>
+
                                         @if ($avatarUrl)
                                             <img
                                                 src="{{ $avatarUrl }}"
                                                 class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                                                 alt="{{ $member->name }}"
-                                                onerror="this.parentElement.innerHTML='<div class=\'w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center\'><span class=\'text-xl font-black text-teal-700\'>{{ strtoupper(substr($member->name, 0, 2)) }}</span></div>'"
+                                                onerror="this.parentElement.innerHTML='<div class=\'w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center\'><span class=\'text-lg font-black text-teal-700\'>{{ strtoupper(substr($member->name, 0, 2)) }}</span></div>'"
                                             >
                                         @else
-                                            <div class="w-20 h-20 rounded-full bg-teal-100 flex items-center justify-center shadow-inner">
-                                                <span class="text-2xl font-black text-teal-700">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
+                                            <div class="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center shadow-inner">
+                                                <span class="text-xl font-black text-teal-700">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
                                             </div>
                                         @endif
                                     </div>
 
                                     {{-- Member Details --}}
                                     <div class="px-0.5">
-                                        <p class="text-[10px] font-extrabold uppercase tracking-wider text-teal-600 mb-0.5">
-                                            {{ $roleTitle }}
-                                        </p>
-
-                                        <h3 class="text-base font-bold text-[#0a2d27] group-hover:text-teal-700 transition-colors leading-snug truncate">
+                                        <h3 class="text-sm sm:text-base font-bold text-[#0a2d27] group-hover:text-teal-700 transition-colors leading-snug truncate">
                                             <a href="{{ route('landing.instructors.show', ['instructor' => $member->id, 'slug' => $profileSlug]) }}" title="{{ $member->name }}">
                                                 {{ $member->name }}
                                             </a>
                                         </h3>
 
                                         @if ($member->occupation || $member->company)
-                                            <p class="text-xs font-medium text-slate-500 mt-0.5 mb-2 truncate" title="{{ $member->occupation ?: $member->company }}">
+                                            <p class="text-[11px] sm:text-xs font-medium text-slate-500 mt-0.5 truncate" title="{{ $member->occupation ?: $member->company }}">
                                                 {{ $member->occupation ?: $member->company }}
                                             </p>
                                         @endif
 
-                                        @if ($member->specialty || $member->proficiency)
-                                            <div class="mb-3">
-                                                <span class="inline-block bg-teal-50/80 border border-teal-200/80 text-teal-800 text-[10px] font-semibold rounded-xl px-2.5 py-1 leading-tight line-clamp-2" title="{{ $member->specialty ?: $member->proficiency }}">
-                                                    {{ $member->specialty ?: $member->proficiency }}
-                                                </span>
+                                        {{-- Skills / Specialty Tags --}}
+                                        @if (!empty($skills))
+                                            <div class="flex flex-wrap items-center gap-1 my-2">
+                                                @foreach (array_slice($skills, 0, 2) as $skill)
+                                                    <span class="inline-flex items-center bg-teal-50/90 text-teal-800 border border-teal-200/60 text-[10px] font-medium rounded-md px-1.5 py-0.5 leading-tight truncate max-w-[130px]" title="{{ $skill }}">
+                                                        {{ $skill }}
+                                                    </span>
+                                                @endforeach
+                                                @if (count($skills) > 2)
+                                                    <span class="inline-flex items-center bg-slate-100 text-slate-600 text-[9px] font-bold rounded-md px-1.5 py-0.5" title="{{ implode(', ', array_slice($skills, 2)) }}">
+                                                        +{{ count($skills) - 2 }}
+                                                    </span>
+                                                @endif
                                             </div>
                                         @endif
                                     </div>
                                 </div>
 
-                                <div class="px-0.5 pt-1">
+                                {{-- Compact Action Bar: Social Icons & Profile Button Inline --}}
+                                <div class="px-0.5 pt-2 mt-auto border-t border-slate-100 flex items-center justify-between gap-1.5">
                                     {{-- Social Icons Row --}}
-                                    <div class="flex items-center gap-2 mb-3">
+                                    <div class="flex items-center gap-1">
                                         @if ($member->whatsapp)
-                                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $member->whatsapp) }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition" title="WhatsApp">
-                                                <i class="fa-brands fa-whatsapp text-xs"></i>
+                                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $member->whatsapp) }}" target="_blank" rel="noopener" class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition" title="WhatsApp">
+                                                <i class="fa-brands fa-whatsapp text-[11px]"></i>
                                             </a>
                                         @endif
                                         @if ($member->linkedin_url)
-                                            <a href="{{ $member->linkedin_url }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition" title="LinkedIn">
-                                                <i class="fa-brands fa-linkedin-in text-xs"></i>
+                                            <a href="{{ $member->linkedin_url }}" target="_blank" rel="noopener" class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition" title="LinkedIn">
+                                                <i class="fa-brands fa-linkedin-in text-[10px]"></i>
                                             </a>
                                         @endif
                                         @if ($member->facebook_url)
-                                            <a href="{{ $member->facebook_url }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-100 transition" title="Facebook">
-                                                <i class="fa-brands fa-facebook-f text-xs"></i>
+                                            <a href="{{ $member->facebook_url }}" target="_blank" rel="noopener" class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-100 transition" title="Facebook">
+                                                <i class="fa-brands fa-facebook-f text-[10px]"></i>
                                             </a>
                                         @endif
                                         @if ($member->github_url)
-                                            <a href="{{ $member->github_url }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition" title="GitHub">
-                                                <i class="fa-brands fa-github text-xs"></i>
+                                            <a href="{{ $member->github_url }}" target="_blank" rel="noopener" class="w-6 h-6 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition" title="GitHub">
+                                                <i class="fa-brands fa-github text-[10px]"></i>
                                             </a>
                                         @endif
                                         @if ($member->instagram_url)
-                                            <a href="{{ $member->instagram_url }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center hover:bg-pink-100 transition" title="Instagram">
-                                                <i class="fa-brands fa-instagram text-xs"></i>
+                                            <a href="{{ $member->instagram_url }}" target="_blank" rel="noopener" class="w-6 h-6 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center hover:bg-pink-100 transition" title="Instagram">
+                                                <i class="fa-brands fa-instagram text-[10px]"></i>
                                             </a>
                                         @endif
                                         @if ($member->portfolio_url)
-                                            <a href="{{ $member->portfolio_url }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center hover:bg-teal-100 transition" title="Portfolio">
-                                                <i class="fa-solid fa-globe text-xs"></i>
+                                            <a href="{{ $member->portfolio_url }}" target="_blank" rel="noopener" class="w-6 h-6 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center hover:bg-teal-100 transition" title="Portfolio">
+                                                <i class="fa-solid fa-globe text-[10px]"></i>
                                             </a>
                                         @endif
                                     </div>
 
-                                    {{-- CTA --}}
-                                    <div>
-                                        <a
-                                            href="{{ route('landing.instructors.show', ['instructor' => $member->id, 'slug' => $profileSlug]) }}"
-                                            class="inline-block rounded-full border border-slate-300/90 px-3.5 py-1 text-xs font-bold text-slate-700 hover:border-teal-600 hover:text-teal-700 transition"
-                                        >
-                                            View Full Profile
-                                        </a>
-                                    </div>
+                                    {{-- CTA Button --}}
+                                    <a
+                                        href="{{ route('landing.instructors.show', ['instructor' => $member->id, 'slug' => $profileSlug]) }}"
+                                        class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50/80 hover:bg-[#0a2d27] hover:border-[#0a2d27] hover:text-white px-2.5 py-1 text-[10px] sm:text-[11px] font-bold text-slate-700 transition-all shrink-0"
+                                    >
+                                        View Profile &rarr;
+                                    </a>
                                 </div>
                             </article>
                         @endforeach
