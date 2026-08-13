@@ -36,6 +36,7 @@ class ContributorPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->databaseNotifications()
             ->databaseNotificationsPolling(null)
+            ->errorNotifications(false)
             ->navigationGroups([
                 'CONTRIBUTIONS',
                 'ACCOUNT',
