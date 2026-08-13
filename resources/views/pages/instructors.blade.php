@@ -89,17 +89,17 @@
                             <article class="group bg-white rounded-2xl p-3 sm:p-3.5 shadow-sm border border-slate-200/80 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
                                 <div>
                                     {{-- Photo Header Container --}}
-                                    <div class="relative h-28 sm:h-36 md:h-40 w-full overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-2 flex items-center justify-center">
+                                    <div class="relative h-52 sm:h-52 md:h-48 w-full overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-2.5 flex items-center justify-center">
                                         @if ($avatarUrl)
                                             <img
                                                 src="{{ $avatarUrl }}"
                                                 class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                                                 alt="{{ $member->name }}"
-                                                onerror="this.parentElement.innerHTML='<div class=\'w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center\'><span class=\'text-base font-black text-teal-700\'>{{ strtoupper(substr($member->name, 0, 2)) }}</span></div>'"
+                                                onerror="this.parentElement.innerHTML='<div class=\'w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center\'><span class=\'text-lg font-black text-teal-700\'>{{ strtoupper(substr($member->name, 0, 2)) }}</span></div>'"
                                             >
                                         @else
-                                            <div class="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center shadow-inner">
-                                                <span class="text-lg font-black text-teal-700">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
+                                            <div class="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center shadow-inner">
+                                                <span class="text-xl font-black text-teal-700">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
                                             </div>
                                         @endif
                                     </div>
