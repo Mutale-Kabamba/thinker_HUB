@@ -587,18 +587,20 @@ class Schedule extends Page
         // Format all sessions
         $this->sessions = $allAccessibleSessions->map(function (CourseSession $s): array {
             $effectiveDate = $s->getEffectiveDate();
+            $startTime = $s->getEffectiveStartTime();
+            $endTime = $s->getEffectiveEndTime();
 
             return [
                 'id' => $s->id,
-                'course_title' => $s->course->title ?? '—',
-                'course_code' => $s->course->code ?? '',
+                'course_title' => $s->course?->title ?? '—',
+                'course_code' => $s->course?->code ?? '',
                 'type' => $s->type,
                 'type_label' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
                 'student_name' => $s->student?->name,
-                'title' => $s->title ?: ($s->course->title ?? 'Session'),
+                'title' => $s->title ?: ($s->course?->title ?? 'Session'),
                 'session_date' => $effectiveDate->format('D, M j, Y'),
-                'start_time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A'),
-                'end_time' => Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
+                'start_time' => filled($startTime) ? Carbon::parse($startTime)->format('g:i A') : '—',
+                'end_time' => filled($endTime) ? Carbon::parse($endTime)->format('g:i A') : '—',
                 'status' => $s->status,
                 'rescheduled_date' => $s->rescheduled_date?->format('D, M j, Y'),
                 'notes' => $s->notes,
@@ -646,8 +648,8 @@ class Schedule extends Page
             if (filled($this->searchSession)) {
                 $term = strtolower(trim($this->searchSession));
                 $matchTitle = str_contains(strtolower((string) $s->title), $term);
-                $matchCourse = str_contains(strtolower((string) ($s->course->title ?? '')), $term);
-                $matchCode = str_contains(strtolower((string) ($s->course->code ?? '')), $term);
+                $matchCourse = str_contains(strtolower((string) ($s->course?->title ?? '')), $term);
+                $matchCode = str_contains(strtolower((string) ($s->course?->code ?? '')), $term);
                 if (! $matchTitle && ! $matchCourse && ! $matchCode) {
                     return false;
                 }
@@ -658,19 +660,21 @@ class Schedule extends Page
 
         $this->filteredSessions = $filtered->map(function (CourseSession $s): array {
             $effectiveDate = $s->getEffectiveDate();
+            $startTime = $s->getEffectiveStartTime();
+            $endTime = $s->getEffectiveEndTime();
 
             return [
                 'id' => $s->id,
-                'course_title' => $s->course->title ?? '—',
-                'course_code' => $s->course->code ?? '',
+                'course_title' => $s->course?->title ?? '—',
+                'course_code' => $s->course?->code ?? '',
                 'type' => $s->type,
                 'type_label' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group Cohort',
                 'student_name' => $s->student?->name ?? 'Enrolled Cohort',
-                'title' => $s->title ?: ($s->course->title ?? 'Session'),
+                'title' => $s->title ?: ($s->course?->title ?? 'Session'),
                 'session_date' => $effectiveDate->format('D, M j, Y'),
                 'session_date_raw' => $effectiveDate->format('Y-m-d'),
-                'start_time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A'),
-                'end_time' => Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
+                'start_time' => filled($startTime) ? Carbon::parse($startTime)->format('g:i A') : '—',
+                'end_time' => filled($endTime) ? Carbon::parse($endTime)->format('g:i A') : '—',
                 'status' => $s->status,
                 'notes' => $s->notes,
                 'is_today' => $effectiveDate->isToday(),
@@ -682,13 +686,16 @@ class Schedule extends Page
         $sessionsByDate = [];
         foreach ($allAccessibleSessions as $s) {
             $effectiveDate = $s->getEffectiveDate()->format('Y-m-d');
+            $startTime = $s->getEffectiveStartTime();
+            $endTime = $s->getEffectiveEndTime();
+
             $sessionsByDate[$effectiveDate][] = [
                 'id' => $s->id,
-                'title' => $s->title ?: ($s->course->title ?? '—'),
-                'course_code' => $s->course->code ?? '',
-                'course_title' => $s->course->title ?? '',
-                'start_time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A'),
-                'end_time' => Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
+                'title' => $s->title ?: ($s->course?->title ?? '—'),
+                'course_code' => $s->course?->code ?? '',
+                'course_title' => $s->course?->title ?? '',
+                'start_time' => filled($startTime) ? Carbon::parse($startTime)->format('g:i A') : '—',
+                'end_time' => filled($endTime) ? Carbon::parse($endTime)->format('g:i A') : '—',
                 'status' => $s->status,
                 'type' => $s->type,
                 'type_label' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group Cohort',
@@ -785,13 +792,16 @@ class Schedule extends Page
         }
 
         $this->pendingRescheduleRequests = $user->notifications()
-            ->where('type', 'App\\Notifications\\RescheduleRequestNotification')
+            ->whereIn('type', [
+                RescheduleRequestNotification::class,
+                'App\\Notifications\\RescheduleRequestNotification',
+            ])
             ->latest()
             ->take(30)
             ->get()
             ->filter(fn (DatabaseNotification $notification): bool => $this->isPendingRescheduleRequestData($notification->data ?? []))
             ->map(function (DatabaseNotification $notification): array {
-                $data = $notification->data;
+                $data = $notification->data ?? [];
 
                 return [
                     'id' => $notification->id,
@@ -800,7 +810,7 @@ class Schedule extends Page
                     'reason' => (string) ($data['reason'] ?? ''),
                     'preferred_date' => $data['preferred_date'] ?? null,
                     'preferred_time' => $data['preferred_time'] ?? null,
-                    'created_at' => $notification->created_at?->diffForHumans(),
+                    'created_at' => $notification->created_at ? $notification->created_at->diffForHumans() : 'Recently',
                 ];
             })
             ->values()

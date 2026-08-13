@@ -391,19 +391,21 @@ class Schedule extends Page
         $this->sessions = $allAccessibleSessions->map(function (CourseSession $s): array {
             $canAddToCalendar = in_array($s->status, ['scheduled', 'rescheduled'], true) && $s->effectiveEndAt()->isFuture();
             $effectiveDate = $s->getEffectiveDate();
+            $startTime = $s->getEffectiveStartTime();
+            $endTime = $s->getEffectiveEndTime();
 
             return [
                 'id' => $s->id,
-                'course_title' => $s->course->title ?? '—',
-                'course_code' => $s->course->code ?? '',
+                'course_title' => $s->course?->title ?? '—',
+                'course_code' => $s->course?->code ?? '',
                 'type' => $s->type,
                 'type_label' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
                 'instructor_name' => $s->instructor?->name ?? 'Instructor',
-                'title' => $s->title ?: ($s->course->title ?? 'Session'),
+                'title' => $s->title ?: ($s->course?->title ?? 'Session'),
                 'session_date' => $effectiveDate->format('D, M j, Y'),
                 'session_date_raw' => $effectiveDate->format('Y-m-d'),
-                'start_time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A'),
-                'end_time' => Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
+                'start_time' => filled($startTime) ? Carbon::parse($startTime)->format('g:i A') : '—',
+                'end_time' => filled($endTime) ? Carbon::parse($endTime)->format('g:i A') : '—',
                 'status' => $s->status,
                 'rescheduled_date' => $s->rescheduled_date?->format('D, M j, Y'),
                 'rescheduled_date_raw' => $s->rescheduled_date?->format('Y-m-d'),
@@ -452,8 +454,8 @@ class Schedule extends Page
             if (filled($this->searchSession)) {
                 $term = strtolower(trim($this->searchSession));
                 $matchTitle = str_contains(strtolower((string) $s->title), $term);
-                $matchCourse = str_contains(strtolower((string) ($s->course->title ?? '')), $term);
-                $matchCode = str_contains(strtolower((string) ($s->course->code ?? '')), $term);
+                $matchCourse = str_contains(strtolower((string) ($s->course?->title ?? '')), $term);
+                $matchCode = str_contains(strtolower((string) ($s->course?->code ?? '')), $term);
                 if (! $matchTitle && ! $matchCourse && ! $matchCode) {
                     return false;
                 }
@@ -465,19 +467,21 @@ class Schedule extends Page
         $this->filteredSessions = $filtered->map(function (CourseSession $s): array {
             $canAddToCalendar = in_array($s->status, ['scheduled', 'rescheduled'], true) && $s->effectiveEndAt()->isFuture();
             $effectiveDate = $s->getEffectiveDate();
+            $startTime = $s->getEffectiveStartTime();
+            $endTime = $s->getEffectiveEndTime();
 
             return [
                 'id' => $s->id,
-                'course_title' => $s->course->title ?? '—',
-                'course_code' => $s->course->code ?? '',
+                'course_title' => $s->course?->title ?? '—',
+                'course_code' => $s->course?->code ?? '',
                 'type' => $s->type,
                 'type_label' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
                 'instructor_name' => $s->instructor?->name ?? 'Instructor',
-                'title' => $s->title ?: ($s->course->title ?? 'Session'),
+                'title' => $s->title ?: ($s->course?->title ?? 'Session'),
                 'session_date' => $effectiveDate->format('D, M j, Y'),
                 'session_date_raw' => $effectiveDate->format('Y-m-d'),
-                'start_time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A'),
-                'end_time' => Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
+                'start_time' => filled($startTime) ? Carbon::parse($startTime)->format('g:i A') : '—',
+                'end_time' => filled($endTime) ? Carbon::parse($endTime)->format('g:i A') : '—',
                 'status' => $s->status,
                 'notes' => $s->notes,
                 'is_today' => $effectiveDate->isToday(),
@@ -491,13 +495,16 @@ class Schedule extends Page
         $sessionsByDate = [];
         foreach ($allAccessibleSessions as $s) {
             $effectiveDate = $s->getEffectiveDate()->format('Y-m-d');
+            $startTime = $s->getEffectiveStartTime();
+            $endTime = $s->getEffectiveEndTime();
+
             $sessionsByDate[$effectiveDate][] = [
                 'id' => $s->id,
-                'title' => $s->title ?: ($s->course->title ?? '—'),
-                'course_code' => $s->course->code ?? '',
-                'course_title' => $s->course->title ?? '',
-                'start_time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A'),
-                'end_time' => Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
+                'title' => $s->title ?: ($s->course?->title ?? '—'),
+                'course_code' => $s->course?->code ?? '',
+                'course_title' => $s->course?->title ?? '',
+                'start_time' => filled($startTime) ? Carbon::parse($startTime)->format('g:i A') : '—',
+                'end_time' => filled($endTime) ? Carbon::parse($endTime)->format('g:i A') : '—',
                 'status' => $s->status,
                 'type' => $s->type,
                 'type_label' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
@@ -586,10 +593,10 @@ class Schedule extends Page
         foreach ($grouped as $courseId => $courseSessions) {
             $total = $courseSessions->count();
             $completed = $courseSessions->where('status', 'completed')->count();
-            $course = $courseSessions->first()->course;
+            $course = $courseSessions->first()?->course;
             $this->courseProgress[] = [
-                'course_title' => $course->title ?? '—',
-                'course_code' => $course->code ?? '',
+                'course_title' => $course?->title ?? '—',
+                'course_code' => $course?->code ?? '',
                 'total' => $total,
                 'completed' => $completed,
                 'percentage' => $total > 0 ? round(($completed / $total) * 100) : 0,
@@ -603,26 +610,28 @@ class Schedule extends Page
             ->with(['session.course'])
             ->whereHas('session')
             ->get()
+            ->filter(fn ($attendance) => $attendance->session !== null)
             ->sortBy(fn ($attendance) => $attendance->session?->getEffectiveDate())
             ->values();
 
         $this->attendanceRecords = $attendances->map(fn ($attendance) => [
-            'session_title' => $attendance->session->title ?: 'Session',
-            'course_title' => $attendance->session->course->title ?? '—',
-            'session_date' => $attendance->session->getEffectiveDate()->format('D, M j, Y'),
+            'session_title' => $attendance->session?->title ?: 'Session',
+            'course_title' => $attendance->session?->course?->title ?? '—',
+            'session_date' => $attendance->session ? $attendance->session->getEffectiveDate()->format('D, M j, Y') : '—',
             'status' => $attendance->status,
         ])->all();
 
         $this->attendanceSummary = $attendances
-            ->groupBy(fn ($attendance) => $attendance->session->course_id)
+            ->groupBy(fn ($attendance) => (int) ($attendance->session?->course_id ?? 0))
             ->map(function ($courseAttendances) {
                 $total = $courseAttendances->count();
                 $attended = $courseAttendances->whereIn('status', ['present', 'late'])->count();
-                $course = $courseAttendances->first()->session->course;
+                $firstSession = $courseAttendances->first()?->session;
+                $course = $firstSession?->course;
 
                 return [
-                    'course_title' => $course->title ?? '—',
-                    'course_code' => $course->code ?? '',
+                    'course_title' => $course?->title ?? '—',
+                    'course_code' => $course?->code ?? '',
                     'attended' => $attended,
                     'total' => $total,
                     'percentage' => $total > 0 ? round(($attended / $total) * 100) : 0,
@@ -635,7 +644,10 @@ class Schedule extends Page
     protected function loadRescheduleRequests(User $user): void
     {
         $notifications = $user->notifications()
-            ->where('type', RescheduleRequestSubmittedNotification::class)
+            ->whereIn('type', [
+                RescheduleRequestSubmittedNotification::class,
+                'App\\Notifications\\RescheduleRequestSubmittedNotification',
+            ])
             ->latest()
             ->take(30)
             ->get()
@@ -650,7 +662,7 @@ class Schedule extends Page
                     'preferred_date' => $data['preferred_date'] ?? null,
                     'preferred_time' => $data['preferred_time'] ?? null,
                     'decision_status' => (string) ($data['decision_status'] ?? 'pending'),
-                    'created_at' => $notification->created_at?->diffForHumans(),
+                    'created_at' => $notification->created_at ? $notification->created_at->diffForHumans() : 'Recently',
                 ];
             });
 
@@ -667,8 +679,14 @@ class Schedule extends Page
     protected function buildGoogleCalendarUrl(CourseSession $session): string
     {
         $timezone = config('app.timezone', 'UTC');
-        $startAt = $session->effectiveStartAt()->copy()->utc();
-        $endAt = $session->effectiveEndAt()->copy()->utc();
+
+        try {
+            $startAt = $session->effectiveStartAt()->copy()->utc();
+            $endAt = $session->effectiveEndAt()->copy()->utc();
+        } catch (\Throwable) {
+            $startAt = Carbon::today()->utc();
+            $endAt = $startAt->copy()->addHours(self::DEFAULT_CALENDAR_DURATION_HOURS);
+        }
 
         if ($endAt->lessThanOrEqualTo($startAt)) {
             $endAt = $startAt->copy()->addHours(self::DEFAULT_CALENDAR_DURATION_HOURS);
