@@ -58,7 +58,13 @@ class Schedule extends Page
 
     public array $weekDays = [];
 
-    public array $dayViewData = [];
+    public array $dayViewData = [
+        'date_full' => '',
+        'day_name' => '',
+        'formatted_date' => '',
+        'is_today' => false,
+        'sessions' => [],
+    ];
 
     public array $calendarWeeks = [];
 
@@ -116,10 +122,19 @@ class Schedule extends Page
     protected function getHeaderActions(): array
     {
         $user = auth()->user();
-        $courseIds = $user ? $user->instructorCourses()->pluck('courses.id') : collect();
+        if (! $user) {
+            return [];
+        }
+
+        $courseIds = Course::query()
+            ->where('instructor_id', $user->id)
+            ->orWhere('course_by', $user->id)
+            ->pluck('id')
+            ->merge($user->instructorCourses()->pluck('courses.id'))
+            ->unique();
 
         return [
-            ImportSessionsAction::makeForInstructor($courseIds, $user?->id ?? 0),
+            ImportSessionsAction::makeForInstructor($courseIds, $user->id),
         ];
     }
 
@@ -236,32 +251,22 @@ class Schedule extends Page
             return;
         }
 
-        $courseIds = Course::query()
-            ->where('instructor_id', $user->id)
-            ->orWhere('course_by', $user->id)
-            ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $user->id))
-            ->pluck('id')
-            ->merge($user->instructorCourses()->pluck('courses.id'))
-            ->unique()
-            ->all();
-
-        $session = CourseSession::query()
-            ->with(['course', 'student'])
-            ->whereIn('course_id', $courseIds)
-            ->find($sessionId);
+        $session = $this->resolveInstructorSession($user, $sessionId);
 
         if (! $session) {
             return;
         }
 
         $effectiveDate = $session->getEffectiveDate();
+        $startTime = $session->getEffectiveStartTime();
+        $endTime = $session->getEffectiveEndTime();
 
         $this->selectedSessionId = $sessionId;
         $this->selectedSessionDetails = [
             'id' => $session->id,
-            'title' => $session->title ?: ($session->course->title ?? 'Session'),
-            'course_title' => $session->course->title ?? '—',
-            'course_code' => $session->course->code ?? '',
+            'title' => $session->title ?: ($session->course?->title ?? 'Session'),
+            'course_title' => $session->course?->title ?? '—',
+            'course_code' => $session->course?->code ?? '',
             'type' => $session->type,
             'type_label' => $session->type === 'one_on_one' ? 'One-On-One' : 'Group Cohort',
             'student_name' => $session->student?->name ?? 'Enrolled Students',
@@ -269,8 +274,8 @@ class Schedule extends Page
             'student_whatsapp' => $session->student?->whatsapp,
             'session_date' => $effectiveDate->format('l, F j, Y'),
             'session_date_raw' => $effectiveDate->format('Y-m-d'),
-            'start_time' => Carbon::parse($session->getEffectiveStartTime())->format('g:i A'),
-            'end_time' => Carbon::parse($session->getEffectiveEndTime())->format('g:i A'),
+            'start_time' => filled($startTime) ? Carbon::parse($startTime)->format('g:i A') : '—',
+            'end_time' => filled($endTime) ? Carbon::parse($endTime)->format('g:i A') : '—',
             'status' => $session->status,
             'meeting_link' => $session->meeting_link,
             'notes' => $session->notes,
@@ -314,10 +319,7 @@ class Schedule extends Page
             return;
         }
 
-        $session = CourseSession::query()
-            ->whereIn('course_id', $user->instructorCourses()->pluck('courses.id'))
-            ->where('id', $sessionId)
-            ->first();
+        $session = $this->resolveInstructorSession($user, $sessionId);
 
         if (! $session || $session->status === 'completed') {
             return;
@@ -352,10 +354,7 @@ class Schedule extends Page
             return;
         }
 
-        $session = CourseSession::query()
-            ->whereIn('course_id', $user->instructorCourses()->pluck('courses.id'))
-            ->where('id', $this->rescheduleSessionId)
-            ->first();
+        $session = $this->resolveInstructorSession($user, $this->rescheduleSessionId);
 
         if (! $session) {
             return;
@@ -386,7 +385,10 @@ class Schedule extends Page
 
         $notification = $user->notifications()
             ->where('id', $notificationId)
-            ->where('type', 'App\\Notifications\\RescheduleRequestNotification')
+            ->whereIn('type', [
+                RescheduleRequestNotification::class,
+                'App\\Notifications\\RescheduleRequestNotification',
+            ])
             ->first();
 
         if (! $notification) {
@@ -395,7 +397,7 @@ class Schedule extends Page
             return;
         }
 
-        $data = $notification->data;
+        $data = $notification->data ?? [];
 
         if (! $this->isPendingRescheduleRequestData($data)) {
             Notification::make()->title('This request has already been handled.')->warning()->send();
@@ -403,18 +405,24 @@ class Schedule extends Page
             return;
         }
 
+        $sessionId = isset($data['session_id']) ? (int) $data['session_id'] : 0;
+        $session = $this->resolveInstructorSession($user, $sessionId);
+
+        $studentId = isset($data['student_id']) ? (int) $data['student_id'] : null;
+        $student = $studentId ? User::find($studentId) : null;
+
         $this->decisionNotificationId = $notification->id;
-        $this->decisionSessionId = isset($data['session_id']) ? (int) $data['session_id'] : null;
-        $this->decisionStudentId = isset($data['student_id']) ? (int) $data['student_id'] : null;
-        $this->decisionStudentName = (string) ($data['student_name'] ?? 'Student');
+        $this->decisionSessionId = $sessionId ?: null;
+        $this->decisionStudentId = $student?->id;
+        $this->decisionStudentName = (string) ($data['student_name'] ?? ($student?->name ?? 'Student'));
         $this->decisionReason = (string) ($data['reason'] ?? '');
         $this->decisionPreferredDate = $data['preferred_date'] ?? null;
         $this->decisionPreferredTime = $data['preferred_time'] ?? null;
 
         $this->decisionStep = 'review';
-        $this->decisionDate = $this->decisionPreferredDate;
-        $this->decisionStartTime = $this->decisionPreferredTime;
-        $this->decisionEndTime = null;
+        $this->decisionDate = $session ? $session->getEffectiveDate()->format('Y-m-d') : $this->decisionPreferredDate;
+        $this->decisionStartTime = $session ? $session->getEffectiveStartTime() : $this->decisionPreferredTime;
+        $this->decisionEndTime = $session ? $session->getEffectiveEndTime() : null;
         $this->declineReason = '';
     }
 
@@ -831,7 +839,10 @@ class Schedule extends Page
     {
         return $user->notifications()
             ->where('id', $notificationId)
-            ->where('type', 'App\\Notifications\\RescheduleRequestNotification')
+            ->whereIn('type', [
+                RescheduleRequestNotification::class,
+                'App\\Notifications\\RescheduleRequestNotification',
+            ])
             ->latest()
             ->first();
     }
@@ -845,7 +856,10 @@ class Schedule extends Page
         }
 
         return $user->notifications()
-            ->where('type', 'App\\Notifications\\RescheduleRequestNotification')
+            ->whereIn('type', [
+                RescheduleRequestNotification::class,
+                'App\\Notifications\\RescheduleRequestNotification',
+            ])
             ->latest()
             ->get()
             ->first(function (DatabaseNotification $notification) use ($sessionId): bool {
@@ -863,16 +877,29 @@ class Schedule extends Page
 
     protected function resolveInstructorSession(User $user, int $sessionId): ?CourseSession
     {
+        $courseIds = Course::query()
+            ->where('instructor_id', $user->id)
+            ->orWhere('course_by', $user->id)
+            ->pluck('id')
+            ->merge($user->instructorCourses()->pluck('courses.id'))
+            ->unique()
+            ->all();
+
         return CourseSession::query()
-            ->with('course')
-            ->whereIn('course_id', $user->instructorCourses()->pluck('courses.id'))
+            ->with(['course', 'student'])
+            ->where(function ($q) use ($courseIds, $user) {
+                if (! empty($courseIds)) {
+                    $q->whereIn('course_id', $courseIds);
+                }
+                $q->orWhere('instructor_id', $user->id);
+            })
             ->where('id', $sessionId)
             ->first();
     }
 
     protected function notifyStudentsAboutReschedule(CourseSession $session): void
     {
-        $courseName = $session->course->title ?? 'Course';
+        $courseName = $session->course?->title ?? 'Course';
 
         if ($session->isOneOnOne() && $session->student_id) {
             $student = User::find($session->student_id);
@@ -903,7 +930,10 @@ class Schedule extends Page
         }
 
         $requestNotification = $student->notifications()
-            ->where('type', RescheduleRequestSubmittedNotification::class)
+            ->whereIn('type', [
+                RescheduleRequestSubmittedNotification::class,
+                'App\\Notifications\\RescheduleRequestSubmittedNotification',
+            ])
             ->latest()
             ->get()
             ->first(function (DatabaseNotification $notification) use ($sessionId): bool {

@@ -258,9 +258,88 @@ class SubmissionAndScheduleFixTest extends TestCase
             ->test(StudentSchedule::class)
             ->assertOk();
 
+        $this->actingAs($student)
+            ->get('/learn/schedule')
+            ->assertOk();
+
         // Test Instructor Schedule Page does not throw 500 error
         Livewire::actingAs($instructor)
             ->test(InstructorSchedule::class)
             ->assertOk();
+
+        $this->actingAs($instructor)
+            ->get('/teach/schedule')
+            ->assertOk();
+    }
+
+    public function test_instructor_schedule_with_pending_reschedule_notifications(): void
+    {
+        $instructor = User::factory()->create([
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+        $student = User::factory()->create([
+            'role' => 'student',
+            'is_active' => true,
+        ]);
+
+        $course = Course::create([
+            'title' => 'Advanced Python',
+            'code' => 'PY201',
+            'instructor_id' => $instructor->id,
+            'is_active' => true,
+        ]);
+
+        $session = CourseSession::create([
+            'course_id' => $course->id,
+            'instructor_id' => $instructor->id,
+            'student_id' => $student->id,
+            'type' => 'one_on_one',
+            'title' => 'Python Mentoring',
+            'session_date' => now()->addDays(2)->toDateString(),
+            'start_time' => '14:00:00',
+            'end_time' => '15:00:00',
+            'status' => 'scheduled',
+        ]);
+
+        // Create reschedule notification for instructor
+        $instructor->notifications()->create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'type' => 'App\\Notifications\\RescheduleRequestNotification',
+            'data' => [
+                'session_id' => $session->id,
+                'student_id' => $student->id,
+                'student_name' => $student->name,
+                'reason' => 'Doctor appointment',
+                'preferred_date' => now()->addDays(3)->toDateString(),
+                'preferred_time' => '15:00:00',
+            ],
+            'created_at' => now(),
+        ]);
+
+        // Test HTTP GET /teach/schedule with pending notifications
+        $this->actingAs($instructor)
+            ->get('/teach/schedule')
+            ->assertOk();
+
+        // Test Livewire component with decision wizard interactions
+        Livewire::actingAs($instructor)
+            ->test(InstructorSchedule::class)
+            ->assertOk()
+            ->assertSee('Doctor appointment')
+            ->call('openSessionDetails', $session->id)
+            ->assertSet('showSessionDetailsModal', true)
+            ->assertSet('selectedSessionDetails.title', 'Python Mentoring')
+            ->call('closeSessionDetails')
+            ->assertSet('showSessionDetailsModal', false)
+            ->call('setDecisionStep', 'accept')
+            ->set('decisionDate', now()->addDays(3)->toDateString())
+            ->set('decisionStartTime', '15:00:00')
+            ->call('acceptRescheduleRequest')
+            ->assertHasNoErrors();
+
+        $session->refresh();
+        $this->assertSame('rescheduled', $session->status);
+        $this->assertSame(now()->addDays(3)->toDateString(), $session->rescheduled_date->toDateString());
     }
 }
