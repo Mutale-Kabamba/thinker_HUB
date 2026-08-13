@@ -89,30 +89,30 @@
                             <article class="group bg-white rounded-2xl p-3 sm:p-3.5 shadow-sm border border-slate-200/80 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
                                 <div>
                                     {{-- Photo Header Container --}}
-                                    <div class="relative h-36 sm:h-44 md:h-48 w-full overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-2.5 flex items-center justify-center">
-                                        {{-- Role Badge Overlay --}}
-                                        <div class="absolute top-2 left-2 z-10">
-                                            <span class="inline-block px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-white/95 backdrop-blur-xs text-teal-800 shadow-xs border border-white/60">
-                                                {{ $roleTitle }}
-                                            </span>
-                                        </div>
-
+                                    <div class="relative h-28 sm:h-36 md:h-40 w-full overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-2 flex items-center justify-center">
                                         @if ($avatarUrl)
                                             <img
                                                 src="{{ $avatarUrl }}"
                                                 class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                                                 alt="{{ $member->name }}"
-                                                onerror="this.parentElement.innerHTML='<div class=\'w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center\'><span class=\'text-lg font-black text-teal-700\'>{{ strtoupper(substr($member->name, 0, 2)) }}</span></div>'"
+                                                onerror="this.parentElement.innerHTML='<div class=\'w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center\'><span class=\'text-base font-black text-teal-700\'>{{ strtoupper(substr($member->name, 0, 2)) }}</span></div>'"
                                             >
                                         @else
-                                            <div class="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center shadow-inner">
-                                                <span class="text-xl font-black text-teal-700">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
+                                            <div class="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center shadow-inner">
+                                                <span class="text-lg font-black text-teal-700">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
                                             </div>
                                         @endif
                                     </div>
 
                                     {{-- Member Details --}}
                                     <div class="px-0.5">
+                                        {{-- Neatly Placed Role Badge --}}
+                                        <div class="mb-1">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider text-teal-800 bg-teal-50 border border-teal-200/70">
+                                                {{ $roleTitle }}
+                                            </span>
+                                        </div>
+
                                         <h3 class="text-sm sm:text-base font-bold text-[#0a2d27] group-hover:text-teal-700 transition-colors leading-snug truncate">
                                             <a href="{{ route('landing.instructors.show', ['instructor' => $member->id, 'slug' => $profileSlug]) }}" title="{{ $member->name }}">
                                                 {{ $member->name }}
@@ -127,7 +127,7 @@
 
                                         {{-- Skills / Specialty Tags --}}
                                         @if (!empty($skills))
-                                            <div class="flex flex-wrap items-center gap-1 my-2">
+                                            <div class="flex flex-wrap items-center gap-1 my-1.5">
                                                 @foreach (array_slice($skills, 0, 2) as $skill)
                                                     <span class="inline-flex items-center bg-teal-50/90 text-teal-800 border border-teal-200/60 text-[10px] font-medium rounded-md px-1.5 py-0.5 leading-tight truncate max-w-[130px]" title="{{ $skill }}">
                                                         {{ $skill }}
