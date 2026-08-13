@@ -41,13 +41,22 @@
             <div style="padding:0.55rem 0.75rem;background:#fff;border:1px solid var(--hub-border);border-radius:8px;margin-bottom:0.5rem;">
                 <p style="margin:0 0 0.3rem;font-size:0.76rem;font-weight:600;color:var(--hub-ink);text-transform:uppercase;letter-spacing:0.03em;">Your Submission</p>
                 @if (!empty($assessment['submission']['file']))
-                    <p style="margin:0.15rem 0;font-size:0.8rem;">📄 <a href="#" @click.prevent="openViewer(@js(route('file.view', ['type' => 'assessment-submission', 'id' => $assessment['submission']['id']])), @js('Submission.' . pathinfo($assessment['submission']['file'], PATHINFO_EXTENSION)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">View uploaded file</a></p>
+                    <p style="margin:0.15rem 0;font-size:0.8rem;display:flex;align-items:center;gap:0.35rem;">
+                        <x-heroicon-o-document-text style="width:0.95rem;height:0.95rem;color:#0e7490;" />
+                        <a href="#" @click.prevent="openViewer(@js(route('file.view', ['type' => 'assessment-submission', 'id' => $assessment['submission']['id']])), @js('Submission.' . pathinfo($assessment['submission']['file'], PATHINFO_EXTENSION)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">View uploaded file</a>
+                    </p>
                 @endif
                 @if (!empty($assessment['submission']['link']))
-                    <p style="margin:0.15rem 0;font-size:0.8rem;">🔗 <a href="{{ $assessment['submission']['link'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assessment['submission']['link'], 60) }}</a></p>
+                    <p style="margin:0.15rem 0;font-size:0.8rem;display:flex;align-items:center;gap:0.35rem;">
+                        <x-heroicon-o-link style="width:0.95rem;height:0.95rem;color:#0e7490;" />
+                        <a href="{{ $assessment['submission']['link'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assessment['submission']['link'], 60) }}</a>
+                    </p>
                 @endif
                 @if (!empty($assessment['submission']['video']))
-                    <p style="margin:0.15rem 0;font-size:0.8rem;">🎬 <a href="{{ $assessment['submission']['video'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assessment['submission']['video'], 60) }}</a></p>
+                    <p style="margin:0.15rem 0;font-size:0.8rem;display:flex;align-items:center;gap:0.35rem;">
+                        <x-heroicon-o-video-camera style="width:0.95rem;height:0.95rem;color:#0e7490;" />
+                        <a href="{{ $assessment['submission']['video'] }}" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;">{{ Str::limit($assessment['submission']['video'], 60) }}</a>
+                    </p>
                 @endif
             </div>
         @endif

@@ -20,18 +20,18 @@
         @include('partials.pwa-register')
     </head>
     <body class="font-sans antialiased text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-950">
-        <div class="relative min-h-screen overflow-hidden">
+        <div class="relative min-h-screen overflow-hidden flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
             <div class="pointer-events-none absolute inset-0">
                 <div class="absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-teal-200/40 blur-3xl dark:bg-teal-700/20"></div>
                 <div class="absolute bottom-0 right-0 h-48 w-48 rounded-full bg-cyan-200/30 blur-3xl dark:bg-cyan-700/20"></div>
             </div>
 
-            <div class="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
-                <a href="{{ route('home') }}" class="mx-auto inline-flex items-center" aria-label="think.er HUB home">
-                    <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-16 w-auto">
+            <div class="relative flex w-full max-w-md flex-col items-center">
+                <a href="{{ route('home') }}" class="mb-5 inline-flex items-center transition hover:opacity-90" aria-label="think.er HUB home">
+                    <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-14 w-auto">
                 </a>
 
-                <main class="mx-auto mt-6 flex w-full flex-1 items-center justify-center">
+                <main class="w-full">
                     {{ $slot }}
                 </main>
             </div>

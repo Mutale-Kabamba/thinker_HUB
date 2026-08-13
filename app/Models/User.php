@@ -37,6 +37,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         'password',
         'role',
         'is_active',
+        'email_verified_at',
         'track',
         'profile_photo_path',
         'proficiency',
@@ -45,6 +46,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         'whatsapp',
         'linkedin_url',
         'facebook_url',
+        'github_url',
+        'instagram_url',
+        'company',
+        'portfolio_url',
+        'specialty',
     ];
 
     /**
@@ -96,6 +102,21 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     public function certificates(): HasMany
     {
         return $this->hasMany(Certificate::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Whether this account was created / authenticated via Google (Firebase).
+     * Google has already verified the email address for these accounts,
+     * so they must never be shown the email-verification wall.
+     */
+    public function isGoogleAccount(): bool
+    {
+        return filled($this->firebase_uid);
     }
 
     public function badges(): BelongsToMany
@@ -388,6 +409,45 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->role === 'instructor';
     }
 
+    public function isBlogger(): bool
+    {
+        return $this->role === 'blogger';
+    }
+
+    public function isResearcher(): bool
+    {
+        return $this->role === 'researcher';
+    }
+
+    public function isEmployer(): bool
+    {
+        return $this->role === 'employer';
+    }
+
+    public function canSubmitType(string $type): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if (! $this->is_active) {
+            return false;
+        }
+
+        if ($this->isInstructor()) {
+            // Dual-role (student + approved active instructor) automatically unlocks all contributor submissions
+            return in_array($type, ['blog', 'tip_trick', 'opportunity', 'video'], true);
+        }
+
+        return match ($type) {
+            'blog' => $this->isBlogger(),
+            'tip_trick' => $this->isResearcher() || $this->isInstructor(),
+            'opportunity' => $this->isEmployer(),
+            'video' => $this->isInstructor(),
+            default => false,
+        };
+    }
+
     public function isEnrolledInCourse(int $courseId): bool
     {
         return $this->courses()->where('courses.id', $courseId)->exists();
@@ -398,15 +458,37 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return PublicDiskPath::url($this->profile_photo_path);
     }
 
+    public function isContributor(): bool
+    {
+        // Dual-role (student + approved active instructor) automatically has full contributor access
+        return in_array($this->role, ['blogger', 'researcher', 'employer'], true)
+            || ($this->isInstructor() && $this->is_active);
+    }
+
+    public function isStudent(): bool
+    {
+        // Students and dual-role instructors/admins can access student learning features
+        return $this->role === 'student'
+            || $this->role === 'instructor'
+            || $this->role === 'admin'
+            || empty($this->role);
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
+        if (! $this->is_active && ! $this->isAdmin()) {
+            return false;
+        }
+
         return match ($panel->getId()) {
             'admin' => $this->isAdmin(),
-            'student' => ! $this->isAdmin() && ! $this->isInstructor(),
-            'instructor' => $this->isInstructor() && $this->is_active,
+            'instructor' => $this->isInstructor(),
+            'contributor' => $this->isContributor(),
+            'student' => $this->isStudent(),
             default => false,
         };
     }
+
 
     public function sendEmailVerificationNotification(?string $signerName = null): void
     {

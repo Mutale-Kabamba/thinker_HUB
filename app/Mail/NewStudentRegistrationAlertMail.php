@@ -28,30 +28,14 @@ class NewStudentRegistrationAlertMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $prefix = $this->requiresPaymentApproval
-            ? 'Student registration requires approval'
-            : 'Student registration received';
-
-        $subject = $prefix.' - '.$this->student->name;
-
-        $listUnsubscribe = trim((string) config('mail.deliverability.list_unsubscribe'));
-        $listUnsubscribePost = trim((string) config('mail.deliverability.list_unsubscribe_post', 'List-Unsubscribe=One-Click'));
+        $subject = sprintf(
+            'think.er HUB: New Student Registration - %s (%s)',
+            $this->student->name,
+            $this->course->code
+        );
 
         return new Envelope(
             subject: $subject,
-            using: [
-                static function (Email $message) use ($listUnsubscribe, $listUnsubscribePost): void {
-                    $headers = $message->getHeaders();
-
-                    $headers->addTextHeader('X-Auto-Response-Suppress', 'All');
-                    $headers->addTextHeader('Auto-Submitted', 'auto-generated');
-
-                    if ($listUnsubscribe !== '') {
-                        $headers->addTextHeader('List-Unsubscribe', $listUnsubscribe);
-                        $headers->addTextHeader('List-Unsubscribe-Post', $listUnsubscribePost !== '' ? $listUnsubscribePost : 'List-Unsubscribe=One-Click');
-                    }
-                },
-            ],
         );
     }
 

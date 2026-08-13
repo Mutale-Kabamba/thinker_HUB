@@ -60,8 +60,8 @@ class AssignmentSubmissionForm
                                     ->label('Uploaded File')
                                     ->content(fn ($record): HtmlString => $record?->file_path
                                         ? new HtmlString(
-                                            '<div style="display:flex;align-items:center;gap:0.5rem;">'
-                                            . '<span style="font-size:1.25rem;">📄</span>'
+                                            '<div style="display:flex;align-items:center;gap:0.4rem;">'
+                                            . '<svg style="width:1.2rem;height:1.2rem;color:#0e7490;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
                                             . '<a href="/storage/' . e($record->file_path) . '" target="_blank" style="color:#0e7490;text-decoration:underline;font-weight:500;">'
                                             . e(basename($record->file_path))
                                             . '</a></div>'
@@ -71,8 +71,8 @@ class AssignmentSubmissionForm
                                     ->label('Link')
                                     ->content(fn ($record): HtmlString => $record?->link
                                         ? new HtmlString(
-                                            '<div style="display:flex;align-items:center;gap:0.5rem;">'
-                                            . '<span style="font-size:1.25rem;">🔗</span>'
+                                            '<div style="display:flex;align-items:center;gap:0.4rem;">'
+                                            . '<svg style="width:1.2rem;height:1.2rem;color:#0e7490;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'
                                             . '<a href="' . e($record->link) . '" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;font-weight:500;">'
                                             . e(\Illuminate\Support\Str::limit($record->link, 50))
                                             . '</a></div>'
@@ -82,8 +82,8 @@ class AssignmentSubmissionForm
                                     ->label('Video URL')
                                     ->content(fn ($record): HtmlString => $record?->video_url
                                         ? new HtmlString(
-                                            '<div style="display:flex;align-items:center;gap:0.5rem;">'
-                                            . '<span style="font-size:1.25rem;">🎬</span>'
+                                            '<div style="display:flex;align-items:center;gap:0.4rem;">'
+                                            . '<svg style="width:1.2rem;height:1.2rem;color:#0e7490;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
                                             . '<a href="' . e($record->video_url) . '" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;font-weight:500;">'
                                             . e(\Illuminate\Support\Str::limit($record->video_url, 50))
                                             . '</a></div>'

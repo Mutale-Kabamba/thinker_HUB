@@ -39,6 +39,7 @@ class AttendancesRelationManager extends RelationManager
                         Attendance::STATUS_PRESENT => 'Present',
                         Attendance::STATUS_ABSENT => 'Absent',
                         Attendance::STATUS_LATE => 'Late',
+                        Attendance::STATUS_APOLOGY => 'Apology',
                     ])
                     ->selectablePlaceholder(false),
                 TextInputColumn::make('notes')

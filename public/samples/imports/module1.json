@@ -1,0 +1,152 @@
+[
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Week 1 Virtual Kickoff: Overview, Non-Printing Characters & TEVETA Standards",
+    "session_date": "2026-08-10",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Kickoff. Topic: Week 1 Overview, Non-Printing Characters & TEVETA Formatting Standards. Objectives: Understand Module 1 roadmap, grading criteria, and lab expectations; identify non-printing characters (¶, spaces, tab marks, line breaks); master paragraph typography rules (line spacing, paragraph spacing, indentations). Activities: Live demo of non-printing character toggling in MS Word; walkthrough of TEVETA official technical report styling guidelines. Self-Directed Study: Read Unit 1.1 Study Guide (Pages 1–15)."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Document Styles, Section Breaks & Page Orientation Lab",
+    "session_date": "2026-08-11",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Document Styles, Section Breaks & Page Orientation. Objectives: Apply and modify explicit heading styles (Heading 1, Heading 2, Heading 3); insert and configure section breaks (Next Page, Continuous); mixed page orientation (Portrait to Landscape for technical tables). Practical Exercise: Convert an unformatted 10-page text document into a structured layout with heading hierarchy, Section Break for landscape Page 5, and page borders/margins (2.54 cm)."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Advanced Tables, Cell Geometry & Alignment Lab",
+    "session_date": "2026-08-12",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Advanced Tables, Cell Geometry & Alignment. Objectives: Merge and split cells while maintaining table layout grid integrity; set explicit row heights, column widths, cell padding, and text alignment; apply custom shading, borders, and repeat header rows across pages. Practical Exercise: Construct a 6-column technical hardware specification matrix for an IT deployment project in Livingstone."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Automated References, TOC & Dynamic Headers/Footers Lab",
+    "session_date": "2026-08-13",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Automated References, Table of Contents & Dynamic Headers/Footers. Objectives: Generate dynamic automated Table of Contents (TOC) and List of Figures; unlink headers/footers across section breaks ('Same as Previous'); apply dynamic field codes for page numbers (Page X of Y). Practical Exercise: Insert dynamic TOC, add dynamic page numbering using Roman numerals (i, ii, iii) for preamble and Arabic numerals (1, 2, 3) for body content."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Week 1 Virtual Review, Bug Fixes & Weekly Quiz 1",
+    "session_date": "2026-08-14",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Review & Quiz. Topic: Week 1 Recap, Common Formatting Bug Fixes & Weekly Quiz 1. Activities: Review student submissions on section break errors; live Q&A session; administer Weekly Quiz 1 via the online portal."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Week 2 Virtual Kickoff: Mail Merge Pipeline, Track Changes & Templates",
+    "session_date": "2026-08-17",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Kickoff. Topic: Mail Merge Pipeline, Track Changes Logic & Template Architecture. Objectives: Explain Mail Merge data pipeline (Master Document + Data Source -> Merged Output); understand track changes, comment threads, and revision protection; contrast .docx documents with reusable .dotx templates. Self-Directed Study: Read Unit 1.1 Study Guide (Pages 16–30)."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Mail Merge Engine & Conditional Rules Lab",
+    "session_date": "2026-08-18",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Mail Merge Engine & Conditional Rules. Objectives: Connect Word master document to Excel database (Trainees.xlsx); insert dynamic merge fields (<<First_Name>>, <<Course_Fee>>); write conditional IF...THEN...ELSE rules to alter text based on field values. Practical Exercise: Create a personalized admission letter that dynamically prints 'Laptop Provided by Hub' if the recipient's Lab_Status column equals 'On-Site'."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Collaborative Editing, Track Changes & Version Comparison Lab",
+    "session_date": "2026-08-19",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Collaborative Editing, Track Changes & Version Comparison. Objectives: Enable Track Changes and configure markup display options; resolve comments, accept/reject edits, and compare two document versions; apply section editing restrictions and document protection passwords. Practical Exercise: Simulate peer-review workflow, track at least 5 revisions, add 3 inline comments, and protect document with password (Teveta2026!)."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Custom Document Templates (.dotx) & Fillable Form Controls Lab",
+    "session_date": "2026-08-20",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Custom Document Templates (.dotx) & Fillable Form Controls. Objectives: Enable Developer Tab in MS Word; insert Content Controls (Text input, Dropdown list, Date picker); save standardized layouts as Word Templates (.dotx). Practical Exercise: Design an official Incident Report Template (.dotx) with dropdown selectors for Severity Level (Low, Medium, High, Critical) and locked structural headings."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Week 2 Virtual Review, Assignment 1.1 Audit & Weekly Quiz 2",
+    "session_date": "2026-08-21",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Review & Quiz. Topic: Week 2 Recap, Assignment 1.1 Audit & Weekly Quiz 2. Activities: Troubleshooting Mail Merge data source connection issues, verify Assignment 1.1 uploads, administer Weekly Quiz 2."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Week 3 Virtual Kickoff: Excel Architecture, Referencing & Function Syntax",
+    "session_date": "2026-08-24",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Kickoff. Topic: Excel Workbook Architecture, Referencing & Function Syntax. Objectives: Differentiate relative (A1), absolute ($A$1), and mixed ($A1 / A$1) references; master syntax rules for SUM, AVERAGE, COUNTIF, SUMIFS; understand lookup logic (VLOOKUP vs modern XLOOKUP). Self-Directed Study: Read Unit 1.2 Study Guide (Pages 1–25)."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Logical Functions & Zambian Statutory Payroll Calculations Lab",
+    "session_date": "2026-08-25",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Logical Functions & Zambian Statutory Payroll Calculations. Objectives: Construct nested IF statements to handle multi-tier conditional brackets; calculate statutory tax deductions (Zambian PAYE, NAPSA, NHIMA); compute overtime pay rates (1.5 x Base Rate). Practical Exercise: Build a 20-employee payroll system that automatically calculates net pay after applying Zambian tax bands and 5% NAPSA deductions."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Data Summarization, PivotTables & Interactive Dashboards Lab",
+    "session_date": "2026-08-26",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Data Summarization, PivotTables & Interactive Dashboards. Objectives: Clean raw tabular data and convert to official Excel Tables (Ctrl + T); create dynamic PivotTables and arrange Row, Column, Value, and Filter fields; insert timeline slicers and dynamic PivotCharts. Practical Exercise: Process a 1,000-row sales dataset from a Livingstone retail store, building a Pivot Dashboard showing monthly revenue breakdown by product line with interactive slicers."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Financial Budgeting, Data Validation & Worksheet Security Lab",
+    "session_date": "2026-08-27",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Financial Budgeting, Data Validation & Worksheet Security. Objectives: Configure Data Validation rules (custom dropdown lists, number limits); apply conditional formatting with color scales and custom data bars; protect dynamic formula cells while leaving user entry ranges unlocked. Practical Exercise: Construct a 12-month operational startup budget for an IT hub, complete with validation dropdowns, variance formulas (= Actual - Budget), and locked formula ranges."
+  },
+  {
+    "course_code": "DS_PIZ-C4-26 (Play it Forward)",
+    "title": "Module 1 Wrap-Up, Assessment Grading Review & Weekly Quiz 3",
+    "session_date": "2026-08-28",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Review & Quiz. Topic: Module 1 Wrap-Up, Assessment Grading Review & Weekly Quiz 3. Activities: Submit Assignment 1.2, conduct online grading review for Assessment 1.1 & Assessment 1.2, administer Weekly Quiz 3."
+  }
+]

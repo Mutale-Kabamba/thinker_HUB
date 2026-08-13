@@ -8,7 +8,10 @@
 
         {{-- ===== COMPOSE ===== --}}
         <section class="hub-card" style="padding:1rem;">
-            <h3 class="hub-title" style="font-size:1rem;margin-bottom:0.65rem;">📣 New Broadcast</h3>
+            <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.65rem;">
+                <x-heroicon-o-megaphone style="width:1.2rem;height:1.2rem;color:var(--hub-primary);" />
+                <h3 class="hub-title" style="font-size:1rem;margin:0;">New Broadcast</h3>
+            </div>
 
             @if (count($courseOptions) === 0)
                 <p class="hub-copy" style="color:var(--hub-muted);">You have no active courses to broadcast to.</p>
@@ -51,7 +54,10 @@
 
         {{-- ===== HISTORY ===== --}}
         <section class="hub-card" style="padding:1rem;">
-            <h3 class="hub-title" style="font-size:1rem;margin-bottom:0.65rem;">📜 Broadcast History</h3>
+            <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.65rem;">
+                <x-heroicon-o-clock style="width:1.2rem;height:1.2rem;color:var(--hub-primary);" />
+                <h3 class="hub-title" style="font-size:1rem;margin:0;">Broadcast History</h3>
+            </div>
 
             @if (count($history) === 0)
                 <p class="hub-copy" style="color:var(--hub-muted);">No broadcasts sent yet.</p>

@@ -85,8 +85,17 @@
                     <select id="google_login_modal_course_id" class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
                         <option value="">Select course</option>
                         @foreach (($courses ?? collect()) as $course)
-                            @php $isLockedCourse = $course->is_open_enrollment === false; @endphp
-                            <option value="{{ $course->id }}" data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}" data-payment-message="{{ $course->payment_contact_message }}" @disabled($isLockedCourse)>
+                            @php
+                                $isLockedCourse = $course->is_open_enrollment === false;
+                                $feesByLevel = method_exists($course, 'getLevelFees') ? $course->getLevelFees() : ['Beginner' => 1500, 'Intermediate' => 1500, 'Advanced' => 1500];
+                            @endphp
+                            <option value="{{ $course->id }}"
+                                data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}"
+                                data-payment-message="{{ $course->payment_contact_message }}"
+                                data-title="{{ $course->title }}"
+                                data-fee="{{ method_exists($course, 'getNumericFee') ? $course->getNumericFee() : 1500 }}"
+                                data-fees-by-level="{{ json_encode($feesByLevel) }}"
+                                @disabled($isLockedCourse)>
                                 {{ $course->code }} - {{ $course->title }}{{ $isLockedCourse ? ' (Locked)' : '' }}
                             </option>
                         @endforeach
@@ -104,9 +113,27 @@
                 </div>
             </div>
 
-            <div id="google-login-payment-notice" class="mt-4 hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                <p class="font-semibold">Notice: Online Payment Coming Soon.</p>
-                <p id="google-login-payment-notice-message" class="mt-1">For this paid course, the registration team will reach out soon.</p>
+            {{-- Dynamic Level Amount Card for Google Login Modal --}}
+            <div id="google-login-modal-level-amount" class="mt-3 hidden items-center justify-between rounded-xl border border-teal-200 bg-teal-50/90 px-3.5 py-2.5 dark:border-teal-800 dark:bg-teal-950/50">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-tag text-teal-600 text-xs"></i>
+                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Level Fee:</span>
+                    <span id="google-login-modal-selected-level-pill" class="rounded-md bg-teal-100 px-2 py-0.5 text-[11px] font-bold text-teal-800 dark:bg-teal-900 dark:text-teal-200">Beginner</span>
+                </div>
+                <span id="google-login-modal-amount-display" class="text-sm font-black text-teal-800 dark:text-teal-200">ZMW 1,500.00</span>
+            </div>
+
+            <div id="google-login-payment-notice" class="mt-3 hidden rounded-2xl border border-teal-200 bg-teal-50/80 p-4 text-xs text-teal-950 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-200">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="font-bold flex items-center gap-1.5 text-teal-900 dark:text-teal-200">
+                        <i class="fa-solid fa-bolt text-amber-500"></i>
+                        Interactive Payment Gateway
+                    </span>
+                    <span class="rounded-full bg-teal-200/60 px-2.5 py-0.5 text-[10px] font-bold uppercase text-teal-900 dark:bg-teal-800 dark:text-teal-100">Instant Activation</span>
+                </div>
+                <p id="google-login-payment-notice-message" class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Complete setup to proceed to Mobile Money (Airtel, MTN, Zamtel) or Card checkout for instant enrollment activation.
+                </p>
             </div>
 
             <div class="mt-4 space-y-3">
@@ -144,8 +171,27 @@
 
         (function () {
             var modalCourseSelect = document.getElementById('google_login_modal_course_id');
+            var modalTrackSelect = document.getElementById('google_login_modal_track');
             var modalPaymentNotice = document.getElementById('google-login-payment-notice');
             var modalPaymentNoticeMessage = document.getElementById('google-login-payment-notice-message');
+            var modalLevelAmount = document.getElementById('google-login-modal-level-amount');
+            var modalLevelPill = document.getElementById('google-login-modal-selected-level-pill');
+            var modalAmountDisplay = document.getElementById('google-login-modal-amount-display');
+
+            var getFeeForSelection = function (courseSelect, trackSelect) {
+                if (!courseSelect || !courseSelect.value) return 0;
+                var opt = courseSelect.options[courseSelect.selectedIndex];
+                if (!opt) return 0;
+                var track = trackSelect ? trackSelect.value : 'Beginner';
+                var defaultFee = parseFloat(opt.getAttribute('data-fee') || '0') || 1500;
+                try {
+                    var map = JSON.parse(opt.getAttribute('data-fees-by-level') || '{}');
+                    if (track && map && map[track]) {
+                        return parseFloat(map[track]);
+                    }
+                } catch (e) {}
+                return defaultFee;
+            };
 
             var updateNotice = function () {
                 if (!modalCourseSelect || !modalPaymentNotice || !modalPaymentNoticeMessage) {
@@ -154,19 +200,41 @@
 
                 var option = modalCourseSelect.options[modalCourseSelect.selectedIndex];
                 var requiresPayment = option && option.getAttribute('data-requires-payment') === '1';
-                var message = option && option.getAttribute('data-payment-message');
+                var courseTitle = option ? option.getAttribute('data-title') || option.textContent.trim() : '';
+                var selectedTrack = modalTrackSelect ? modalTrackSelect.value : '';
+                var fee = getFeeForSelection(modalCourseSelect, modalTrackSelect);
+                var formattedFee = 'ZMW ' + Number(fee).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                if (modalLevelAmount) {
+                    if (modalCourseSelect.value && selectedTrack) {
+                        modalLevelAmount.classList.remove('hidden');
+                        modalLevelAmount.classList.add('flex');
+                        if (modalLevelPill) modalLevelPill.textContent = selectedTrack;
+                        if (modalAmountDisplay) modalAmountDisplay.textContent = formattedFee;
+                    } else if (modalCourseSelect.value) {
+                        modalLevelAmount.classList.remove('hidden');
+                        modalLevelAmount.classList.add('flex');
+                        if (modalLevelPill) modalLevelPill.textContent = 'Standard';
+                        if (modalAmountDisplay) modalAmountDisplay.textContent = formattedFee;
+                    } else {
+                        modalLevelAmount.classList.add('hidden');
+                        modalLevelAmount.classList.remove('flex');
+                    }
+                }
 
                 modalPaymentNotice.classList.toggle('hidden', !requiresPayment);
 
                 if (requiresPayment) {
-                    modalPaymentNoticeMessage.textContent = message && message.trim() !== ''
-                        ? message
-                        : 'For this paid course, the registration team will reach out soon.';
+                    var trackSuffix = selectedTrack ? ' (' + selectedTrack + ')' : '';
+                    modalPaymentNoticeMessage.textContent = 'Complete setup for ' + (courseTitle ? courseTitle + trackSuffix : 'this course') + ' at ' + formattedFee + ' to proceed to Mobile Money (Airtel, MTN, Zamtel) or Card checkout for instant enrollment activation.';
                 }
             };
 
             if (modalCourseSelect && modalPaymentNotice && modalPaymentNoticeMessage) {
                 modalCourseSelect.addEventListener('change', updateNotice);
+                if (modalTrackSelect) {
+                    modalTrackSelect.addEventListener('change', updateNotice);
+                }
                 updateNotice();
             }
         })();
@@ -213,9 +281,15 @@
                     body: JSON.stringify({ id_token: idToken, ...payload }),
                 });
 
-                const responsePayload = await response.json();
+                // Parse body first — needed for both success and error branches
+                let responsePayload = {};
+                try { responsePayload = await response.json(); } catch (_) { /* non-JSON body */ }
 
                 if (!response.ok) {
+                    if (response.status === 419 || (responsePayload.message || '').toLowerCase().includes('csrf') || (responsePayload.message || '').toLowerCase().includes('session')) {
+                        throw new Error('Session refreshed. Please click Continue with Google to sign in.');
+                    }
+
                     if ((responsePayload.message || '').includes('Complete setup fields')) {
                         return { requiresEnrollment: true };
                     }

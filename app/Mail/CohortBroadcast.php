@@ -32,6 +32,7 @@ class CohortBroadcast extends Mailable
     {
         return new Content(
             view: 'emails.cohort-broadcast',
+            text: 'emails.cohort-broadcast-text',
         );
     }
 }

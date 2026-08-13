@@ -119,6 +119,22 @@ class FirebaseGoogleAuthController extends Controller
 
             $requiresPaymentApproval = $course->requiresPaymentApproval();
 
+            if ($requiresPaymentApproval) {
+                $request->session()->put('pending_registration', [
+                    'name' => $name !== '' ? $name : Str::before($email, '@'),
+                    'email' => $email,
+                    'firebase_uid' => $uid,
+                    'password' => Str::random(64),
+                    'track' => $track,
+                    'course_id' => $course->id,
+                ]);
+
+                return response()->json([
+                    'redirect' => route('checkout.show', [$course, 'track' => $track], absolute: false),
+                    'message' => 'Proceeding to course payment gateway.',
+                ]);
+            }
+
             $user = User::create([
                 'name' => $name !== '' ? $name : Str::before($email, '@'),
                 'email' => $email,
@@ -126,7 +142,7 @@ class FirebaseGoogleAuthController extends Controller
                 'password' => Str::random(64),
                 'role' => 'student',
                 'track' => $track,
-                'is_active' => ! $requiresPaymentApproval,
+                'is_active' => true,
                 'email_verified_at' => now(),
             ]);
 
@@ -135,7 +151,7 @@ class FirebaseGoogleAuthController extends Controller
                 'course_id' => $course->id,
             ]);
 
-            $this->notifyAdminsAboutNewStudent($user, $course, $requiresPaymentApproval);
+            $this->notifyAdminsAboutNewStudent($user, $course, false);
 
             $created = true;
         } else {
@@ -145,37 +161,34 @@ class FirebaseGoogleAuthController extends Controller
                 $updateData['firebase_uid'] = $uid;
             }
 
-            if (! $user->email_verified_at) {
-                $updateData['email_verified_at'] = now();
-            }
+            // Google has already verified the email — always ensure it is marked verified
+            // regardless of whether a previous action cleared it (e.g. email change in profile).
+            $updateData['email_verified_at'] = $user->email_verified_at ?? now();
 
             if ($name !== '' && ($user->name === '' || str_contains($user->name, '@'))) {
                 $updateData['name'] = $name;
             }
 
-            if ($updateData !== []) {
-                $user->forceFill($updateData)->save();
-            }
+            $user->forceFill($updateData)->save();
+        }
+
+        // Google email is always verified — mark it on every login path before any redirect
+        if (method_exists($user, 'hasVerifiedEmail') && ! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
         }
 
         if ($user->role === 'student' && ! $user->is_active) {
-            if ($created) {
-                $request->session()->flash('status', PaymentApprovalMessage::forUser($user));
+            $course = $user->courses()->first();
 
+            Auth::login($user, true);
+            $request->session()->regenerate();
+
+            if ($course) {
                 return response()->json([
-                    'redirect' => route('login', absolute: false),
-                    'message' => 'Registration received. Account pending approval.',
+                    'redirect' => route('checkout.show', [$course, 'track' => $user->track], absolute: false),
+                    'message' => 'Proceeding to course payment gateway.',
                 ]);
             }
-
-            return response()->json([
-                'message' => PaymentApprovalMessage::forUser($user),
-            ], 403);
-        }
-
-        // Social-authenticated accounts should bypass email verification prompts.
-        if (method_exists($user, 'hasVerifiedEmail') && ! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
         }
 
         Auth::login($user, true);
@@ -207,7 +220,7 @@ class FirebaseGoogleAuthController extends Controller
             ->all();
 
         try {
-            Mail::to($recipients)->send(new NewStudentRegistrationAlertMail(
+            Mail::to($recipients)->queue(new NewStudentRegistrationAlertMail(
                 student: $student,
                 course: $course,
                 requiresPaymentApproval: $requiresPaymentApproval,

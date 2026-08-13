@@ -30,6 +30,9 @@ class UserForm
                     ->options([
                         'student' => 'Student',
                         'instructor' => 'Instructor',
+                        'blogger' => 'Blogger (Short Blogs)',
+                        'researcher' => 'Researcher (Tips & Tricks)',
+                        'employer' => 'Employer (Opportunities)',
                         'admin' => 'Admin',
                     ])
                     ->required()

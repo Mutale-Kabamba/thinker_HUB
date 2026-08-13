@@ -102,12 +102,25 @@ class RegisteredUserController extends Controller
 
         $requiresPaymentApproval = $course->requiresPaymentApproval();
 
+        if ($requiresPaymentApproval) {
+            $request->session()->put('pending_registration', [
+                'name' => $request->string('name')->toString(),
+                'email' => $request->string('email')->toString(),
+                'password' => $request->string('password')->toString(),
+                'track' => $request->string('track')->toString() ?: 'Beginner',
+                'course_id' => $course->id,
+            ]);
+
+            return redirect()->route('checkout.show', [$course, 'track' => $request->string('track')->toString() ?: 'Beginner'])
+                ->with('status', 'Complete your course enrollment payment to activate your account.');
+        }
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'track' => $request->string('track')->toString() ?: 'Beginner',
             'role' => 'student',
-            'is_active' => ! $requiresPaymentApproval,
+            'is_active' => true,
             'password' => Hash::make($request->password),
         ]);
 
@@ -116,16 +129,7 @@ class RegisteredUserController extends Controller
             'course_id' => $course->id,
         ]);
 
-        if ($requiresPaymentApproval) {
-            $user->forceFill([
-                'pending_login_password' => Crypt::encryptString($request->string('password')->toString()),
-                'pending_login_token' => null,
-                'pending_login_token_expires_at' => null,
-                'pending_login_token_used_at' => null,
-            ])->save();
-        }
-
-        $this->notifyAdminsAboutNewStudent($user, $course, $requiresPaymentApproval);
+        $this->notifyAdminsAboutNewStudent($user, $course, false);
 
         if (method_exists($user, 'hasVerifiedEmail') && ! $user->hasVerifiedEmail()) {
             try {
@@ -137,10 +141,6 @@ class RegisteredUserController extends Controller
                     'error' => $exception->getMessage(),
                 ]);
             }
-        }
-
-        if ($requiresPaymentApproval) {
-            return redirect()->route('login')->with('status', PaymentApprovalMessage::forCourse($course));
         }
 
         Auth::login($user);
@@ -168,7 +168,7 @@ class RegisteredUserController extends Controller
             ->all();
 
         try {
-            Mail::to($recipients)->send(new NewStudentRegistrationAlertMail(
+            Mail::to($recipients)->queue(new NewStudentRegistrationAlertMail(
                 student: $student,
                 course: $course,
                 requiresPaymentApproval: $requiresPaymentApproval,

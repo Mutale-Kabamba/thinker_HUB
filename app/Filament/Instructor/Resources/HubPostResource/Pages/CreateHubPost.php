@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Filament\Instructor\Resources\HubPostResource\Pages;
+
+use App\Filament\Instructor\Resources\HubPostResource;
+use App\Filament\Resources\Pages\BaseCreateRecord;
+
+class CreateHubPost extends BaseCreateRecord
+{
+    protected static string $resource = HubPostResource::class;
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['author_id'] = auth()->id();
+        if (! (auth()->user()?->isAdmin() ?? false)) {
+            $data['is_published'] = false;
+        }
+
+        return $data;
+    }
+}

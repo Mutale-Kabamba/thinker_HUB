@@ -416,5 +416,76 @@
                 </div>
             </section>
         </section>
+
+        {{-- ===== PAYMENTS & RECEIPTS TAB ===== --}}
+        <section id="payments" class="hub-shell" x-show="activeSection === 'payments'" x-cloak>
+            <section class="hub-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                    <div>
+                        <h3 class="hub-title">Payment History &amp; Official Receipts</h3>
+                        <p class="hub-copy">View your verified course tuition payments and download digital receipts.</p>
+                    </div>
+                </div>
+                <div class="hub-desktop-only" style="overflow:auto;margin-top:0.75rem;">
+                    <table class="hub-table">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Course</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($payments as $paymentItem)
+                                <tr>
+                                    <td><strong style="font-family:monospace;color:var(--hub-ink);">{{ $paymentItem['reference'] }}</strong></td>
+                                    <td>{{ $paymentItem['course'] }}</td>
+                                    <td><strong style="color:var(--hub-teal);">{{ $paymentItem['amount'] }}</strong></td>
+                                    <td style="text-transform:capitalize;">{{ $paymentItem['method'] }}</td>
+                                    <td>
+                                        <span class="hub-chip hub-chip-green" style="display:inline-flex;align-items:center;gap:0.25rem;">
+                                            <x-heroicon-s-check-circle style="width:0.85rem;height:0.85rem;" />
+                                            <span>Verified</span>
+                                        </span>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <a href="{{ $paymentItem['receipt_url'] }}" target="_blank" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.3rem 0.75rem;text-decoration:none;">
+                                            View Receipt &rarr;
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" style="color:var(--hub-muted);text-align:center;padding:2rem;">No payment transactions recorded yet.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="hub-mobile-only" style="margin-top:0.75rem;">
+                    @forelse ($payments as $paymentItem)
+                        <div class="hub-mobile-card" style="display:block;">
+                            <div class="hub-mobile-card-row">
+                                <div style="flex:1;min-width:0;">
+                                    <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.85rem;">{{ $paymentItem['course'] }}</p>
+                                    <p style="margin:0.1rem 0 0;font-size:0.74rem;color:var(--hub-muted);font-family:monospace;">{{ $paymentItem['reference'] }}</p>
+                                </div>
+                                <span class="hub-chip hub-chip-green" style="font-size:0.68rem;">{{ $paymentItem['amount'] }}</span>
+                            </div>
+                            <div class="hub-mobile-card-meta" style="margin-top:0.5rem;display:flex;justify-content:space-between;align-items:center;">
+                                <span style="font-size:0.72rem;color:var(--hub-muted);">{{ $paymentItem['paid_at'] }}</span>
+                                <a href="{{ $paymentItem['receipt_url'] }}" target="_blank" style="color:var(--hub-teal);font-weight:700;font-size:0.75rem;text-decoration:underline;">View Receipt</a>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="hub-copy">No payment transactions recorded yet.</p>
+                    @endforelse
+                </div>
+            </section>
+        </section>
     </div>
 </x-filament-panels::page>

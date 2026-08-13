@@ -30,6 +30,11 @@ class ProfileTest extends TestCase
             ->patch('/profile', [
                 'name' => 'Test User',
                 'email' => 'test@example.com',
+                'whatsapp' => '+260977123456',
+                'linkedin_url' => 'https://linkedin.com/in/testuser',
+                'facebook_url' => 'https://facebook.com/testuser',
+                'github_url' => 'https://github.com/testuser',
+                'instagram_url' => 'https://instagram.com/testuser',
             ]);
 
         $response
@@ -40,6 +45,11 @@ class ProfileTest extends TestCase
 
         $this->assertSame('Test User', $user->name);
         $this->assertSame('test@example.com', $user->email);
+        $this->assertSame('+260977123456', $user->whatsapp);
+        $this->assertSame('https://linkedin.com/in/testuser', $user->linkedin_url);
+        $this->assertSame('https://facebook.com/testuser', $user->facebook_url);
+        $this->assertSame('https://github.com/testuser', $user->github_url);
+        $this->assertSame('https://instagram.com/testuser', $user->instagram_url);
         $this->assertNull($user->email_verified_at);
     }
 

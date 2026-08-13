@@ -73,7 +73,15 @@
                             <td style="padding:0.55rem 0.5rem;color:var(--hub-muted);white-space:nowrap;font-size:0.78rem;">{{ $material['created_at'] }}</td>
                             <td style="padding:0.55rem 0.75rem;text-align:right;">
                                 <div style="display:flex;gap:0.35rem;justify-content:flex-end;flex-wrap:wrap;">
-                                    <button type="button" wire:click="toggleBookmark({{ $material['id'] }})" style="background:none;border:1px solid {{ $material['bookmarked'] ? '#f59e0b' : 'var(--hub-border)' }};border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:{{ $material['bookmarked'] ? '#b45309' : '#475569' }};font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#fffbeb'" onmouseout="this.style.background='none'" title="{{ $material['bookmarked'] ? 'Remove from saved' : 'Save for later' }}">{{ $material['bookmarked'] ? '★ Saved' : '☆ Save' }}</button>
+                                    <button type="button" wire:click="toggleBookmark({{ $material['id'] }})" style="background:none;border:1px solid {{ $material['bookmarked'] ? '#f59e0b' : 'var(--hub-border)' }};border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:{{ $material['bookmarked'] ? '#b45309' : '#475569' }};font-weight:600;display:inline-flex;align-items:center;gap:0.2rem;transition:background 0.15s;" onmouseover="this.style.background='#fffbeb'" onmouseout="this.style.background='none'" title="{{ $material['bookmarked'] ? 'Remove from saved' : 'Save for later' }}">
+                                        @if ($material['bookmarked'])
+                                            <x-heroicon-s-star style="width:0.85rem;height:0.85rem;color:#f59e0b;" />
+                                            <span>Saved</span>
+                                        @else
+                                            <x-heroicon-o-star style="width:0.85rem;height:0.85rem;" />
+                                            <span>Save</span>
+                                        @endif
+                                    </button>
                                     @if (!empty($material['file_path']))
                                         <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'material', 'id' => $material['id']])), @js($material['title'] . '.' . pathinfo($material['file_path'], PATHINFO_EXTENSION)))" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View file">View</button>
                                         <button type="button" wire:click="downloadFile({{ $material['id'] }})" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#6d28d9;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Download file">Download</button>
@@ -141,7 +149,15 @@
 
                     {{-- Action buttons --}}
                     <div style="display:flex;gap:0.35rem;margin-top:0.55rem;flex-wrap:wrap;">
-                        <button type="button" wire:click="toggleBookmark({{ $material['id'] }})" style="background:none;border:1px solid {{ $material['bookmarked'] ? '#f59e0b' : 'var(--hub-border)' }};border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:{{ $material['bookmarked'] ? '#b45309' : '#475569' }};font-weight:600;">{{ $material['bookmarked'] ? '★ Saved' : '☆ Save' }}</button>
+                        <button type="button" wire:click="toggleBookmark({{ $material['id'] }})" style="background:none;border:1px solid {{ $material['bookmarked'] ? '#f59e0b' : 'var(--hub-border)' }};border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:{{ $material['bookmarked'] ? '#b45309' : '#475569' }};font-weight:600;display:inline-flex;align-items:center;gap:0.2rem;">
+                            @if ($material['bookmarked'])
+                                <x-heroicon-s-star style="width:0.85rem;height:0.85rem;color:#f59e0b;" />
+                                <span>Saved</span>
+                            @else
+                                <x-heroicon-o-star style="width:0.85rem;height:0.85rem;" />
+                                <span>Save</span>
+                            @endif
+                        </button>
                         @if (!empty($material['file_path']))
                             <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'material', 'id' => $material['id']])), @js($material['title'] . '.' . pathinfo($material['file_path'], PATHINFO_EXTENSION)))" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#0e7490;font-weight:600;">View</button>
                             <button type="button" wire:click="downloadFile({{ $material['id'] }})" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#6d28d9;font-weight:600;">Download</button>

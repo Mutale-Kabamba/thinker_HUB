@@ -37,7 +37,10 @@ class UsersTable
                     ->color(fn (string $state): string => match ($state) {
                         'admin' => 'danger',
                         'instructor' => 'info',
-                        default => 'success',
+                        'blogger' => 'primary',
+                        'researcher' => 'warning',
+                        'employer' => 'success',
+                        default => 'gray',
                     })
                     ->searchable(),
                 TextColumn::make('track')
@@ -52,10 +55,22 @@ class UsersTable
                     ->options([
                         'student' => 'Student',
                         'instructor' => 'Instructor',
+                        'blogger' => 'Blogger',
+                        'researcher' => 'Researcher',
+                        'employer' => 'Employer',
                         'admin' => 'Admin',
                     ]),
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('approve_contributor')
+                    ->label('Approve Account')
+                    ->icon('heroicon-o-check-badge')
+                    ->color('success')
+                    ->visible(fn (\App\Models\User $record): bool => ! $record->is_active && in_array($record->role, ['blogger', 'researcher', 'employer', 'instructor'], true))
+                    ->action(fn (\App\Models\User $record) => $record->update([
+                        'is_active' => true,
+                        'email_verified_at' => $record->email_verified_at ?: now(),
+                    ])),
                 EditAction::make(),
             ])
             ->toolbarActions([

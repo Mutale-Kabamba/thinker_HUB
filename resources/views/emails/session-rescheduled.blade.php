@@ -1,19 +1,26 @@
-@component('mail::message')
-# Session Rescheduled
+<x-mail::message>
+# Live Session Rescheduled
 
-Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
+@php
+    $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Learner'));
+    $firstName = explode(' ', $rawName)[0] ?? $rawName;
+@endphp
+Hello {{ $firstName }}!
 
-Your session for **{{ $courseName }}** has been rescheduled.
+Please take note that a scheduled live session for **{{ $courseName }}** has been moved to a new time.
 
-@component('mail::panel')
-**Original Date:** {{ $session->session_date->format('l, M j, Y') }} at {{ $session->start_time }}
-**New Date:** {{ $session->rescheduled_date->format('l, M j, Y') }} at {{ $session->rescheduled_start_time }}
-@endcomponent
+<x-mail::panel>
+**Course:** {{ $courseName }}  
+**Original Schedule:** {{ $session->session_date->format('l, M j, Y') }} at {{ $session->start_time }}  
+**Updated Schedule:** **{{ $session->rescheduled_date->format('l, M j, Y') }} at {{ $session->rescheduled_start_time }}**  
+</x-mail::panel>
 
-@component('mail::button', ['url' => url('/learn/schedule')])
-View Schedule
-@endcomponent
+Please update your personal calendar accordingly. You can view your complete updated schedule on the student portal.
 
-Regards,<br>
-{{ $signerName ?? config('app.name') }}
-@endcomponent
+<x-mail::button :url="url('/learn/schedule')" color="primary">
+View Updated Schedule &rarr;
+</x-mail::button>
+
+Best regards,  
+**{{ $signerName ?? config('app.name') }}**
+</x-mail::message>

@@ -1,6 +1,9 @@
-{{-- Legal Modals (Privacy, Cookies, T&Cs) + Cookie Consent Banner --}}
+{{-- Legal Modals (Privacy, Cookies, T&Cs) + Contact Options Modal + Cookie Consent Banner --}}
+<style>[x-cloak] { display: none !important; }</style>
 <div x-data="{
     legalModal: null,
+    contactModal: false,
+    phoneCopied: false,
     cookieConsent: localStorage.getItem('thub_cookie_consent'),
     acceptCookies() {
         localStorage.setItem('thub_cookie_consent', 'accepted');
@@ -12,12 +15,100 @@
         document.cookie = 'thub_cookie_consent=declined;path=/;max-age=' + (365*24*60*60) + ';SameSite=Lax';
         this.cookieConsent = 'declined';
     }
-}" @open-legal.window="legalModal = $event.detail">
+}"
+@open-legal.window="legalModal = $event.detail"
+@open-contact.window="contactModal = true"
+>
+
+    {{-- ========== CONTACT OPTIONS MODAL ========== --}}
+    <div
+        x-show="contactModal"
+        x-cloak
+        style="display: none;"
+        @keydown.escape.window="contactModal = false"
+        @click.self="contactModal = false"
+        class="fixed inset-0 z-[10002] flex items-center justify-center bg-slate-950/60 p-4"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+    >
+        <div
+            @click.stop
+            class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 text-slate-900"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+        >
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-teal-50 text-[#0a2d27] flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-phone-flip text-[#0a2d27] text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Contact Thinker HUB</h3>
+                        <p class="text-xs font-semibold text-teal-700">+260 772 640 546</p>
+                    </div>
+                </div>
+                <button type="button" @click="contactModal = false" class="rounded-lg p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-600 mb-5 leading-relaxed">
+                Choose your preferred way to connect with our team:
+            </p>
+
+            <div class="space-y-3">
+                {{-- WhatsApp Chat Button --}}
+                <a
+                    href="https://wa.me/260772640546"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center justify-between w-full rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition"
+                >
+                    <span class="flex items-center gap-3">
+                        <i class="fa-brands fa-whatsapp text-xl"></i>
+                        WhatsApp Chat
+                    </span>
+                    <span class="text-xs bg-white/20 px-2.5 py-1 rounded-full text-white font-medium">Open App &rarr;</span>
+                </a>
+
+                {{-- Phone Call Button --}}
+                <a
+                    href="tel:+260772640546"
+                    class="flex items-center justify-between w-full rounded-xl bg-[#0a2d27] px-4 py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#11443c] transition"
+                >
+                    <span class="flex items-center gap-3">
+                        <i class="fa-solid fa-phone text-lg"></i>
+                        Call Now (+260772640546)
+                    </span>
+                    <span class="text-xs bg-white/20 px-2.5 py-1 rounded-full text-white font-medium">Dial &rarr;</span>
+                </a>
+
+                {{-- Copy Phone Number Button --}}
+                <button
+                    type="button"
+                    @click="navigator.clipboard.writeText('+260772640546'); phoneCopied = true; setTimeout(() => phoneCopied = false, 2500)"
+                    class="flex items-center justify-between w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition"
+                >
+                    <span class="flex items-center gap-3">
+                        <i class="fa-solid fa-copy text-slate-400"></i>
+                        <span x-text="phoneCopied ? 'Phone Number Copied!' : 'Copy Phone Number'">Copy Phone Number</span>
+                    </span>
+                    <i class="fa-solid" :class="phoneCopied ? 'fa-check text-emerald-600' : 'fa-clipboard text-slate-400 text-xs'"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
     {{-- ========== COOKIE CONSENT BANNER ========== --}}
     <div
         x-show="!cookieConsent"
         x-cloak
+        style="display: none;"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="translate-y-full opacity-0"
         x-transition:enter-end="translate-y-0 opacity-100"
@@ -52,7 +143,9 @@
     <div
         x-show="legalModal"
         x-cloak
+        style="display: none;"
         @keydown.escape.window="legalModal = null"
+        @click.self="legalModal = null"
         class="fixed inset-0 z-[10001] flex items-center justify-center bg-slate-950/60 p-4"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0"
@@ -62,7 +155,7 @@
         x-transition:leave-end="opacity-0"
     >
         <div
-            @click.outside="legalModal = null"
+            @click.stop
             class="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl bg-white shadow-2xl flex flex-col"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"
@@ -74,9 +167,9 @@
             {{-- Modal header --}}
             <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <h2 class="text-lg font-bold text-slate-900">
-                    <span x-show="legalModal === 'privacy'">Privacy Policy</span>
-                    <span x-show="legalModal === 'cookies'">Cookie Policy</span>
-                    <span x-show="legalModal === 'terms'">Terms &amp; Conditions</span>
+                    <span x-show="legalModal === 'privacy'" x-cloak style="display: none;">Privacy Policy</span>
+                    <span x-show="legalModal === 'cookies'" x-cloak style="display: none;">Cookie Policy</span>
+                    <span x-show="legalModal === 'terms'" x-cloak style="display: none;">Terms &amp; Conditions</span>
                 </h2>
                 <button type="button" @click="legalModal = null" class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -136,7 +229,7 @@
                         <p>We retain personal data only for as long as necessary to fulfil the purposes described above, or as required by applicable Zambian legislation. Academic records may be retained for a reasonable period after account closure for certification verification.</p>
 
                         <h3 class="mt-4 text-base font-bold text-slate-900">8. Contact</h3>
-                        <p>For any data protection enquiries, contact us at: <a href="mailto:thinker.learn@gmail.com" class="text-teal-700 underline">thinker.learn@gmail.com</a></p>
+                        <p>For any data protection enquiries, contact us at: <a href="mailto:thinkerhub@oristudiozm.com" class="text-teal-700 underline">thinkerhub@oristudiozm.com</a></p>
                         <p>Address: 10A Off Natwange Street, Airport, Livingstone, Zambia</p>
                     </div>
                 </template>
@@ -186,7 +279,7 @@
                         <p>In accordance with the <strong>Data Protection Act No. 3 of 2021</strong>, we obtain your consent before setting any non-essential cookies. You may change your preference at any time by clearing your browser cookies and revisiting the site.</p>
 
                         <h3 class="mt-4 text-base font-bold text-slate-900">5. Contact</h3>
-                        <p>Questions about our cookie practices? Email us at <a href="mailto:thinker.learn@gmail.com" class="text-teal-700 underline">thinker.learn@gmail.com</a>.</p>
+                        <p>Questions about our cookie practices? Email us at <a href="mailto:thinkerhub@oristudiozm.com" class="text-teal-700 underline">thinkerhub@oristudiozm.com</a>.</p>
                     </div>
                 </template>
 
@@ -234,7 +327,7 @@
                         <p>We may update these terms from time to time. Continued use of the platform after changes constitutes acceptance of the revised terms.</p>
 
                         <h3 class="mt-4 text-base font-bold text-slate-900">10. Contact</h3>
-                        <p>For questions about these terms, contact: <a href="mailto:thinker.learn@gmail.com" class="text-teal-700 underline">thinker.learn@gmail.com</a></p>
+                        <p>For questions about these terms, contact: <a href="mailto:thinkerhub@oristudiozm.com" class="text-teal-700 underline">thinkerhub@oristudiozm.com</a></p>
                         <p>Address: 10A Off Natwange Street, Airport, Livingstone, Zambia</p>
                     </div>
                 </template>

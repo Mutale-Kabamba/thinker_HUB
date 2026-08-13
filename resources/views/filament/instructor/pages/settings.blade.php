@@ -111,6 +111,22 @@
                         @enderror
                     </div>
 
+                    <div>
+                        <label for="instr_github" class="hub-eyebrow">GitHub URL</label>
+                        <input id="instr_github" name="github_url" type="url" value="{{ old('github_url', $user->github_url) }}" class="hub-input" placeholder="https://github.com/yourusername">
+                        @error('github_url')
+                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="instr_instagram" class="hub-eyebrow">Instagram URL</label>
+                        <input id="instr_instagram" name="instagram_url" type="url" value="{{ old('instagram_url', $user->instagram_url) }}" class="hub-input" placeholder="https://instagram.com/yourusername">
+                        @error('instagram_url')
+                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
                         <button type="submit" class="hub-btn hub-btn-primary">Save Details</button>
                         @if (session('status') === 'profile-updated')
@@ -128,8 +144,16 @@
                 <h2 class="hub-title">Recent Notifications</h2>
                 <div class="hub-stack" style="margin-top:0.65rem;">
                     @forelse ($latestNotifications as $note)
-                        <div style="border:1px solid var(--hub-border);border-radius:10px;padding:0.65rem;">
-                            {{ $note->data['message'] ?? ($note->data['title'] ?? 'Notification') }}
+                        <div x-data="{ cleared: false }" x-show="!cleared" x-transition.opacity
+                             @click="fetch('/notifications/{{ $note->id }}/clear', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }); cleared = true;"
+                             style="border:1px solid var(--hub-border);border-radius:10px;padding:0.65rem;cursor:pointer;transition:all 0.15s;"
+                             class="hover:opacity-80" title="Click to clear notification">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                                <div style="font-size:0.82rem;font-weight:500;">
+                                    {{ $note->data['message'] ?? ($note->data['title'] ?? 'Notification') }}
+                                </div>
+                                <span style="font-size:0.7rem;opacity:0.6;white-space:nowrap;">{{ $note->created_at?->diffForHumans() }}</span>
+                            </div>
                         </div>
                     @empty
                         <p class="hub-copy">{{ $canReadNotifications ? 'No notifications yet.' : 'Notifications are unavailable until migrations are applied.' }}</p>

@@ -24,7 +24,7 @@ class ContactMessageMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '[Contact] '.$this->contactSubject.' - '.$this->name,
+            subject: '[Contact Inquiry] '.$this->contactSubject.' - '.$this->name,
             replyTo: [new Address($this->email, $this->name)],
         );
     }
@@ -33,6 +33,11 @@ class ContactMessageMail extends Mailable
     {
         return new Content(
             view: 'emails.contact-message',
+            text: 'emails.contact-message-text',
+            with: [
+                'subject' => $this->contactSubject,
+                'contactSubject' => $this->contactSubject,
+            ],
         );
     }
 }

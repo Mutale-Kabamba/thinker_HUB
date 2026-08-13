@@ -165,7 +165,9 @@
                 {{ $certificate->course->instructors->first()?->name ?? 'Course Instructor' }}<br>
                 <span style="color:#94a3b8;">Instructor</span>
             </div>
-            <div class="seal">🎓</div>
+            <div class="seal">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            </div>
             <div class="block">
                 <div class="line"></div>
                 {{ $certificate->issued_at->format('F j, Y') }}<br>

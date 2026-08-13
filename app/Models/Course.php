@@ -128,6 +128,118 @@ class Course extends Model
         return $this->hasMany(CourseRating::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function getNumericFee(): float
+    {
+        $fees = trim((string) $this->fees);
+
+        if ($fees === '') {
+            return 0.0;
+        }
+
+        if (preg_match_all('/\d+(?:[.,]\d+)?/', $fees, $matches) !== false) {
+            foreach ($matches[0] ?? [] as $rawAmount) {
+                $normalized = (float) str_replace(',', '', (string) $rawAmount);
+                if ($normalized > 0) {
+                    return $normalized;
+                }
+            }
+        }
+
+        return 0.0;
+    }
+
+    public function getNumericFeeForLevel(?string $level = null): float
+    {
+        $defaultFee = $this->getNumericFee();
+
+        if (! $level) {
+            return $defaultFee;
+        }
+
+        $fees = $this->fees;
+
+        if (empty($fees)) {
+            return $defaultFee;
+        }
+
+        // If fees is a JSON string or array
+        $parsed = is_string($fees) ? json_decode($fees, true) : $fees;
+
+        if (is_array($parsed)) {
+            // Check flat level map: ['Beginner' => 1200, ...]
+            foreach ($parsed as $k => $v) {
+                if (is_string($k) && strcasecmp(trim($k), trim($level)) === 0) {
+                    $amount = is_numeric($v) ? (float) $v : (float) str_replace(',', '', (string) preg_replace('/[^\d.,]/', '', (string) $v));
+                    if ($amount > 0) {
+                        return $amount;
+                    }
+                }
+            }
+
+            // Check nested sections: ['group' => [['level' => 'Beginner', 'amount' => 600]], ...]
+            foreach (['group', 'one_on_one', 'fees', 'levels'] as $section) {
+                if (isset($parsed[$section]) && is_array($parsed[$section])) {
+                    foreach ($parsed[$section] as $entry) {
+                        if (is_array($entry) && isset($entry['level']) && strcasecmp(trim((string) $entry['level']), trim($level)) === 0) {
+                            $rawAmount = $entry['amount'] ?? $entry['fee'] ?? null;
+                            if ($rawAmount !== null) {
+                                $amount = (float) str_replace(',', '', (string) preg_replace('/[^\d.,]/', '', (string) $rawAmount));
+                                if ($amount > 0) {
+                                    return $amount;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Check if sequential list of items: [['level' => 'Beginner', 'amount' => 1200]]
+            foreach ($parsed as $entry) {
+                if (is_array($entry) && isset($entry['level']) && strcasecmp(trim((string) $entry['level']), trim($level)) === 0) {
+                    $rawAmount = $entry['amount'] ?? $entry['fee'] ?? null;
+                    if ($rawAmount !== null) {
+                        $amount = (float) str_replace(',', '', (string) preg_replace('/[^\d.,]/', '', (string) $rawAmount));
+                        if ($amount > 0) {
+                            return $amount;
+                        }
+                    }
+                }
+            }
+        }
+
+        // If fees is a string with lines like "Beginner: 1200" or "Beginner - K1,500"
+        if (is_string($fees)) {
+            $escapedLevel = preg_quote(trim($level), '/');
+            if (preg_match('/(?:^|[\r\n;,|])\s*(?:level\s*[:\-]\s*)?' . $escapedLevel . '\s*[:\-]\s*(?:ZMW|K|USD|\$)?\s*([\d,]+(?:\.\d+)?)/i', $fees, $matches) === 1) {
+                $amount = (float) str_replace(',', '', (string) $matches[1]);
+                if ($amount > 0) {
+                    return $amount;
+                }
+            }
+        }
+
+        return $defaultFee;
+    }
+
+    public function getLevelFees(): array
+    {
+        $levels = ['Beginner', 'Intermediate', 'Advanced'];
+        $result = [];
+        $defaultFee = $this->getNumericFee();
+
+        foreach ($levels as $lvl) {
+            $fee = $this->getNumericFeeForLevel($lvl);
+            $result[$lvl] = $fee > 0 ? $fee : ($defaultFee > 0 ? $defaultFee : 1500.00);
+        }
+
+        return $result;
+    }
+
     public function averageRating(): float
     {
         if (array_key_exists('ratings_avg_rating', $this->getAttributes())) {

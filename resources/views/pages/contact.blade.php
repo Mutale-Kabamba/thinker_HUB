@@ -96,24 +96,55 @@
                     </form>
                 </div>
 
-                <div class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-                    <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
-                    <div class="mt-4 space-y-2.5 text-sm text-slate-500">
-                        <div class="relative" x-data="{ phoneMenu: false }">
-                            <span class="font-semibold text-slate-700">Phone:</span>
-                            <button type="button" @click="phoneMenu = !phoneMenu" class="ml-1 text-[#0a2d27] underline-offset-2 hover:underline">+260772640546</button>
-                            <div x-show="phoneMenu" x-transition @click.outside="phoneMenu = false" class="absolute left-0 z-20 mt-2 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg" style="display: none;">
-                                <a href="tel:+260772640546" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-phone text-teal-600"></i>Call</a>
-                                <a href="https://wa.me/260772640546" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-brands fa-whatsapp text-green-600"></i>WhatsApp</a>
-                            </div>
+                <div class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
+                        <div class="mt-4 space-y-2.5 text-sm text-slate-500">
+                            <p><span class="font-semibold text-slate-700">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
+                            <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinkerhub@oristudiozm.com</a></p>
+                            <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airport, Livingstone Zambia</p>
                         </div>
-                        <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinker.learn@gmail.com</a></p>
-                        <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
+                        <div class="mt-4 flex items-center justify-start gap-4 text-slate-500">
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                        </div>
                     </div>
-                    <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+
+                    <!-- Interactive Google Map -->
+                    <div class="mt-6">
+                        <div class="overflow-hidden rounded-2xl border border-slate-200 shadow-sm bg-slate-100">
+                            <iframe
+                                title="think.er HUB Livingstone Location Map"
+                                src="https://maps.google.com/maps?q=10A%20Off%20Natwange%20Street%2C%20Livingstone%2C%20Zambia&t=&z=16&ie=UTF8&iwloc=&output=embed"
+                                width="100%"
+                                height="220"
+                                style="border:0;"
+                                allowfullscreen=""
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                class="w-full block"
+                            ></iframe>
+                        </div>
+                        <div class="mt-2.5 flex items-center justify-between text-xs text-slate-500">
+                            <span class="inline-flex items-center gap-1.5 text-slate-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-teal-600" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                </svg>
+                                Livingstone, Zambia
+                            </span>
+                            <a
+                                href="https://maps.app.goo.gl/vRW7DM6UbtwSXHkd7?g_st=aw"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1 font-semibold text-teal-700 hover:text-teal-900 transition underline-offset-2 hover:underline"
+                            >
+                                <span>Open in Google Maps</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -156,31 +187,30 @@
                         <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
                             <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">Home</a></li>
                             <li><a href="{{ route('landing.courses') }}" class="transition hover:text-[#0a2d27]">Courses</a></li>
-                            <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Instructors</a></li>
+                            <li><a href="{{ route('hub.index') }}" class="transition hover:text-[#0a2d27]">Knowledge Hub</a></li>
+                            <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Network</a></li>
                             <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
+                            @auth
+                                <li><a href="{{ route('dashboard') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
+                            @else
+                                <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
+                            @endauth
                         </ul>
                     </div>
 
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
                         <div class="mt-4 space-y-2.5 text-sm text-slate-500">
-                            <div class="relative" x-data="{ phoneMenu: false }">
-                                <span class="font-semibold text-slate-700">Phone:</span>
-                                <button type="button" @click="phoneMenu = !phoneMenu" class="ml-1 text-[#0a2d27] underline-offset-2 hover:underline">+260772640546</button>
-                                <div x-show="phoneMenu" x-transition @click.outside="phoneMenu = false" class="absolute left-0 z-20 mt-2 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg" style="display: none;">
-                                    <a href="tel:+260772640546" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-phone text-teal-600"></i>Call</a>
-                                    <a href="https://wa.me/260772640546" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-brands fa-whatsapp text-green-600"></i>WhatsApp</a>
-                                </div>
-                            </div>
-                            <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinker.learn@gmail.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinker.learn@gmail.com</a></p>
-                            <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
-                        </div>
-                        <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
-                        </div>
+                        <p><span class="font-semibold text-slate-700">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
+                        <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinkerhub@oristudiozm.com</a></p>
+                        <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
                     </div>
+                    <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
             </div>
 
             <div class="mt-8 border-t border-slate-200 pt-5">
@@ -196,5 +226,6 @@
         </div>
     </footer>
 
+    @include('partials.legal-modals')
 </body>
 </html>

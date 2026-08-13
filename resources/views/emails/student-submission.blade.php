@@ -1,26 +1,27 @@
 <x-mail::message>
-# 📬 New Student Submission
+# Assignment Submission Received
 
-Hello, {{ $recipientName ?? $notifiable->name ?? 'there' }}
+@php
+    $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Instructor'));
+    $firstName = explode(' ', $rawName)[0] ?? $rawName;
+@endphp
+Hello {{ $firstName }}!
 
-A student has submitted work that needs your attention.
+A learner has submitted coursework that is awaiting your review and evaluation.
 
 <x-mail::panel>
-**Student:** {{ $studentName }}
-
-**Type:** {{ ucfirst($submissionType) }}
-
-**Item:** {{ $itemTitle }}
-
-**Submitted:** {{ now()->format('M d, Y \a\t h:i A') }}
+**Learner:** {{ $studentName }}  
+**Submission Item:** {{ $itemTitle }}  
+**Item Type:** {{ ucfirst($submissionType) }}  
+**Submitted On:** {{ now()->format('l, M j, Y \a\t h:i A') }}  
 </x-mail::panel>
 
-Please review the submission and provide feedback when you can.
+Please review the submitted materials and provide constructive feedback for the student from your dashboard.
 
 <x-mail::button :url="route('dashboard')" color="primary">
-Review Submission
+Review & Grade Submission &rarr;
 </x-mail::button>
 
-Best regards,<br>
-{{ $signerName ?? config('app.name') }}
+Best regards,  
+**{{ $signerName ?? config('app.name') }}**
 </x-mail::message>

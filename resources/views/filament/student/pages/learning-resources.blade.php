@@ -11,7 +11,10 @@
 
         {{-- ==================== SAVED / BOOKMARKED ==================== --}}
         <section style="padding:0.35rem 0.5rem 0.7rem;">
-            <h3 class="hub-title" style="font-size:0.95rem;margin:0 0 0.65rem;">🔖 Saved for Later</h3>
+            <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.65rem;">
+                <x-heroicon-o-bookmark style="width:1.15rem;height:1.15rem;color:var(--hub-primary);" />
+                <h3 class="hub-title" style="font-size:0.95rem;margin:0;">Saved for Later</h3>
+            </div>
             <div style="height:1px;background:var(--hub-border);margin:0 0 0.7rem;"></div>
 
             @if (count($savedItems) === 0)
@@ -143,9 +146,15 @@
                                 </span>
                                 <span style="position:absolute;top:6px;left:6px;background:rgba(15,23,42,.85);color:#fff;font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:999px;">{{ $video['category'] }}</span>
                                 @if ($video['processing'] ?? false)
-                                    <span style="position:absolute;top:6px;right:6px;background:rgba(217,119,6,.9);color:#fff;font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:999px;">⏳ Processing…</span>
+                                    <span style="position:absolute;top:6px;right:6px;background:rgba(217,119,6,.9);color:#fff;font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.2rem;">
+                                        <x-heroicon-o-arrow-path class="animate-spin" style="width:0.75rem;height:0.75rem;" />
+                                        <span>Processing…</span>
+                                    </span>
                                 @elseif ($video['source'] === 'file')
-                                    <span style="position:absolute;top:6px;right:6px;background:rgba(15,118,110,.9);color:#fff;font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:999px;">📁 Upload</span>
+                                    <span style="position:absolute;top:6px;right:6px;background:rgba(15,118,110,.9);color:#fff;font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.2rem;">
+                                        <x-heroicon-o-folder style="width:0.75rem;height:0.75rem;" />
+                                        <span>Upload</span>
+                                    </span>
                                 @endif
                             </div>
                             <div style="padding:0.55rem 0.7rem;">
@@ -199,7 +208,7 @@
                             <video src="{{ $playerUrl }}" controls autoplay style="width:100%;height:100%;background:#000;"></video>
                         @elseif ($playerSource === 'processing')
                             <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;background:#0f172a;color:#e2e8f0;">
-                                <span style="font-size:1.6rem;">⏳</span>
+                                <x-heroicon-o-clock style="width:2rem;height:2rem;color:#f59e0b;" />
                                 <p style="margin:0;font-size:0.9rem;font-weight:600;">This video is still being processed.</p>
                                 <p style="margin:0;font-size:0.76rem;color:#94a3b8;">Please check back soon — it will play here once it's ready.</p>
                             </div>

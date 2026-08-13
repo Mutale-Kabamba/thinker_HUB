@@ -3,6 +3,7 @@
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\InstructorApplicationController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Assessment;
 use App\Models\AssessmentSubmission;
@@ -12,7 +13,9 @@ use App\Models\ChatMessage;
 use App\Models\ChatRoom;
 use App\Models\Course;
 use App\Models\CourseRating;
+use App\Models\HubPost;
 use App\Models\LearningMaterial;
+use App\Models\Media;
 use App\Models\User;
 use App\Support\PublicDiskPath;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -217,6 +220,34 @@ Route::get('/courses', function () use ($loadPublicCourses) {
     ]);
 })->name('landing.courses');
 
+Route::get('/hub', App\Livewire\Public\HubIndex::class)->name('hub.index');
+Route::get('/hub/{post:slug}', App\Livewire\Public\HubShow::class)->name('hub.show');
+Route::get('/media/{media}/download', function (App\Models\Media $media) {
+    if (! Illuminate\Support\Facades\Storage::disk($media->disk)->exists($media->path)) {
+        abort(404, 'Requested media file not found.');
+    }
+
+    return Illuminate\Support\Facades\Storage::disk($media->disk)->download($media->path, $media->original_name);
+})->name('media.download');
+
+Route::get('/checkout/{course}', [PaymentController::class, 'showCheckout'])->name('checkout.show');
+Route::get('/courses/{course}/enroll', [PaymentController::class, 'showCheckout']);
+Route::post('/courses/{course}/pay', [PaymentController::class, 'processPayment'])->name('checkout.process');
+Route::get('/payments/receipt/{reference}', [PaymentController::class, 'showReceipt'])->name('payment.receipt');
+Route::get('/payments/status/{reference}', [PaymentController::class, 'checkStatus'])->name('payment.status');
+Route::post('/api/payments/webhook/broadpay', [PaymentController::class, 'handleWebhook'])->name('payment.webhook.broadpay');
+Route::post('/payments/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
+
+Route::post('/notifications/{id}/read', function (string $id) {
+    auth()->user()?->notifications()->where('id', $id)->update(['read_at' => now()]);
+    return response()->json(['success' => true]);
+})->middleware('auth')->name('notifications.read');
+
+Route::post('/notifications/{id}/clear', function (string $id) {
+    auth()->user()?->notifications()->where('id', $id)->delete();
+    return response()->json(['success' => true]);
+})->middleware('auth')->name('notifications.clear');
+
 Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = null) use ($courseSlug, $databaseReady) {
     if (! $databaseReady() || ! Schema::hasTable('courses')) {
         abort(404);
@@ -276,23 +307,38 @@ Route::post('/courses/{course}/rate', function (Request $request, int $course) u
     return redirect()->back()->with('success', 'Your review has been saved!');
 })->middleware('auth')->name('course.rate');
 
-Route::get('/instructors', function () {
-    $instructors = collect();
+Route::get('/network', function (Request $request) {
+    $members = collect();
+    $activeRole = (string) $request->query('role', 'all');
+
     try {
         if (Schema::hasTable('users')) {
-            $instructors = User::query()
-                ->where('role', 'instructor')
-                ->where('is_active', true)
-                ->get(['id', 'name', 'profile_photo_path', 'proficiency', 'occupation', 'whatsapp', 'linkedin_url', 'facebook_url']);
+            $query = User::query()
+                ->whereIn('role', ['instructor', 'blogger', 'researcher', 'employer'])
+                ->where('is_active', true);
+
+            if ($activeRole !== 'all' && in_array($activeRole, ['instructor', 'blogger', 'researcher', 'employer'], true)) {
+                $query->where('role', $activeRole);
+            }
+
+            $members = $query->get([
+                'id', 'name', 'email', 'role', 'profile_photo_path', 'proficiency', 'occupation',
+                'company', 'portfolio_url', 'github_url', 'instagram_url', 'specialty', 'whatsapp', 'linkedin_url', 'facebook_url', 'bio'
+            ]);
         }
     } catch (Throwable $e) {
         report($e);
     }
 
-    return view('pages.instructors', ['instructors' => $instructors]);
+    return view('pages.instructors', [
+        'instructors' => $members,
+        'activeRole' => $activeRole,
+    ]);
 })->name('landing.instructors');
 
-Route::get('/instructors/{instructor}/{slug?}', function (int $instructor, ?string $slug = null) use ($databaseReady, $instructorSlug) {
+Route::get('/instructors', fn (Request $request) => redirect()->route('landing.instructors', $request->query()));
+
+Route::get('/network/{instructor}/{slug?}', function (int $instructor, ?string $slug = null) use ($databaseReady, $instructorSlug) {
     if (! $databaseReady() || ! Schema::hasTable('users')) {
         abort(404);
     }
@@ -312,22 +358,29 @@ Route::get('/instructors/{instructor}/{slug?}', function (int $instructor, ?stri
         $with[] = 'instructorApplication';
     }
 
-    $instructorModel = User::query()
-        ->where('role', 'instructor')
+    $memberModel = User::query()
+        ->whereIn('role', ['instructor', 'blogger', 'researcher', 'employer'])
         ->where('is_active', true)
         ->with($with)
         ->findOrFail($instructor);
 
-    $canonicalSlug = $instructorSlug($instructorModel);
+    $canonicalSlug = $instructorSlug($memberModel);
 
     if ($slug !== null && $slug !== $canonicalSlug) {
-        return redirect()->route('landing.instructors.show', ['instructor' => $instructorModel->id, 'slug' => $canonicalSlug], 301);
+        return redirect()->route('landing.instructors.show', ['instructor' => $memberModel->id, 'slug' => $canonicalSlug], 301);
     }
 
+    $posts = HubPost::query()
+        ->where('author_id', $memberModel->id)
+        ->published()
+        ->latest()
+        ->get();
+
     return view('pages.instructor', [
-        'instructor' => $instructorModel,
+        'instructor' => $memberModel,
         'slug' => $canonicalSlug,
-        'courses' => $instructorModel->instructorCourses,
+        'courses' => $memberModel->instructorCourses ?? collect(),
+        'posts' => $posts,
     ]);
 })->whereNumber('instructor')->name('landing.instructors.show');
 
@@ -376,6 +429,10 @@ Route::get('/dashboard', function () {
 
     if ($user?->role === 'instructor') {
         return redirect('/teach/instructor-overview');
+    }
+
+    if ($user?->isContributor()) {
+        return redirect('/contribute');
     }
 
     return redirect()->route('filament.student.pages.overview');

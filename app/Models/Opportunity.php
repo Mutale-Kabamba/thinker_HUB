@@ -72,4 +72,9 @@ class Opportunity extends Model
     {
         return $this->hasMany(OpportunityReaction::class);
     }
+
+    public function media(): MorphMany
+    {
+        return $this->morphMany(Media::class, 'mediable');
+    }
 }

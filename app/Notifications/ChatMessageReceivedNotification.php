@@ -27,7 +27,8 @@ class ChatMessageReceivedNotification extends Notification
             ->actions([
                 Action::make('view')
                     ->label('Open chat')
-                    ->url('/learn/community'),
+                    ->url('/learn/community')
+                    ->markAsRead(),
             ])
             ->getDatabaseMessage();
     }

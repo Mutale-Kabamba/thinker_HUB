@@ -126,7 +126,10 @@
             <h3 class="hub-title" style="font-size:1rem;margin-bottom:0.1rem;">At-Risk Students</h3>
             <p class="hub-copy" style="margin-bottom:0.7rem;">No quiz, submission, chat, or attendance activity in the last 14 days. Most inactive first.</p>
             @if (count($atRiskStudents) === 0)
-                <p class="hub-copy" style="color:var(--hub-muted);">Everyone is active — no at-risk students right now. 🎉</p>
+                <p class="hub-copy" style="color:var(--hub-muted);display:flex;align-items:center;gap:0.35rem;">
+                    <x-heroicon-o-check-circle style="width:1.1rem;height:1.1rem;color:#10b981;" />
+                    <span>Everyone is active — no at-risk students right now.</span>
+                </p>
             @else
                 <div class="hub-stack">
                     @foreach ($atRiskStudents as $student)

@@ -73,37 +73,39 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Assessment::class, AssessmentPolicy::class);
         Gate::policy(Quiz::class, QuizPolicy::class);
 
+        \Illuminate\Auth\Notifications\ResetPassword::toMailUsing(function ($notifiable, string $token) {
+            $resetUrl = url(route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ], false));
+
+            $rawName = trim((string) ($notifiable->name ?? ''));
+            $firstName = $rawName !== '' ? (explode(' ', $rawName)[0] ?? $rawName) : '';
+            $greeting = $firstName !== '' ? "Hello {$firstName}!" : "Hello!";
+
+            return (new \Illuminate\Notifications\Messages\MailMessage)
+                ->subject('Thinker HUB: Reset Password')
+                ->greeting($greeting)
+                ->line('You are receiving this email because we received a password reset request for your account.')
+                ->action('Reset Password', $resetUrl)
+                ->line('This password reset link will expire in ' . config('auth.passwords.'.config('auth.defaults.passwords').'.expire') . ' minutes.')
+                ->line('If you did not request a password reset, no further action is required.')
+                ->salutation("Regards,\n" . config('app.name', 'Thinker HUB'));
+        });
+
         $this->configureMailDeliverabilityHeaders();
         $this->configureMailSslPeerName();
     }
 
     private function configureMailDeliverabilityHeaders(): void
     {
-        $listUnsubscribe = (string) config('mail.deliverability.list_unsubscribe', '');
-        $listUnsubscribePost = (string) config('mail.deliverability.list_unsubscribe_post', '');
-        $messageIdDomain = trim((string) config('mail.deliverability.message_id_domain', ''));
+        $messageIdDomain = trim((string) config('mail.deliverability.message_id_domain', 'oristudiozm.com'));
 
-        $this->app['events']->listen(MessageSending::class, function (MessageSending $event) use ($listUnsubscribe, $listUnsubscribePost, $messageIdDomain): void {
+        $this->app['events']->listen(MessageSending::class, function (MessageSending $event) use ($messageIdDomain): void {
             $headers = $event->message->getHeaders();
 
             if ($messageIdDomain !== '' && ! $headers->has('Message-ID') && method_exists($headers, 'addIdHeader')) {
-                $headers->addIdHeader('Message-ID', Str::uuid().'@'.$messageIdDomain);
-            }
-
-            if (! $headers->has('Auto-Submitted')) {
-                $headers->addTextHeader('Auto-Submitted', 'auto-generated');
-            }
-
-            if (! $headers->has('X-Auto-Response-Suppress')) {
-                $headers->addTextHeader('X-Auto-Response-Suppress', 'All');
-            }
-
-            if ($listUnsubscribe !== '' && ! $headers->has('List-Unsubscribe')) {
-                $headers->addTextHeader('List-Unsubscribe', $listUnsubscribe);
-            }
-
-            if ($listUnsubscribePost !== '' && ! $headers->has('List-Unsubscribe-Post')) {
-                $headers->addTextHeader('List-Unsubscribe-Post', $listUnsubscribePost);
+                $headers->addIdHeader('Message-ID', (string) Str::uuid().'@'.$messageIdDomain);
             }
         });
     }

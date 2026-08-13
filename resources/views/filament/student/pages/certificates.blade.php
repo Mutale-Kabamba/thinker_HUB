@@ -10,8 +10,10 @@
 
         @if (count($certificates) === 0)
             <section class="hub-card" style="text-align:center;padding:2rem 1rem;">
-                <p style="font-size:1.6rem;">🎓</p>
-                <p class="hub-copy" style="margin-top:0.4rem;">No certificates yet.</p>
+                <div style="display:flex;justify-content:center;margin-bottom:0.5rem;">
+                    <x-heroicon-o-academic-cap style="width:2.5rem;height:2.5rem;color:var(--hub-primary);" />
+                </div>
+                <p class="hub-copy" style="margin-top:0.4rem;font-weight:600;">No certificates yet.</p>
                 <p class="hub-copy" style="margin-top:0.25rem;color:var(--hub-muted);font-size:0.8rem;">
                     Enroll in a course and pass all of its quizzes — a "Claim Certificate" button will then appear on the Courses page.
                 </p>
@@ -22,7 +24,10 @@
                     <section class="hub-card" style="padding:0.85rem 1rem;border-left:4px solid #b45309;">
                         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.6rem;flex-wrap:wrap;">
                             <div style="min-width:0;">
-                                <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.92rem;">🎓 {{ $certificate['course_title'] }}</p>
+                                <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.92rem;display:flex;align-items:center;gap:0.35rem;">
+                                    <x-heroicon-o-academic-cap style="width:1.15rem;height:1.15rem;color:#b45309;" />
+                                    <span>{{ $certificate['course_title'] }}</span>
+                                </p>
                                 <p style="margin:0.2rem 0 0;font-size:0.74rem;color:var(--hub-muted);">
                                     {{ $certificate['course_code'] }} · Issued {{ $certificate['issued_at'] }}
                                 </p>
@@ -35,8 +40,9 @@
                                     <a href="{{ $certificate['verification_url'] }}" target="_blank" rel="noopener" style="color:var(--hub-primary);">{{ $certificate['verification_url'] }}</a>
                                 </p>
                             </div>
-                            <a href="{{ $certificate['download_url'] }}" target="_blank" rel="noopener" class="hub-btn hub-btn-primary" style="font-size:0.78rem;padding:0.4rem 0.8rem;text-decoration:none;flex-shrink:0;">
-                                ⬇ Download PDF
+                            <a href="{{ $certificate['download_url'] }}" target="_blank" rel="noopener" class="hub-btn hub-btn-primary" style="font-size:0.78rem;padding:0.4rem 0.8rem;text-decoration:none;flex-shrink:0;display:inline-flex;align-items:center;gap:0.3rem;">
+                                <x-heroicon-o-arrow-down-tray style="width:0.95rem;height:0.95rem;" />
+                                <span>Download PDF</span>
                             </a>
                         </div>
                     </section>

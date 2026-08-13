@@ -46,7 +46,12 @@ class ProfileController extends Controller
             $targetUser->profile_photo_path = $request->file('profile_photo')->store('profile-photos', 'public');
         }
 
-        $targetUser->fill($request->validated());
+        $validatedData = $request->validated();
+        if (empty($validatedData['whatsapp']) && ! empty($request->input('whatsapp_number'))) {
+            $validatedData['whatsapp'] = $request->input('whatsapp_number');
+        }
+
+        $targetUser->fill($validatedData);
 
         if ($targetUser->isDirty('email')) {
             $targetUser->email_verified_at = null;
@@ -65,6 +70,10 @@ class ProfileController extends Controller
 
         if ($targetUser->isInstructor()) {
             return Redirect::route('filament.instructor.pages.settings')->with('status', 'profile-updated');
+        }
+
+        if ($targetUser->isContributor()) {
+            return Redirect::route('filament.contributor.pages.settings')->with('status', 'profile-updated');
         }
 
         return Redirect::route('filament.student.pages.settings')->with('status', 'profile-updated');

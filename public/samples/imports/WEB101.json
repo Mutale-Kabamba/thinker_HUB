@@ -1,0 +1,202 @@
+[
+  {
+    "course_code": "WEB101",
+    "title": "Week 1 Virtual Kickoff: Web Architecture, HTTP & HTML5 Core Principles",
+    "session_date": "2026-08-03",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Kickoff. Topic: Web Architecture, HTTP & HTML5 Core Principles. Objectives: Understand client-server architecture, DNS resolution, HTTP request-response cycle, and document structure (<!DOCTYPE html>, <html>, <head>, <body>). Activities: Live breakdown of browser rendering engine pipeline, setting up VS Code development environment with Live Server, and creating the first HTML5 boilerplates."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Semantic HTML5 Elements & Content Structuring Lab",
+    "session_date": "2026-08-04",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Semantic HTML5 Elements & Content Structuring. Objectives: Master landmark tags (<header>, <nav>, <main>, <section>, <article>, <aside>, <footer>); implement accessible heading hierarchies (h1-h6) and text elements (p, blockquote, lists). Practical Exercise: Convert an unorganized article draft into a W3C-valid semantic multi-section web page."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "HTML5 Tables, Multimedia & Hyperlinking Architecture Lab",
+    "session_date": "2026-08-05",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: HTML5 Tables, Multimedia & Hyperlinking Architecture. Objectives: Embed responsive images (<img>, <picture>, srcset), audio, and video; structure accessible data tables (<thead>, <tbody>, <th> with scope); configure internal anchor jumps and external hyperlinks. Practical Exercise: Build an interactive media-rich technology product specification page."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Modern Web Forms, Input Validation & Accessibility Lab",
+    "session_date": "2026-08-06",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Modern Web Forms, Input Validation & Accessibility. Objectives: Utilize HTML5 form controls (text, email, number, date, select, textarea); configure native validation attributes (required, minlength, pattern regex); implement accessible label association (for/id) and ARIA descriptions. Practical Exercise: Design a comprehensive multi-section student registration and feedback form."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Week 1 Review, W3C Validation Audit & Weekly Quiz 1",
+    "session_date": "2026-08-07",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Review & Quiz. Topic: Week 1 HTML5 Architecture Recap & Validator Audit. Activities: Peer code review on semantic markup compliance, running Nu HTML Checker validation, Q&A on SEO and web accessibility basics, and administering Weekly Quiz 1."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Week 2 Virtual Kickoff: CSS3 Syntax, Specificity Engine & Cascade Rules",
+    "session_date": "2026-08-10",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Kickoff. Topic: CSS3 Syntax, Specificity Engine & Cascade Rules. Objectives: Understand stylesheet attachment methods (external, internal, inline), selector types (class, ID, attribute, pseudo-classes), specificity calculation (inline > ID > class > element), and inheritance mechanics. Self-Directed Study: Review CSS Selectors and Cascade hierarchy."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "CSS Box Model, Geometry & Typography Styling Lab",
+    "session_date": "2026-08-11",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: CSS Box Model, Geometry & Typography Styling. Objectives: Master margin, border, padding, and content dimensions; enforce box-sizing: border-box universally; implement Google Fonts, font-face typography rules, line-height, and responsive rem/em units. Practical Exercise: Style a modern typographic blog layout with precise spacing and custom fonts."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "CSS Flexbox Layout Engine Deep-Dive Lab",
+    "session_date": "2026-08-12",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: CSS Flexbox Layout Engine Deep-Dive. Objectives: Master flex container properties (flex-direction, justify-content, align-items, flex-wrap) and flex item mechanics (flex-grow, flex-shrink, flex-basis, align-self). Practical Exercise: Construct responsive navigation bars, hero headers, and equal-height card grids without float hacks."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "UI Components, Shadows, Gradients & Hover Micro-Interactions Lab",
+    "session_date": "2026-08-13",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: UI Components, Shadows, Gradients & Hover Micro-Interactions. Objectives: Design modern UI cards with glassmorphism, linear/radial gradients, box-shadow depth layers; apply smooth CSS transitions (all 0.3s ease) and transform effects (scale, translate, rotate). Practical Exercise: Build a modern pricing tier component with interactive hover states and badge tags."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Week 2 Review, CSS Debugging with DevTools & Weekly Quiz 2",
+    "session_date": "2026-08-14",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Review & Quiz. Topic: Week 2 CSS Styling Review & DevTools Debugging. Activities: Inspecting computed styles and box model in Chrome/Firefox DevTools, live Flexbox debugging session, peer layout showcase, and administering Weekly Quiz 2."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Week 3 Virtual Kickoff: Mobile-First Strategy, Viewports & CSS Grid Principles",
+    "session_date": "2026-08-17",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Kickoff. Topic: Mobile-First Strategy, Viewports & CSS Grid Principles. Objectives: Grasp viewport meta tags, fluid sizing units (vw, vh, clamp(), calc()), mobile-first media query strategy (@media (min-width)), and 2D grid layout foundations. Self-Directed Study: Read responsive design guidelines and CSS Grid syntax."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "CSS Grid 2D Layouts & Template Areas Lab",
+    "session_date": "2026-08-18",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: CSS Grid 2D Layouts & Template Areas. Objectives: Define grid-template-columns, grid-template-rows, grid-gap, repeat(auto-fit, minmax(250px, 1fr)), and named grid-template-areas. Practical Exercise: Build a complex magazine-style dashboard layout with responsive header, sidebar, main content, and widgets."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Responsive Multi-Device Layouts & Media Queries Lab",
+    "session_date": "2026-08-19",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Responsive Multi-Device Layouts & Media Queries. Objectives: Create responsive breakpoints (640px, 768px, 1024px, 1280px); refactor desktop-only designs into mobile hamburger layouts; optimize responsive typography and imagery. Practical Exercise: Refactor a full landing page to pass multi-device responsiveness audits from mobile to 4K screens."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "CSS Transitions, @keyframes Animations & SVG Icons Lab",
+    "session_date": "2026-08-20",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: CSS Transitions, @keyframes Animations & SVG Icons. Objectives: Create keyframe animations (spinners, fade-in reveals, pulses); integrate SVG vector graphics and Lucide/Font Awesome icon sets; configure prefers-reduced-motion accessibility rules. Practical Exercise: Build an animated landing page hero section with floating badges and animated CTA buttons."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Week 3 Review, Responsive Portfolio Showcase & Weekly Quiz 3",
+    "session_date": "2026-08-21",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Review & Quiz. Topic: Week 3 Responsive Design Review & Portfolio Checkpoint. Activities: Review mobile responsiveness across various device emulators, submit responsive portfolio milestone project, peer feedback round, and administering Weekly Quiz 3."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Week 4 Virtual Kickoff: JavaScript Engine, ES6+ Syntax & DOM Tree Mechanics",
+    "session_date": "2026-08-24",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Kickoff. Topic: JavaScript Engine, ES6+ Syntax & DOM Tree Mechanics. Objectives: Understand ECMAScript standards, variable declaration (const, let), primitive data types, template literals, arrow functions, and the browser DOM tree hierarchy. Self-Directed Study: Review JavaScript fundamentals and DOM selection methods."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "DOM Selection, Dynamic Content Rendering & Event Handling Lab",
+    "session_date": "2026-08-25",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: DOM Selection, Dynamic Content Rendering & Event Handling. Objectives: Target DOM elements (querySelector, querySelectorAll); manipulate textContent, innerHTML, classList (add, remove, toggle); attach event listeners (click, input, submit, change). Practical Exercise: Build an interactive Dark/Light Mode Theme Switcher and dynamic FAQ Accordion."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Array Methods, Form Processing & Dynamic CRUD App Lab",
+    "session_date": "2026-08-26",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Array Methods, Form Processing & Dynamic CRUD App. Objectives: Iterate and filter array datasets with forEach, map, filter; handle form submit events with preventDefault(); create and append DOM elements dynamically. Practical Exercise: Build a dynamic Task / To-Do Manager app with item creation, completion toggling, and deletion."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Browser Storage API (localStorage), Asynchronous JS & Fetch API Lab",
+    "session_date": "2026-08-27",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Physical Lab (2 Hours). Topic: Browser Storage API (localStorage), Asynchronous JS & Fetch API. Objectives: Persist state across browser reloads using localStorage (setItem, getItem, JSON.stringify/parse); fetch external JSON data using async/await and Fetch API; render dynamic card feeds. Practical Exercise: Build a persistent Weather / Product Catalog web app with live search filtering and local storage saving."
+  },
+  {
+    "course_code": "WEB101",
+    "title": "Course Wrap-Up, Capstone Project Presentation & Final Comprehensive Quiz",
+    "session_date": "2026-08-28",
+    "start_time": "18:00",
+    "end_time": "19:30",
+    "type": "group",
+    "status": "scheduled",
+    "notes": "Virtual Review & Capstone. Topic: Course Wrap-Up, Capstone Project Showcase & Final Quiz. Activities: Live student capstone project demonstrations (deploying web projects to GitHub Pages/Netlify), instructor feedback, grading review, and administering the Final Comprehensive Quiz 4."
+  }
+]
