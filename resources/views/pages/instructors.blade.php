@@ -88,8 +88,8 @@
 
                             <article class="group bg-white rounded-2xl p-3 sm:p-3.5 shadow-sm border border-slate-200/80 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
                                 <div>
-                                    {{-- Photo Header Container --}}
-                                    <div class="relative h-52 sm:h-52 md:h-48 w-full overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-2.5 flex items-center justify-center">
+                                    {{-- Photo Header Container (Full Portrait) --}}
+                                    <div class="relative w-full aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-2.5 flex items-center justify-center" style="aspect-ratio: 3/4;">
                                         @if ($avatarUrl)
                                             <img
                                                 src="{{ $avatarUrl }}"

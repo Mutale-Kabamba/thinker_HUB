@@ -68,32 +68,72 @@ class CourseSession extends Model
 
     public function getEffectiveDate(): Carbon
     {
-        return $this->status === 'rescheduled' && $this->rescheduled_date
+        $date = $this->status === 'rescheduled' && $this->rescheduled_date
             ? $this->rescheduled_date
             : $this->session_date;
+
+        if ($date instanceof Carbon) {
+            return $date;
+        }
+
+        if (is_string($date) && filled($date)) {
+            try {
+                return Carbon::parse($date);
+            } catch (\Throwable) {
+                return Carbon::today();
+            }
+        }
+
+        return Carbon::today();
     }
 
     public function getEffectiveStartTime(): string
     {
-        return $this->status === 'rescheduled' && $this->rescheduled_start_time
+        $time = $this->status === 'rescheduled' && $this->rescheduled_start_time
             ? $this->rescheduled_start_time
             : $this->start_time;
+
+        return filled($time) ? (string) $time : '00:00:00';
     }
 
     public function getEffectiveEndTime(): string
     {
-        return $this->status === 'rescheduled' && $this->rescheduled_end_time
+        $time = $this->status === 'rescheduled' && $this->rescheduled_end_time
             ? $this->rescheduled_end_time
             : $this->end_time;
+
+        return filled($time) ? (string) $time : '23:59:59';
     }
 
     public function effectiveStartAt(): Carbon
     {
-        return $this->getEffectiveDate()->copy()->setTimeFromTimeString($this->getEffectiveStartTime());
+        $date = $this->getEffectiveDate();
+        $time = $this->getEffectiveStartTime();
+
+        try {
+            return $date->copy()->setTimeFromTimeString($time);
+        } catch (\Throwable) {
+            try {
+                return Carbon::parse($date->format('Y-m-d') . ' ' . $time);
+            } catch (\Throwable) {
+                return $date->copy()->startOfDay();
+            }
+        }
     }
 
     public function effectiveEndAt(): Carbon
     {
-        return $this->getEffectiveDate()->copy()->setTimeFromTimeString($this->getEffectiveEndTime());
+        $date = $this->getEffectiveDate();
+        $time = $this->getEffectiveEndTime();
+
+        try {
+            return $date->copy()->setTimeFromTimeString($time);
+        } catch (\Throwable) {
+            try {
+                return Carbon::parse($date->format('Y-m-d') . ' ' . $time);
+            } catch (\Throwable) {
+                return $date->copy()->endOfDay();
+            }
+        }
     }
 }

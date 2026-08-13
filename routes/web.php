@@ -465,10 +465,13 @@ Route::middleware('auth')->group(function () {
     Route::prefix('student')->name('student.')->group(function () {
         Route::redirect('/overview', '/learn/overview')->name('overview');
         Route::redirect('/courses', '/learn/courses')->name('courses');
+        Route::redirect('/schedule', '/learn/schedule')->name('schedule');
         Route::redirect('/assignments', '/learn/assignments')->name('assignments');
         Route::redirect('/assessments', '/learn/assessments')->name('assessments');
         Route::redirect('/materials', '/learn/materials')->name('materials');
     });
+
+    Route::redirect('/schedule', '/learn/schedule');
 
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::redirect('/overview', '/manage')->name('overview');
@@ -490,27 +493,33 @@ Route::middleware('auth')->group(function () {
         $disk = Storage::disk('public');
 
         if ($type === 'material') {
-            $material = LearningMaterial::query()->visibleTo($user)->findOrFail($id);
+            $material = ($user->isAdmin() || $user->isInstructor())
+                ? LearningMaterial::query()->findOrFail($id)
+                : LearningMaterial::query()->visibleTo($user)->findOrFail($id);
             $path = $material->file_path;
         } elseif ($type === 'assignment') {
-            $assignment = Assignment::query()->visibleTo($user)->findOrFail($id);
+            $assignment = ($user->isAdmin() || $user->isInstructor())
+                ? Assignment::query()->findOrFail($id)
+                : Assignment::query()->visibleTo($user)->findOrFail($id);
             $path = $assignment->file_path;
         } elseif ($type === 'assessment') {
-            if ($user->isAdmin()) {
-                $assessment = Assessment::query()->findOrFail($id);
-            } else {
-                $assessment = Assessment::query()->where('user_id', $user->id)->findOrFail($id);
-            }
+            $assessment = ($user->isAdmin() || $user->isInstructor())
+                ? Assessment::query()->findOrFail($id)
+                : Assessment::query()->visibleTo($user)->findOrFail($id);
             $path = $assessment->file_path;
         } elseif ($type === 'submission') {
-            $submission = AssignmentSubmission::query()
-                ->where('user_id', $user->id)
-                ->findOrFail($id);
+            $submission = AssignmentSubmission::query()->findOrFail($id);
+            $canView = $user->isAdmin()
+                || $user->isInstructor()
+                || $submission->user_id === $user->id;
+            abort_unless($canView, 403);
             $path = $submission->file_path;
         } elseif ($type === 'assessment-submission') {
-            $submission = AssessmentSubmission::query()
-                ->where('user_id', $user->id)
-                ->findOrFail($id);
+            $submission = AssessmentSubmission::query()->findOrFail($id);
+            $canView = $user->isAdmin()
+                || $user->isInstructor()
+                || $submission->user_id === $user->id;
+            abort_unless($canView, 403);
             $path = $submission->file_path;
         } elseif ($type === 'chat-message') {
             $chatMessage = ChatMessage::query()->findOrFail($id);
@@ -520,7 +529,7 @@ Route::middleware('auth')->group(function () {
                 ->whereHas('members', fn ($query) => $query->where('users.id', $user->id))
                 ->exists();
 
-            abort_unless($isRoomMember, 403);
+            abort_unless($isRoomMember || $user->isAdmin(), 403);
 
             $path = $chatMessage->attachment_path;
         } else {
@@ -528,6 +537,12 @@ Route::middleware('auth')->group(function () {
         }
 
         $path = PublicDiskPath::normalize($path);
+
+        if ($path && ! $disk->exists($path)) {
+            if ($disk->exists('submissions/' . basename($path))) {
+                $path = 'submissions/' . basename($path);
+            }
+        }
 
         if (! $path || ! $disk->exists($path)) {
             return response(
@@ -554,33 +569,45 @@ Route::middleware('auth')->group(function () {
         $disk = Storage::disk('public');
 
         if ($type === 'material') {
-            $material = LearningMaterial::query()->visibleTo($user)->findOrFail($id);
+            $material = ($user->isAdmin() || $user->isInstructor())
+                ? LearningMaterial::query()->findOrFail($id)
+                : LearningMaterial::query()->visibleTo($user)->findOrFail($id);
             $path = $material->file_path;
         } elseif ($type === 'assignment') {
-            $assignment = Assignment::query()->visibleTo($user)->findOrFail($id);
+            $assignment = ($user->isAdmin() || $user->isInstructor())
+                ? Assignment::query()->findOrFail($id)
+                : Assignment::query()->visibleTo($user)->findOrFail($id);
             $path = $assignment->file_path;
         } elseif ($type === 'assessment') {
-            if ($user->isAdmin()) {
-                $assessment = Assessment::query()->findOrFail($id);
-            } else {
-                $assessment = Assessment::query()->where('user_id', $user->id)->findOrFail($id);
-            }
+            $assessment = ($user->isAdmin() || $user->isInstructor())
+                ? Assessment::query()->findOrFail($id)
+                : Assessment::query()->visibleTo($user)->findOrFail($id);
             $path = $assessment->file_path;
         } elseif ($type === 'submission') {
-            $submission = AssignmentSubmission::query()
-                ->where('user_id', $user->id)
-                ->findOrFail($id);
+            $submission = AssignmentSubmission::query()->findOrFail($id);
+            $canView = $user->isAdmin()
+                || $user->isInstructor()
+                || $submission->user_id === $user->id;
+            abort_unless($canView, 403);
             $path = $submission->file_path;
         } elseif ($type === 'assessment-submission') {
-            $submission = AssessmentSubmission::query()
-                ->where('user_id', $user->id)
-                ->findOrFail($id);
+            $submission = AssessmentSubmission::query()->findOrFail($id);
+            $canView = $user->isAdmin()
+                || $user->isInstructor()
+                || $submission->user_id === $user->id;
+            abort_unless($canView, 403);
             $path = $submission->file_path;
         } else {
             abort(404);
         }
 
         $path = PublicDiskPath::normalize($path);
+
+        if ($path && ! $disk->exists($path)) {
+            if ($disk->exists('submissions/' . basename($path))) {
+                $path = 'submissions/' . basename($path);
+            }
+        }
 
         if (! $path || ! $disk->exists($path)) {
             abort(404);

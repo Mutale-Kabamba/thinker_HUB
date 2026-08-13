@@ -13,11 +13,14 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\WithFileUploads;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class Assignments extends Page
 {
+    use WithFileUploads;
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
     protected static string|\UnitEnum|null $navigationGroup = 'EVALUATIONS';
@@ -63,13 +66,19 @@ class Assignments extends Page
         $content = trim((string) ($draft['text'] ?? ''));
         $link = isset($draft['link']) ? trim((string) $draft['link']) : null;
         $video = isset($draft['video']) ? trim((string) $draft['video']) : null;
-        $filePath = null;
+        $filePath = $existing?->file_path ?? null;
+
         if (isset($draft['file']) && $draft['file']) {
             $file = $draft['file'];
             if (is_object($file) && method_exists($file, 'store')) {
                 $filePath = $file->store('submissions', 'public');
+            } elseif (is_string($file) && filled($file)) {
+                $filePath = PublicDiskPath::normalize($file);
             }
         }
+
+        $filePath = PublicDiskPath::normalize($filePath);
+
         AssignmentSubmission::query()->updateOrCreate(
             [
                 'assignment_id' => $assignmentId,
