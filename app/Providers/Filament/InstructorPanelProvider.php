@@ -36,6 +36,7 @@ class InstructorPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->databaseNotifications()
             ->databaseNotificationsPolling(null) // FIX 1: Turn off background polling for notifications
+            ->errorNotifications(false)
             ->navigationGroups([
                 'ACADEMICS & CONTENT',
                 'GRADING & EVALUATIONS',

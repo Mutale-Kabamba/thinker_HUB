@@ -35,6 +35,7 @@ class StudentPanelProvider extends PanelProvider
             ])
             ->databaseNotifications()
             ->databaseNotificationsPolling(null) // FIX 1: Turn off background polling for notifications
+            ->errorNotifications(false)
             ->discoverResources(in: app_path('Filament/Student/Resources'), for: 'App\Filament\Student\Resources')
             ->discoverPages(in: app_path('Filament/Student/Pages'), for: 'App\Filament\Student\Pages')
             ->userMenuItems([
