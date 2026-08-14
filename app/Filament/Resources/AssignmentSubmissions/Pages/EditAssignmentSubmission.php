@@ -15,12 +15,16 @@ class EditAssignmentSubmission extends BaseEditRecord
         $submission = $this->record;
 
         if ($submission?->user) {
-            $submission->user->notify(new SubmissionGradedNotification(
-                'assignment',
-                (string) $submission->assignment?->name,
-                $submission->grade,
-                (string) $submission->feedback,
-            ));
+            try {
+                $submission->user->notify(new SubmissionGradedNotification(
+                    'assignment',
+                    (string) $submission->assignment?->name,
+                    $submission->grade,
+                    (string) $submission->feedback,
+                ));
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
     }
 }

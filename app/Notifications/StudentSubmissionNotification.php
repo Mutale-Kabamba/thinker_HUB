@@ -5,13 +5,15 @@ namespace App\Notifications;
 use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
 
-class StudentSubmissionNotification extends Notification
+class StudentSubmissionNotification extends Notification implements ShouldQueue
 {
-    use ResolvesMailPersonalization;
+    use Queueable, ResolvesMailPersonalization;
 
     public function __construct(
         private readonly string $studentName,

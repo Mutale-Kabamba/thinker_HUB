@@ -127,12 +127,16 @@ class AssessmentSubmissionsTable
                                 $record->update(['status' => 'Graded']);
 
                                 if ($record->user) {
-                                    $record->user->notify(new SubmissionGradedNotification(
-                                        'assessment',
-                                        'Assessment #'.(string) $record->assessment?->id,
-                                        $record->score,
-                                        (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your assessment has been graded.')),
-                                    ));
+                                    try {
+                                        $record->user->notify(new SubmissionGradedNotification(
+                                            'assessment',
+                                            'Assessment #'.(string) $record->assessment?->id,
+                                            $record->score,
+                                            (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your assessment has been graded.')),
+                                        ));
+                                    } catch (\Throwable $e) {
+                                        report($e);
+                                    }
                                 }
                             });
                         })
@@ -162,12 +166,16 @@ class AssessmentSubmissionsTable
                                 $record->update(['status' => 'Reviewed']);
 
                                 if ($record->user) {
-                                    $record->user->notify(new SubmissionGradedNotification(
-                                        'assessment',
-                                        'Assessment #'.(string) $record->assessment?->id,
-                                        $record->score,
-                                        (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your assessment has been reviewed.')),
-                                    ));
+                                    try {
+                                        $record->user->notify(new SubmissionGradedNotification(
+                                            'assessment',
+                                            'Assessment #'.(string) $record->assessment?->id,
+                                            $record->score,
+                                            (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your assessment has been reviewed.')),
+                                        ));
+                                    } catch (\Throwable $e) {
+                                        report($e);
+                                    }
                                 }
                             });
                         })
@@ -189,12 +197,16 @@ class AssessmentSubmissionsTable
                                 $record->update(['status' => 'Returned']);
 
                                 if ($record->user) {
-                                    $record->user->notify(new SubmissionGradedNotification(
-                                        'assessment',
-                                        'Assessment #'.(string) $record->assessment?->id,
-                                        $record->score,
-                                        (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your assessment has been returned with feedback.')),
-                                    ));
+                                    try {
+                                        $record->user->notify(new SubmissionGradedNotification(
+                                            'assessment',
+                                            'Assessment #'.(string) $record->assessment?->id,
+                                            $record->score,
+                                            (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your assessment has been returned with feedback.')),
+                                        ));
+                                    } catch (\Throwable $e) {
+                                        report($e);
+                                    }
                                 }
                             });
                         })
