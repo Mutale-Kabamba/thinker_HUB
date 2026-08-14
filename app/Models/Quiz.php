@@ -39,9 +39,47 @@ class Quiz extends Model
     public function scopeReleased(Builder $query): Builder
     {
         return $query->where(function (Builder $builder): void {
-            $builder->whereNull('publish_at')
-                ->orWhere('publish_at', '<=', now());
+            $builder->where(function (Builder $q): void {
+                $q->whereNull('publish_at')
+                    ->where('is_active', true);
+            })->orWhere(function (Builder $q): void {
+                $q->whereNotNull('publish_at')
+                    ->where('publish_at', '<=', now());
+            });
         });
+    }
+
+    /**
+     * Determine if this quiz is currently released to students.
+     */
+    public function isReleased(): bool
+    {
+        if ($this->publish_at !== null) {
+            return $this->publish_at->lte(now());
+        }
+
+        return (bool) $this->is_active;
+    }
+
+    /**
+     * Auto-activate and sync any scheduled quizzes whose publish date/time has passed.
+     */
+    public static function publishScheduled(): int
+    {
+        $dueQuizzes = self::query()
+            ->whereNotNull('publish_at')
+            ->where('publish_at', '<=', now())
+            ->where('is_active', false)
+            ->get();
+
+        $count = 0;
+
+        foreach ($dueQuizzes as $quiz) {
+            $quiz->update(['is_active' => true]);
+            $count++;
+        }
+
+        return $count;
     }
 
     public function scopeVisibleTo(Builder $query, User $user): Builder

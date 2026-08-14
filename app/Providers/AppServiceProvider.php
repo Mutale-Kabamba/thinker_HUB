@@ -74,6 +74,7 @@ class AppServiceProvider extends ServiceProvider
         CourseSession::observe(CourseSessionObserver::class);
         Friendship::observe(FriendshipObserver::class);
         LearningMaterial::observe(LearningMaterialObserver::class);
+        Quiz::observe(\App\Observers\QuizObserver::class);
         QuizAttempt::observe(QuizAttemptObserver::class);
         User::observe(UserObserver::class);
 
