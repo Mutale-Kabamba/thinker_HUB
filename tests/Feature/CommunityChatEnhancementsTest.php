@@ -245,4 +245,61 @@ class CommunityChatEnhancementsTest extends TestCase
             'body' => 'Resilience check',
         ]);
     }
+
+    public function test_user_first_name_accessor_extracts_first_name_correctly(): void
+    {
+        $user1 = User::factory()->make(['name' => 'Alice Wonder']);
+        $user2 = User::factory()->make(['name' => 'Bob']);
+        $user3 = User::factory()->make(['name' => '   Charlie  Brown ']);
+        $user4 = User::factory()->make(['name' => '']);
+
+        $this->assertSame('Alice', $user1->first_name);
+        $this->assertSame('Bob', $user2->first_name);
+        $this->assertSame('Charlie', $user3->first_name);
+        $this->assertSame('Student', $user4->first_name);
+    }
+
+    public function test_direct_chat_room_display_name_uses_first_name(): void
+    {
+        $studentA = User::factory()->create(['name' => 'Alice Wonder', 'role' => 'student', 'is_active' => true]);
+        $studentB = User::factory()->create(['name' => 'Bob Builder', 'role' => 'student', 'is_active' => true]);
+
+        $room = ChatRoom::findOrCreateDirect($studentA->id, $studentB->id);
+
+        $this->assertSame('Bob', $room->displayNameFor($studentA));
+        $this->assertSame('Alice', $room->displayNameFor($studentB));
+    }
+
+    public function test_group_chat_displays_first_name_for_message_author(): void
+    {
+        $course = Course::query()->create([
+            'title' => 'Web Development',
+            'code' => 'WEB-101',
+            'is_active' => true,
+        ]);
+
+        $studentA = User::factory()->create(['name' => 'Alice Wonder', 'role' => 'student', 'is_active' => true]);
+        $studentB = User::factory()->create(['name' => 'Bob Builder', 'role' => 'student', 'is_active' => true]);
+
+        $studentA->enrollments()->create(['course_id' => $course->id, 'status' => 'enrolled']);
+        $studentB->enrollments()->create(['course_id' => $course->id, 'status' => 'enrolled']);
+
+        $room = ChatRoom::firstOrCreate(['type' => 'course', 'course_id' => $course->id], ['name' => 'WEB-101']);
+        $room->members()->sync([$studentA->id, $studentB->id]);
+
+        $message = ChatMessage::create([
+            'chat_room_id' => $room->id,
+            'user_id' => $studentA->id,
+            'body' => 'Welcome everyone!',
+        ]);
+
+        $this->actingAs($studentB);
+
+        Livewire::test(Community::class)
+            ->call('openRoom', $room->id)
+            ->assertSee('Alice')
+            ->assertDontSee('Alice Wonder')
+            ->assertSee('Reply')
+            ->assertSee('Copy');
+    }
 }

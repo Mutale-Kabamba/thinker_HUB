@@ -524,7 +524,7 @@ class Community extends Page
             return;
         }
 
-        $allowed = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '🚀', '💡', '🎉'];
+        $allowed = ['👍', '❤️', '🔥', '👏', '🎉', '🚀', '💯', '✨', '😂', '😍', '🤩', '😎', '🤔', '💡', '🙌', '🙏', '😮', '😢', '💪', '🥳'];
         $emoji = trim($emoji);
         if (! in_array($emoji, $allowed, true) && mb_strlen($emoji) > 4) {
             return;

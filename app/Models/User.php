@@ -457,6 +457,22 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->courses()->where('courses.id', $courseId)->exists();
     }
 
+    /**
+     * Get the user's first name for chat displays.
+     */
+    public function getFirstNameAttribute(): string
+    {
+        $name = trim($this->name ?? '');
+
+        if ($name === '') {
+            return 'Student';
+        }
+
+        $parts = preg_split('/\s+/', $name);
+
+        return $parts[0] ?? $name;
+    }
+
     public function getFilamentAvatarUrl(): ?string
     {
         return PublicDiskPath::url($this->profile_photo_path);

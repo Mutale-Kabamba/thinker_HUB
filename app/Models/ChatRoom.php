@@ -77,7 +77,7 @@ class ChatRoom extends Model
 
         $other = $this->otherMemberFor($viewer);
 
-        return $other?->name ?? 'Direct chat';
+        return $other?->first_name ?? 'Direct chat';
     }
 
     public function otherMemberFor(User $viewer): ?User
