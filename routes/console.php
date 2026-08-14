@@ -199,3 +199,15 @@ Artisan::command('seo:generate {--base-url=}', function (): int {
 Schedule::command('seo:generate')
     ->dailyAt('02:30')
     ->withoutOverlapping();
+
+Artisan::command('quizzes:publish', function (): int {
+    $published = \App\Models\Quiz::publishScheduled();
+    $this->info("Published {$published} scheduled quizzes.");
+
+    return self::SUCCESS;
+})->purpose('Publish any scheduled quizzes whose publish_at timestamp has passed.');
+
+Schedule::command('quizzes:publish')
+    ->everyMinute()
+    ->withoutOverlapping();
+

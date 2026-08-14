@@ -82,6 +82,12 @@ class Materials extends Page
         $extension = pathinfo($path, PATHINFO_EXTENSION);
         $downloadName = Str::slug($material->title).'.'.$extension;
 
+        try {
+            app(\App\Services\GamificationService::class)->awardMaterialView($user, $material);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return $disk->download($path, $downloadName);
     }
 

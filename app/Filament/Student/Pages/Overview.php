@@ -49,6 +49,12 @@ class Overview extends Page
             return;
         }
 
+        try {
+            app(\App\Services\GamificationService::class)->recordDailyLogin($user);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         $today = Carbon::today();
 
         $visibleAssignments = Assignment::query()

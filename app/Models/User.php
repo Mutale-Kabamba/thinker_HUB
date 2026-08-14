@@ -157,7 +157,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             ->exists();
 
         $activeQuizIds = $course->quizzes()
-            ->where('is_active', true)
+            ->released()
             ->pluck('id');
 
         $quizzesDone = $activeQuizIds->isEmpty()

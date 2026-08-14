@@ -41,7 +41,6 @@ class Quizzes extends Page
         $this->quizzes = Quiz::query()
             ->with(['course', 'questions'])
             ->whereIn('course_id', $enrolledCourseIds)
-            ->where('is_active', true)
             ->released()
             ->orderByDesc('created_at')
             ->get()

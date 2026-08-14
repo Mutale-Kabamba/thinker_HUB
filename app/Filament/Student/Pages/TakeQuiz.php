@@ -54,7 +54,7 @@ class TakeQuiz extends Page
             ->whereKey($this->quizId)
             ->first();
 
-        if (! $quiz || ! $quiz->is_active) {
+        if (! $quiz || ! $quiz->isReleased()) {
             Notification::make()->title('Quiz not available.')->danger()->send();
             $this->redirect(route('filament.student.pages.quizzes'));
 

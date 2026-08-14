@@ -7,17 +7,23 @@ use App\Models\Assessment;
 use App\Models\AssessmentSubmission;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Models\Attendance;
 use App\Models\ChatMessage;
 use App\Models\Course;
+use App\Models\CourseRating;
 use App\Models\CourseSession;
 use App\Models\Enrollment;
+use App\Models\Friendship;
 use App\Models\LearningMaterial;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Observers\AssignmentObserver;
+use App\Observers\AttendanceObserver;
 use App\Observers\ChatMessageObserver;
+use App\Observers\CourseRatingObserver;
 use App\Observers\CourseSessionObserver;
+use App\Observers\FriendshipObserver;
 use App\Observers\LearningMaterialObserver;
 use App\Observers\QuizAttemptObserver;
 use App\Observers\SubmissionObserver;
@@ -29,8 +35,11 @@ use App\Policies\EnrollmentPolicy;
 use App\Policies\LearningMaterialPolicy;
 use App\Policies\QuizPolicy;
 use App\Policies\UserPolicy;
+use App\Services\GamificationService;
 use Filament\Auth\Http\Responses\Contracts\LogoutResponse as LogoutResponseContract;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
@@ -59,11 +68,25 @@ class AppServiceProvider extends ServiceProvider
         Assignment::observe(AssignmentObserver::class);
         AssignmentSubmission::observe(SubmissionObserver::class);
         AssessmentSubmission::observe(SubmissionObserver::class);
+        Attendance::observe(AttendanceObserver::class);
         ChatMessage::observe(ChatMessageObserver::class);
+        CourseRating::observe(CourseRatingObserver::class);
         CourseSession::observe(CourseSessionObserver::class);
+        Friendship::observe(FriendshipObserver::class);
         LearningMaterial::observe(LearningMaterialObserver::class);
+        Quiz::observe(\App\Observers\QuizObserver::class);
         QuizAttempt::observe(QuizAttemptObserver::class);
         User::observe(UserObserver::class);
+
+        Event::listen(Login::class, function (Login $event): void {
+            if ($event->user instanceof User) {
+                try {
+                    app(GamificationService::class)->recordDailyLogin($event->user);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+        });
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Enrollment::class, EnrollmentPolicy::class);
