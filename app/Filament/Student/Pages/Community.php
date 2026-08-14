@@ -4,6 +4,7 @@ namespace App\Filament\Student\Pages;
 
 use App\Events\ChatMessageSent;
 use App\Models\ChatMessage;
+use App\Models\ChatMessageReaction;
 use App\Models\ChatRoom;
 use App\Models\Course;
 use App\Models\Enrollment;
@@ -42,6 +43,8 @@ class Community extends Page
     public ?array $profileUser = null;
 
     public ?int $selectedRoomId = null;
+
+    public ?int $replyingToMessageId = null;
 
     public int $messagesLimit = 30;
 
@@ -462,6 +465,7 @@ class Community extends Page
 
         $room = ChatRoom::findOrCreateDirect($user->id, $userId);
         $this->selectedRoomId = $room->id;
+        $this->replyingToMessageId = null;
         $this->messagesLimit = 30;
         $this->hasMoreMessages = false;
         $this->tab = 'chats';
@@ -474,8 +478,80 @@ class Community extends Page
         // Only open rooms the user belongs to.
         if ($user && $user->chatRooms()->where('chat_rooms.id', $roomId)->exists()) {
             $this->selectedRoomId = $roomId;
+            $this->replyingToMessageId = null;
             $this->messagesLimit = 30;
             $this->hasMoreMessages = false;
+        }
+    }
+
+    public function setReplyTo(int $messageId): void
+    {
+        if (! $this->activeRoom) {
+            return;
+        }
+
+        $msg = ChatMessage::query()
+            ->where('chat_room_id', $this->activeRoom->id)
+            ->find($messageId);
+
+        if ($msg) {
+            $this->replyingToMessageId = $msg->id;
+            $this->dispatch('focus-chat-input');
+        }
+    }
+
+    public function cancelReply(): void
+    {
+        $this->replyingToMessageId = null;
+    }
+
+    public function getReplyingToMessageProperty(): ?ChatMessage
+    {
+        if (! $this->replyingToMessageId) {
+            return null;
+        }
+
+        return ChatMessage::query()
+            ->with('user')
+            ->where('chat_room_id', $this->activeRoom?->id)
+            ->find($this->replyingToMessageId);
+    }
+
+    public function toggleReaction(int $messageId, string $emoji): void
+    {
+        $user = auth()->user();
+        if (! $user || ! $this->activeRoom) {
+            return;
+        }
+
+        $allowed = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '🚀', '💡', '🎉'];
+        $emoji = trim($emoji);
+        if (! in_array($emoji, $allowed, true) && mb_strlen($emoji) > 4) {
+            return;
+        }
+
+        $message = ChatMessage::query()
+            ->where('chat_room_id', $this->activeRoom->id)
+            ->find($messageId);
+
+        if (! $message) {
+            return;
+        }
+
+        $existing = ChatMessageReaction::query()
+            ->where('chat_message_id', $message->id)
+            ->where('user_id', $user->id)
+            ->where('emoji', $emoji)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+        } else {
+            ChatMessageReaction::create([
+                'chat_message_id' => $message->id,
+                'user_id' => $user->id,
+                'emoji' => $emoji,
+            ]);
         }
     }
 
@@ -518,7 +594,7 @@ class Community extends Page
             ->count();
 
         $messages = ChatMessage::query()
-            ->with('user')
+            ->with(['user', 'replyTo.user', 'reactions.user'])
             ->where('chat_room_id', $this->activeRoom->id)
             ->latest()
             ->limit($this->messagesLimit)
@@ -573,6 +649,7 @@ class Community extends Page
         $message = ChatMessage::create([
             'chat_room_id' => $this->activeRoom->id,
             'user_id' => $user->id,
+            'reply_to_id' => $this->replyingToMessageId,
             'body' => $body !== '' ? $body : null,
             'attachment_path' => $attachmentPath,
             'attachment_name' => $attachmentName,
@@ -580,10 +657,15 @@ class Community extends Page
         ]);
 
         $this->messageBody = '';
+        $this->replyingToMessageId = null;
         $this->reset('attachment');
 
         if (class_exists(ChatMessageSent::class)) {
-            ChatMessageSent::dispatch($message);
+            try {
+                ChatMessageSent::dispatch($message);
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
     }
 

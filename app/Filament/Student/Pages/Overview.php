@@ -17,6 +17,8 @@ class Overview extends Page
 
     protected static ?string $navigationLabel = 'Overview';
 
+    protected static ?string $title = 'Student Dashboard';
+
     protected static ?int $navigationSort = -10;
 
     protected string $view = 'filament.student.pages.overview';

@@ -13,11 +13,33 @@ class ContributorOverview extends Page
 
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $navigationLabel = 'Overview';
-
-    protected static ?string $title = 'Contributor Dashboard';
-
     protected string $view = 'filament.contributor.pages.overview';
+
+    public static function getNavigationLabel(): string
+    {
+        $role = auth()->user()?->role;
+        return match ($role) {
+            'blogger' => 'Blogger Dashboard',
+            'researcher' => 'Researcher Dashboard',
+            'employer' => 'Employer Dashboard',
+            default => 'Contributor Dashboard',
+        };
+    }
+
+    public function getTitle(): string
+    {
+        return $this->roleTitle;
+    }
+
+    public function getHeading(): string
+    {
+        return $this->roleTitle;
+    }
+
+    public function getSubheading(): ?string
+    {
+        return $this->roleSubtitle;
+    }
 
     public int $totalPosts = 0;
 

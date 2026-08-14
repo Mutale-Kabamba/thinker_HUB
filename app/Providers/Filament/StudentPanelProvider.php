@@ -29,6 +29,7 @@ class StudentPanelProvider extends PanelProvider
         return $panel
             ->id('student')
             ->path('learn')
+            ->brandName('Thinker HUB • Student Portal')
             ->login(SharedLogin::class)
             ->colors([
                 'primary' => Color::Teal,
@@ -75,6 +76,10 @@ class StudentPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => view('partials.echo')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::SIDEBAR_NAV_START,
+                fn (): string => view('filament.partials.workspace-badge', ['position' => 'sidebar'])->render(),
             )
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,

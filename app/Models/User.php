@@ -553,4 +553,175 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
         $this->notify(new QueuedVerifyEmail($resolvedSigner));
     }
+
+    /**
+     * Get a deterministic, accessible chat color palette for this user.
+     *
+     * @return array{accent: string, name_color: string, name_color_dark: string, bg_light: string, bg_dark: string, border_light: string, border_dark: string, text_light: string, text_dark: string, chip_bg: string, gradient: string}
+     */
+    public function chatColorPalette(): array
+    {
+        $palettes = [
+            [
+                'accent' => '#0d9488', // Teal
+                'name_color' => '#0f766e',
+                'name_color_dark' => '#2dd4bf',
+                'bg_light' => '#f0fdfa',
+                'bg_dark' => 'rgba(13, 148, 136, 0.16)',
+                'border_light' => '#99f6e4',
+                'border_dark' => 'rgba(45, 212, 191, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#ccfbf1',
+                'gradient' => 'linear-gradient(135deg, #0f766e, #0ea5e9)',
+            ],
+            [
+                'accent' => '#0284c7', // Sky Blue
+                'name_color' => '#0369a1',
+                'name_color_dark' => '#38bdf8',
+                'bg_light' => '#f0f9ff',
+                'bg_dark' => 'rgba(2, 132, 199, 0.16)',
+                'border_light' => '#bae6fd',
+                'border_dark' => 'rgba(56, 189, 248, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#e0f2fe',
+                'gradient' => 'linear-gradient(135deg, #0284c7, #6366f1)',
+            ],
+            [
+                'accent' => '#6366f1', // Indigo
+                'name_color' => '#4f46e5',
+                'name_color_dark' => '#818cf8',
+                'bg_light' => '#eef2ff',
+                'bg_dark' => 'rgba(99, 102, 241, 0.16)',
+                'border_light' => '#c7d2fe',
+                'border_dark' => 'rgba(129, 140, 248, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#e0e7ff',
+                'gradient' => 'linear-gradient(135deg, #6366f1, #a855f7)',
+            ],
+            [
+                'accent' => '#9333ea', // Purple
+                'name_color' => '#7e22ce',
+                'name_color_dark' => '#c084fc',
+                'bg_light' => '#faf5ff',
+                'bg_dark' => 'rgba(147, 51, 234, 0.16)',
+                'border_light' => '#e9d5ff',
+                'border_dark' => 'rgba(192, 132, 252, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#f3e8ff',
+                'gradient' => 'linear-gradient(135deg, #9333ea, #ec4899)',
+            ],
+            [
+                'accent' => '#e11d48', // Rose
+                'name_color' => '#be123c',
+                'name_color_dark' => '#fb7185',
+                'bg_light' => '#fff1f2',
+                'bg_dark' => 'rgba(225, 29, 72, 0.16)',
+                'border_light' => '#fecdd3',
+                'border_dark' => 'rgba(251, 113, 133, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#ffe4e6',
+                'gradient' => 'linear-gradient(135deg, #e11d48, #f97316)',
+            ],
+            [
+                'accent' => '#ea580c', // Orange
+                'name_color' => '#c2410c',
+                'name_color_dark' => '#fb923c',
+                'bg_light' => '#fff7ed',
+                'bg_dark' => 'rgba(234, 88, 12, 0.16)',
+                'border_light' => '#fed7aa',
+                'border_dark' => 'rgba(251, 146, 60, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#ffedd5',
+                'gradient' => 'linear-gradient(135deg, #ea580c, #eab308)',
+            ],
+            [
+                'accent' => '#d97706', // Amber
+                'name_color' => '#b45309',
+                'name_color_dark' => '#fbbf24',
+                'bg_light' => '#fffbeb',
+                'bg_dark' => 'rgba(217, 119, 6, 0.16)',
+                'border_light' => '#fde68a',
+                'border_dark' => 'rgba(251, 191, 36, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#fef3c7',
+                'gradient' => 'linear-gradient(135deg, #d97706, #10b981)',
+            ],
+            [
+                'accent' => '#16a34a', // Emerald Green
+                'name_color' => '#15803d',
+                'name_color_dark' => '#4ade80',
+                'bg_light' => '#f0fdf4',
+                'bg_dark' => 'rgba(22, 163, 74, 0.16)',
+                'border_light' => '#bbf7d0',
+                'border_dark' => 'rgba(74, 222, 128, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#dcfce7',
+                'gradient' => 'linear-gradient(135deg, #16a34a, #06b6d4)',
+            ],
+            [
+                'accent' => '#0891b2', // Cyan
+                'name_color' => '#0e7490',
+                'name_color_dark' => '#22d3ee',
+                'bg_light' => '#ecfeff',
+                'bg_dark' => 'rgba(8, 145, 178, 0.16)',
+                'border_light' => '#a5f3fc',
+                'border_dark' => 'rgba(34, 211, 238, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#cffafe',
+                'gradient' => 'linear-gradient(135deg, #0891b2, #3b82f6)',
+            ],
+            [
+                'accent' => '#db2777', // Pink
+                'name_color' => '#be185d',
+                'name_color_dark' => '#f472b6',
+                'bg_light' => '#fdf2f8',
+                'bg_dark' => 'rgba(219, 39, 119, 0.16)',
+                'border_light' => '#fbcfe8',
+                'border_dark' => 'rgba(244, 114, 182, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#fce7f3',
+                'gradient' => 'linear-gradient(135deg, #db2777, #8b5cf6)',
+            ],
+            [
+                'accent' => '#7c3aed', // Violet
+                'name_color' => '#6d28d9',
+                'name_color_dark' => '#a78bfa',
+                'bg_light' => '#f5f3ff',
+                'bg_dark' => 'rgba(124, 58, 237, 0.16)',
+                'border_light' => '#ddd6fe',
+                'border_dark' => 'rgba(167, 139, 250, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#ede9fe',
+                'gradient' => 'linear-gradient(135deg, #7c3aed, #ec4899)',
+            ],
+            [
+                'accent' => '#059669', // Emerald
+                'name_color' => '#047857',
+                'name_color_dark' => '#34d399',
+                'bg_light' => '#ecfdf5',
+                'bg_dark' => 'rgba(5, 150, 105, 0.16)',
+                'border_light' => '#a7f3d0',
+                'border_dark' => 'rgba(52, 211, 153, 0.35)',
+                'text_light' => '#0f172a',
+                'text_dark' => '#f8fafc',
+                'chip_bg' => '#d1fae5',
+                'gradient' => 'linear-gradient(135deg, #059669, #0284c7)',
+            ],
+        ];
+
+        $index = $this->id ? ($this->id % count($palettes)) : (abs(crc32($this->name ?? 'default')) % count($palettes));
+
+        return $palettes[$index];
+    }
 }

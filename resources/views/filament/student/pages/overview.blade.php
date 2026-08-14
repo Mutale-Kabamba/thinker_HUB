@@ -23,10 +23,17 @@
         x-init="if (window.location.hash) { const selected = window.location.hash.replace('#', ''); if (['overview', 'assignments', 'assessments', 'materials'].includes(selected)) { activeSection = selected; } }"
         class="hub-shell"
     >
-        <section id="overview-hero" class="hub-card">
-            <p class="hub-eyebrow">Overview</p>
-            <h2 class="hub-title" style="margin-top:0.35rem;font-size:1.2rem;">{{ $stats['greeting'] ?? 'Hello' }}</h2>
-            <p class="hub-copy">Course: {{ $stats['course'] ?? '-' }} | Level: {{ $stats['track'] ?? '-' }}</p>
+        <section id="overview-hero" class="hub-card" style="border-left: 4px solid #0284c7;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <span class="hub-chip" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd; font-size:0.7rem; font-weight:700; text-transform:uppercase;">
+                    <i class="fa-solid fa-graduation-cap"></i> Student Portal
+                </span>
+                <span style="font-size:0.75rem; color:var(--hub-muted);">
+                    Level: {{ $stats['track'] ?? 'General' }}
+                </span>
+            </div>
+            <h2 class="hub-title" style="margin-top:0.2rem;font-size:1.2rem;">{{ $stats['greeting'] ?? 'Hello' }}</h2>
+            <p class="hub-copy">Enrolled in: <strong>{{ $stats['course'] ?? '-' }}</strong></p>
             <div class="hub-links">
                 @foreach ($quickLinks as $link)
                     <button
