@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\ChatMessage;
 use App\Notifications\ChatMessageReceivedNotification;
+use App\Services\GamificationService;
 use Illuminate\Support\Str;
 
 class ChatMessageObserver
@@ -11,6 +12,14 @@ class ChatMessageObserver
     public function created(ChatMessage $message): void
     {
         try {
+            if ($message->user) {
+                try {
+                    app(GamificationService::class)->evaluateChatActivity($message->user);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+
             $room = $message->room()->with('members')->first();
 
             if (! $room) {
