@@ -208,4 +208,73 @@ class QuizPublishingTest extends TestCase
             'is_correct' => true,
         ]);
     }
+
+    public function test_only_next_upcoming_quiz_is_shown_and_completed_quizzes_show_view_results(): void
+    {
+        $student = User::factory()->create(['role' => 'student']);
+        $course = Course::query()->create([
+            'title' => 'Digital Skills Program',
+            'code' => 'DSP101',
+            'is_active' => true,
+        ]);
+
+        Enrollment::create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+            'enrolled_at' => now(),
+        ]);
+
+        // Completed quiz
+        $quiz1 = Quiz::create([
+            'course_id' => $course->id,
+            'title' => 'Weekly Quiz 1: Word',
+            'publish_at' => now()->subDays(7),
+            'is_active' => true,
+        ]);
+
+        \App\Models\QuizAttempt::create([
+            'quiz_id' => $quiz1->id,
+            'user_id' => $student->id,
+            'started_at' => now()->subDays(6),
+            'completed_at' => now()->subDays(6),
+            'score' => 18,
+            'total_points' => 20,
+            'percentage' => 90,
+            'passed' => true,
+        ]);
+
+        // Next upcoming quiz (Week 2)
+        $quiz2 = Quiz::create([
+            'course_id' => $course->id,
+            'title' => 'Weekly Quiz 2: Mail Merge',
+            'publish_at' => now()->addDays(2),
+            'is_active' => true,
+        ]);
+
+        // Far future quiz (Week 3 - should be hidden)
+        $quiz3 = Quiz::create([
+            'course_id' => $course->id,
+            'title' => 'Weekly Quiz 3: Excel',
+            'publish_at' => now()->addDays(9),
+            'is_active' => true,
+        ]);
+
+        // Far future quiz (Week 10 - should be hidden)
+        $quiz10 = Quiz::create([
+            'course_id' => $course->id,
+            'title' => 'Weekly Quiz 10: JavaScript',
+            'publish_at' => now()->addDays(60),
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($student);
+
+        Livewire::test(Quizzes::class)
+            ->assertSee('Weekly Quiz 1: Word')
+            ->assertSee('View Results')
+            ->assertSee('Weekly Quiz 2: Mail Merge')
+            ->assertSee('Upcoming')
+            ->assertDontSee('Weekly Quiz 3: Excel')
+            ->assertDontSee('Weekly Quiz 10: JavaScript');
+    }
 }
