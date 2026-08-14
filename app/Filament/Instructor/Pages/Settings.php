@@ -16,10 +16,3 @@ class Settings extends Page
 
     protected string $view = 'filament.instructor.pages.settings';
 }
-use Filament\Forms\Components\Textarea; // or RichEditor
-
-Textarea::make('bio')
-    ->label('About / Bio')
-    ->rows(5)
-    ->placeholder('Write a brief description about yourself, your background, and teaching experience...')
-    ->columnSpanFull();

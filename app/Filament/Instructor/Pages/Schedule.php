@@ -127,8 +127,9 @@ class Schedule extends Page
         }
 
         $courseIds = Course::query()
-            ->where('instructor_id', $user->id)
-            ->orWhere('course_by', $user->id)
+            ->where('course_by', (string) $user->id)
+            ->orWhere('course_by', (string) $user->name)
+            ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $user->id))
             ->pluck('id')
             ->merge($user->instructorCourses()->pluck('courses.id'))
             ->unique();
@@ -563,8 +564,9 @@ class Schedule extends Page
         }
 
         $courseIds = Course::query()
-            ->where('instructor_id', $user->id)
-            ->orWhere('course_by', $user->id)
+            ->where('course_by', (string) $user->id)
+            ->orWhere('course_by', (string) $user->name)
+            ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $user->id))
             ->pluck('id')
             ->merge($user->instructorCourses()->pluck('courses.id'))
             ->unique()
@@ -878,8 +880,9 @@ class Schedule extends Page
     protected function resolveInstructorSession(User $user, int $sessionId): ?CourseSession
     {
         $courseIds = Course::query()
-            ->where('instructor_id', $user->id)
-            ->orWhere('course_by', $user->id)
+            ->where('course_by', (string) $user->id)
+            ->orWhere('course_by', (string) $user->name)
+            ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $user->id))
             ->pluck('id')
             ->merge($user->instructorCourses()->pluck('courses.id'))
             ->unique()

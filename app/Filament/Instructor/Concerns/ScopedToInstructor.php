@@ -13,8 +13,8 @@ trait ScopedToInstructor
         }
 
         return \App\Models\Course::query()
-            ->where('instructor_id', $user->id)
-            ->orWhere('course_by', $user->id)
+            ->where('course_by', (string) $user->id)
+            ->orWhere('course_by', (string) $user->name)
             ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $user->id))
             ->pluck('id')
             ->merge($user->instructorCourses()->pluck('courses.id'))
@@ -32,8 +32,8 @@ trait ScopedToInstructor
 
         return \App\Models\Course::query()
             ->where(function ($query) use ($user) {
-                $query->where('instructor_id', $user->id)
-                    ->orWhere('course_by', $user->id)
+                $query->where('course_by', (string) $user->id)
+                    ->orWhere('course_by', (string) $user->name)
                     ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $user->id));
             })
             ->where('is_active', true)
