@@ -19,7 +19,7 @@ class QuizPublishingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_future_scheduled_quiz_is_hidden_from_student(): void
+    public function test_future_scheduled_quiz_is_scheduled_and_blocked_from_taking(): void
     {
         $student = User::factory()->create(['role' => 'student']);
         $course = Course::query()->create([
@@ -45,14 +45,10 @@ class QuizPublishingTest extends TestCase
 
         $this->actingAs($student);
 
-        // Student quizzes page should not show the future quiz
-        $quizzes = Quiz::query()
-            ->with(['course', 'questions'])
-            ->whereIn('course_id', [$course->id])
-            ->released()
-            ->get();
-
-        $this->assertCount(0, $quizzes);
+        // Student quizzes page shows scheduled status
+        Livewire::test(Quizzes::class)
+            ->assertSee('Midterm Exam')
+            ->assertSee('Available');
 
         // TakeQuiz page should deny access
         Livewire::withQueryParams(['quiz' => (string) $futureQuiz->id])

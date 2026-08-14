@@ -454,6 +454,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
     public function isEnrolledInCourse(int $courseId): bool
     {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
         return $this->courses()->where('courses.id', $courseId)->exists();
     }
 
