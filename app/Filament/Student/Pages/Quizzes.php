@@ -51,15 +51,33 @@ class Quizzes extends Page
             ->get()
             ->groupBy('quiz_id');
 
-        $this->quizzes = Quiz::query()
+        $rawQuizzes = Quiz::query()
             ->with(['course', 'questions'])
             ->whereIn('course_id', $enrolledCourseIds)
             ->where(function ($query) {
                 $query->where('is_active', true)
                     ->orWhereNotNull('publish_at');
             })
-            ->orderByDesc('created_at')
-            ->get()
+            ->orderByRaw('COALESCE(publish_at, created_at) ASC')
+            ->get();
+
+        $visibleQuizzes = collect();
+
+        foreach ($rawQuizzes->groupBy('course_id') as $courseQuizzes) {
+            $releasedOrAttempted = $courseQuizzes->filter(fn (Quiz $q) => $q->isReleased() || $attempts->has($q->id));
+            $futureScheduled = $courseQuizzes->filter(fn (Quiz $q) => ! $q->isReleased() && ! $attempts->has($q->id) && $q->publish_at !== null && $q->publish_at->isFuture());
+
+            $nextUpcoming = $futureScheduled->first();
+
+            $courseVisible = $releasedOrAttempted;
+            if ($nextUpcoming) {
+                $courseVisible = $courseVisible->push($nextUpcoming);
+            }
+
+            $visibleQuizzes = $visibleQuizzes->concat($courseVisible);
+        }
+
+        $this->quizzes = $visibleQuizzes
             ->map(function (Quiz $quiz) use ($attempts) {
                 $quizAttempts = $attempts->get($quiz->id);
                 $completedAttempt = $quizAttempts?->first(fn (QuizAttempt $a) => $a->completed_at !== null);
@@ -77,7 +95,7 @@ class Quizzes extends Page
                     $statusLabel = 'Available ' . ($quiz->publish_at ? $quiz->publish_at->format('M j, g:i A') : 'Soon');
                 } else {
                     $status = 'not_started';
-                    $statusLabel = 'Not Started';
+                    $statusLabel = 'Available';
                 }
 
                 return [
