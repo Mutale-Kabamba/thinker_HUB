@@ -271,7 +271,75 @@
                 .community-thread-head { padding:0.62rem 0.85rem; border-bottom:1px solid var(--hub-border); background:color-mix(in oklab, var(--hub-card) var(--community-head-surface-ratio), var(--community-deep-bg) var(--community-head-ink-ratio)); }
                 .community-room-item { width:100%; text-align:left; padding:0.65rem 0.72rem; border:none; border-radius:0.85rem; cursor:pointer; margin-bottom:0.25rem; transition:all .12s ease; }
                 .community-room-item-active { background:var(--community-deep-bg); color:var(--community-active-text); box-shadow:0 10px 22px rgba(2,6,23,.22); }
-                .community-bubble { max-width:70%; }
+                .community-bubble { max-width:70%; position:relative; }
+                .community-msg-row { position:relative; width:100%; display:flex; flex-direction:column; }
+                .community-msg-actions {
+                    opacity:0;
+                    transition:opacity .15s ease, transform .15s ease;
+                    pointer-events:none;
+                    display:flex;
+                    align-items:center;
+                    gap:0.25rem;
+                    background:var(--hub-card);
+                    border:1px solid var(--hub-border);
+                    border-radius:999px;
+                    padding:0.18rem 0.35rem;
+                    box-shadow:0 6px 16px rgba(0,0,0,.15);
+                    position:absolute;
+                    top:-0.75rem;
+                    z-index:10;
+                }
+                .community-msg-row:hover .community-msg-actions,
+                .community-msg-row:focus-within .community-msg-actions,
+                .community-msg-actions[data-active="true"] {
+                    opacity:1;
+                    pointer-events:auto;
+                }
+                .community-action-btn {
+                    background:none;
+                    border:none;
+                    padding:0.2rem 0.35rem;
+                    border-radius:999px;
+                    cursor:pointer;
+                    color:var(--hub-muted);
+                    display:inline-flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:12px;
+                    line-height:1;
+                    transition:all .1s ease;
+                }
+                .community-action-btn:hover {
+                    color:var(--hub-ink);
+                    background:var(--hub-surface);
+                }
+                .community-emoji-picker {
+                    display:flex;
+                    align-items:center;
+                    gap:0.2rem;
+                    padding:0.2rem 0.3rem;
+                    background:var(--hub-card);
+                    border:1px solid var(--hub-border);
+                    border-radius:999px;
+                    box-shadow:0 8px 24px rgba(0,0,0,.22);
+                    position:absolute;
+                    bottom:100%;
+                    margin-bottom:0.3rem;
+                    z-index:20;
+                }
+                .community-emoji-btn {
+                    background:none;
+                    border:none;
+                    cursor:pointer;
+                    font-size:15px;
+                    padding:0.18rem 0.28rem;
+                    border-radius:999px;
+                    line-height:1;
+                    transition:transform .1s ease;
+                }
+                .community-emoji-btn:hover {
+                    transform:scale(1.3);
+                }
                 .community-composer-wrap { display:flex; gap:0.5rem; align-items:center; padding:0.34rem 0.4rem; border:1px solid var(--community-composer-border); border-radius:999px; background:var(--community-composer-bg); backdrop-filter:blur(10px); box-shadow:0 12px 28px rgba(2,6,23,.15); }
                 .community-message-input { color:var(--community-composer-input) !important; }
                 .community-message-input::placeholder { color:var(--community-composer-placeholder); opacity:1; }
@@ -286,6 +354,7 @@
                     .community-room-list, .community-thread { height:calc(100vh - var(--community-mobile-offset)); max-height:none; min-height:var(--community-mobile-min-height); }
                     .community-thread-head { position:sticky; top:0; z-index:5; padding:0.72rem 0.75rem; }
                     .community-bubble { max-width:86%; }
+                    .community-msg-actions { opacity: 0.85; pointer-events: auto; }
                     .community-back-btn { display:inline-flex; width:2rem; height:2rem; align-items:center; justify-content:center; border:1px solid var(--hub-border); border-radius:999px; background:var(--hub-surface); color:var(--hub-ink); cursor:pointer; flex:0 0 auto; }
                     .community-composer-wrap { gap:0.36rem; padding:0.26rem 0.3rem; }
                     .community-composer-wrap .community-message-input { font-size:14px; }
@@ -363,7 +432,7 @@
                             </div>
                         </div>
 
-                        <div wire:poll.4s style="flex:1;overflow-y:auto;padding:0.75rem 0.85rem 1.1rem;display:flex;flex-direction:column;gap:0.56rem;"
+                        <div wire:poll.4s style="flex:1;overflow-y:auto;padding:0.75rem 0.85rem 1.1rem;display:flex;flex-direction:column;gap:0.75rem;"
                             x-data x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)"
                             x-on:scroll-bottom.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
                             @if ($this->hasMoreMessages)
@@ -376,13 +445,96 @@
                                 </div>
                             @endif
                             @forelse ($this->messages as $message)
-                                @php $mine = $message->user_id === auth()->id(); @endphp
-                                <div style="display:flex;flex-direction:column;{{ $mine ? 'align-items:flex-end;' : 'align-items:flex-start;' }}">
-                                    <div class="community-bubble" style="padding:0.42rem 0.7rem;border-radius:0.78rem;font-size:13px;line-height:1.35;{{ $mine ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;border-bottom-right-radius:0.24rem;box-shadow:0 8px 20px rgba(15,118,110,.22);' : 'background:var(--hub-surface);color:var(--hub-ink);border:1px solid var(--hub-border);border-bottom-left-radius:0.24rem;box-shadow:0 4px 14px rgba(2,6,23,.06);' }}">
+                                @php
+                                    $mine = $message->user_id === auth()->id();
+                                    $author = $message->user;
+                                    $palette = $author?->chatColorPalette() ?? [
+                                        'accent' => '#0d9488',
+                                        'name_color' => '#0f766e',
+                                        'bg_light' => '#f0fdfa',
+                                        'border_light' => '#99f6e4',
+                                    ];
+                                    $groupedReactions = $message->getGroupedReactions(auth()->id());
+                                @endphp
+                                <div id="chat-msg-{{ $message->id }}"
+                                    x-data="{ showEmojiPicker: false }"
+                                    class="community-msg-row"
+                                    style="{{ $mine ? 'align-items:flex-end;' : 'align-items:flex-start;' }}">
+
+                                    {{-- Action toolbar (Reply & Reaction triggers) --}}
+                                    <div class="community-msg-actions"
+                                        style="{{ $mine ? 'right: 0.5rem;' : 'left: 0.5rem;' }}">
+                                        {{-- Quick Emoji Picker trigger --}}
+                                        <div style="position:relative;">
+                                            <button type="button"
+                                                @click="showEmojiPicker = !showEmojiPicker"
+                                                class="community-action-btn"
+                                                title="Add reaction">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                                            </button>
+
+                                            {{-- Popup emoji bar --}}
+                                            <div x-show="showEmojiPicker"
+                                                @click.outside="showEmojiPicker = false"
+                                                x-transition:enter="transition ease-out duration-100"
+                                                x-transition:enter-start="opacity-0 transform scale-90"
+                                                x-transition:enter-end="opacity-100 transform scale-100"
+                                                class="community-emoji-picker"
+                                                style="{{ $mine ? 'right:0;' : 'left:0;' }}"
+                                                x-cloak>
+                                                @foreach (['👍', '❤️', '😂', '🔥', '🚀', '👏', '💡', '😢'] as $emoji)
+                                                    <button type="button"
+                                                        wire:click="toggleReaction({{ $message->id }}, '{{ $emoji }}')"
+                                                        @click="showEmojiPicker = false"
+                                                        class="community-emoji-btn"
+                                                        title="React {{ $emoji }}">
+                                                        {{ $emoji }}
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+
+                                        {{-- Reply button --}}
+                                        <button type="button"
+                                            wire:click="setReplyTo({{ $message->id }})"
+                                            class="community-action-btn"
+                                            title="Reply to this message">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                                        </button>
+                                    </div>
+
+                                    {{-- Message Bubble --}}
+                                    <div class="community-bubble"
+                                        style="padding:0.45rem 0.72rem;border-radius:0.85rem;font-size:13px;line-height:1.38;{{ $mine ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;border-bottom-right-radius:0.24rem;box-shadow:0 8px 20px rgba(15,118,110,.22);' : 'background:color-mix(in oklab, var(--hub-surface) 92%, ' . $palette['accent'] . ' 8%);color:var(--hub-ink);border:1px solid color-mix(in oklab, var(--hub-border) 70%, ' . $palette['accent'] . ' 30%);border-left:3.5px solid ' . $palette['accent'] . ';border-bottom-left-radius:0.24rem;box-shadow:0 4px 14px rgba(2,6,23,.06);' }}">
+
+                                        {{-- Author Name in course/group rooms --}}
                                         @if (! $mine && $this->activeRoom->type === 'course')
-                                            <p style="margin:0 0 0.15rem;font-size:0.875rem;font-weight:600;opacity:0.92;">{{ $message->user?->name }}</p>
+                                            <p style="margin:0 0 0.2rem;font-size:0.8rem;font-weight:700;color:{{ $palette['name_color'] }};display:flex;align-items:center;gap:0.35rem;">
+                                                <span>{{ $author?->name ?? 'Student' }}</span>
+                                            </p>
                                         @endif
 
+                                        {{-- Quoted Parent Reply (if this message is a reply) --}}
+                                        @if ($message->replyTo)
+                                            @php
+                                                $quotedAuthor = $message->replyTo->user;
+                                                $quotedPalette = $quotedAuthor?->chatColorPalette();
+                                                $quotedMine = $message->replyTo->user_id === auth()->id();
+                                            @endphp
+                                            <div onclick="const target = document.getElementById('chat-msg-{{ $message->reply_to_id }}'); if(target){ target.scrollIntoView({behavior:'smooth', block:'center'}); target.style.transition='filter 0.4s ease'; target.style.filter='brightness(1.25)'; setTimeout(() => target.style.filter='', 1200); }"
+                                                title="Jump to quoted message"
+                                                style="cursor:pointer;margin-bottom:0.35rem;padding:0.3rem 0.55rem;border-radius:0.45rem;font-size:11.5px;border-left:3px solid {{ $quotedMine ? '#22d3ee' : ($quotedPalette['accent'] ?? '#0d9488') }};background:{{ $mine ? 'rgba(0,0,0,0.22)' : 'color-mix(in oklab, var(--hub-card) 75%, rgba(15,23,42,0.08) 25%)' }};max-width:100%;overflow:hidden;">
+                                                <div style="font-weight:700;font-size:11px;color:{{ $mine ? '#e0f2fe' : ($quotedPalette['name_color'] ?? 'var(--hub-primary)') }};display:flex;align-items:center;gap:0.3rem;margin-bottom:0.1rem;">
+                                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                                                    <span>{{ $quotedMine ? 'You' : ($quotedAuthor?->name ?? 'Student') }}</span>
+                                                </div>
+                                                <p style="margin:0;color:{{ $mine ? 'rgba(255,255,255,0.88)' : 'var(--hub-muted)' }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;">
+                                                    {{ $message->replyTo->body ?: ($message->replyTo->attachment_name ? '📎 '.$message->replyTo->attachment_name : 'Message') }}
+                                                </p>
+                                            </div>
+                                        @endif
+
+                                        {{-- Attachment --}}
                                         @if ($message->attachment_path)
                                             @if ($message->attachment_type === 'image')
                                                 <a href="{{ $message->attachment_url }}" target="_blank" rel="noopener noreferrer" style="display:block;">
@@ -398,18 +550,67 @@
                                             @endif
                                         @endif
 
+                                        {{-- Body Text --}}
                                         @if ($message->body)
-                                            <p style="margin:0;font-size:13px;white-space:pre-wrap;">{{ $message->body }}</p>
+                                            <p style="margin:0;font-size:13px;white-space:pre-wrap;word-break:break-word;">{{ $message->body }}</p>
                                         @endif
                                     </div>
-                                    <span style="font-size:11px;color:#94a3b8;margin-top:0.18rem;">{{ $message->created_at?->format('M d, H:i') }}</span>
+
+                                    {{-- Emoji Reactions Row --}}
+                                    @if (count($groupedReactions) > 0)
+                                        <div style="display:flex;flex-wrap:wrap;gap:0.25rem;margin-top:0.22rem;{{ $mine ? 'justify-content:flex-end;' : 'justify-content:flex-start;' }}">
+                                            @foreach ($groupedReactions as $reaction)
+                                                <button type="button"
+                                                    wire:click="toggleReaction({{ $message->id }}, '{{ $reaction['emoji'] }}')"
+                                                    title="{{ implode(', ', $reaction['names']) }}"
+                                                    style="display:inline-flex;align-items:center;gap:0.25rem;padding:0.12rem 0.44rem;border-radius:999px;font-size:11.5px;line-height:1;cursor:pointer;border:1px solid {{ $reaction['reacted_by_me'] ? 'var(--hub-primary, #0d9488)' : 'var(--hub-border)' }};background:{{ $reaction['reacted_by_me'] ? 'color-mix(in oklab, var(--hub-surface) 75%, #0d9488 25%)' : 'var(--hub-card)' }};color:var(--hub-ink);transition:transform 0.1s ease;"
+                                                    onmouseover="this.style.transform='scale(1.08)'"
+                                                    onmouseout="this.style.transform='scale(1)'">
+                                                    <span>{{ $reaction['emoji'] }}</span>
+                                                    <span style="font-weight:700;font-size:11px;">{{ $reaction['count'] }}</span>
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    @endif
+
+                                    {{-- Timestamp --}}
+                                    <span style="font-size:11px;color:#94a3b8;margin-top:0.15rem;">{{ $message->created_at?->format('M d, H:i') }}</span>
                                 </div>
                             @empty
                                 <p class="hub-copy" style="color:var(--hub-muted);font-size:0.82rem;text-align:center;margin:auto;">No messages yet. Say hi!</p>
                             @endforelse
                         </div>
 
-                        <form wire:submit.prevent="sendMessage" style="display:flex;flex-direction:column;gap:0.4rem;padding:0.68rem 0.75rem;border-top:1px solid var(--hub-border);background:linear-gradient(180deg,rgba(148,163,184,.05),rgba(15,23,42,.12));">
+                        {{-- Composer Area --}}
+                        <form wire:submit.prevent="sendMessage"
+                            x-data
+                            x-on:focus-chat-input.window="$nextTick(() => { const input = $el.querySelector('input[type=text]'); if (input) input.focus(); })"
+                            style="display:flex;flex-direction:column;gap:0.4rem;padding:0.68rem 0.75rem;border-top:1px solid var(--hub-border);background:linear-gradient(180deg,rgba(148,163,184,.05),rgba(15,23,42,.12));">
+
+                            {{-- Replying to Banner Preview --}}
+                            @if ($this->replyingToMessage)
+                                @php
+                                    $repUser = $this->replyingToMessage->user;
+                                    $repPalette = $repUser?->chatColorPalette();
+                                    $repMine = $this->replyingToMessage->user_id === auth()->id();
+                                @endphp
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:0.35rem 0.65rem;background:color-mix(in oklab, var(--hub-surface) 90%, {{ $repPalette['accent'] ?? '#0d9488' }} 10%);border-left:3.5px solid {{ $repPalette['accent'] ?? '#0d9488' }};border-radius:0.45rem;font-size:12px;">
+                                    <div style="min-width:0;flex:1;">
+                                        <div style="display:flex;align-items:center;gap:0.3rem;font-weight:700;color:{{ $repPalette['name_color'] ?? 'var(--hub-primary)' }};font-size:11.5px;">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                                            <span>Replying to {{ $repMine ? 'yourself' : ($repUser?->name ?? 'Student') }}</span>
+                                        </div>
+                                        <p style="margin:0.08rem 0 0;color:var(--hub-muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                            {{ $this->replyingToMessage->body ?: ($this->replyingToMessage->attachment_name ? '📎 '.$this->replyingToMessage->attachment_name : 'Attachment') }}
+                                        </p>
+                                    </div>
+                                    <button type="button" wire:click="cancelReply" title="Cancel reply"
+                                        style="background:none;border:none;cursor:pointer;color:var(--hub-muted);font-size:1.2rem;line-height:1;padding:0.2rem;"
+                                        onmouseover="this.style.color='#ef4444'"
+                                        onmouseout="this.style.color='var(--hub-muted)'">&times;</button>
+                                </div>
+                            @endif
+
                             {{-- Selected attachment preview --}}
                             @if ($attachment)
                                 <div style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.55rem;background:var(--hub-surface);border-radius:0.45rem;">
