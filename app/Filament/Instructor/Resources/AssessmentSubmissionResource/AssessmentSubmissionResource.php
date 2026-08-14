@@ -194,12 +194,16 @@ class AssessmentSubmissionResource extends Resource
                             $msg = trim((string) ($data['message'] ?? ''));
                             $records->each(function ($record) use ($msg): void {
                                 $record->update(['status' => 'Graded']);
-                                $record->user?->notify(new SubmissionGradedNotification(
-                                    'assessment',
-                                    (string) $record->assessment?->name,
-                                    $record->score,
-                                    (string) ($msg !== '' ? $msg : ($record->feedback ?: 'Your assessment has been graded.')),
-                                ));
+                                try {
+                                    $record->user?->notify(new SubmissionGradedNotification(
+                                        'assessment',
+                                        (string) $record->assessment?->name,
+                                        $record->score,
+                                        (string) ($msg !== '' ? $msg : ($record->feedback ?: 'Your assessment has been graded.')),
+                                    ));
+                                } catch (\Throwable $e) {
+                                    report($e);
+                                }
                             });
                         })
                         ->deselectRecordsAfterCompletion(),

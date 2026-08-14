@@ -132,12 +132,16 @@ class AssignmentSubmissionsTable
                                 $record->update(['status' => 'Graded']);
 
                                 if ($record->user) {
-                                    $record->user->notify(new SubmissionGradedNotification(
-                                        'assignment',
-                                        (string) $record->assignment?->name,
-                                        $record->grade,
-                                        (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your assignment has been graded.')),
-                                    ));
+                                    try {
+                                        $record->user->notify(new SubmissionGradedNotification(
+                                            'assignment',
+                                            (string) $record->assignment?->name,
+                                            $record->grade,
+                                            (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your assignment has been graded.')),
+                                        ));
+                                    } catch (\Throwable $e) {
+                                        report($e);
+                                    }
                                 }
                             });
                         })
@@ -167,12 +171,16 @@ class AssignmentSubmissionsTable
                                 $record->update(['status' => 'Reviewed']);
 
                                 if ($record->user) {
-                                    $record->user->notify(new SubmissionGradedNotification(
-                                        'assignment',
-                                        (string) $record->assignment?->name,
-                                        $record->grade,
-                                        (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your submission has been reviewed.')),
-                                    ));
+                                    try {
+                                        $record->user->notify(new SubmissionGradedNotification(
+                                            'assignment',
+                                            (string) $record->assignment?->name,
+                                            $record->grade,
+                                            (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your submission has been reviewed.')),
+                                        ));
+                                    } catch (\Throwable $e) {
+                                        report($e);
+                                    }
                                 }
                             });
                         })
@@ -194,12 +202,16 @@ class AssignmentSubmissionsTable
                                 $record->update(['status' => 'Returned']);
 
                                 if ($record->user) {
-                                    $record->user->notify(new SubmissionGradedNotification(
-                                        'assignment',
-                                        (string) $record->assignment?->name,
-                                        $record->grade,
-                                        (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your submission has been returned with feedback.')),
-                                    ));
+                                    try {
+                                        $record->user->notify(new SubmissionGradedNotification(
+                                            'assignment',
+                                            (string) $record->assignment?->name,
+                                            $record->grade,
+                                            (string) ($customMessage !== '' ? $customMessage : ($record->feedback ?: 'Your submission has been returned with feedback.')),
+                                        ));
+                                    } catch (\Throwable $e) {
+                                        report($e);
+                                    }
                                 }
                             });
                         })

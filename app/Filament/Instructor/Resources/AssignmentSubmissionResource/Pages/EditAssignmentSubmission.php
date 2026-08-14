@@ -15,12 +15,16 @@ class EditAssignmentSubmission extends BaseEditRecord
         $record = $this->record;
 
         if ($record->user && in_array($record->status, ['Graded', 'Checked', 'Returned'])) {
-            $record->user->notify(new SubmissionGradedNotification(
-                'assignment',
-                (string) $record->assignment?->name,
-                $record->grade,
-                (string) ($record->feedback ?: 'Your assignment has been graded.'),
-            ));
+            try {
+                $record->user->notify(new SubmissionGradedNotification(
+                    'assignment',
+                    (string) $record->assignment?->name,
+                    $record->grade,
+                    (string) ($record->feedback ?: 'Your assignment has been graded.'),
+                ));
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
     }
 }

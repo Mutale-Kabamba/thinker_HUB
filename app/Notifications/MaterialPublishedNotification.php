@@ -6,12 +6,14 @@ use App\Models\LearningMaterial;
 use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class MaterialPublishedNotification extends Notification
+class MaterialPublishedNotification extends Notification implements ShouldQueue
 {
-    use ResolvesMailPersonalization;
+    use Queueable, ResolvesMailPersonalization;
 
     public function __construct(private readonly LearningMaterial $material) {}
 
