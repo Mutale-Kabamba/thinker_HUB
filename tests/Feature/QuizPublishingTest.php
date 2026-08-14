@@ -157,4 +157,59 @@ class QuizPublishingTest extends TestCase
 
         Notification::assertSentTo($student, QuizPublishedNotification::class);
     }
+
+    public function test_instructor_can_create_quiz_via_filament_form(): void
+    {
+        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('instructor'));
+
+        $instructor = User::factory()->create([
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+
+        $course = Course::query()->create([
+            'title' => 'Software Testing',
+            'code' => 'TEST101',
+            'is_active' => true,
+        ]);
+        $instructor->instructorCourses()->attach($course->id);
+
+        $this->actingAs($instructor);
+
+        Livewire::test(\App\Filament\Instructor\Resources\QuizResource\Pages\CreateQuiz::class)
+            ->fillForm([
+                'course_id' => $course->id,
+                'title' => 'Unit Testing Quiz',
+                'description' => 'Test your knowledge',
+                'pass_percentage' => 70,
+                'is_active' => true,
+                'questions' => [
+                    [
+                        'type' => 'multiple_choice',
+                        'question' => 'What is TDD?',
+                        'points' => 2,
+                        'options' => [
+                            ['option_text' => 'Test Driven Development', 'is_correct' => true],
+                            ['option_text' => 'Time Delay Device', 'is_correct' => false],
+                        ],
+                    ],
+                ],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('quizzes', [
+            'course_id' => $course->id,
+            'title' => 'Unit Testing Quiz',
+        ]);
+
+        $this->assertDatabaseHas('quiz_questions', [
+            'question' => 'What is TDD?',
+        ]);
+
+        $this->assertDatabaseHas('quiz_options', [
+            'option_text' => 'Test Driven Development',
+            'is_correct' => true,
+        ]);
+    }
 }

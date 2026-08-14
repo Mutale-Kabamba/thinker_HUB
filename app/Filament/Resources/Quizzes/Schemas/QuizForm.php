@@ -104,6 +104,7 @@ class QuizForm
 
                                 Repeater::make('options')
                                     ->relationship()
+                                    ->orderColumn('sort_order')
                                     ->schema([
                                         TextInput::make('option_text')
                                             ->label('Option')
@@ -127,16 +128,12 @@ class QuizForm
                             ->reorderable()
                             ->collapsible()
                             ->cloneable()
+                            ->orderColumn('sort_order')
                             ->itemLabel(fn (array $state): ?string => ($state['question'] ?? null)
                                 ? \Illuminate\Support\Str::limit($state['question'], 60)
                                 : 'New Question'
                             )
-                            ->columnSpanFull()
-                            ->mutateRelationshipDataBeforeCreateUsing(function (array $data, int $index): array {
-                                $data['sort_order'] = $index;
-
-                                return $data;
-                            }),
+                            ->columnSpanFull(),
                     ]),
             ]);
     }
