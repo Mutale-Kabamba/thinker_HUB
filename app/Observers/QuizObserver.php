@@ -40,7 +40,7 @@ class QuizObserver
                     ->where('notifiable_type', $student->getMorphClass())
                     ->where('notifiable_id', $student->id)
                     ->where('type', QuizPublishedNotification::class)
-                    ->whereJsonContains('data->body', $quiz->title)
+                    ->where('data', 'like', '%'.$quiz->title.'%')
                     ->exists();
 
                 if (! $alreadyNotified) {
