@@ -48,12 +48,12 @@ class ContributorPanelProvider extends PanelProvider
                     ->label('Student Workspace')
                     ->icon('heroicon-o-book-open')
                     ->url('/learn')
-                    ->visible(fn (): bool => (bool) auth()->user()?->isStudent()),
+                    ->visible(fn (): bool => (bool) (auth()->user()?->hasDualRole() && auth()->user()?->isStudent())),
                 MenuItem::make()
                     ->label('Instructor Hub')
                     ->icon('heroicon-o-academic-cap')
                     ->url('/teach')
-                    ->visible(fn (): bool => (bool) auth()->user()?->isInstructor() && (bool) auth()->user()?->is_active),
+                    ->visible(fn (): bool => (bool) (auth()->user()?->hasDualRole() && auth()->user()?->isInstructor() && auth()->user()?->is_active)),
                 MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')

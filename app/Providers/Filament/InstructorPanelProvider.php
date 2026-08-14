@@ -50,12 +50,12 @@ class InstructorPanelProvider extends PanelProvider
                     ->label('Student Workspace')
                     ->icon('heroicon-o-book-open')
                     ->url('/learn')
-                    ->visible(fn (): bool => (bool) auth()->user()?->isStudent()),
+                    ->visible(fn (): bool => (bool) (auth()->user()?->hasDualRole() && auth()->user()?->isStudent())),
                 MenuItem::make()
                     ->label('Contributor Desk')
                     ->icon('heroicon-o-sparkles')
                     ->url('/contribute')
-                    ->visible(fn (): bool => (bool) auth()->user()?->isContributor()),
+                    ->visible(fn (): bool => (bool) (auth()->user()?->hasDualRole() && auth()->user()?->isContributor())),
                 MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')

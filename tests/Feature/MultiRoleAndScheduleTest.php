@@ -22,6 +22,14 @@ class MultiRoleAndScheduleTest extends TestCase
             'is_active' => true,
         ]);
 
+        $course = Course::query()->create([
+            'title' => 'Test Course',
+            'code' => 'TEST-101',
+            'is_active' => true,
+        ]);
+        $dualRoleUser->courses()->attach($course->id);
+
+        $this->assertTrue($dualRoleUser->hasDualRole());
         $this->assertTrue($dualRoleUser->isInstructor());
         $this->assertTrue($dualRoleUser->isStudent());
         $this->assertTrue($dualRoleUser->isContributor());
@@ -40,6 +48,57 @@ class MultiRoleAndScheduleTest extends TestCase
         $this->assertTrue($dualRoleUser->canAccessPanel($studentPanel));
         $this->assertTrue($dualRoleUser->canAccessPanel($instructorPanel));
         $this->assertTrue($dualRoleUser->canAccessPanel($contributorPanel));
+    }
+
+    public function test_single_role_instructor_cannot_access_student_panel(): void
+    {
+        $singleInstructor = User::factory()->create([
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+
+        $this->assertFalse($singleInstructor->hasDualRole());
+        $this->assertTrue($singleInstructor->isInstructor());
+        $this->assertFalse($singleInstructor->isStudent());
+        $this->assertFalse($singleInstructor->isContributor());
+
+        $studentPanel = filament()->getPanel('student');
+        $instructorPanel = filament()->getPanel('instructor');
+        $contributorPanel = filament()->getPanel('contributor');
+
+        $this->assertFalse($singleInstructor->canAccessPanel($studentPanel));
+        $this->assertTrue($singleInstructor->canAccessPanel($instructorPanel));
+        $this->assertFalse($singleInstructor->canAccessPanel($contributorPanel));
+    }
+
+    public function test_workspace_switchers_only_visible_for_dual_role_accounts(): void
+    {
+        $singleInstructor = User::factory()->create([
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($singleInstructor);
+        $instructorPanel = filament()->getPanel('instructor');
+        filament()->setCurrentPanel($instructorPanel);
+
+        $singleMenuItems = $instructorPanel->getUserMenuItems();
+        $this->assertFalse(collect($singleMenuItems)->contains(fn ($item) => $item->getLabel() === 'Student Workspace'));
+        $this->assertFalse(collect($singleMenuItems)->contains(fn ($item) => $item->getLabel() === 'Contributor Desk'));
+
+        // Convert instructor to dual-role by enrolling in a course as a student
+        $course = Course::query()->create([
+            'title' => 'Dual Role Test Course',
+            'code' => 'DUAL-101',
+            'is_active' => true,
+        ]);
+        $singleInstructor->courses()->attach($course->id);
+
+        $this->assertTrue($singleInstructor->fresh()->hasDualRole());
+
+        $dualMenuItems = $instructorPanel->getUserMenuItems();
+        $this->assertTrue(collect($dualMenuItems)->contains(fn ($item) => $item->getLabel() === 'Student Workspace'));
+        $this->assertTrue(collect($dualMenuItems)->contains(fn ($item) => $item->getLabel() === 'Contributor Desk'));
     }
 
     public function test_regular_student_cannot_access_instructor_or_contributor_panels(): void
