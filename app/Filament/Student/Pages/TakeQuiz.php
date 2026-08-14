@@ -50,12 +50,21 @@ class TakeQuiz extends Page
 
         $quiz = Quiz::query()
             ->visibleTo($user)
-            ->released()
             ->whereKey($this->quizId)
             ->first();
 
-        if (! $quiz || ! $quiz->isReleased()) {
+        if (! $quiz || (! $quiz->is_active && ! $quiz->publish_at)) {
             Notification::make()->title('Quiz not available.')->danger()->send();
+            $this->redirect(route('filament.student.pages.quizzes'));
+
+            return;
+        }
+
+        if (! $quiz->isReleased()) {
+            Notification::make()
+                ->title('This quiz is scheduled to release on ' . ($quiz->publish_at ? $quiz->publish_at->format('M j, Y \a\t g:i A') : 'a later date') . '.')
+                ->warning()
+                ->send();
             $this->redirect(route('filament.student.pages.quizzes'));
 
             return;

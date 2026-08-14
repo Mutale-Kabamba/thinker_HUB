@@ -29,7 +29,7 @@
                             <td style="padding:0.55rem 0.5rem;text-align:center;color:var(--hub-muted);">{{ $quiz['question_count'] }}</td>
                             <td style="padding:0.55rem 0.5rem;text-align:center;color:var(--hub-muted);">{{ $quiz['time_limit'] ? $quiz['time_limit'] . ' min' : 'No limit' }}</td>
                             <td style="padding:0.55rem 0.5rem;text-align:center;">
-                                <span class="hub-chip {{ $quiz['status'] === 'completed' ? ($quiz['passed'] ? 'hub-chip-green' : 'hub-chip-red') : ($quiz['status'] === 'in_progress' ? 'hub-chip-blue' : 'hub-chip-amber') }}" style="font-size:0.7rem;">{{ $quiz['status_label'] }}</span>
+                                <span class="hub-chip {{ $quiz['status'] === 'completed' ? ($quiz['passed'] ? 'hub-chip-green' : 'hub-chip-red') : ($quiz['status'] === 'in_progress' ? 'hub-chip-blue' : ($quiz['status'] === 'scheduled' ? 'hub-chip-purple' : 'hub-chip-amber')) }}" style="font-size:0.7rem;">{{ $quiz['status_label'] }}</span>
                             </td>
                             <td style="padding:0.55rem 0.5rem;text-align:center;font-weight:700;color:{{ $quiz['score'] !== null ? ($quiz['passed'] ? '#15803d' : '#dc2626') : 'var(--hub-muted)' }};">{{ $quiz['score'] !== null ? $quiz['score'] . '%' : '-' }}</td>
                             <td style="padding:0.55rem 0.75rem;text-align:right;">
@@ -37,6 +37,8 @@
                                     <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#475569;font-weight:600;transition:background 0.15s;text-decoration:none;" onmouseover="this.style.background='var(--hub-surface)'" onmouseout="this.style.background='none'">Review</a>
                                 @elseif ($quiz['status'] === 'in_progress')
                                     <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" style="background:none;border:1px solid #0d9488;border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0d9488;font-weight:600;transition:background 0.15s;text-decoration:none;" onmouseover="this.style.background='#f0fdfa'" onmouseout="this.style.background='none'">Continue</a>
+                                @elseif ($quiz['status'] === 'scheduled')
+                                    <span style="background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;color:var(--hub-muted);font-weight:600;display:inline-block;cursor:default;">Scheduled</span>
                                 @else
                                     <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" style="background:#0d9488;border:1px solid #0d9488;border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#fff;font-weight:600;transition:background 0.15s;text-decoration:none;" onmouseover="this.style.background='#0f766e'" onmouseout="this.style.background='#0d9488'">Start Quiz</a>
                                 @endif
@@ -63,7 +65,7 @@
                             <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $quiz['title'] }}</p>
                             <p style="margin:0.1rem 0 0;font-size:0.73rem;color:var(--hub-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $quiz['course'] }}</p>
                         </div>
-                        <span class="hub-chip {{ $quiz['status'] === 'completed' ? ($quiz['passed'] ? 'hub-chip-green' : 'hub-chip-red') : ($quiz['status'] === 'in_progress' ? 'hub-chip-blue' : 'hub-chip-amber') }}" style="font-size:0.65rem;flex-shrink:0;margin-left:0.35rem;">{{ $quiz['status_label'] }}</span>
+                        <span class="hub-chip {{ $quiz['status'] === 'completed' ? ($quiz['passed'] ? 'hub-chip-green' : 'hub-chip-red') : ($quiz['status'] === 'in_progress' ? 'hub-chip-blue' : ($quiz['status'] === 'scheduled' ? 'hub-chip-purple' : 'hub-chip-amber')) }}" style="font-size:0.65rem;flex-shrink:0;margin-left:0.35rem;">{{ $quiz['status_label'] }}</span>
                     </div>
 
                     {{-- Meta row --}}
@@ -83,6 +85,8 @@
                             <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-action-btn" style="color:#94a3b8;text-decoration:none;flex:1;text-align:center;">Review</a>
                         @elseif ($quiz['status'] === 'in_progress')
                             <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-action-btn" style="color:#0d9488;border-color:#0d9488;text-decoration:none;flex:1;text-align:center;">Continue</a>
+                        @elseif ($quiz['status'] === 'scheduled')
+                            <span class="hub-action-btn" style="color:var(--hub-muted);border-color:var(--hub-border);background:var(--hub-surface);flex:1;text-align:center;cursor:default;">Scheduled</span>
                         @else
                             <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-action-btn" style="background:#0d9488;color:#fff;border-color:#0d9488;text-decoration:none;flex:1;text-align:center;">Start Quiz</a>
                         @endif

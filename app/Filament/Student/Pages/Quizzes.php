@@ -31,7 +31,20 @@ class Quizzes extends Page
             return;
         }
 
-        $enrolledCourseIds = $user->courses()->pluck('courses.id')->all();
+        if ($user->isAdmin()) {
+            $enrolledCourseIds = \App\Models\Course::query()->pluck('id')->all();
+        } elseif ($user->isInstructor()) {
+            $enrolledCourseIds = \App\Models\Course::query()
+                ->where('course_by', (string) $user->id)
+                ->orWhere('course_by', (string) $user->name)
+                ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $user->id))
+                ->pluck('id')
+                ->merge($user->courses()->pluck('courses.id'))
+                ->unique()
+                ->all();
+        } else {
+            $enrolledCourseIds = $user->courses()->pluck('courses.id')->all();
+        }
 
         $attempts = QuizAttempt::query()
             ->where('user_id', $user->id)
@@ -41,13 +54,17 @@ class Quizzes extends Page
         $this->quizzes = Quiz::query()
             ->with(['course', 'questions'])
             ->whereIn('course_id', $enrolledCourseIds)
-            ->released()
+            ->where(function ($query) {
+                $query->where('is_active', true)
+                    ->orWhereNotNull('publish_at');
+            })
             ->orderByDesc('created_at')
             ->get()
             ->map(function (Quiz $quiz) use ($attempts) {
                 $quizAttempts = $attempts->get($quiz->id);
                 $completedAttempt = $quizAttempts?->first(fn (QuizAttempt $a) => $a->completed_at !== null);
                 $inProgress = $quizAttempts?->first(fn (QuizAttempt $a) => $a->completed_at === null);
+                $isReleased = $quiz->isReleased();
 
                 if ($completedAttempt) {
                     $status = 'completed';
@@ -55,6 +72,9 @@ class Quizzes extends Page
                 } elseif ($inProgress) {
                     $status = 'in_progress';
                     $statusLabel = 'In Progress';
+                } elseif (! $isReleased) {
+                    $status = 'scheduled';
+                    $statusLabel = 'Available ' . ($quiz->publish_at ? $quiz->publish_at->format('M j, g:i A') : 'Soon');
                 } else {
                     $status = 'not_started';
                     $statusLabel = 'Not Started';
@@ -70,6 +90,7 @@ class Quizzes extends Page
                     'pass_percentage' => $quiz->pass_percentage,
                     'status' => $status,
                     'status_label' => $statusLabel,
+                    'is_released' => $isReleased,
                     'score' => $completedAttempt?->percentage,
                     'passed' => $completedAttempt?->passed,
                     'completed_at' => $completedAttempt?->completed_at?->format('M d, Y H:i'),

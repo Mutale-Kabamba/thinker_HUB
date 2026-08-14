@@ -12,6 +12,10 @@ trait ScopedToInstructor
             return [];
         }
 
+        if ($user->isAdmin()) {
+            return \App\Models\Course::query()->pluck('id')->all();
+        }
+
         return \App\Models\Course::query()
             ->where('course_by', (string) $user->id)
             ->orWhere('course_by', (string) $user->name)
@@ -28,6 +32,14 @@ trait ScopedToInstructor
 
         if (! $user) {
             return [];
+        }
+
+        if ($user->isAdmin()) {
+            return \App\Models\Course::query()
+                ->where('is_active', true)
+                ->orderBy('title')
+                ->pluck('title', 'id')
+                ->toArray();
         }
 
         return \App\Models\Course::query()
