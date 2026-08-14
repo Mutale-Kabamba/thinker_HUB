@@ -436,7 +436,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
         if ($this->isInstructor()) {
             // Dual-role (student + approved active instructor) automatically unlocks all contributor submissions
-            return in_array($type, ['blog', 'tip_trick', 'opportunity', 'video'], true);
+            if ($this->hasDualRole()) {
+                return in_array($type, ['blog', 'tip_trick', 'opportunity', 'video'], true);
+            }
+
+            return in_array($type, ['tip_trick', 'video'], true);
         }
 
         return match ($type) {
@@ -458,20 +462,65 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return PublicDiskPath::url($this->profile_photo_path);
     }
 
+    /**
+     * Whether this account operates with dual-role privileges (e.g. Student + Instructor).
+     */
+    public function hasDualRole(): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if (! $this->is_active) {
+            return false;
+        }
+
+        if ($this->isInstructor()) {
+            return $this->enrollments()->exists()
+                || $this->instructorApplication()->where('status', 'approved')->exists();
+        }
+
+        if ($this->role === 'student' || empty($this->role)) {
+            return $this->instructorApplication()->where('status', 'approved')->exists()
+                || $this->instructorCourses()->exists();
+        }
+
+        if (in_array($this->role, ['blogger', 'researcher', 'employer'], true)) {
+            return $this->enrollments()->exists()
+                || $this->instructorApplication()->where('status', 'approved')->exists()
+                || $this->instructorCourses()->exists();
+        }
+
+        return false;
+    }
+
     public function isContributor(): bool
     {
-        // Dual-role (student + approved active instructor) automatically has full contributor access
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        // Dedicated contributor roles or dual-role approved instructors
         return in_array($this->role, ['blogger', 'researcher', 'employer'], true)
-            || ($this->isInstructor() && $this->is_active);
+            || ($this->isInstructor() && $this->is_active && $this->hasDualRole());
     }
 
     public function isStudent(): bool
     {
-        // Students and dual-role instructors/admins can access student learning features
-        return $this->role === 'student'
-            || $this->role === 'instructor'
-            || $this->role === 'admin'
-            || empty($this->role);
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        // Students and dual-role instructors can access student learning features
+        if ($this->role === 'student' || empty($this->role)) {
+            return true;
+        }
+
+        if ($this->isInstructor()) {
+            return $this->hasDualRole();
+        }
+
+        return $this->enrollments()->exists();
     }
 
     public function canAccessPanel(Panel $panel): bool
@@ -482,9 +531,9 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
         return match ($panel->getId()) {
             'admin' => $this->isAdmin(),
-            'instructor' => $this->isInstructor(),
-            'contributor' => $this->isContributor(),
-            'student' => $this->isStudent(),
+            'instructor' => $this->isInstructor() || $this->isAdmin(),
+            'contributor' => $this->isContributor() || $this->isAdmin(),
+            'student' => $this->isStudent() || $this->isAdmin(),
             default => false,
         };
     }
