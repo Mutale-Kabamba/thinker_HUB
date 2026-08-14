@@ -29,6 +29,7 @@ class InstructorPanelProvider extends PanelProvider
         return $panel
             ->id('instructor')
             ->path('teach')
+            ->brandName('Thinker HUB • Instructor Workspace')
             ->login(SharedLogin::class)
             ->colors([
                 'primary' => Color::Teal,
@@ -72,6 +73,10 @@ class InstructorPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => view('partials.pwa-register')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::SIDEBAR_NAV_START,
+                fn (): string => view('filament.partials.workspace-badge', ['position' => 'sidebar'])->render(),
             )
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,

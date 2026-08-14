@@ -1,9 +1,16 @@
 <x-filament-panels::page>
     <div class="hub-shell">
-        <section class="hub-card" style="padding:0.75rem 1rem;">
-            <p class="hub-eyebrow">Instructor Dashboard</p>
-            <h2 class="hub-title" style="font-size:1.1rem;">Welcome, {{ auth()->user()?->name }}</h2>
-            <p class="hub-copy" style="margin-top:0.2rem;">View your assigned courses, student progress, and course materials.</p>
+        <section class="hub-card" style="padding:0.85rem 1.15rem; border-left: 4px solid #059669;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <span class="hub-chip" style="background:#ecfdf5; color:#047857; border-color:#a7f3d0; font-size:0.7rem; font-weight:700; text-transform:uppercase;">
+                    <i class="fa-solid fa-chalkboard-user"></i> Instructor Workspace
+                </span>
+                <span style="font-size:0.75rem; color:var(--hub-muted);">
+                    {{ count($courses) }} Active {{ count($courses) === 1 ? 'Course' : 'Courses' }}
+                </span>
+            </div>
+            <h2 class="hub-title" style="font-size:1.2rem; margin-bottom: 0.2rem;">Welcome, {{ auth()->user()?->name }}</h2>
+            <p class="hub-copy" style="margin:0;">Manage your assigned courses, evaluate student submissions, and coordinate teaching sessions.</p>
         </section>
 
         {{-- Stats --}}

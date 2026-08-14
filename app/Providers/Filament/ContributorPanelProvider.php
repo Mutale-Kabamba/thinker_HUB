@@ -28,7 +28,12 @@ class ContributorPanelProvider extends PanelProvider
         return $panel
             ->id('contributor')
             ->path('contribute')
-            ->brandName('Thinker HUB')
+            ->brandName(fn (): string => match (auth()->user()?->role) {
+                'blogger' => 'Thinker HUB • Blogger Workspace',
+                'researcher' => 'Thinker HUB • Researcher Workspace',
+                'employer' => 'Thinker HUB • Employer Workspace',
+                default => 'Thinker HUB • Contributor Portal',
+            })
             ->login(SharedLogin::class)
             ->colors([
                 'primary' => Color::Teal,
@@ -70,6 +75,16 @@ class ContributorPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => view('partials.pwa-register')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::SIDEBAR_NAV_START,
+                fn (): string => view('filament.partials.workspace-badge', ['position' => 'sidebar'])->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_END,
+                fn (): string => view('filament.partials.top-search', [
+                    'action' => '',
+                ])->render(),
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,

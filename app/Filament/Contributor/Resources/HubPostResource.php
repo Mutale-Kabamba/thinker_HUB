@@ -24,9 +24,40 @@ class HubPostResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'CONTRIBUTIONS';
 
-    protected static ?string $navigationLabel = 'My Contributions';
-
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationLabel(): string
+    {
+        $role = auth()->user()?->role;
+        return match ($role) {
+            'blogger' => 'My Blog Posts & Articles',
+            'researcher' => 'My Research & Insights',
+            'employer' => 'My Job Opportunities',
+            default => 'My Contributions',
+        };
+    }
+
+    public static function getModelLabel(): string
+    {
+        $role = auth()->user()?->role;
+        return match ($role) {
+            'blogger' => 'Blog Post',
+            'researcher' => 'Research Insight',
+            'employer' => 'Opportunity',
+            default => 'Contribution',
+        };
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        $role = auth()->user()?->role;
+        return match ($role) {
+            'blogger' => 'Blog Posts',
+            'researcher' => 'Research Insights',
+            'employer' => 'Opportunities',
+            default => 'Contributions',
+        };
+    }
 
     public static function getEloquentQuery(): Builder
     {

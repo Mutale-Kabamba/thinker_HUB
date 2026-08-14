@@ -2357,4 +2357,56 @@
             z-index: 9999;
         }
     }
+
+    /* ============================================================ */
+    /* WORKSPACE BADGES (TOPBAR & SIDEBAR)                          */
+    /* ============================================================ */
+    .hub-sidebar-badge-container {
+        padding: 0.35rem 0.75rem 0.6rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .hub-sidebar-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.32rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        width: 100%;
+        justify-content: center;
+        text-transform: capitalize;
+    }
+
+    .hub-topbar-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.26rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .dark .hub-sidebar-badge,
+    .dark .hub-topbar-badge {
+        background: rgba(15, 23, 42, 0.75) !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+        color: #f1f5f9 !important;
+    }
+
+    @media (max-width: 640px) {
+        .hub-topbar-badge span {
+            display: none;
+        }
+        .hub-topbar-badge {
+            padding: 0.3rem 0.5rem;
+        }
+    }
 </style>
