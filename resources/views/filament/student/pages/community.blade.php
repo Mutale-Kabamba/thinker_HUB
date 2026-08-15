@@ -298,10 +298,12 @@
                             <button
                                 type="button"
                                 @click="showAllLeaderboard = !showAllLeaderboard"
-                                style="width:100%;padding:0.35rem 0.5rem;margin-top:0.15rem;border-radius:0.4rem;border:1px dashed var(--hub-border);background:var(--hub-surface);color:var(--hub-primary);font-size:0.74rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:0.3rem;cursor:pointer;transition:all .15s ease;"
+                                style="width:100%;padding:0.38rem 0.55rem;margin-top:0.2rem;border-radius:0.45rem;border:1px solid var(--hub-border);background:var(--hub-surface);color:var(--hub-ink);font-size:0.75rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:0.35rem;cursor:pointer;transition:all .15s ease;"
                             >
                                 <span x-text="showAllLeaderboard ? 'Collapse to Top 5' : 'View More (Rank 6–{{ $allRows->count() }})'"></span>
-                                <svg style="width:0.75rem;height:0.75rem;transition:transform .2s;" :style="showAllLeaderboard ? 'transform:rotate(180deg);' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                <svg style="width:0.85rem;height:0.85rem;color:var(--hub-ink);transition:transform .2s ease;" :style="showAllLeaderboard ? 'transform:rotate(180deg);' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                </svg>
                             </button>
                         @endif
 
@@ -374,10 +376,12 @@
 
                     <button
                         type="button"
-                        style="background:none;border:none;color:var(--hub-muted);cursor:pointer;padding:0.25rem;display:flex;align-items:center;justify-content:center;border-radius:0.35rem;flex-shrink:0;"
+                        style="width:1.9rem;height:1.9rem;min-width:1.9rem;border-radius:9999px;background:var(--hub-surface);border:1px solid var(--hub-border);display:flex;align-items:center;justify-content:center;color:var(--hub-ink);cursor:pointer;transition:all 0.15s ease;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,0.05);"
                         aria-label="Toggle XP breakdown"
                     >
-                        <svg style="width:0.85rem;height:0.85rem;transition:transform .2s ease;" :style="showXpEarned ? 'transform:rotate(180deg);' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg style="width:1rem;height:1rem;color:var(--hub-ink);transition:transform .2s ease;" :style="showXpEarned ? 'transform:rotate(180deg);' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                        </svg>
                     </button>
                 </div>
 
