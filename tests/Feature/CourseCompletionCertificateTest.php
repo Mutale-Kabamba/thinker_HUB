@@ -19,6 +19,13 @@ class CourseCompletionCertificateTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(\Database\Seeders\CourseGamificationRuleSeeder::class);
+    }
+
     public function test_certificate_is_only_available_after_instructor_marks_course_complete(): void
     {
         Notification::fake();

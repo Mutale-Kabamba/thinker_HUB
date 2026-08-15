@@ -130,6 +130,63 @@ class Community extends Page
     }
 
     /**
+     * Detailed XP & Thinker Coins earning history, badges, and breakdown for the viewing student.
+     *
+     * @return array{
+     *   total_xp: int,
+     *   total_coins: int,
+     *   streak: int,
+     *   rank: array{rank_name: string, multiplier: float},
+     *   transactions: \Illuminate\Support\Collection<int, \App\Models\XpTransaction>,
+     *   earned_badges: \Illuminate\Support\Collection<int, \App\Models\Badge>,
+     *   total_available_badges: int
+     * }
+     */
+    public function getMyXpBreakdownProperty(): array
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return [
+                'total_xp' => 0,
+                'total_coins' => 0,
+                'streak' => 0,
+                'rank' => ['rank_name' => 'Novice', 'multiplier' => 1.0],
+                'transactions' => collect(),
+                'earned_badges' => collect(),
+                'total_available_badges' => 0,
+            ];
+        }
+
+        $service = app(GamificationService::class);
+        $rank = $service->calculateUserRank((int) ($user->lifetime_xp ?? 0));
+
+        $txs = \App\Models\XpTransaction::query()
+            ->where('user_id', $user->id)
+            ->latest('created_at')
+            ->take(15)
+            ->get();
+
+        $earnedBadges = $user->badges()
+            ->orderBy('user_badge.earned_at', 'desc')
+            ->get();
+
+        $totalAvailableBadges = \App\Models\Badge::query()->count();
+
+        return [
+            'total_xp' => (int) ($user->lifetime_xp ?? 0),
+            'total_coins' => (int) ($user->spendable_coins ?? 0),
+            'streak' => (int) ($user->current_streak ?? 0),
+            'rank' => $rank,
+            'transactions' => $txs,
+            'earned_badges' => $earnedBadges,
+            'total_available_badges' => $totalAvailableBadges,
+        ];
+    }
+
+
+
+    /**
      * Ensure a group room exists for each course the student is enrolled in,
      * and that the student is a member of it.
      */

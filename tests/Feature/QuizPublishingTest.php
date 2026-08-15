@@ -277,4 +277,40 @@ class QuizPublishingTest extends TestCase
             ->assertDontSee('Weekly Quiz 3: Excel')
             ->assertDontSee('Weekly Quiz 10: JavaScript');
     }
+
+    public function test_quizzes_page_renders_responsive_cards_and_details_for_student(): void
+    {
+        $student = User::factory()->create(['role' => 'student']);
+        $course = Course::query()->create([
+            'title' => 'Web Design & Development',
+            'code' => 'WD101',
+            'is_active' => true,
+        ]);
+
+        Enrollment::create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+            'enrolled_at' => now(),
+        ]);
+
+        $quiz = Quiz::create([
+            'course_id' => $course->id,
+            'title' => 'HTML5 & CSS3 Essentials',
+            'description' => 'Comprehensive test covering responsive design and semantic elements',
+            'time_limit_minutes' => 20,
+            'pass_percentage' => 75,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($student);
+
+        Livewire::test(Quizzes::class)
+            ->assertSee('HTML5 & CSS3 Essentials')
+            ->assertSee('Web Design & Development')
+            ->assertSee('Take Quiz')
+            ->assertSee('20m')
+            ->assertSee('hub-quiz-listing')
+            ->assertSee('hub-mobile-card');
+    }
 }
+

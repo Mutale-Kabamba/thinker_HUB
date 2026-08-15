@@ -31,6 +31,7 @@ class GamificationSystemTest extends TestCase
         parent::setUp();
 
         $this->artisan('migrate');
+        $this->seed(\Database\Seeders\CourseGamificationRuleSeeder::class);
     }
 
     public function test_daily_login_awards_xp_and_is_idempotent(): void

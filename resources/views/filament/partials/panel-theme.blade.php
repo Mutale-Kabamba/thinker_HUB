@@ -2010,36 +2010,30 @@
         .hub-span-2 { grid-column: span 1 !important; }
 
         /* ---- Quiz Centre listing ---- */
+        .hub-quiz-listing {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+            max-width: 100%;
+        }
+
         .hub-quiz-listing .hub-mobile-card {
             padding: 0.75rem 0.85rem;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
         }
 
-        .hub-quiz-listing .hub-mobile-card-row {
-            align-items: center;
-        }
-
-        .hub-quiz-listing .hub-mobile-card-meta {
-            gap: 0.5rem;
-            font-size: 0.75rem;
-        }
-
-        .hub-quiz-listing .hub-mobile-card-meta span {
+        .hub-quiz-listing .hub-action-btn {
+            width: 100%;
+            box-sizing: border-box;
             white-space: nowrap;
-        }
-
-        .hub-quiz-listing .hub-mobile-card-actions {
-            margin-top: 0.6rem;
-        }
-
-        .hub-quiz-listing .hub-mobile-card-actions .hub-action-btn {
-            flex: 1;
-            text-align: center;
-            padding: 0.45rem 0.5rem;
-            font-size: 0.78rem;
-            min-height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 38px;
         }
 
         /* ---- Quiz take-quiz page ---- */

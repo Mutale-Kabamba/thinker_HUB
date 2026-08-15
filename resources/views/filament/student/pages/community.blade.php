@@ -177,67 +177,357 @@
         @if ($tab === 'leaderboard')
             @php
                 $leaderboard = $this->leaderboard;
+                $allRows = $leaderboard['rows'];
+                $top5 = $allRows->take(5);
+                $remaining = $allRows->slice(5);
+                $userInTop5 = $top5->contains('user_id', auth()->id());
+                $myRowInList = $allRows->firstWhere('user_id', auth()->id());
+                $xpBreakdown = $this->myXpBreakdown;
             @endphp
-            <section class="hub-card" style="padding:0.85rem 1rem;">
-                <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.5rem;">
-                    <x-heroicon-o-trophy style="width:1.15rem;height:1.15rem;color:var(--hub-primary);" />
-                    <h3 class="hub-title" style="font-size:0.95rem;margin:0;">Leaderboard</h3>
-                </div>
-                <p class="hub-copy" style="color:var(--hub-muted);font-size:0.76rem;margin:0 0 0.6rem;">Top students by XP — earn XP by passing quizzes, keeping streaks, and completing courses.</p>
 
-                @if ($leaderboard['rows']->count() === 0)
-                    <p class="hub-copy" style="color:var(--hub-muted);font-size:0.82rem;">No XP earned yet. Pass a quiz to get on the board!</p>
+            {{-- 1. TOP STUDENTS LEADERBOARD (DEFAULT TOP 5 WITH EXPAND/COLLAPSE) --}}
+            <section class="hub-card" x-data="{ showAllLeaderboard: false }" style="padding:0.65rem 0.85rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:0.35rem;margin-bottom:0.4rem;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:0.35rem;">
+                        <x-heroicon-s-trophy style="width:1rem;height:1rem;color:#f59e0b;" />
+                        <h3 class="hub-title" style="font-size:0.88rem;margin:0;">Leaderboard</h3>
+                    </div>
+                    @if ($allRows->count() > 5)
+                        <span class="hub-chip hub-chip-gray" style="font-size:0.58rem;padding:0.05rem 0.3rem;">
+                            Top {{ $allRows->count() }} Students
+                        </span>
+                    @endif
+                </div>
+                <p class="hub-copy" style="color:var(--hub-muted);font-size:0.72rem;margin:0 0 0.45rem;">Ranked by lifetime XP earned from quizzes, attendance, streaks, and course completions.</p>
+
+                @if ($allRows->count() === 0)
+                    <p class="hub-copy" style="color:var(--hub-muted);font-size:0.76rem;margin:0.2rem 0;">No XP earned yet. Pass a quiz or complete a lesson to get on the board!</p>
                 @else
-                    <div style="display:flex;flex-direction:column;gap:0.4rem;">
-                        @foreach ($leaderboard['rows'] as $row)
+                    <div style="display:flex;flex-direction:column;gap:0.28rem;">
+                        {{-- Top 5 Rows (Default Display) --}}
+                        @foreach ($top5 as $row)
                             @php $isMe = $row['user_id'] === auth()->id(); @endphp
-                            <div style="display:flex;align-items:center;gap:0.55rem;padding:0.42rem 0.6rem;border-radius:0.5rem;border:1px solid {{ $isMe ? 'color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%)' : 'var(--hub-border)' }};{{ $isMe ? 'background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);' : '' }}">
-                                <span style="min-width:1.9rem;text-align:center;font-size:0.85rem;font-weight:700;color:{{ $row['rank'] <= 3 ? 'var(--hub-primary)' : 'var(--hub-ink)' }};">
+                            <div style="display:flex;align-items:center;gap:0.4rem;padding:0.28rem 0.5rem;border-radius:0.4rem;border:1px solid {{ $isMe ? 'color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%)' : 'var(--hub-border)' }};{{ $isMe ? 'background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);' : 'background:var(--hub-surface);' }}">
+                                <span style="min-width:1.6rem;text-align:center;font-size:0.78rem;font-weight:800;color:{{ $row['rank'] <= 3 ? '#0f766e' : 'var(--hub-muted)' }};">
                                     #{{ $row['rank'] }}
                                 </span>
-                                <span style="flex:1;font-size:0.85rem;font-weight:{{ $isMe ? '700' : '500' }};color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                <span style="flex:1;font-size:0.8rem;font-weight:{{ $isMe ? '700' : '500' }};color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                     {{ $row['name'] }}{{ $isMe ? ' (you)' : '' }}
                                 </span>
-                                @if (count($row['badge_icons']) > 0)
-                                    <span style="font-size:0.82rem;letter-spacing:0.08em;" title="{{ $row['badge_count'] }} {{ Str::plural('badge', $row['badge_count']) }}">{{ implode('', $row['badge_icons']) }}</span>
+
+                                {{-- Badges Showcase --}}
+                                @if (!empty($row['badges']))
+                                    <div style="display:inline-flex;align-items:center;gap:0.18rem;" title="{{ $row['badge_count'] }} {{ Str::plural('badge', $row['badge_count']) }}">
+                                        @foreach ($row['badges'] as $b)
+                                            @php
+                                                $bKey = is_array($b) ? ($b['key'] ?? '') : ($b->key ?? '');
+                                                $bName = is_array($b) ? ($b['name'] ?? '') : ($b->name ?? '');
+                                            @endphp
+                                            <span class="hub-chip hub-chip-amber" style="font-size:0.58rem;padding:0.04rem 0.22rem;display:inline-flex;align-items:center;gap:0.12rem;line-height:1;" title="{{ $bName }}">
+                                                @if ($bKey === 'course_completed')
+                                                    <x-heroicon-s-academic-cap style="width:0.6rem;height:0.6rem;color:#0f766e;" />
+                                                @elseif (str_contains($bKey, 'streak'))
+                                                    <x-heroicon-s-fire style="width:0.6rem;height:0.6rem;color:#ea580c;" />
+                                                @elseif ($bKey === 'first_perfect_quiz')
+                                                    <x-heroicon-s-check-badge style="width:0.6rem;height:0.6rem;color:#10b981;" />
+                                                @elseif ($bKey === 'mastermind')
+                                                    <x-heroicon-s-sparkles style="width:0.6rem;height:0.6rem;color:#8b5cf6;" />
+                                                @elseif ($bKey === 'study_networker')
+                                                    <x-heroicon-s-user-group style="width:0.6rem;height:0.6rem;color:#0284c7;" />
+                                                @elseif ($bKey === 'active_contributor')
+                                                    <x-heroicon-s-chat-bubble-left-right style="width:0.6rem;height:0.6rem;color:#6366f1;" />
+                                                @else
+                                                    <x-heroicon-s-trophy style="width:0.6rem;height:0.6rem;color:#d97706;" />
+                                                @endif
+                                                <span style="font-weight:600;">{{ Str::limit($bName, 10) }}</span>
+                                            </span>
+                                        @endforeach
+                                    </div>
                                 @endif
-                                <span style="font-size:0.74rem;color:var(--hub-muted);display:inline-flex;align-items:center;gap:0.2rem;">
-                                    <x-heroicon-s-star style="width:0.75rem;height:0.75rem;color:#f59e0b;" />
-                                    {{ $row['badge_count'] }}
+
+                                <span style="font-size:0.7rem;color:var(--hub-muted);display:inline-flex;align-items:center;gap:0.12rem;" title="{{ $row['badge_count'] }} Badges">
+                                    <x-heroicon-s-trophy style="width:0.68rem;height:0.68rem;color:#f59e0b;" />
+                                    <span>{{ $row['badge_count'] }}</span>
                                 </span>
-                                <span style="font-size:0.8rem;font-weight:700;color:#0f766e;min-width:4.2rem;text-align:right;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.2rem;">
-                                    <x-heroicon-s-bolt style="width:0.75rem;height:0.75rem;color:#eab308;" />
-                                    {{ number_format($row['xp']) }}
+                                <span style="font-size:0.76rem;font-weight:700;color:#0f766e;min-width:3.8rem;text-align:right;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.12rem;">
+                                    <x-heroicon-s-bolt style="width:0.68rem;height:0.68rem;color:#eab308;" />
+                                    <span>{{ number_format($row['xp']) }}</span>
                                 </span>
                             </div>
                         @endforeach
 
-                        @if ($leaderboard['viewer'])
-                            @php $row = $leaderboard['viewer']; @endphp
-                            <div style="border-top:1px dashed var(--hub-border);margin-top:0.25rem;padding-top:0.45rem;">
-                                <div style="display:flex;align-items:center;gap:0.55rem;padding:0.42rem 0.6rem;border-radius:0.5rem;border:1px solid color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%);background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);">
-                                    <span style="min-width:1.9rem;text-align:center;font-size:0.85rem;font-weight:700;color:var(--hub-ink);">#{{ $row['rank'] }}</span>
-                                    <span style="flex:1;font-size:0.85rem;font-weight:700;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $row['name'] }} (you)</span>
-                                    @if (count($row['badge_icons']) > 0)
-                                        <span style="font-size:0.82rem;letter-spacing:0.08em;">{{ implode('', $row['badge_icons']) }}</span>
-                                    @endif
-                                    <span style="font-size:0.74rem;color:var(--hub-muted);display:inline-flex;align-items:center;gap:0.2rem;">
-                                        <x-heroicon-s-star style="width:0.75rem;height:0.75rem;color:#f59e0b;" />
-                                        {{ $row['badge_count'] }}
-                                    </span>
-                                    <span style="font-size:0.8rem;font-weight:700;color:#0f766e;min-width:4.2rem;text-align:right;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.2rem;">
-                                        <x-heroicon-s-bolt style="width:0.75rem;height:0.75rem;color:#eab308;" />
-                                        {{ number_format($row['xp']) }}
-                                    </span>
-                                </div>
+                        {{-- Remaining Rows (Collapsible) --}}
+                        @if ($remaining->isNotEmpty())
+                            <div x-show="showAllLeaderboard" x-collapse style="display:flex;flex-direction:column;gap:0.28rem;">
+                                @foreach ($remaining as $row)
+                                    @php $isMe = $row['user_id'] === auth()->id(); @endphp
+                                    <div style="display:flex;align-items:center;gap:0.4rem;padding:0.28rem 0.5rem;border-radius:0.4rem;border:1px solid {{ $isMe ? 'color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%)' : 'var(--hub-border)' }};{{ $isMe ? 'background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);' : 'background:var(--hub-surface);' }}">
+                                        <span style="min-width:1.6rem;text-align:center;font-size:0.78rem;font-weight:700;color:var(--hub-muted);">
+                                            #{{ $row['rank'] }}
+                                        </span>
+                                        <span style="flex:1;font-size:0.8rem;font-weight:{{ $isMe ? '700' : '500' }};color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                            {{ $row['name'] }}{{ $isMe ? ' (you)' : '' }}
+                                        </span>
+                                        @if (!empty($row['badges']))
+                                            <div style="display:inline-flex;align-items:center;gap:0.18rem;" title="{{ $row['badge_count'] }} Badges">
+                                                @foreach ($row['badges'] as $b)
+                                                    @php
+                                                        $bKey = is_array($b) ? ($b['key'] ?? '') : ($b->key ?? '');
+                                                        $bName = is_array($b) ? ($b['name'] ?? '') : ($b->name ?? '');
+                                                    @endphp
+                                                    <span class="hub-chip hub-chip-amber" style="font-size:0.58rem;padding:0.04rem 0.22rem;display:inline-flex;align-items:center;gap:0.12rem;line-height:1;" title="{{ $bName }}">
+                                                        <x-heroicon-s-trophy style="width:0.6rem;height:0.6rem;color:#d97706;" />
+                                                        <span>{{ Str::limit($bName, 10) }}</span>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                        <span style="font-size:0.7rem;color:var(--hub-muted);display:inline-flex;align-items:center;gap:0.12rem;">
+                                            <x-heroicon-s-trophy style="width:0.68rem;height:0.68rem;color:#f59e0b;" />
+                                            <span>{{ $row['badge_count'] }}</span>
+                                        </span>
+                                        <span style="font-size:0.76rem;font-weight:700;color:#0f766e;min-width:3.8rem;text-align:right;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.12rem;">
+                                            <x-heroicon-s-bolt style="width:0.68rem;height:0.68rem;color:#eab308;" />
+                                            <span>{{ number_format($row['xp']) }}</span>
+                                        </span>
+                                    </div>
+                                @endforeach
                             </div>
+
+                            {{-- Expand / Collapse Button --}}
+                            <button
+                                type="button"
+                                @click="showAllLeaderboard = !showAllLeaderboard"
+                                style="width:100%;padding:0.38rem 0.55rem;margin-top:0.2rem;border-radius:0.45rem;border:1px solid var(--hub-border);background:var(--hub-surface);color:var(--hub-ink);font-size:0.75rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:0.35rem;cursor:pointer;transition:all .15s ease;"
+                            >
+                                <span x-text="showAllLeaderboard ? 'Collapse to Top 5' : 'View More (Rank 6–{{ $allRows->count() }})'"></span>
+                                <svg style="width:0.85rem;height:0.85rem;color:var(--hub-ink);transition:transform .2s ease;" :style="showAllLeaderboard ? 'transform:rotate(180deg);' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                        @endif
+
+                        {{-- Pinned User Row if outside Top 5 while collapsed --}}
+                        @if (! $userInTop5)
+                            @if ($myRowInList)
+                                <div x-show="!showAllLeaderboard" style="border-top:1px dashed var(--hub-border);margin-top:0.15rem;padding-top:0.3rem;">
+                                    <div style="display:flex;align-items:center;gap:0.4rem;padding:0.28rem 0.5rem;border-radius:0.4rem;border:1px solid color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%);background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);">
+                                        <span style="min-width:1.6rem;text-align:center;font-size:0.78rem;font-weight:800;color:var(--hub-ink);">#{{ $myRowInList['rank'] }}</span>
+                                        <span style="flex:1;font-size:0.8rem;font-weight:700;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $myRowInList['name'] }} (you)</span>
+                                        <span style="font-size:0.7rem;color:var(--hub-muted);display:inline-flex;align-items:center;gap:0.12rem;">
+                                            <x-heroicon-s-trophy style="width:0.68rem;height:0.68rem;color:#f59e0b;" />
+                                            <span>{{ $myRowInList['badge_count'] }}</span>
+                                        </span>
+                                        <span style="font-size:0.76rem;font-weight:700;color:#0f766e;min-width:3.8rem;text-align:right;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.12rem;">
+                                            <x-heroicon-s-bolt style="width:0.68rem;height:0.68rem;color:#eab308;" />
+                                            <span>{{ number_format($myRowInList['xp']) }}</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            @elseif ($leaderboard['viewer'])
+                                @php $row = $leaderboard['viewer']; @endphp
+                                <div style="border-top:1px dashed var(--hub-border);margin-top:0.15rem;padding-top:0.3rem;">
+                                    <div style="display:flex;align-items:center;gap:0.4rem;padding:0.28rem 0.5rem;border-radius:0.4rem;border:1px solid color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%);background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);">
+                                        <span style="min-width:1.6rem;text-align:center;font-size:0.78rem;font-weight:800;color:var(--hub-ink);">#{{ $row['rank'] }}</span>
+                                        <span style="flex:1;font-size:0.8rem;font-weight:700;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $row['name'] }} (you)</span>
+                                        <span style="font-size:0.7rem;color:var(--hub-muted);display:inline-flex;align-items:center;gap:0.12rem;">
+                                            <x-heroicon-s-trophy style="width:0.68rem;height:0.68rem;color:#f59e0b;" />
+                                            <span>{{ $row['badge_count'] }}</span>
+                                        </span>
+                                        <span style="font-size:0.76rem;font-weight:700;color:#0f766e;min-width:3.8rem;text-align:right;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.12rem;">
+                                            <x-heroicon-s-bolt style="width:0.68rem;height:0.68rem;color:#eab308;" />
+                                            <span>{{ number_format($row['xp']) }}</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            @endif
                         @endif
                     </div>
                 @endif
             </section>
+
+            {{-- 2. COLLAPSIBLE DISPLAY OF XP EARNED & BADGES --}}
+            <section class="hub-card" x-data="{ showXpEarned: false }" style="padding:0.65rem 0.85rem;margin-top:0.5rem;">
+                <div @click="showXpEarned = !showXpEarned" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;gap:0.4rem;">
+                    <div style="display:flex;align-items:center;gap:0.35rem;min-width:0;">
+                        <x-heroicon-s-bolt style="width:1rem;height:1rem;color:#eab308;flex-shrink:0;" />
+                        <div style="min-width:0;">
+                            <h3 class="hub-title" style="font-size:0.86rem;margin:0;display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap;">
+                                <span>XP Earned & Badges</span>
+                                <span class="hub-chip hub-chip-primary" style="font-size:0.58rem;padding:0.04rem 0.25rem;">
+                                    +{{ number_format($xpBreakdown['total_xp']) }} XP
+                                </span>
+                            </h3>
+                            <p class="hub-copy" style="color:var(--hub-muted);font-size:0.7rem;margin:0.05rem 0 0;display:flex;align-items:center;gap:0.25rem;flex-wrap:wrap;">
+                                <span>Tier: <strong>{{ $xpBreakdown['rank']['rank_name'] }}</strong> ({{ $xpBreakdown['rank']['multiplier'] }}x)</span>
+                                <span>•</span>
+                                <span style="display:inline-flex;align-items:center;gap:0.12rem;">
+                                    <x-heroicon-s-circle-stack style="width:0.65rem;height:0.65rem;color:#d97706;" />
+                                    <strong>{{ number_format($xpBreakdown['total_coins']) }}</strong> TC
+                                </span>
+                                <span>•</span>
+                                <span style="display:inline-flex;align-items:center;gap:0.12rem;">
+                                    <x-heroicon-s-trophy style="width:0.65rem;height:0.65rem;color:#f59e0b;" />
+                                    <strong>{{ $xpBreakdown['earned_badges']->count() }}</strong> Badges
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        style="width:1.9rem;height:1.9rem;min-width:1.9rem;border-radius:9999px;background:var(--hub-surface);border:1px solid var(--hub-border);display:flex;align-items:center;justify-content:center;color:var(--hub-ink);cursor:pointer;transition:all 0.15s ease;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,0.05);"
+                        aria-label="Toggle XP breakdown"
+                    >
+                        <svg style="width:1rem;height:1rem;color:var(--hub-ink);transition:transform .2s ease;" :style="showXpEarned ? 'transform:rotate(180deg);' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                </div>
+
+
+                {{-- Collapsible Content --}}
+                <div x-show="showXpEarned" x-collapse style="margin-top:0.65rem;border-top:1px solid var(--hub-border);padding-top:0.55rem;">
+                    {{-- Mini Metrics Strip --}}
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:0.35rem;margin-bottom:0.6rem;">
+                        <div style="padding:0.35rem 0.45rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.4rem;text-align:center;">
+                            <div style="display:inline-flex;align-items:center;justify-content:center;gap:0.15rem;font-size:0.62rem;color:var(--hub-muted);">
+                                <x-heroicon-s-bolt style="width:0.62rem;height:0.62rem;color:#0f766e;" />
+                                <span>Lifetime XP</span>
+                            </div>
+                            <div style="font-size:0.82rem;font-weight:800;color:#0f766e;margin-top:0.05rem;">+{{ number_format($xpBreakdown['total_xp']) }}</div>
+                        </div>
+                        <div style="padding:0.35rem 0.45rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.4rem;text-align:center;">
+                            <div style="display:inline-flex;align-items:center;justify-content:center;gap:0.15rem;font-size:0.62rem;color:var(--hub-muted);">
+                                <x-heroicon-s-circle-stack style="width:0.62rem;height:0.62rem;color:#d97706;" />
+                                <span>Coins</span>
+                            </div>
+                            <div style="font-size:0.82rem;font-weight:800;color:#d97706;margin-top:0.05rem;">{{ number_format($xpBreakdown['total_coins']) }} TC</div>
+                        </div>
+                        <div style="padding:0.35rem 0.45rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.4rem;text-align:center;">
+                            <div style="display:inline-flex;align-items:center;justify-content:center;gap:0.15rem;font-size:0.62rem;color:var(--hub-muted);">
+                                <x-heroicon-s-fire style="width:0.62rem;height:0.62rem;color:#ea580c;" />
+                                <span>Streak</span>
+                            </div>
+                            <div style="font-size:0.82rem;font-weight:800;color:#ea580c;margin-top:0.05rem;">{{ $xpBreakdown['streak'] }} {{ Str::plural('day', $xpBreakdown['streak']) }}</div>
+                        </div>
+                        <div style="padding:0.35rem 0.45rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.4rem;text-align:center;">
+                            <div style="display:inline-flex;align-items:center;justify-content:center;gap:0.15rem;font-size:0.62rem;color:var(--hub-muted);">
+                                <x-heroicon-s-shield-check style="width:0.62rem;height:0.62rem;color:#8b5cf6;" />
+                                <span>Rank</span>
+                            </div>
+                            <div style="font-size:0.82rem;font-weight:800;color:#8b5cf6;margin-top:0.05rem;">{{ $xpBreakdown['rank']['rank_name'] }}</div>
+                        </div>
+                    </div>
+
+                    {{-- Badges Earned Showcase --}}
+                    <div style="margin-bottom:0.65rem;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.3rem;margin-bottom:0.3rem;">
+                            <h4 style="font-size:0.76rem;font-weight:700;margin:0;color:var(--hub-ink);display:inline-flex;align-items:center;gap:0.25rem;">
+                                <x-heroicon-s-trophy style="width:0.75rem;height:0.75rem;color:#f59e0b;" />
+                                <span>Unlocked Badges</span>
+                            </h4>
+                            <span style="font-size:0.65rem;color:var(--hub-muted);">
+                                {{ $xpBreakdown['earned_badges']->count() }} of {{ $xpBreakdown['total_available_badges'] }}
+                            </span>
+                        </div>
+
+                        @if ($xpBreakdown['earned_badges']->isEmpty())
+                            <div style="padding:0.4rem 0.5rem;background:var(--hub-surface);border:1px dashed var(--hub-border);border-radius:0.4rem;font-size:0.72rem;color:var(--hub-muted);display:flex;align-items:center;gap:0.35rem;">
+                                <x-heroicon-o-sparkles style="width:0.85rem;height:0.85rem;color:var(--hub-muted);flex-shrink:0;" />
+                                <span>No badges unlocked yet. Complete courses, quizzes, and streaks to earn your first badge!</span>
+                            </div>
+                        @else
+                            <div style="display:flex;flex-wrap:wrap;gap:0.3rem;">
+                                @foreach ($xpBreakdown['earned_badges'] as $badge)
+                                    <div
+                                        class="hub-chip hub-chip-amber"
+                                        style="font-size:0.68rem;padding:0.2rem 0.45rem;border-radius:0.35rem;display:inline-flex;align-items:center;gap:0.25rem;border:1px solid color-mix(in oklab, var(--hub-border) 60%, #f59e0b 40%);"
+                                        title="{{ $badge->description }} (Earned {{ $badge->pivot?->earned_at ? \Illuminate\Support\Carbon::parse($badge->pivot->earned_at)->format('M d, Y') : 'recently' }})"
+                                    >
+                                        @if ($badge->key === 'course_completed')
+                                            <x-heroicon-s-academic-cap style="width:0.75rem;height:0.75rem;color:#0f766e;" />
+                                        @elseif (str_contains($badge->key, 'streak'))
+                                            <x-heroicon-s-fire style="width:0.75rem;height:0.75rem;color:#ea580c;" />
+                                        @elseif ($badge->key === 'first_perfect_quiz')
+                                            <x-heroicon-s-check-badge style="width:0.75rem;height:0.75rem;color:#10b981;" />
+                                        @elseif ($badge->key === 'mastermind')
+                                            <x-heroicon-s-sparkles style="width:0.75rem;height:0.75rem;color:#8b5cf6;" />
+                                        @elseif ($badge->key === 'study_networker')
+                                            <x-heroicon-s-user-group style="width:0.75rem;height:0.75rem;color:#0284c7;" />
+                                        @elseif ($badge->key === 'active_contributor')
+                                            <x-heroicon-s-chat-bubble-left-right style="width:0.75rem;height:0.75rem;color:#6366f1;" />
+                                        @else
+                                            <x-heroicon-s-trophy style="width:0.75rem;height:0.75rem;color:#d97706;" />
+                                        @endif
+                                        <span style="font-weight:700;color:var(--hub-ink);">{{ $badge->name }}</span>
+                                        @if ($badge->xp_reward > 0)
+                                            <span style="font-size:0.6rem;color:#0f766e;font-weight:700;">+{{ $badge->xp_reward }} XP</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Recent XP Activity History --}}
+                    <h4 style="font-size:0.76rem;font-weight:700;margin:0 0 0.3rem;color:var(--hub-ink);display:inline-flex;align-items:center;gap:0.25rem;">
+                        <x-heroicon-s-clock style="width:0.75rem;height:0.75rem;color:var(--hub-muted);" />
+                        <span>Recent Point Activity</span>
+                    </h4>
+                    @if ($xpBreakdown['transactions']->isEmpty())
+                        <p class="hub-copy" style="color:var(--hub-muted);font-size:0.72rem;margin:0;font-style:italic;">No points accumulated yet. Complete quizzes or lessons to earn XP & Coins!</p>
+                    @else
+                        <div style="display:flex;flex-direction:column;gap:0.25rem;">
+                            @foreach ($xpBreakdown['transactions'] as $tx)
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:0.4rem;padding:0.28rem 0.45rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.35rem;font-size:0.72rem;">
+                                    <div style="min-width:0;flex:1;display:flex;align-items:center;gap:0.3rem;">
+                                        @if (str_contains($tx->activity_type ?? $tx->source ?? '', 'quiz'))
+                                            <x-heroicon-s-academic-cap style="width:0.75rem;height:0.75rem;color:#0ea5e9;flex-shrink:0;" />
+                                        @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'video'))
+                                            <x-heroicon-s-play-circle style="width:0.75rem;height:0.75rem;color:#8b5cf6;flex-shrink:0;" />
+                                        @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'streak'))
+                                            <x-heroicon-s-fire style="width:0.75rem;height:0.75rem;color:#ea580c;flex-shrink:0;" />
+                                        @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'badge'))
+                                            <x-heroicon-s-trophy style="width:0.75rem;height:0.75rem;color:#f59e0b;flex-shrink:0;" />
+                                        @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'course'))
+                                            <x-heroicon-s-check-badge style="width:0.75rem;height:0.75rem;color:#0f766e;flex-shrink:0;" />
+                                        @else
+                                            <x-heroicon-s-bolt style="width:0.75rem;height:0.75rem;color:#eab308;flex-shrink:0;" />
+                                        @endif
+                                        <div style="min-width:0;flex:1;">
+                                            <div style="font-weight:600;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;">
+                                                {{ $tx->description ?: ucfirst(str_replace('_', ' ', $tx->source ?: $tx->activity_type ?: 'Point Reward')) }}
+                                            </div>
+                                            <span style="font-size:0.62rem;color:var(--hub-muted);">
+                                                {{ $tx->created_at ? $tx->created_at->format('M d, Y · H:i') : 'Recently' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:0.25rem;flex-shrink:0;">
+                                        @if (($tx->amount_xp ?: $tx->points) > 0)
+                                            <span class="hub-chip hub-chip-primary" style="font-size:0.58rem;padding:0.05rem 0.25rem;">
+                                                +{{ number_format($tx->amount_xp ?: $tx->points) }} XP
+                                            </span>
+                                        @endif
+                                        @if (($tx->amount_coins ?: 0) > 0)
+                                            <span class="hub-chip hub-chip-amber" style="font-size:0.58rem;padding:0.05rem 0.25rem;display:inline-flex;align-items:center;gap:0.1rem;">
+                                                <x-heroicon-s-circle-stack style="width:0.55rem;height:0.55rem;color:#d97706;" />
+                                                <span>+{{ number_format($tx->amount_coins) }} TC</span>
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </section>
         @endif
 
         {{-- ===================== CHATS TAB ===================== --}}
+
+
         @if ($tab === 'chats')
             <style>
                 .community-chat-layout {
