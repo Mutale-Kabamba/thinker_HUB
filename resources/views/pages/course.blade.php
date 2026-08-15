@@ -428,10 +428,17 @@
                     <span class="text-sm text-slate-400">({{ $ratingCount }} {{ Str::plural('review', $ratingCount) }})</span>
                 </div>
                 <div class="mt-8 flex flex-wrap items-center gap-4">
-                    <a href="{{ route('checkout.show', $course) }}" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] shadow-lg shadow-yellow-400/20 transition hover:bg-yellow-300">
-                        <i class="fa-solid fa-credit-card"></i>
-                        Enroll &amp; Pay (Instant Access)
-                    </a>
+                    @if (! $isLockedCourse)
+                        <a href="{{ route('checkout.show', $course) }}" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] shadow-lg shadow-yellow-400/20 transition hover:bg-yellow-300">
+                            <i class="fa-solid fa-credit-card"></i>
+                            Enroll &amp; Pay (Instant Access)
+                        </a>
+                    @else
+                        <span class="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-6 py-3.5 text-sm font-bold text-slate-300 cursor-not-allowed">
+                            <i class="fa-solid fa-lock text-amber-400"></i>
+                            Enrollment Locked
+                        </span>
+                    @endif
                     <a href="{{ route('landing.courses') }}" class="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10">
                         <i class="fa-solid fa-arrow-left"></i>
                         Back to Courses
@@ -517,9 +524,13 @@
                     </dl>
                     
                     @if ($isLockedCourse)
-                        <button type="button" disabled class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-slate-100 px-5 py-3 text-sm font-bold text-slate-400 cursor-not-allowed border border-slate-200">Enrollment Locked</button>
+                        <button type="button" disabled class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-slate-100 px-5 py-3 text-sm font-bold text-slate-400 cursor-not-allowed border border-slate-200">
+                            <i class="fa-solid fa-lock mr-2 text-amber-500"></i> Enrollment Locked
+                        </button>
                     @else
-                        <a href="{{ route('enroll') }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300">Enroll in This Track</a>
+                        <a href="{{ route('checkout.show', $course) }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm">
+                            <i class="fa-solid fa-credit-card mr-2"></i> Enroll &amp; Pay
+                        </a>
                     @endif
 
                     <div class="mt-6 border-t border-slate-100 pt-4">
@@ -545,33 +556,28 @@
             </div>
         </section>
 
-        {{-- Reviews Section --}}
+        {{-- Ratings & Reviews Section --}}
+        @php
+            $allRatings = $course->ratings ?? collect();
+            $totalRatingsCount = $allRatings->count();
+            $avgRating = $totalRatingsCount > 0 ? round((float) $allRatings->avg('rating'), 1) : 0;
+
+            // Star Distribution Calculation
+            $starCounts = [
+                5 => $allRatings->where('rating', 5)->count(),
+                4 => $allRatings->where('rating', 4)->count(),
+                3 => $allRatings->where('rating', 3)->count(),
+                2 => $allRatings->where('rating', 2)->count(),
+                1 => $allRatings->where('rating', 1)->count(),
+            ];
+
+            // Written Reviews for 4-second sliding carousel
+            $writtenReviews = $allRatings->filter(fn ($r) => filled($r->review))->values();
+            $writtenReviewsCount = $writtenReviews->count();
+        @endphp
+
         <section class="py-12 lg:py-16 border-t border-slate-100">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
-                <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
-                    <div>
-                        <h2 class="text-2xl font-black text-slate-900 sm:text-3xl">Reviews</h2>
-                        <p class="mt-1 text-slate-600">What students say about this course.</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-3xl font-black text-slate-900">{{ $avgRating > 0 ? $avgRating : '—' }}</span>
-                        <div>
-                            <div class="flex items-center gap-0.5">
-                                @for ($star = 1; $star <= 5; $star++)
-                                    @if ($star <= floor($avgRating))
-                                        <i class="fa-solid fa-star text-yellow-500 text-sm"></i>
-                                    @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
-                                        <i class="fa-solid fa-star-half-stroke text-yellow-500 text-sm"></i>
-                                    @else
-                                        <i class="fa-regular fa-star text-slate-300 text-sm"></i>
-                                    @endif
-                                @endfor
-                            </div>
-                            <p class="text-xs text-slate-500 mt-0.5">{{ $ratingCount }} {{ Str::plural('review', $ratingCount) }}</p>
-                        </div>
-                    </div>
-                </div>
-
                 @if (session('success'))
                     <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
                         {{ session('success') }}
@@ -589,6 +595,183 @@
                     </div>
                 @endif
 
+                {{-- Side-by-Side Minimal Layout: Reviews (Left) | Ratings (Right) in 2:1 Ratio --}}
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-10 items-start">
+                    
+                    {{-- LEFT COLUMN: REVIEWS SLIDE (2 Parts of 2:1 Ratio -> 8 Columns) --}}
+                    <div class="md:col-span-8 md:pr-8 lg:pr-10 pb-8 md:pb-0 border-b md:border-b-0 md:border-r border-slate-200 flex flex-col justify-between min-h-[260px]">
+                        <div class="mb-6">
+                            <h3 class="text-xl font-bold text-slate-900">Student Reviews</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">{{ $writtenReviewsCount }} {{ Str::plural('review', $writtenReviewsCount) }} from learners</p>
+                        </div>
+
+                        @if ($writtenReviewsCount > 0)
+                            <div x-data="{
+                                    active: 0,
+                                    total: {{ $writtenReviewsCount }},
+                                    timer: null,
+                                    start() {
+                                        this.stop();
+                                        if (this.total > 1) {
+                                            this.timer = setInterval(() => {
+                                                this.next();
+                                            }, 4000);
+                                        }
+                                    },
+                                    stop() {
+                                        if (this.timer) clearInterval(this.timer);
+                                    },
+                                    next() {
+                                        this.active = (this.active + 1) % this.total;
+                                    },
+                                    prev() {
+                                        this.active = (this.active - 1 + this.total) % this.total;
+                                    },
+                                    goTo(idx) {
+                                        this.active = idx;
+                                    }
+                                 }"
+                                 x-init="start()"
+                                 @mouseenter="stop()"
+                                 @mouseleave="start()"
+                                 class="relative flex flex-col justify-between flex-1"
+                            >
+                                {{-- Slide Content --}}
+                                <div class="relative min-h-[140px] flex items-center">
+                                    @foreach ($writtenReviews as $idx => $r)
+                                        <div x-show="active === {{ $idx }}"
+                                             x-transition:enter="transition ease-out duration-300 transform opacity-0 translate-x-2"
+                                             x-transition:enter-start="opacity-0 translate-x-2"
+                                             x-transition:enter-end="opacity-100 translate-x-0"
+                                             x-transition:leave="transition ease-in duration-200 transform opacity-100 translate-x-0"
+                                             x-transition:leave-start="opacity-100 translate-x-0"
+                                             x-transition:leave-end="opacity-0 -translate-x-2"
+                                             class="w-full"
+                                             style="{{ $idx === 0 ? '' : 'display: none;' }}"
+                                        >
+                                            {{-- Profile Card | Name (Rating beside name) --}}
+                                            <div class="flex items-center gap-3.5">
+                                                @if ($r->user?->profile_photo_path)
+                                                    <img src="{{ $r->user->getFilamentAvatarUrl() }}" alt="" class="h-11 w-11 rounded-full object-cover shrink-0 border border-slate-200" onerror="this.style.display='none'">
+                                                @else
+                                                    <div class="h-11 w-11 rounded-full bg-teal-50 text-teal-800 font-bold flex items-center justify-center text-sm shrink-0 border border-teal-100">
+                                                        {{ strtoupper(substr($r->user?->name ?? 'S', 0, 1)) }}
+                                                    </div>
+                                                @endif
+
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center flex-wrap gap-2">
+                                                        <h4 class="font-bold text-slate-900 text-sm truncate">{{ $r->user?->name ?? 'Student' }}</h4>
+
+                                                        @if ($r->rating)
+                                                            <div class="inline-flex items-center gap-0.5 text-yellow-400 text-xs">
+                                                                @for ($star = 1; $star <= 5; $star++)
+                                                                    @if ($star <= $r->rating)
+                                                                        <i class="fa-solid fa-star text-[11px]"></i>
+                                                                    @else
+                                                                        <i class="fa-regular fa-star text-slate-300 text-[11px]"></i>
+                                                                    @endif
+                                                                @endfor
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                    <p class="text-[11px] text-slate-400 mt-0.5">{{ $r->created_at ? $r->created_at->diffForHumans() : 'Recently' }}</p>
+                                                </div>
+                                            </div>
+
+                                            {{-- Below the name: What they wrote --}}
+                                            <p class="mt-3.5 text-sm leading-relaxed text-slate-700">
+                                                {{ $r->review }}
+                                            </p>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                {{-- Slider Controls (Minimal Dots & Subtle Prev/Next) --}}
+                                @if ($writtenReviewsCount > 1)
+                                    <div class="flex items-center justify-between pt-4 mt-6 border-t border-slate-100">
+                                        <div class="flex items-center gap-1.5">
+                                            @foreach ($writtenReviews as $idx => $r)
+                                                <button type="button"
+                                                        @click="goTo({{ $idx }})"
+                                                        class="h-1.5 rounded-full transition-all duration-300"
+                                                        :class="active === {{ $idx }} ? 'w-4 bg-teal-600' : 'w-1.5 bg-slate-300 hover:bg-slate-400'"
+                                                        aria-label="Review {{ $idx + 1 }}">
+                                                </button>
+                                            @endforeach
+                                        </div>
+
+                                        <div class="flex items-center gap-1.5">
+                                            <button type="button"
+                                                    @click="prev(); start();"
+                                                    class="h-7 w-7 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition"
+                                                    aria-label="Previous review">
+                                                <i class="fa-solid fa-chevron-left text-xs"></i>
+                                            </button>
+                                            <button type="button"
+                                                    @click="next(); start();"
+                                                    class="h-7 w-7 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition"
+                                                    aria-label="Next review">
+                                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            <div class="py-8 text-slate-500 text-sm">
+                                <p class="text-slate-600 font-medium">No written reviews yet.</p>
+                                <p class="text-xs text-slate-400 mt-1">Be the first enrolled learner to share your experience with this track.</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- RIGHT COLUMN: RATINGS (1 Part of 2:1 Ratio -> 4 Columns) --}}
+                    <div class="md:col-span-4 md:pl-4 lg:pl-6">
+                        <div class="text-center md:text-left">
+                            <h3 class="text-xl font-bold text-slate-900">Customer reviews</h3>
+
+                            {{-- Star pill & rating score --}}
+                            <div class="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-50 border border-slate-200/80 px-3.5 py-1.5">
+                                <div class="flex items-center gap-1 text-yellow-400 text-xs">
+                                    @for ($star = 1; $star <= 5; $star++)
+                                        @if ($star <= floor($avgRating))
+                                            <i class="fa-solid fa-star"></i>
+                                        @elseif ($star - $avgRating < 1 && $star - $avgRating > 0)
+                                            <i class="fa-solid fa-star-half-stroke"></i>
+                                        @else
+                                            <i class="fa-regular fa-star text-slate-300"></i>
+                                        @endif
+                                    @endfor
+                                </div>
+                                <span class="text-xs font-semibold text-slate-700">{{ $avgRating > 0 ? $avgRating : '0' }} out of 5</span>
+                            </div>
+
+                            <p class="mt-2 text-xs text-slate-500">{{ $totalRatingsCount }} customer {{ Str::plural('rating', $totalRatingsCount) }}</p>
+                        </div>
+
+                        {{-- Star Distribution Breakdown Bars --}}
+                        <div class="mt-6 space-y-2.5 max-w-sm">
+                            @for ($s = 5; $s >= 1; $s--)
+                                @php
+                                    $countForStar = $starCounts[$s] ?? 0;
+                                    $pct = $totalRatingsCount > 0 ? round(($countForStar / $totalRatingsCount) * 100) : 0;
+                                @endphp
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="w-10 font-medium text-slate-600">
+                                        {{ $s }} star
+                                    </span>
+                                    <div class="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                                        <div class="h-full bg-amber-400 rounded-full transition-all duration-500" style="width: {{ $pct }}%"></div>
+                                    </div>
+                                    <span class="w-9 text-right font-medium text-slate-500">{{ $pct }}%</span>
+                                </div>
+                            @endfor
+                        </div>
+                    </div>
+
+                </div>
+
                 {{-- Rating Form (logged-in enrolled students only) --}}
                 @auth
                     @php
@@ -596,36 +779,39 @@
                         $existingRating = $isEnrolled ? \App\Models\CourseRating::where('course_id', $course->id)->where('user_id', auth()->id())->first() : null;
                     @endphp
                     @if ($isEnrolled)
-                        <div class="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" x-data='{ rating: @js((int) ($existingRating?->rating ?? 0)), hover: 0, review: @js((string) ($existingRating?->review ?? "")), submitted: false }'>
-                            <h3 class="text-lg font-bold text-slate-900 mb-4">{{ $existingRating ? 'Update Your Review' : 'Rate This Course' }}</h3>
+                        <div class="mt-10 pt-8 border-t border-slate-100 max-w-2xl" x-data='{ rating: @js((int) ($existingRating?->rating ?? 0)), hover: 0, review: @js((string) ($existingRating?->review ?? "")), submitted: false }'>
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-bold text-slate-900">{{ $existingRating ? 'Update Your Rating & Review' : 'Rate & Review This Course' }}</h4>
+                                <span class="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">Enrolled Student</span>
+                            </div>
                             <form method="POST" action="{{ route('course.rate', $course->id) }}" @submit="submitted = true">
                                 @csrf
                                 <input type="hidden" name="rating" :value="rating">
-                                <div class="flex items-center gap-1 mb-4">
+                                <div class="flex items-center gap-1 mb-3">
                                     @for ($star = 1; $star <= 5; $star++)
                                         <button type="button"
                                             @click="rating = {{ $star }}"
                                             @mouseenter="hover = {{ $star }}"
                                             @mouseleave="hover = 0"
-                                            class="text-2xl transition-transform hover:scale-110 focus:outline-none"
+                                            class="text-xl transition-transform hover:scale-110 focus:outline-none"
                                         >
-                                            <i :class="(hover || rating) >= {{ $star }} ? 'fa-solid fa-star text-yellow-500' : 'fa-regular fa-star text-slate-300'"></i>
+                                            <i :class="(hover || rating) >= {{ $star }} ? 'fa-solid fa-star text-yellow-400' : 'fa-regular fa-star text-slate-300'"></i>
                                         </button>
                                     @endfor
-                                    <span class="ml-2 text-sm text-slate-500" x-text="rating > 0 ? rating + '/5' : 'Click to rate'"></span>
+                                    <span class="ml-2 text-xs text-slate-500" x-text="rating > 0 ? rating + '/5 Stars' : 'Click to rate'"></span>
                                 </div>
                                 <textarea
                                     name="review"
                                     x-model="review"
                                     rows="3"
-                                    placeholder="Share your experience with this course (optional)..."
+                                    placeholder="Write your review and share what you learned from this course..."
                                     class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
                                 ></textarea>
                                 <div class="mt-3 flex items-center gap-3">
                                     <button
                                         type="submit"
                                         :disabled="rating === 0 || submitted"
-                                        class="inline-flex items-center rounded-full bg-[#0a2d27] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#11443c] disabled:opacity-50 disabled:cursor-not-allowed"
+                                        class="inline-flex items-center rounded-full bg-[#0a2d27] px-5 py-2 text-xs font-bold text-white transition hover:bg-[#11443c] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                                     >
                                         {{ $existingRating ? 'Update Review' : 'Submit Review' }}
                                     </button>
@@ -637,44 +823,6 @@
                         </div>
                     @endif
                 @endauth
-
-                {{-- Reviews List --}}
-                @if ($course->ratings->isNotEmpty())
-                    <div class="space-y-5">
-                        @foreach ($course->ratings as $rating)
-                            <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-                                <div class="flex items-start justify-between gap-4">
-                                    <div class="flex items-center gap-3">
-                                        @if ($rating->user?->profile_photo_path)
-                                            <img src="{{ $rating->user->getFilamentAvatarUrl() }}" alt="" class="h-9 w-9 rounded-full object-cover" onerror="this.style.display='none'">
-                                        @else
-                                            <div class="h-9 w-9 rounded-full bg-teal-100 flex items-center justify-center text-sm font-bold text-teal-700">
-                                                {{ strtoupper(substr($rating->user?->name ?? '?', 0, 1)) }}
-                                            </div>
-                                        @endif
-                                        <div>
-                                            <p class="font-semibold text-slate-900 text-sm">{{ $rating->user?->name ?? 'Student' }}</p>
-                                            <p class="text-xs text-slate-500">{{ $rating->created_at->diffForHumans() }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-0.5">
-                                        @for ($star = 1; $star <= 5; $star++)
-                                            <i class="{{ $star <= $rating->rating ? 'fa-solid fa-star text-yellow-500' : 'fa-regular fa-star text-slate-300' }} text-xs"></i>
-                                        @endfor
-                                    </div>
-                                </div>
-                                @if ($rating->review)
-                                    <p class="mt-3 text-sm leading-relaxed text-slate-600">{{ $rating->review }}</p>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="text-center py-12 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50">
-                        <i class="fa-regular fa-star text-slate-300 text-3xl mb-3"></i>
-                        <p class="text-slate-500 font-medium">No reviews yet. Be the first to share your experience!</p>
-                    </div>
-                @endif
             </div>
         </section>
 

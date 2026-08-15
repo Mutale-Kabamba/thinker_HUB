@@ -37,7 +37,7 @@ $loadPublicCourses = static function (int $limit = 0) {
         if (config('database.default') === 'sqlite') {
             $sqlitePath = (string) config('database.connections.sqlite.database');
 
-            if (! $sqlitePath || ! is_file($sqlitePath)) {
+            if (! $sqlitePath || ($sqlitePath !== ':memory:' && ! is_file($sqlitePath))) {
                 return collect();
             }
         }
@@ -99,7 +99,7 @@ $loadHomeStats = static function () {
         if (config('database.default') === 'sqlite') {
             $sqlitePath = (string) config('database.connections.sqlite.database');
 
-            if (! $sqlitePath || ! is_file($sqlitePath)) {
+            if (! $sqlitePath || ($sqlitePath !== ':memory:' && ! is_file($sqlitePath))) {
                 return $default;
             }
         }
@@ -127,7 +127,7 @@ $loadRecentCourseReviews = static function (int $limit = 6) {
         if (config('database.default') === 'sqlite') {
             $sqlitePath = (string) config('database.connections.sqlite.database');
 
-            if (! $sqlitePath || ! is_file($sqlitePath)) {
+            if (! $sqlitePath || ($sqlitePath !== ':memory:' && ! is_file($sqlitePath))) {
                 return collect();
             }
         }

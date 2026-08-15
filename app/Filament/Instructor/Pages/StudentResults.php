@@ -92,33 +92,29 @@ class StudentResults extends Page
         $this->activeCategory = $type;
     }
 
+    public function isTaskExpanded(string $taskKey): bool
+    {
+        if (! array_key_exists($taskKey, $this->expandedTasks)) {
+            return true; // Default to open so instructor immediately views taken tasks
+        }
+
+        return (bool) $this->expandedTasks[$taskKey];
+    }
+
+    public function toggleTask(string $taskKey): void
+    {
+        $this->expandedTasks[$taskKey] = ! $this->isTaskExpanded($taskKey);
+    }
+
     public function selectTask(string $taskKey): void
     {
-        if ($this->selectedTaskKey === $taskKey) {
-            $this->selectedTaskKey = '';
-            unset($this->expandedTasks[$taskKey]);
-        } else {
-            $this->selectedTaskKey = $taskKey;
-            $this->expandedTasks[$taskKey] = true;
-        }
+        $this->toggleTask($taskKey);
+        $this->selectedTaskKey = $this->isTaskExpanded($taskKey) ? $taskKey : '';
     }
 
     public function closeTask(): void
     {
         $this->selectedTaskKey = '';
-    }
-
-    public function toggleTask(string $taskKey): void
-    {
-        if (! empty($this->expandedTasks[$taskKey])) {
-            unset($this->expandedTasks[$taskKey]);
-            if ($this->selectedTaskKey === $taskKey) {
-                $this->selectedTaskKey = '';
-            }
-        } else {
-            $this->expandedTasks[$taskKey] = true;
-            $this->selectedTaskKey = $taskKey;
-        }
     }
 
     public function expandAllTasks(): void
@@ -133,7 +129,12 @@ class StudentResults extends Page
 
     public function collapseAllTasks(): void
     {
-        $this->expandedTasks = [];
+        $tasks = $this->getTasksData();
+        foreach (['quizzes', 'assignments', 'assessments'] as $type) {
+            foreach ($tasks[$type] as $t) {
+                $this->expandedTasks[$t['key']] = false;
+            }
+        }
         $this->selectedTaskKey = '';
     }
 
@@ -169,8 +170,7 @@ class StudentResults extends Page
     public function collapseAll(): void
     {
         $this->expandedStudents = [];
-        $this->expandedTasks = [];
-        $this->selectedTaskKey = '';
+        $this->collapseAllTasks();
     }
 
     public function resetFilters(): void
@@ -196,8 +196,8 @@ class StudentResults extends Page
     }
 
     /**
-     * Get Tasks Data (Quizzes, Assignments, Assessments) with student results in DESC order,
-     * along with category card summaries.
+     * Get Tasks Data (Quizzes, Assignments, Assessments) with student results in DESC order.
+     * ONLY returns tasks that have been TAKEN/SUBMITTED, ordered in FILO order (most recently taken first).
      *
      * @return array{quizzes: array<int, array<string, mixed>>, assignments: array<int, array<string, mixed>>, assessments: array<int, array<string, mixed>>, totals: array<string, int>, category_stats: array<string, array<string, mixed>>}
      */
@@ -241,10 +241,11 @@ class StudentResults extends Page
 
         $searchTerm = trim($this->search);
 
-        // 1. QUIZZES
+        // 1. QUIZZES (Only appear once taken; ordered in FILO order)
         $quizzesQuery = Quiz::query()
             ->whereIn('course_id', $effectiveCourseIds)
             ->where('is_active', true)
+            ->whereHas('attempts', fn ($q) => $q->whereNotNull('completed_at'))
             ->with(['course:id,title,code', 'attempts' => function ($q) {
                 $q->whereNotNull('completed_at')->with('user:id,name,email,track')->orderBy('score', 'desc');
             }]);
@@ -257,7 +258,7 @@ class StudentResults extends Page
             });
         }
 
-        $quizzes = $quizzesQuery->latest()->get();
+        $quizzes = $quizzesQuery->get();
         $quizList = [];
         $allQuizScores = [];
         $totalQuizAttempts = 0;
@@ -276,6 +277,14 @@ class StudentResults extends Page
                 });
             }
 
+            // Only appear once taken
+            if ($attempts->isEmpty()) {
+                continue;
+            }
+
+            // Most recent attempt timestamp for FILO ordering
+            $latestTakenAt = $attempts->max(fn ($a) => $a->completed_at ? $a->completed_at->timestamp : ($a->created_at ? $a->created_at->timestamp : 0)) ?? 0;
+
             // Group by student and pick best attempt, then sort in DESCENDING order
             $studentResults = $attempts->groupBy('user_id')->map(function ($userAttempts) {
                 $best = $userAttempts->sortByDesc('percentage')->first();
@@ -293,6 +302,10 @@ class StudentResults extends Page
                     'completed_at' => $best->completed_at?->format('M d, Y h:i A') ?? '—',
                 ];
             })->sortByDesc('percentage')->values()->all();
+
+            if (empty($studentResults)) {
+                continue;
+            }
 
             $scores = array_filter(array_column($studentResults, 'percentage'), fn ($v) => $v !== null);
             $avgScore = count($scores) > 0 ? round(array_sum($scores) / count($scores), 1) : null;
@@ -320,14 +333,19 @@ class StudentResults extends Page
                 'avg_score' => $avgScore,
                 'top_score' => $topScore,
                 'low_score' => $lowScore,
+                'latest_taken_at' => $latestTakenAt,
                 'results' => $studentResults, // Ordered in DESC order
             ];
         }
 
-        // 2. ASSIGNMENTS
+        // Sort quizzes in FILO order (most recently taken at top)
+        usort($quizList, fn ($a, $b) => $b['latest_taken_at'] <=> $a['latest_taken_at']);
+
+        // 2. ASSIGNMENTS (Only appear once taken/submitted; ordered in FILO order)
         $assignmentsQuery = Assignment::query()
             ->whereIn('course_id', $effectiveCourseIds)
             ->released()
+            ->whereHas('submissions')
             ->with(['course:id,title,code', 'submissions' => function ($q) {
                 $q->with('user:id,name,email,track')->orderByRaw('grade IS NULL, grade DESC, submitted_at DESC');
             }]);
@@ -340,7 +358,7 @@ class StudentResults extends Page
             });
         }
 
-        $assignments = $assignmentsQuery->latest()->get();
+        $assignments = $assignmentsQuery->get();
         $assignmentList = [];
         $allAssignmentGrades = [];
         $totalAssignmentSubs = 0;
@@ -358,6 +376,14 @@ class StudentResults extends Page
                         || str_contains(strtolower((string) $s->assignment?->name), strtolower($searchTerm));
                 });
             }
+
+            // Only appear once submitted
+            if ($submissions->isEmpty()) {
+                continue;
+            }
+
+            // Most recent submission timestamp for FILO ordering
+            $latestTakenAt = $submissions->max(fn ($s) => $s->submitted_at ? $s->submitted_at->timestamp : ($s->created_at ? $s->created_at->timestamp : 0)) ?? 0;
 
             // Sort in DESCENDING order by grade (highest grade first, null/ungraded at bottom)
             $studentResults = $submissions->map(function ($sub) {
@@ -386,6 +412,10 @@ class StudentResults extends Page
                 return $b['grade'] <=> $a['grade'];
             })->values()->all();
 
+            if (empty($studentResults)) {
+                continue;
+            }
+
             $grades = array_filter(array_column($studentResults, 'grade'), fn ($v) => $v !== null);
             $avgGrade = count($grades) > 0 ? round(array_sum($grades) / count($grades), 1) : null;
             $gradedCount = count($grades);
@@ -412,14 +442,19 @@ class StudentResults extends Page
                 'avg_score' => $avgGrade,
                 'top_score' => $topScore,
                 'low_score' => $lowScore,
+                'latest_taken_at' => $latestTakenAt,
                 'results' => $studentResults, // Ordered in DESC order
             ];
         }
 
-        // 3. ASSESSMENTS
+        // Sort assignments in FILO order (most recently submitted at top)
+        usort($assignmentList, fn ($a, $b) => $b['latest_taken_at'] <=> $a['latest_taken_at']);
+
+        // 3. ASSESSMENTS (Only appear once taken/submitted; ordered in FILO order)
         $assessmentsQuery = Assessment::query()
             ->whereIn('course_id', $effectiveCourseIds)
             ->released()
+            ->whereHas('submissions')
             ->with(['course:id,title,code', 'submissions' => function ($q) {
                 $q->with('user:id,name,email,track')->orderByRaw('score IS NULL, score DESC, submitted_at DESC');
             }]);
@@ -432,7 +467,7 @@ class StudentResults extends Page
             });
         }
 
-        $assessments = $assessmentsQuery->latest()->get();
+        $assessments = $assessmentsQuery->get();
         $assessmentList = [];
         $allAssessmentScores = [];
         $totalAssessmentSubs = 0;
@@ -450,6 +485,14 @@ class StudentResults extends Page
                         || str_contains(strtolower((string) $s->assessment?->name), strtolower($searchTerm));
                 });
             }
+
+            // Only appear once submitted
+            if ($submissions->isEmpty()) {
+                continue;
+            }
+
+            // Most recent submission timestamp for FILO ordering
+            $latestTakenAt = $submissions->max(fn ($s) => $s->submitted_at ? $s->submitted_at->timestamp : ($s->created_at ? $s->created_at->timestamp : 0)) ?? 0;
 
             // Sort in DESCENDING order by score
             $studentResults = $submissions->map(function ($sub) {
@@ -478,6 +521,10 @@ class StudentResults extends Page
                 return $b['score'] <=> $a['score'];
             })->values()->all();
 
+            if (empty($studentResults)) {
+                continue;
+            }
+
             $scores = array_filter(array_column($studentResults, 'score'), fn ($v) => $v !== null);
             $avgScore = count($scores) > 0 ? round(array_sum($scores) / count($scores), 1) : null;
             $gradedCount = count($scores);
@@ -504,9 +551,13 @@ class StudentResults extends Page
                 'avg_score' => $avgScore,
                 'top_score' => $topScore,
                 'low_score' => $lowScore,
+                'latest_taken_at' => $latestTakenAt,
                 'results' => $studentResults, // Ordered in DESC order
             ];
         }
+
+        // Sort assessments in FILO order (most recently submitted at top)
+        usort($assessmentList, fn ($a, $b) => $b['latest_taken_at'] <=> $a['latest_taken_at']);
 
         return [
             'quizzes' => $quizList,
@@ -990,24 +1041,24 @@ class StudentResults extends Page
             }
 
             fputcsv($handle, []);
-            fputcsv($handle, ['=== INDIVIDUAL TASK RESULTS (DESCENDING ORDER BY SCORE) ===']);
+            fputcsv($handle, ['=== INDIVIDUAL TASK RESULTS (FILO TASK ORDER • DESCENDING STUDENT SCORE ORDER) ===']);
             fputcsv($handle, ['Task Type', 'Task Title', 'Course', 'Student Name', 'Student Email', 'Score / Grade (%)', 'Status', 'Date']);
 
-            // Quizzes in DESC order
+            // Quizzes in FILO task order and DESC student score order
             foreach ($tasksData['quizzes'] as $q) {
                 foreach ($q['results'] as $res) {
                     fputcsv($handle, ['Quiz', $q['title'], $q['course'], $res['student_name'], $res['student_email'], $res['percentage'] !== null ? $res['percentage'].'%' : 'N/A', $res['passed'] ? 'Passed' : 'Failed', $res['completed_at']]);
                 }
             }
 
-            // Assignments in DESC order
+            // Assignments in FILO task order and DESC student score order
             foreach ($tasksData['assignments'] as $a) {
                 foreach ($a['results'] as $res) {
                     fputcsv($handle, ['Assignment', $a['title'], $a['course'], $res['student_name'], $res['student_email'], $res['grade'] !== null ? $res['grade'].'%' : 'N/A', $res['status'], $res['submitted_at']]);
                 }
             }
 
-            // Assessments in DESC order
+            // Assessments in FILO task order and DESC student score order
             foreach ($tasksData['assessments'] as $as) {
                 foreach ($as['results'] as $res) {
                     fputcsv($handle, ['Assessment', $as['title'], $as['course'], $res['student_name'], $res['student_email'], $res['score'] !== null ? $res['score'].'%' : 'N/A', $res['status'], $res['submitted_at']]);

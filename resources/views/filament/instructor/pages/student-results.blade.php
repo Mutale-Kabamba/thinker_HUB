@@ -17,7 +17,7 @@
                         </span>
                         <span style="color: var(--hub-border);">•</span>
                         <span style="font-size: 0.72rem; color: var(--hub-muted);">
-                            {{ count($students) }} Students • {{ $tasksData['totals']['total'] }} Tasks Consolidated
+                            {{ count($students) }} Students • {{ $tasksData['totals']['total'] }} Taken Tasks (FILO)
                         </span>
                     </div>
                     <h2 class="hub-title" style="font-size: 1.1rem; margin: 0.15rem 0 0 0;">Evaluation Results</h2>
@@ -58,8 +58,12 @@
                     </strong>
                 </div>
                 <div style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--hub-surface-soft); padding: 0.2rem 0.5rem; border-radius: 6px;">
-                    <span style="color: var(--hub-muted);">Ordering:</span>
-                    <strong style="color: var(--hub-primary);">DEC (Highest Scores First)</strong>
+                    <span style="color: var(--hub-muted);">Task Order:</span>
+                    <strong style="color: var(--hub-primary);">FILO (Most Recent Taken First)</strong>
+                </div>
+                <div style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--hub-surface-soft); padding: 0.2rem 0.5rem; border-radius: 6px;">
+                    <span style="color: var(--hub-muted);">Student Rank:</span>
+                    <strong style="color: #059669;">DEC (Highest Score First)</strong>
                 </div>
             </div>
         </div>
@@ -74,7 +78,7 @@
                     </div>
                     <input type="text"
                            wire:model.live.debounce.300ms="search"
-                           placeholder="Search student or evaluation task..."
+                           placeholder="Search student or taken task..."
                            style="width: 100%; padding: 0.35rem 0.6rem 0.35rem 1.9rem; border-radius: 6px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.76rem;" />
                 </div>
 
@@ -110,7 +114,7 @@
             </div>
         </div>
 
-        {{-- ==================== VIEW 1: 3 HORIZONTAL CATEGORY CARDS (QUIZZES / ASSIGNMENTS / ASSESSMENTS) ==================== --}}
+        {{-- ==================== VIEW 1: 3 HORIZONTAL CATEGORY CARDS (TAKEN TASKS ONLY • FILO ORDER) ==================== --}}
         @if($viewMode === 'tasks')
             {{-- 3 Horizontal Cards Container --}}
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; margin-bottom: 0.85rem;">
@@ -126,19 +130,19 @@
                             <strong style="font-size: 0.88rem; color: var(--hub-ink);">Quizzes</strong>
                         </div>
                         <span class="hub-chip" style="font-size: 0.62rem; padding: 0.1rem 0.4rem; background: rgba(16, 185, 129, 0.15); color: #047857; font-weight: 700;">
-                            {{ $catStats['quizzes']['count'] }} Quizzes
+                            {{ $catStats['quizzes']['count'] }} Taken
                         </span>
                     </div>
 
                     <div style="display: flex; justify-content: space-between; align-items: baseline; margin: 0.45rem 0 0.35rem 0;">
                         <div>
-                            <span style="font-size: 0.66rem; color: var(--hub-muted); display: block;">Quiz Average</span>
+                            <span style="font-size: 0.66rem; color: var(--hub-muted); display: block;">Quiz Avg</span>
                             <span style="font-size: 1.25rem; font-weight: 800; color: #10b981;">
                                 {{ $catStats['quizzes']['avg_score'] !== null ? $catStats['quizzes']['avg_score'].'%' : '—' }}
                             </span>
                         </div>
                         <div style="text-align: right; font-size: 0.72rem;">
-                            <span style="color: var(--hub-muted);">Total Attempts:</span>
+                            <span style="color: var(--hub-muted);">Attempts:</span>
                             <strong style="color: var(--hub-ink);">{{ $catStats['quizzes']['attempts'] }}</strong>
                         </div>
                     </div>
@@ -146,7 +150,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; padding-top: 0.4rem; border-top: 1px solid var(--hub-border); color: var(--hub-muted);">
                         <span>Passed: <strong style="color: #059669;">{{ $catStats['quizzes']['passed'] }}</strong></span>
                         <span style="font-weight: 700; color: {{ $isQuizActive ? '#059669' : 'var(--hub-muted)' }};">
-                            {{ $isQuizActive ? '▲ Viewing Details' : '▼ Click to Open' }}
+                            {{ $isQuizActive ? '▲ Viewing Taken' : '▼ Click to Open' }}
                         </span>
                     </div>
                 </div>
@@ -163,7 +167,7 @@
                             <strong style="font-size: 0.88rem; color: var(--hub-ink);">Assignments</strong>
                         </div>
                         <span class="hub-chip" style="font-size: 0.62rem; padding: 0.1rem 0.4rem; background: rgba(99, 102, 241, 0.15); color: #4338ca; font-weight: 700;">
-                            {{ $catStats['assignments']['count'] }} Assignments
+                            {{ $catStats['assignments']['count'] }} Taken
                         </span>
                     </div>
 
@@ -183,7 +187,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; padding-top: 0.4rem; border-top: 1px solid var(--hub-border); color: var(--hub-muted);">
                         <span>Graded: <strong style="color: #6366f1;">{{ $catStats['assignments']['graded'] }}</strong></span>
                         <span style="font-weight: 700; color: {{ $isAssignActive ? '#6366f1' : 'var(--hub-muted)' }};">
-                            {{ $isAssignActive ? '▲ Viewing Details' : '▼ Click to Open' }}
+                            {{ $isAssignActive ? '▲ Viewing Taken' : '▼ Click to Open' }}
                         </span>
                     </div>
                 </div>
@@ -200,7 +204,7 @@
                             <strong style="font-size: 0.88rem; color: var(--hub-ink);">Assessments</strong>
                         </div>
                         <span class="hub-chip" style="font-size: 0.62rem; padding: 0.1rem 0.4rem; background: rgba(139, 92, 246, 0.15); color: #6d28d9; font-weight: 700;">
-                            {{ $catStats['assessments']['count'] }} Assessments
+                            {{ $catStats['assessments']['count'] }} Taken
                         </span>
                     </div>
 
@@ -220,15 +224,15 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; padding-top: 0.4rem; border-top: 1px solid var(--hub-border); color: var(--hub-muted);">
                         <span>Graded: <strong style="color: #8b5cf6;">{{ $catStats['assessments']['graded'] }}</strong></span>
                         <span style="font-weight: 700; color: {{ $isAssessActive ? '#8b5cf6' : 'var(--hub-muted)' }};">
-                            {{ $isAssessActive ? '▲ Viewing Details' : '▼ Click to Open' }}
+                            {{ $isAssessActive ? '▲ Viewing Taken' : '▼ Click to Open' }}
                         </span>
                     </div>
                 </div>
             </div>
 
-            {{-- ==================== OPENED FULL CATEGORY DETAILS SECTION ==================== --}}
+            {{-- ==================== OPENED FULL CATEGORY DETAILS SECTION (COLLAPSIBLE TASKS IN FILO ORDER) ==================== --}}
             <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-                {{-- 1. FULL QUIZZES DETAIL --}}
+                {{-- 1. FULL QUIZZES DETAIL (FILO ORDER) --}}
                 @if($isQuizActive)
                     <div class="hub-card" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1.5px solid #10b981;">
                         {{-- Category Section Header --}}
@@ -236,31 +240,43 @@
                             <div style="display: flex; align-items: center; gap: 0.4rem;">
                                 <x-heroicon-o-academic-cap style="width: 1.1rem; height: 1.1rem; color: #047857;" />
                                 <h3 style="font-size: 0.92rem; font-weight: 800; color: var(--hub-ink); margin: 0;">
-                                    All Quizzes — Student Results in Descending (DEC) Order
+                                    Quizzes Taken (FILO Order • Student Scores in DEC Order)
                                 </h3>
                             </div>
                             <span style="font-size: 0.7rem; color: var(--hub-muted);">
-                                {{ count($tasksData['quizzes']) }} Quizzes • {{ $catStats['quizzes']['attempts'] }} Total Attempts
+                                {{ count($tasksData['quizzes']) }} Taken • {{ $catStats['quizzes']['attempts'] }} Total Attempts
                             </span>
                         </div>
 
                         @if(count($tasksData['quizzes']) === 0)
                             <div style="padding: 1.5rem; text-align: center; color: var(--hub-muted); font-size: 0.78rem;">
-                                No quizzes found matching your search or filters.
+                                No quizzes have been taken yet. Once students take a quiz, it will appear here in FILO order.
                             </div>
                         @else
                             <div style="display: flex; flex-direction: column;">
                                 @foreach ($tasksData['quizzes'] as $q)
+                                    @php $isTaskOpen = $this->isTaskExpanded($q['key']); @endphp
                                     <div style="border-bottom: {{ $loop->last ? 'none' : '1px solid var(--hub-border)' }};">
-                                        {{-- Individual Quiz Title Bar --}}
-                                        <div style="padding: 0.55rem 0.85rem; background: var(--hub-surface-soft); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-                                            <div>
-                                                <div style="display: flex; align-items: center; gap: 0.35rem;">
-                                                    <span style="font-weight: 800; font-size: 0.84rem; color: var(--hub-ink);">{{ $q['title'] }}</span>
-                                                    <span class="hub-chip" style="font-size: 0.6rem; padding: 0.06rem 0.3rem;">{{ $q['course_code'] }}</span>
-                                                </div>
-                                                <div style="font-size: 0.68rem; color: var(--hub-muted);">
-                                                    {{ $q['course'] }} • Pass: {{ $q['pass_percentage'] }}% • {{ $q['results_count'] }} Attempts
+                                        {{-- Individual Quiz Collapsible Header --}}
+                                        <div wire:click="toggleTask('{{ $q['key'] }}')"
+                                             style="padding: 0.6rem 0.85rem; background: var(--hub-surface-soft); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; cursor: pointer; transition: background 0.15s ease;">
+                                            <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
+                                                <span style="color: var(--hub-primary);">
+                                                    @if($isTaskOpen)
+                                                        <x-heroicon-o-chevron-down style="width: 1rem; height: 1rem;" />
+                                                    @else
+                                                        <x-heroicon-o-chevron-right style="width: 1rem; height: 1rem;" />
+                                                    @endif
+                                                </span>
+                                                <div>
+                                                    <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                                                        <span style="font-weight: 800; font-size: 0.84rem; color: var(--hub-ink);">{{ $q['title'] }}</span>
+                                                        <span class="hub-chip" style="font-size: 0.6rem; padding: 0.06rem 0.3rem;">{{ $q['course_code'] }}</span>
+                                                        <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(16, 185, 129, 0.12); color: #047857;">Taken</span>
+                                                    </div>
+                                                    <div style="font-size: 0.68rem; color: var(--hub-muted);">
+                                                        {{ $q['course'] }} • Pass: {{ $q['pass_percentage'] }}% • {{ $q['results_count'] }} Attempts
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -275,18 +291,17 @@
                                                     <span style="color: var(--hub-muted); font-size: 0.62rem;">Passed:</span>
                                                     <strong style="color: #059669;">{{ $q['passed_count'] }}/{{ $q['results_count'] }}</strong>
                                                 </div>
+                                                <span style="font-size: 0.68rem; color: var(--hub-primary); font-weight: 600;">
+                                                    {{ $isTaskOpen ? '▲ Collapse' : '▼ Expand' }}
+                                                </span>
                                             </div>
                                         </div>
 
-                                        {{-- Student Attempts List in DEC Order --}}
-                                        @if(count($q['results']) === 0)
-                                            <div style="padding: 0.75rem 0.85rem; font-size: 0.74rem; color: var(--hub-muted); font-style: italic;">
-                                                No attempts recorded for this quiz yet.
-                                            </div>
-                                        @else
+                                        {{-- Student Attempts List in DEC Order (Collapsible) --}}
+                                        @if($isTaskOpen)
                                             <div style="display: flex; flex-direction: column;">
                                                 @foreach ($q['results'] as $idx => $res)
-                                                    <div style="padding: 0.45rem 0.85rem 0.45rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-top: 1px solid var(--hub-border); background: {{ $idx % 2 === 0 ? 'transparent' : 'var(--hub-surface-soft)' }}; font-size: 0.76rem;">
+                                                    <div style="padding: 0.45rem 0.85rem 0.45rem 1.8rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-top: 1px solid var(--hub-border); background: {{ $idx % 2 === 0 ? 'transparent' : 'var(--hub-surface-soft)' }}; font-size: 0.76rem;">
                                                         <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1;">
                                                             <span style="display: inline-flex; align-items: center; justify-content: center; width: 1.3rem; height: 1.3rem; border-radius: 9999px; font-size: 0.64rem; font-weight: 800; background: {{ match($idx) {
                                                                 0 => 'linear-gradient(135deg, #f59e0b, #d97706)',
@@ -336,7 +351,7 @@
                     </div>
                 @endif
 
-                {{-- 2. FULL ASSIGNMENTS DETAIL --}}
+                {{-- 2. FULL ASSIGNMENTS DETAIL (FILO ORDER) --}}
                 @if($isAssignActive)
                     <div class="hub-card" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1.5px solid #6366f1;">
                         {{-- Category Section Header --}}
@@ -344,31 +359,43 @@
                             <div style="display: flex; align-items: center; gap: 0.4rem;">
                                 <x-heroicon-o-document-text style="width: 1.1rem; height: 1.1rem; color: #4338ca;" />
                                 <h3 style="font-size: 0.92rem; font-weight: 800; color: var(--hub-ink); margin: 0;">
-                                    All Assignments — Student Submissions in Descending (DEC) Order
+                                    Assignments Taken (FILO Order • Student Grades in DEC Order)
                                 </h3>
                             </div>
                             <span style="font-size: 0.7rem; color: var(--hub-muted);">
-                                {{ count($tasksData['assignments']) }} Assignments • {{ $catStats['assignments']['submissions'] }} Submissions
+                                {{ count($tasksData['assignments']) }} Taken • {{ $catStats['assignments']['submissions'] }} Submissions
                             </span>
                         </div>
 
                         @if(count($tasksData['assignments']) === 0)
                             <div style="padding: 1.5rem; text-align: center; color: var(--hub-muted); font-size: 0.78rem;">
-                                No assignments found matching your search or filters.
+                                No assignments have been submitted yet. Once students submit an assignment, it will appear here in FILO order.
                             </div>
                         @else
                             <div style="display: flex; flex-direction: column;">
                                 @foreach ($tasksData['assignments'] as $a)
+                                    @php $isTaskOpen = $this->isTaskExpanded($a['key']); @endphp
                                     <div style="border-bottom: {{ $loop->last ? 'none' : '1px solid var(--hub-border)' }};">
-                                        {{-- Individual Assignment Title Bar --}}
-                                        <div style="padding: 0.55rem 0.85rem; background: var(--hub-surface-soft); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-                                            <div>
-                                                <div style="display: flex; align-items: center; gap: 0.35rem;">
-                                                    <span style="font-weight: 800; font-size: 0.84rem; color: var(--hub-ink);">{{ $a['title'] }}</span>
-                                                    <span class="hub-chip" style="font-size: 0.6rem; padding: 0.06rem 0.3rem;">{{ $a['course_code'] }}</span>
-                                                </div>
-                                                <div style="font-size: 0.68rem; color: var(--hub-muted);">
-                                                    {{ $a['course'] }} • Due: {{ $a['due_date'] }} • {{ $a['results_count'] }} Submissions
+                                        {{-- Individual Assignment Collapsible Header --}}
+                                        <div wire:click="toggleTask('{{ $a['key'] }}')"
+                                             style="padding: 0.6rem 0.85rem; background: var(--hub-surface-soft); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; cursor: pointer; transition: background 0.15s ease;">
+                                            <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
+                                                <span style="color: var(--hub-primary);">
+                                                    @if($isTaskOpen)
+                                                        <x-heroicon-o-chevron-down style="width: 1rem; height: 1rem;" />
+                                                    @else
+                                                        <x-heroicon-o-chevron-right style="width: 1rem; height: 1rem;" />
+                                                    @endif
+                                                </span>
+                                                <div>
+                                                    <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                                                        <span style="font-weight: 800; font-size: 0.84rem; color: var(--hub-ink);">{{ $a['title'] }}</span>
+                                                        <span class="hub-chip" style="font-size: 0.6rem; padding: 0.06rem 0.3rem;">{{ $a['course_code'] }}</span>
+                                                        <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(99, 102, 241, 0.12); color: #4338ca;">Taken</span>
+                                                    </div>
+                                                    <div style="font-size: 0.68rem; color: var(--hub-muted);">
+                                                        {{ $a['course'] }} • Due: {{ $a['due_date'] }} • {{ $a['results_count'] }} Submissions
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -383,18 +410,17 @@
                                                     <span style="color: var(--hub-muted); font-size: 0.62rem;">Graded:</span>
                                                     <strong style="color: #6366f1;">{{ $a['graded_count'] }}/{{ $a['results_count'] }}</strong>
                                                 </div>
+                                                <span style="font-size: 0.68rem; color: var(--hub-primary); font-weight: 600;">
+                                                    {{ $isTaskOpen ? '▲ Collapse' : '▼ Expand' }}
+                                                </span>
                                             </div>
                                         </div>
 
-                                        {{-- Student Submissions List in DEC Order --}}
-                                        @if(count($a['results']) === 0)
-                                            <div style="padding: 0.75rem 0.85rem; font-size: 0.74rem; color: var(--hub-muted); font-style: italic;">
-                                                No submissions recorded for this assignment yet.
-                                            </div>
-                                        @else
+                                        {{-- Student Submissions List in DEC Order (Collapsible) --}}
+                                        @if($isTaskOpen)
                                             <div style="display: flex; flex-direction: column;">
                                                 @foreach ($a['results'] as $idx => $res)
-                                                    <div style="padding: 0.45rem 0.85rem 0.45rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-top: 1px solid var(--hub-border); background: {{ $idx % 2 === 0 ? 'transparent' : 'var(--hub-surface-soft)' }}; font-size: 0.76rem;">
+                                                    <div style="padding: 0.45rem 0.85rem 0.45rem 1.8rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-top: 1px solid var(--hub-border); background: {{ $idx % 2 === 0 ? 'transparent' : 'var(--hub-surface-soft)' }}; font-size: 0.76rem;">
                                                         <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1;">
                                                             <span style="display: inline-flex; align-items: center; justify-content: center; width: 1.3rem; height: 1.3rem; border-radius: 9999px; font-size: 0.64rem; font-weight: 800; background: {{ match($idx) {
                                                                 0 => 'linear-gradient(135deg, #f59e0b, #d97706)',
@@ -452,7 +478,7 @@
                     </div>
                 @endif
 
-                {{-- 3. FULL ASSESSMENTS DETAIL --}}
+                {{-- 3. FULL ASSESSMENTS DETAIL (FILO ORDER) --}}
                 @if($isAssessActive)
                     <div class="hub-card" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1.5px solid #8b5cf6;">
                         {{-- Category Section Header --}}
@@ -460,31 +486,43 @@
                             <div style="display: flex; align-items: center; gap: 0.4rem;">
                                 <x-heroicon-o-clipboard-document-check style="width: 1.1rem; height: 1.1rem; color: #6d28d9;" />
                                 <h3 style="font-size: 0.92rem; font-weight: 800; color: var(--hub-ink); margin: 0;">
-                                    All Assessments — Student Submissions in Descending (DEC) Order
+                                    Assessments Taken (FILO Order • Student Scores in DEC Order)
                                 </h3>
                             </div>
                             <span style="font-size: 0.7rem; color: var(--hub-muted);">
-                                {{ count($tasksData['assessments']) }} Assessments • {{ $catStats['assessments']['submissions'] }} Submissions
+                                {{ count($tasksData['assessments']) }} Taken • {{ $catStats['assessments']['submissions'] }} Submissions
                             </span>
                         </div>
 
                         @if(count($tasksData['assessments']) === 0)
                             <div style="padding: 1.5rem; text-align: center; color: var(--hub-muted); font-size: 0.78rem;">
-                                No assessments found matching your search or filters.
+                                No assessments have been submitted yet. Once students submit an assessment, it will appear here in FILO order.
                             </div>
                         @else
                             <div style="display: flex; flex-direction: column;">
                                 @foreach ($tasksData['assessments'] as $as)
+                                    @php $isTaskOpen = $this->isTaskExpanded($as['key']); @endphp
                                     <div style="border-bottom: {{ $loop->last ? 'none' : '1px solid var(--hub-border)' }};">
-                                        {{-- Individual Assessment Title Bar --}}
-                                        <div style="padding: 0.55rem 0.85rem; background: var(--hub-surface-soft); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-                                            <div>
-                                                <div style="display: flex; align-items: center; gap: 0.35rem;">
-                                                    <span style="font-weight: 800; font-size: 0.84rem; color: var(--hub-ink);">{{ $as['title'] }}</span>
-                                                    <span class="hub-chip" style="font-size: 0.6rem; padding: 0.06rem 0.3rem;">{{ $as['course_code'] }}</span>
-                                                </div>
-                                                <div style="font-size: 0.68rem; color: var(--hub-muted);">
-                                                    {{ $as['course'] }} • Due: {{ $as['due_date'] }} • {{ $as['results_count'] }} Submissions
+                                        {{-- Individual Assessment Collapsible Header --}}
+                                        <div wire:click="toggleTask('{{ $as['key'] }}')"
+                                             style="padding: 0.6rem 0.85rem; background: var(--hub-surface-soft); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; cursor: pointer; transition: background 0.15s ease;">
+                                            <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
+                                                <span style="color: var(--hub-primary);">
+                                                    @if($isTaskOpen)
+                                                        <x-heroicon-o-chevron-down style="width: 1rem; height: 1rem;" />
+                                                    @else
+                                                        <x-heroicon-o-chevron-right style="width: 1rem; height: 1rem;" />
+                                                    @endif
+                                                </span>
+                                                <div>
+                                                    <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                                                        <span style="font-weight: 800; font-size: 0.84rem; color: var(--hub-ink);">{{ $as['title'] }}</span>
+                                                        <span class="hub-chip" style="font-size: 0.6rem; padding: 0.06rem 0.3rem;">{{ $as['course_code'] }}</span>
+                                                        <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(139, 92, 246, 0.12); color: #6d28d9;">Taken</span>
+                                                    </div>
+                                                    <div style="font-size: 0.68rem; color: var(--hub-muted);">
+                                                        {{ $as['course'] }} • Due: {{ $as['due_date'] }} • {{ $as['results_count'] }} Submissions
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -499,18 +537,17 @@
                                                     <span style="color: var(--hub-muted); font-size: 0.62rem;">Graded:</span>
                                                     <strong style="color: #8b5cf6;">{{ $as['graded_count'] }}/{{ $as['results_count'] }}</strong>
                                                 </div>
+                                                <span style="font-size: 0.68rem; color: var(--hub-primary); font-weight: 600;">
+                                                    {{ $isTaskOpen ? '▲ Collapse' : '▼ Expand' }}
+                                                </span>
                                             </div>
                                         </div>
 
-                                        {{-- Student Submissions List in DEC Order --}}
-                                        @if(count($as['results']) === 0)
-                                            <div style="padding: 0.75rem 0.85rem; font-size: 0.74rem; color: var(--hub-muted); font-style: italic;">
-                                                No submissions recorded for this assessment yet.
-                                            </div>
-                                        @else
+                                        {{-- Student Submissions List in DEC Order (Collapsible) --}}
+                                        @if($isTaskOpen)
                                             <div style="display: flex; flex-direction: column;">
                                                 @foreach ($as['results'] as $idx => $res)
-                                                    <div style="padding: 0.45rem 0.85rem 0.45rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-top: 1px solid var(--hub-border); background: {{ $idx % 2 === 0 ? 'transparent' : 'var(--hub-surface-soft)' }}; font-size: 0.76rem;">
+                                                    <div style="padding: 0.45rem 0.85rem 0.45rem 1.8rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-top: 1px solid var(--hub-border); background: {{ $idx % 2 === 0 ? 'transparent' : 'var(--hub-surface-soft)' }}; font-size: 0.76rem;">
                                                         <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1;">
                                                             <span style="display: inline-flex; align-items: center; justify-content: center; width: 1.3rem; height: 1.3rem; border-radius: 9999px; font-size: 0.64rem; font-weight: 800; background: {{ match($idx) {
                                                                 0 => 'linear-gradient(135deg, #f59e0b, #d97706)',
