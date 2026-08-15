@@ -369,6 +369,88 @@
     .hub-day-selected { outline: 2px solid #3b82f6; outline-offset: 1px; border-radius: 8px; }
     .hub-day:hover { background: var(--hub-surface); }
 
+    /* Calendar Hover Popover */
+    .hub-cal-popover {
+        background: #0f172a !important;
+        color: #f8fafc !important;
+        border: 1px solid #334155 !important;
+        border-radius: 8px !important;
+        padding: 0.55rem 0.7rem !important;
+        font-size: 0.75rem !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+        pointer-events: none !important;
+        width: max-content !important;
+        max-width: 250px !important;
+        backdrop-filter: blur(8px) !important;
+        box-sizing: border-box !important;
+    }
+
+    .hub-cal-popover-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 0.5rem !important;
+        padding-bottom: 0.35rem !important;
+        margin-bottom: 0.35rem !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+    }
+
+    .hub-cal-popover-dot {
+        width: 6px !important;
+        height: 6px !important;
+        border-radius: 50% !important;
+        background: #10b981 !important;
+        display: inline-block !important;
+        flex-shrink: 0 !important;
+    }
+
+    .hub-cal-popover-title {
+        font-size: 0.7rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
+        color: #38bdf8 !important;
+    }
+
+    .hub-cal-popover-badge {
+        font-size: 0.62rem !important;
+        font-weight: 600 !important;
+        color: #94a3b8 !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+    }
+
+    .hub-cal-popover-list {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.3rem !important;
+    }
+
+    .hub-cal-popover-item {
+        display: flex !important;
+        align-items: flex-start !important;
+        gap: 0.35rem !important;
+        font-size: 0.73rem !important;
+        color: #e2e8f0 !important;
+        line-height: 1.35 !important;
+    }
+
+    .hub-cal-popover-hint {
+        margin-top: 0.4rem !important;
+        padding-top: 0.3rem !important;
+        border-top: 1px dashed rgba(255, 255, 255, 0.1) !important;
+        font-size: 0.62rem !important;
+        color: #64748b !important;
+        text-align: center !important;
+    }
+
+    @media (hover: none) or (max-width: 640px) {
+        .hub-cal-popover {
+            display: none !important;
+        }
+    }
+
     /* ============================================================ */
     /* SCHEDULE & INTERACTIVE CALENDAR SYSTEM                       */
     /* ============================================================ */
@@ -2408,5 +2490,130 @@
         .hub-topbar-badge {
             padding: 0.3rem 0.5rem;
         }
+    }
+
+    /* =========================================================================
+       NATIVE MOBILE APP & PWA OPTIMIZATIONS (iOS & Android)
+       ========================================================================= */
+
+    /* Global Touch & Feel */
+    html, body {
+        -webkit-tap-highlight-color: transparent !important;
+        -webkit-touch-callout: none;
+        overscroll-behavior-y: contain;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Safe Area Insets for Mobile Notches & Gesture Home Indicators */
+    body {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+
+    .fi-topbar {
+        padding-top: max(0.2rem, env(safe-area-inset-top)) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+    }
+
+    .fi-sidebar {
+        padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+    }
+
+    /* Brand Logo Size Across All Panels */
+    .fi-logo,
+    .fi-sidebar-header img,
+    .fi-topbar-brand img,
+    .fi-topbar img {
+        max-height: 38px !important;
+        height: 38px !important;
+        width: auto !important;
+        object-fit: contain !important;
+        transition: transform 0.2s ease;
+    }
+
+    @media (max-width: 640px) {
+        .fi-logo,
+        .fi-sidebar-header img,
+        .fi-topbar-brand img,
+        .fi-topbar img {
+            max-height: 32px !important;
+            height: 32px !important;
+        }
+
+        /* Prevent auto-zoom on iOS input focus */
+        .fi-input,
+        .fi-select-input,
+        .fi-textarea,
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        input[type="password"],
+        select,
+        textarea {
+            font-size: 16px !important;
+        }
+
+        /* Touch target improvements */
+        .fi-btn,
+        .hub-btn,
+        .hub-chip,
+        button {
+            touch-action: manipulation;
+        }
+
+        /* Mobile Modal Bottom Sheet style */
+        .fi-modal-window {
+            margin-bottom: 0 !important;
+            border-bottom-left-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+            max-height: 88vh !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Mobile compact table container */
+        .fi-ta-ctn {
+            border-radius: 14px !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Spacing optimizations for small screens */
+        .fi-page-header {
+            margin-bottom: 1rem !important;
+        }
+
+        .fi-section {
+            padding: 0.85rem !important;
+            border-radius: 14px !important;
+        }
+    }
+
+    /* Fix: Force topbar profile, notifications, and user menu dropdowns to open downwards */
+    .fi-topbar {
+        overflow: visible !important;
+        z-index: 40 !important;
+    }
+
+    .fi-topbar-ctn,
+    .fi-topbar nav,
+    .fi-topbar header {
+        overflow: visible !important;
+    }
+
+    .fi-dropdown-panel,
+    .fi-topbar .fi-dropdown-panel,
+    .fi-topbar [x-ref="panel"],
+    .fi-user-menu [x-ref="panel"],
+    .fi-user-menu .fi-dropdown-panel,
+    [data-placement^="top"].fi-dropdown-panel,
+    [data-placement^="bottom"].fi-dropdown-panel {
+        top: 100% !important;
+        bottom: auto !important;
+        margin-top: 0.35rem !important;
+        transform-origin: top right !important;
+        z-index: 99999 !important;
     }
 </style>

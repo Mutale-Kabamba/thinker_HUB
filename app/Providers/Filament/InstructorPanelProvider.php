@@ -30,6 +30,9 @@ class InstructorPanelProvider extends PanelProvider
             ->id('instructor')
             ->path('teach')
             ->brandName('Thinker HUB • Instructor Workspace')
+            ->brandLogo(asset('images/logos/green.png'))
+            ->darkModeBrandLogo(asset('images/logos/yellow_white.png'))
+            ->brandLogoHeight('2.1rem')
             ->login(SharedLogin::class)
             ->colors([
                 'primary' => Color::Teal,
@@ -66,6 +69,10 @@ class InstructorPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
             ])
+            ->renderHook(
+                PanelsRenderHook::BODY_START,
+                fn (): string => view('partials.app-preloader')->render(),
+            )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => view('filament.partials.panel-theme')->render(),

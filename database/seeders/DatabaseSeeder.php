@@ -36,5 +36,10 @@ class DatabaseSeeder extends Seeder
             'description' => 'A beginner-friendly course covering HTML, CSS, and JavaScript fundamentals.',
             'is_active' => true,
         ]);
+
+        $this->call([
+            ClaimItemSeeder::class,
+            CourseGamificationRuleSeeder::class,
+        ]);
     }
 }

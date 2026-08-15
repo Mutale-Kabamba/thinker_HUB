@@ -1,22 +1,97 @@
 {
-  "name": "Thinker HUB",
+  "name": "think.er HUB",
   "short_name": "ThinkerHUB",
-  "description": "Learning platform for students and instructors.",
-  "start_url": "/",
+  "description": "Accelerated Learning, Gamified Rewards & Mentorship Platform for Students and Instructors.",
+  "start_url": "/learn",
+  "scope": "/",
+  "id": "thinkerhub-app",
   "display": "standalone",
-  "background_color": "#f0fdfa",
-  "theme_color": "#0e7490",
-  "orientation": "portrait",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#07191e",
+  "theme_color": "#006a67",
+  "orientation": "portrait-primary",
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "/images/logos/icon_green.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logos/icon_green.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/images/logos/icon_green.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logos/icon_green.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Student Learn Hub",
+      "short_name": "Learn",
+      "description": "Open your active courses, assignments and quizzes",
+      "url": "/learn",
+      "icons": [
+        {
+          "src": "/images/logos/icon_green.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Claim Hub & Rewards",
+      "short_name": "Rewards",
+      "description": "Redeem Thinker Coins for airtime, data and course perks",
+      "url": "/learn/claim-hub",
+      "icons": [
+        {
+          "src": "/images/logos/icon_green.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Instructor Workspace",
+      "short_name": "Teach",
+      "description": "Manage courses, submissions and grading",
+      "url": "/teach",
+      "icons": [
+        {
+          "src": "/images/logos/icon_green.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Thinker Community Hub",
+      "short_name": "Community",
+      "description": "Browse opportunities, projects and study buddies",
+      "url": "/hub",
+      "icons": [
+        {
+          "src": "/images/logos/icon_green.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

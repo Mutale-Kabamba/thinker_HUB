@@ -11,7 +11,8 @@
 <header class="hub-public-header sticky top-0 z-50 py-4 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-8">
         <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2 text-xl font-bold text-slate-900">
-            <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
+            <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-9 max-h-9 md:h-10 md:max-h-10 w-auto object-contain dark:hidden">
+            <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-9 max-h-9 md:h-10 md:max-h-10 w-auto object-contain hidden dark:block">
         </a>
 
         <nav class="hub-public-nav hidden items-center gap-2 text-[13px] font-semibold uppercase tracking-wider text-slate-600 md:flex">

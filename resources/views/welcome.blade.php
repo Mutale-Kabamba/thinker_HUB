@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     @include('partials.seo-meta', [
         'title' => 'think.er HUB | Teach, Manage, and Upskill',
         'description' => 'Tutors can publish and manage curated courses, while learners enroll to upskill through practical training.',
@@ -79,6 +79,7 @@
     x-init="startHeroRotation(); preloadHeroImages(); reorderHomepageSections()"
 >
 
+    @include('partials.app-preloader')
     @include('partials.public-header')
 
     <main>

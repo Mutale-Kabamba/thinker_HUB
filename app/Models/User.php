@@ -51,6 +51,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         'company',
         'portfolio_url',
         'specialty',
+        'lifetime_xp',
+        'spendable_coins',
+        'current_streak',
+        'last_activity_at',
     ];
 
     /**
@@ -74,6 +78,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'lifetime_xp' => 'integer',
+            'spendable_coins' => 'integer',
+            'current_streak' => 'integer',
+            'last_activity_at' => 'datetime',
             'pending_login_token_expires_at' => 'datetime',
             'pending_login_token_used_at' => 'datetime',
         ];
@@ -131,13 +139,41 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->hasMany(XpTransaction::class);
     }
 
+    public function claimRequests(): HasMany
+    {
+        return $this->hasMany(ClaimRequest::class);
+    }
+
     /**
-     * Total XP across all award transactions. Correctness first: summed
-     * live from xp_transactions (indexed on user_id), no cached counter.
+     * Total XP across all award transactions.
      */
     public function xpTotal(): int
     {
-        return (int) $this->xpTransactions()->sum('points');
+        if ($this->lifetime_xp > 0) {
+            return (int) $this->lifetime_xp;
+        }
+
+        return (int) ($this->xpTransactions()->sum('amount_xp') ?: $this->xpTransactions()->sum('points'));
+    }
+
+    /**
+     * Current Rank Tier details (rank_name, multiplier).
+     *
+     * @return array{rank_name: string, multiplier: float}
+     */
+    public function rankTier(): array
+    {
+        return app(\App\Services\GamificationService::class)->calculateUserRank($this->lifetime_xp ?? 0);
+    }
+
+    public function rankName(): string
+    {
+        return $this->rankTier()['rank_name'];
+    }
+
+    public function rankMultiplier(): float
+    {
+        return (float) $this->rankTier()['multiplier'];
     }
 
     /**
