@@ -424,9 +424,35 @@
                     opacity:0.6;
                 }
                 .community-composer-wrap { display:flex; gap:0.5rem; align-items:center; padding:0.34rem 0.4rem; border:1px solid var(--community-composer-border); border-radius:999px; background:var(--community-composer-bg); backdrop-filter:blur(10px); box-shadow:0 12px 28px rgba(2,6,23,.15); }
-                .community-message-input { color:var(--community-composer-input) !important; }
+                .community-message-input { flex:1 1 auto; min-width:0; color:var(--community-composer-input) !important; }
                 .community-message-input::placeholder { color:var(--community-composer-placeholder); opacity:1; }
-                .community-attach-btn { border-color: var(--community-composer-border) !important; color: var(--community-composer-attach-icon) !important; background: var(--community-composer-attach-bg) !important; }
+                .community-attach-btn { flex-shrink:0; width:38px; height:38px; border-color: var(--community-composer-border) !important; color: var(--community-composer-attach-icon) !important; background: var(--community-composer-attach-bg) !important; }
+                .community-send-btn {
+                    flex-shrink: 0 !important;
+                    white-space: nowrap !important;
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    gap: 0.35rem !important;
+                    padding: 0.5rem 1.15rem !important;
+                    min-height: 38px !important;
+                    border: none !important;
+                    border-radius: 999px !important;
+                    cursor: pointer !important;
+                    font-size: 0.84rem !important;
+                    font-weight: 700 !important;
+                    color: #ffffff !important;
+                    background: linear-gradient(135deg, #0f766e, #0ea5e9) !important;
+                    box-shadow: 0 8px 20px rgba(14, 116, 144, .28) !important;
+                    transition: transform 0.15s ease, opacity 0.15s ease;
+                }
+                .community-send-btn:active {
+                    transform: scale(0.96);
+                }
+                .community-send-btn:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
                 .community-back-btn { display:none; }
                 .community-back-btn:focus-visible { outline:2px solid #22d3ee; outline-offset:2px; }
 
@@ -456,7 +482,13 @@
                     }
                     .community-back-btn { display:inline-flex; width:2rem; height:2rem; align-items:center; justify-content:center; border:1px solid var(--hub-border); border-radius:999px; background:var(--hub-surface); color:var(--hub-ink); cursor:pointer; flex:0 0 auto; }
                     .community-composer-wrap { gap:0.36rem; padding:0.26rem 0.3rem; }
-                    .community-composer-wrap .community-message-input { font-size:14px; }
+                    .community-attach-btn { width:34px !important; height:34px !important; padding:0 !important; }
+                    .community-composer-wrap .community-message-input { font-size:14px; min-width:0 !important; flex:1 1 auto !important; padding:0.4rem 0.45rem !important; }
+                    .community-send-btn {
+                        padding: 0.45rem 1rem !important;
+                        min-height: 36px !important;
+                        font-size: 0.8rem !important;
+                    }
                 }
             </style>
 
@@ -801,15 +833,18 @@
                             <div wire:loading wire:target="attachment" style="font-size:0.72rem;color:var(--hub-muted);">Uploading…</div>
 
                             <div class="community-composer-wrap">
-                                <label class="community-attach-btn" style="cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0.48rem;border:1px solid color-mix(in oklab, var(--hub-border) 70%, #475569 30%);border-radius:999px;color:var(--hub-muted);background:color-mix(in oklab, var(--hub-card) 82%, #111827 18%);" title="Attach a file">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                                <label class="community-attach-btn" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;border:1px solid color-mix(in oklab, var(--hub-border) 70%, #475569 30%);border-radius:999px;color:var(--hub-muted);background:color-mix(in oklab, var(--hub-card) 82%, #111827 18%);flex-shrink:0;" title="Attach a file">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                                     <input type="file" wire:model="attachment" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip" style="display:none;">
                                 </label>
                                 <input type="text" wire:model="messageBody" placeholder="Type a message…" autocomplete="off"
                                     class="community-message-input"
-                                    style="flex:1;font-size:13px;padding:0.45rem 0.5rem;border:0;outline:0;background:transparent;box-shadow:none;color:var(--hub-ink);-webkit-appearance:none;appearance:none;">
+                                    style="flex:1 1 auto;min-width:0;font-size:14px;padding:0.45rem 0.5rem;border:0;outline:0;background:transparent;box-shadow:none;color:var(--hub-ink);-webkit-appearance:none;appearance:none;">
                                 <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachment"
-                                    style="padding:0.5rem 1.05rem;background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;border:none;border-radius:999px;cursor:pointer;font-size:0.82rem;font-weight:700;box-shadow:0 8px 20px rgba(14,116,144,.28);">Send</button>
+                                    class="community-send-btn" title="Send message">
+                                    <span>Send</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg); margin-top:-1px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                </button>
                             </div>
                         </form>
                     @endif
