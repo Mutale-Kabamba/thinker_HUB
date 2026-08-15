@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         @include('partials.seo-meta', [
@@ -20,6 +20,8 @@
         @include('partials.pwa-register')
     </head>
     <body class="font-sans antialiased text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-950">
+        @include('partials.app-preloader')
+
         <div class="relative min-h-screen overflow-hidden flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
             <div class="pointer-events-none absolute inset-0">
                 <div class="absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-teal-200/40 blur-3xl dark:bg-teal-700/20"></div>
@@ -28,7 +30,8 @@
 
             <div class="relative flex w-full max-w-md flex-col items-center">
                 <a href="{{ route('home') }}" class="mb-5 inline-flex items-center transition hover:opacity-90" aria-label="think.er HUB home">
-                    <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-14 w-auto">
+                    <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-10 max-h-10 w-auto object-contain dark:hidden">
+                    <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-10 max-h-10 w-auto object-contain hidden dark:block">
                 </a>
 
                 <main class="w-full">

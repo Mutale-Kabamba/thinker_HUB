@@ -241,6 +241,16 @@ class CourseCompletionCertificateTest extends TestCase
 
         $this->actingAs($instructor);
         Livewire::test(StudentResults::class)
+            ->call('markCourseComplete', $student->id, $course->id);
+
+        $this->assertTrue($student->badges()->where('badges.key', 'course_completed')->exists());
+        $this->assertDatabaseHas('xp_transactions', [
+            'user_id' => $student->id,
+            'source' => 'course_completed',
+            'source_id' => $course->id,
+        ]);
+
+        Livewire::test(StudentResults::class)
             ->call('unmarkCourseComplete', $student->id, $course->id);
 
         $enrollment->refresh();
@@ -250,6 +260,13 @@ class CourseCompletionCertificateTest extends TestCase
         // Certificate record must be deleted
         $this->assertDatabaseMissing('certificates', [
             'id' => $certificate->id,
+        ]);
+
+        // Course completed badge and XP must be revoked
+        $this->assertFalse($student->badges()->where('badges.key', 'course_completed')->exists());
+        $this->assertDatabaseMissing('xp_transactions', [
+            'user_id' => $student->id,
+            'source' => 'course_completed',
         ]);
     }
 }

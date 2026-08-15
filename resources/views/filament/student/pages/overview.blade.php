@@ -3,18 +3,38 @@
         x-data="{
             activeSection: 'overview',
             calendarTooltip: null,
+            calendarTooltipDate: '',
             calendarTooltipX: 0,
             calendarTooltipY: 0,
+            calendarTooltipPlacement: 'top',
             select(section) {
                 this.activeSection = section;
                 window.location.hash = section;
             },
-            showTooltip(event, names) {
-                if (!names.length) return;
+            showTooltip(event, names, dateStr) {
+                if (!names || !names.length) return;
                 this.calendarTooltip = names;
-                const rect = event.target.getBoundingClientRect();
-                this.calendarTooltipX = rect.left + rect.width / 2;
-                this.calendarTooltipY = rect.top - 8;
+                if (dateStr) {
+                    const dt = new Date(dateStr + 'T00:00:00');
+                    this.calendarTooltipDate = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                } else {
+                    this.calendarTooltipDate = 'Due This Day';
+                }
+                const target = event.currentTarget || event.target;
+                const rect = target.getBoundingClientRect();
+                const tooltipWidth = 240;
+                const padding = 12;
+                const rawX = rect.left + rect.width / 2;
+                this.calendarTooltipX = Math.max(tooltipWidth / 2 + padding, Math.min(window.innerWidth - tooltipWidth / 2 - padding, rawX));
+
+                // If element is in top portion of screen (< 180px), pop below it to never overlap header
+                if (rect.top < 180) {
+                    this.calendarTooltipPlacement = 'bottom';
+                    this.calendarTooltipY = rect.bottom + 8;
+                } else {
+                    this.calendarTooltipPlacement = 'top';
+                    this.calendarTooltipY = rect.top - 8;
+                }
             },
             hideTooltip() {
                 this.calendarTooltip = null;
@@ -137,7 +157,7 @@
                             @foreach (($calendar['days'] ?? []) as $day)
                                 <div
                                     @click="selectDay(@js($day['date']), {{ $day['has_due'] ? 'true' : 'false' }})"
-                                    @mouseenter="showTooltip($event, @js($day['due_names']))"
+                                    @mouseenter="showTooltip($event, @js($day['due_names']), @js($day['date']))"
                                     @mouseleave="hideTooltip()"
                                     :class="{ 'hub-day-selected': selectedDate === @js($day['date']) }"
                                     class="hub-day {{ $day['is_today'] ? 'hub-day-today' : ($day['has_due'] ? 'hub-day-due' : ($day['is_past'] ? 'hub-day-past' : '')) }}"
@@ -224,18 +244,37 @@
                         </template>
                     </div>
 
-                    {{-- Calendar tooltip --}}
+                    {{-- Calendar Hover Popover (Clean & Non-distracting) --}}
                     <div
                         x-show="calendarTooltip && !selectedDate"
                         x-cloak
-                        x-transition.opacity.duration.150ms
-                        :style="`position:fixed;left:${calendarTooltipX}px;top:${calendarTooltipY}px;transform:translate(-50%,-100%);z-index:9999;`"
-                        style="background:#1f2937;color:white;border-radius:8px;padding:0.5rem 0.75rem;font-size:0.78rem;box-shadow:0 4px 12px rgba(0,0,0,0.15);pointer-events:none;max-width:220px;"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        :style="`position:fixed; left:${calendarTooltipX}px; top:${calendarTooltipY}px; transform:translate(-50%, ${calendarTooltipPlacement === 'bottom' ? '0%' : '-100%'}); z-index:99999;`"
+                        class="hub-cal-popover"
                     >
-                        <p style="margin:0 0 0.2rem;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:#9ca3af;">Due this day:</p>
-                        <template x-for="name in calendarTooltip" :key="name">
-                            <p style="margin:0.15rem 0 0;font-size:0.78rem;" x-text="name"></p>
-                        </template>
+                        <div class="hub-cal-popover-header">
+                            <div style="display:flex;align-items:center;gap:0.35rem;">
+                                <span class="hub-cal-popover-dot"></span>
+                                <span class="hub-cal-popover-title" x-text="calendarTooltipDate"></span>
+                            </div>
+                            <span class="hub-cal-popover-badge" x-text="calendarTooltip.length + (calendarTooltip.length === 1 ? ' item' : ' items')"></span>
+                        </div>
+                        <div class="hub-cal-popover-list">
+                            <template x-for="(name, nIdx) in calendarTooltip" :key="nIdx">
+                                <div class="hub-cal-popover-item">
+                                    <svg style="width:0.75rem;height:0.75rem;flex-shrink:0;margin-top:0.15rem;color:#38bdf8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    <span x-text="name" style="word-break:break-word;"></span>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="hub-cal-popover-hint">
+                            Click date to view details
+                        </div>
                     </div>
                 </section>
             </div>

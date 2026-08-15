@@ -30,6 +30,9 @@ class StudentPanelProvider extends PanelProvider
             ->id('student')
             ->path('learn')
             ->brandName('Thinker HUB • Student Portal')
+            ->brandLogo(asset('images/logos/green.png'))
+            ->darkModeBrandLogo(asset('images/logos/yellow_white.png'))
+            ->brandLogoHeight('2.1rem')
             ->login(SharedLogin::class)
             ->colors([
                 'primary' => Color::Teal,
@@ -65,6 +68,10 @@ class StudentPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
             ])
+            ->renderHook(
+                PanelsRenderHook::BODY_START,
+                fn (): string => view('partials.app-preloader')->render(),
+            )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => view('filament.partials.panel-theme')->render(),

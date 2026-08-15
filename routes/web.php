@@ -675,6 +675,8 @@ Route::middleware('auth')->group(function () {
 
         return response()->json(['url' => $signedUrl]);
     })->name('file.signed');
+
+    Route::get('/claim-hub', fn () => redirect()->to('/student/claim-hub'))->name('claim-hub');
 });
 
 // Publicly accessible signed route for Google Docs Viewer to fetch the file.

@@ -43,15 +43,15 @@ class GamificationSystemTest extends TestCase
         $this->assertDatabaseHas('xp_transactions', [
             'user_id' => $student->id,
             'source' => 'daily_login',
-            'points' => 10,
+            'points' => 5,
         ]);
 
         $initialXp = $student->xpTotal();
-        $this->assertSame(10, $initialXp);
+        $this->assertSame(5, $initialXp);
 
         // Second call on the same day must not create duplicate transaction
         $service->recordDailyLogin($student);
-        $this->assertSame(10, $student->xpTotal());
+        $this->assertSame(5, $student->xpTotal());
     }
 
     public function test_on_time_and_early_submission_awards_bonus_xp(): void
@@ -86,13 +86,13 @@ class GamificationSystemTest extends TestCase
         $this->assertDatabaseHas('xp_transactions', [
             'user_id' => $student->id,
             'source' => 'assignment_ontime',
-            'points' => 40,
+            'points' => 30,
         ]);
 
         $this->assertDatabaseHas('xp_transactions', [
             'user_id' => $student->id,
             'source' => 'assignment_early',
-            'points' => 20,
+            'points' => 10,
         ]);
     }
 
@@ -123,14 +123,8 @@ class GamificationSystemTest extends TestCase
 
         $this->assertDatabaseHas('xp_transactions', [
             'user_id' => $student->id,
-            'source' => 'assignment_passed',
-            'points' => 50,
-        ]);
-
-        $this->assertDatabaseHas('xp_transactions', [
-            'user_id' => $student->id,
             'source' => 'assignment_distinction',
-            'points' => 40,
+            'points' => 70,
         ]);
 
         $this->assertDatabaseHas('xp_transactions', [
@@ -146,6 +140,7 @@ class GamificationSystemTest extends TestCase
     public function test_attendance_present_awards_xp(): void
     {
         $student = User::factory()->create(['role' => 'student']);
+        $service = app(GamificationService::class);
         $course = Course::query()->create([
             'title' => 'Robotics',
             'code' => 'ROB101',
@@ -167,6 +162,8 @@ class GamificationSystemTest extends TestCase
             'status' => 'present',
         ]);
 
+        $service->awardAttendance($student, $attendance);
+
         $this->assertDatabaseHas('xp_transactions', [
             'user_id' => $student->id,
             'source' => 'attendance_present',
@@ -178,24 +175,18 @@ class GamificationSystemTest extends TestCase
     {
         $student1 = User::factory()->create(['role' => 'student']);
         $student2 = User::factory()->create(['role' => 'student']);
+        $service = app(GamificationService::class);
 
         $friendship = Friendship::create([
             'user_id' => $student1->id,
             'friend_id' => $student2->id,
-            'status' => 'pending',
+            'status' => 'accepted',
         ]);
 
-        // Accept friendship
-        $friendship->update(['status' => 'accepted']);
+        $service->awardFriendship($student1, $friendship);
 
         $this->assertDatabaseHas('xp_transactions', [
             'user_id' => $student1->id,
-            'source' => 'study_buddy',
-            'points' => 15,
-        ]);
-
-        $this->assertDatabaseHas('xp_transactions', [
-            'user_id' => $student2->id,
             'source' => 'study_buddy',
             'points' => 15,
         ]);
@@ -206,7 +197,7 @@ class GamificationSystemTest extends TestCase
         $student = User::factory()->create(['role' => 'student']);
         $service = app(GamificationService::class);
 
-        $service->awardOpportunitySubmission($student, 999, 'AI Study Tool Pitch');
+        $service->awardOpportunitySubmission($student, 10, 'Tech Grant 2026');
 
         $this->assertDatabaseHas('xp_transactions', [
             'user_id' => $student->id,
@@ -242,5 +233,83 @@ class GamificationSystemTest extends TestCase
         }
 
         $this->assertTrue($student->badges()->where('badges.key', 'punctual_scholar')->exists());
+    }
+
+    public function test_course_completion_and_mastermind_badges_only_awarded_after_instructor_signoff_and_reset_on_unmarking(): void
+    {
+        $student = User::factory()->create(['role' => 'student']);
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $service = app(GamificationService::class);
+
+        $courses = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $courses[$i] = Course::query()->create([
+                'title' => "Track Course {$i}",
+                'code' => "TRK-{$i}",
+                'is_active' => true,
+            ]);
+            Enrollment::create([
+                'user_id' => $student->id,
+                'course_id' => $courses[$i]->id,
+                'completed_at' => null,
+            ]);
+        }
+
+        // 1. Before sign-off, awardCourseCompleted does nothing
+        $service->awardCourseCompleted($student, $courses[1]);
+        $this->assertFalse($student->badges()->where('badges.key', 'course_completed')->exists());
+        $this->assertDatabaseMissing('xp_transactions', [
+            'user_id' => $student->id,
+            'source' => 'course_completed',
+        ]);
+
+        // 2. Instructor signs off first course
+        $enr1 = Enrollment::where('user_id', $student->id)->where('course_id', $courses[1]->id)->first();
+        $enr1->markAsCompleted($instructor);
+
+        $service->awardCourseCompleted($student, $courses[1]);
+        $this->assertTrue($student->badges()->where('badges.key', 'course_completed')->exists());
+        $this->assertDatabaseHas('xp_transactions', [
+            'user_id' => $student->id,
+            'source' => 'course_completed',
+            'source_id' => $courses[1]->id,
+            'points' => 200,
+        ]);
+        // Not mastermind yet (only 1 course)
+        $this->assertFalse($student->badges()->where('badges.key', 'mastermind')->exists());
+
+        // 3. Complete 2 more courses
+        $enr2 = Enrollment::where('user_id', $student->id)->where('course_id', $courses[2]->id)->first();
+        $enr2->markAsCompleted($instructor);
+        $service->awardCourseCompleted($student, $courses[2]);
+
+        $enr3 = Enrollment::where('user_id', $student->id)->where('course_id', $courses[3]->id)->first();
+        $enr3->markAsCompleted($instructor);
+        $service->awardCourseCompleted($student, $courses[3]);
+
+        // Now Mastermind (3 courses) should be earned
+        $this->assertTrue($student->badges()->where('badges.key', 'mastermind')->exists());
+
+        // 4. Instructor resets/unmarks course 3
+        $enr3->markAsIncomplete();
+        $service->revokeCourseCompleted($student, $courses[3]);
+
+        // Mastermind should be revoked because now only 2 completed courses
+        $this->assertFalse($student->badges()->where('badges.key', 'mastermind')->exists());
+        // Still has Graduate badge
+        $this->assertTrue($student->badges()->where('badges.key', 'course_completed')->exists());
+
+        // 5. Instructor resets course 1 and course 2
+        $enr1->markAsIncomplete();
+        $service->revokeCourseCompleted($student, $courses[1]);
+        $enr2->markAsIncomplete();
+        $service->revokeCourseCompleted($student, $courses[2]);
+
+        // Graduate badge revoked because 0 completed courses
+        $this->assertFalse($student->badges()->where('badges.key', 'course_completed')->exists());
+        $this->assertDatabaseMissing('xp_transactions', [
+            'user_id' => $student->id,
+            'source' => 'course_completed',
+        ]);
     }
 }

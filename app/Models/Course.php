@@ -26,6 +26,7 @@ class Course extends Model
         'level_progression',
         'is_open_enrollment',
         'is_active',
+        'gamification_settings',
     ];
 
     protected function casts(): array
@@ -33,6 +34,7 @@ class Course extends Model
         return [
             'is_active' => 'boolean',
             'is_open_enrollment' => 'boolean',
+            'gamification_settings' => 'array',
         ];
     }
 
@@ -277,5 +279,50 @@ class Course extends Model
         }
 
         return false;
+    }
+
+    public function claimItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ClaimItem::class);
+    }
+
+    public function courseGamificationRule(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(CourseGamificationRule::class);
+    }
+
+    /**
+     * Retrieve a course-specific gamification point or coin rule with fallback.
+     */
+    public function gamificationRule(string $key, int $default): int
+    {
+        // 1. Dedicated CourseGamificationRule table
+        $hasCustomRuleSet = CourseGamificationRule::query()->where('course_id', $this->id)->where('is_active', true)->exists();
+        if ($hasCustomRuleSet) {
+            $rule = CourseGamificationRule::getRuleForCourse($this, $key);
+            if (str_ends_with($key, '_xp') && ! empty($rule['xp'])) {
+                return (int) $rule['xp'];
+            }
+            if (str_ends_with($key, '_coins') && ! empty($rule['coins'])) {
+                return (int) $rule['coins'];
+            }
+        }
+
+        // 2. Course JSON settings
+        $settings = $this->gamification_settings;
+        if (is_array($settings) && isset($settings[$key]) && is_numeric($settings[$key])) {
+            return (int) $settings[$key];
+        }
+
+        // 3. Fallback check on Global Matrix
+        $rule = CourseGamificationRule::getRuleForCourse(null, $key);
+        if (str_ends_with($key, '_xp') && ! empty($rule['xp'])) {
+            return (int) $rule['xp'];
+        }
+        if (str_ends_with($key, '_coins') && ! empty($rule['coins'])) {
+            return (int) $rule['coins'];
+        }
+
+        return $default;
     }
 }

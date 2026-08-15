@@ -3,9 +3,11 @@
 namespace App\Filament\Instructor\Resources\StudentResource\StudentResource\RelationManagers;
 
 use App\Filament\Instructor\Concerns\ScopedToInstructor;
+use App\Models\Certificate;
 use App\Models\Enrollment;
 use App\Notifications\CertificateIssuedNotification;
 use App\Services\CertificateService;
+use App\Services\GamificationService;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -75,8 +77,16 @@ class EnrollmentsRelationManager extends RelationManager
                                 ->where('course_id', $record->course_id)
                                 ->delete();
 
+                            if ($record->user && $record->course) {
+                                try {
+                                    app(GamificationService::class)->revokeCourseCompleted($record->user, $record->course);
+                                } catch (\Throwable $e) {
+                                    report($e);
+                                }
+                            }
+
                             Notification::make()
-                                ->title('Course completion reset and certificate locked')
+                                ->title('Course completion reset and certificate/badges locked')
                                 ->info()
                                 ->send();
                         } else {
@@ -90,10 +100,16 @@ class EnrollmentsRelationManager extends RelationManager
                                         report($e);
                                     }
                                 }
+
+                                try {
+                                    app(GamificationService::class)->awardCourseCompleted($record->user, $record->course);
+                                } catch (\Throwable $e) {
+                                    report($e);
+                                }
                             }
                             Notification::make()
                                 ->title('Course Marked Complete!')
-                                ->body('Certificate is now ready for ' . ($record->user?->name ?? 'student') . '.')
+                                ->body('Certificate and completion badge are now ready for ' . ($record->user?->name ?? 'student') . '.')
                                 ->success()
                                 ->send();
                         }
