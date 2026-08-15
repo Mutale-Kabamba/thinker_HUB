@@ -2,6 +2,7 @@
 
 namespace App\Filament\Student\Pages;
 
+use App\Models\Enrollment;
 use Filament\Pages\Page;
 
 class Certificates extends Page
@@ -28,7 +29,14 @@ class Certificates extends Page
             return;
         }
 
+        $completedCourseIds = Enrollment::query()
+            ->where('user_id', $user->id)
+            ->whereNotNull('completed_at')
+            ->pluck('course_id')
+            ->all();
+
         $this->certificates = $user->certificates()
+            ->whereIn('course_id', $completedCourseIds)
             ->with('course')
             ->latest('issued_at')
             ->get()

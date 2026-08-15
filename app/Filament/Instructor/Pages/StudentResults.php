@@ -254,9 +254,14 @@ class StudentResults extends Page
         if ($enrollment) {
             $enrollment->markAsIncomplete();
 
+            Certificate::query()
+                ->where('user_id', $studentId)
+                ->where('course_id', $courseId)
+                ->delete();
+
             Notification::make()
                 ->title('Completion Status Reset')
-                ->body('Course completion status was reset for ' . ($student?->name ?? 'student') . '.')
+                ->body('Course completion status was reset and certificate locked for ' . ($student?->name ?? 'student') . '.')
                 ->info()
                 ->send();
         }
@@ -963,15 +968,16 @@ class StudentResults extends Page
             $coursesData = $student->courses->map(function ($c) use ($userEnrollments, $userCertificates) {
                 $enr = $userEnrollments->firstWhere('course_id', $c->id);
                 $cert = $userCertificates->firstWhere('course_id', $c->id);
+                $isCompleted = (bool) ($enr && $enr->completed_at !== null);
 
                 return [
                     'id' => $c->id,
                     'title' => $c->title,
                     'code' => $c->code,
-                    'is_completed' => (bool) ($enr && $enr->completed_at !== null),
+                    'is_completed' => $isCompleted,
                     'completed_at' => $enr?->completed_at?->format('M d, Y'),
-                    'certificate_issued' => $cert !== null,
-                    'certificate_id' => $cert?->id,
+                    'certificate_issued' => $isCompleted && $cert !== null,
+                    'certificate_id' => $isCompleted ? $cert?->id : null,
                 ];
             })->all();
 

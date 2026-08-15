@@ -294,7 +294,16 @@ class Courses extends Page
         $enrolledCourseIds = $user->courses()->pluck('courses.id')->all();
         $this->enrolledCount = count($enrolledCourseIds);
 
-        $certifiedCourseIds = $user->certificates()->pluck('course_id')->all();
+        $completedCourseIds = Enrollment::query()
+            ->where('user_id', $user->id)
+            ->whereNotNull('completed_at')
+            ->pluck('course_id')
+            ->all();
+
+        $certifiedCourseIds = $user->certificates()
+            ->whereIn('course_id', $completedCourseIds)
+            ->pluck('course_id')
+            ->all();
 
         $this->courses = Course::query()
             ->with([

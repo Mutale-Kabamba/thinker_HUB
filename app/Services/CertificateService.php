@@ -63,21 +63,12 @@ class CertificateService
 
     /**
      * Idempotently issue a certificate for a completed course.
-     * Already-issued certificates are always returned (grandfathered), even
-     * if the student no longer meets the rules. Returns null when the
-     * student is not eligible or not completed by the instructor.
+     * Requires the enrollment to have been signed off as completed by an instructor
+     * (completed_at != null). Returns null when the student is not eligible or
+     * not completed by the instructor.
      */
     public function issue(User $user, Course $course, bool $force = false): ?Certificate
     {
-        $existing = Certificate::query()
-            ->where('user_id', $user->id)
-            ->where('course_id', $course->id)
-            ->first();
-
-        if ($existing) {
-            return $existing;
-        }
-
         $enrollment = Enrollment::query()
             ->where('user_id', $user->id)
             ->where('course_id', $course->id)
@@ -90,6 +81,15 @@ class CertificateService
         // Instructor completion is required unless force-issued by instructor
         if (! $force && $enrollment->completed_at === null) {
             return null;
+        }
+
+        $existing = Certificate::query()
+            ->where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->first();
+
+        if ($existing) {
+            return $existing;
         }
 
         try {
