@@ -26,7 +26,16 @@ class ClaimHubAndEconomyTest extends TestCase
         parent::setUp();
 
         $this->artisan('migrate');
+
+        // Create global rule set for economy & anti-gaming tests
+        \App\Models\CourseGamificationRule::create([
+            'course_id' => null,
+            'name' => 'Global Platform Rules',
+            'rules' => \App\Models\CourseGamificationRule::getDefaultMatrix(),
+            'is_active' => true,
+        ]);
     }
+
 
     public function test_rank_multipliers_calculate_correctly_based_on_lifetime_xp(): void
     {

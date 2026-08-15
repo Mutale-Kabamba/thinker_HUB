@@ -214,6 +214,7 @@ class CourseGamificationRule extends Model
 
     /**
      * Get effective rule matrix list for a course.
+     * Only returns rules explicitly configured by the instructor or admin.
      *
      * @return array<int, array{activity_key: string, activity_name: string, category: string, xp: int, coins: int, limit: string, enabled: bool}>
      */
@@ -224,21 +225,21 @@ class CourseGamificationRule extends Model
             if ($ruleSet && is_array($ruleSet->rules) && ! empty($ruleSet->rules)) {
                 $normalized = self::normalizeRulesForRepeater($ruleSet->rules);
                 if (! empty($normalized)) {
-                    return $normalized;
+                    return array_values(array_filter($normalized, fn ($row) => ($row['enabled'] ?? true) === true));
                 }
             }
         }
 
-        // Global Default
+        // Global Default if explicitly created by admin
         $globalRuleSet = self::query()->whereNull('course_id')->where('is_active', true)->first();
         if ($globalRuleSet && is_array($globalRuleSet->rules) && ! empty($globalRuleSet->rules)) {
             $normalized = self::normalizeRulesForRepeater($globalRuleSet->rules);
             if (! empty($normalized)) {
-                return $normalized;
+                return array_values(array_filter($normalized, fn ($row) => ($row['enabled'] ?? true) === true));
             }
         }
 
-        return self::getDefaultRepeaterRows();
+        return [];
     }
 
     /**
@@ -417,38 +418,29 @@ class CourseGamificationRule extends Model
             }
         }
 
-        // Check Global Default rule set
+        // Check Global rule set if explicitly set by admin
         $globalRuleSet = self::query()->whereNull('course_id')->where('is_active', true)->first();
         if ($globalRuleSet && is_array($globalRuleSet->rules)) {
             $custom = self::findRuleInArray($globalRuleSet->rules, $activityKey, $normalizedKey);
             if ($custom) {
-                $xp = isset($custom['xp']) && is_numeric($custom['xp']) ? (int) $custom['xp'] : (int) ($fallback['xp'] ?? 0);
+                $xp = isset($custom['xp']) && is_numeric($custom['xp']) ? (int) $custom['xp'] : 0;
                 $coins = isset($custom['coins']) && is_numeric($custom['coins']) ? (int) $custom['coins'] : (int) round(((float) $xp) * 0.30);
                 return [
                     'xp' => $xp,
                     'coins' => $coins,
-                    'enabled' => isset($custom['enabled']) ? (bool) $custom['enabled'] : (bool) ($fallback['enabled'] ?? true),
-                    'limit' => (string) ($custom['limit'] ?? ($fallback['limit'] ?? '')),
+                    'enabled' => isset($custom['enabled']) ? (bool) $custom['enabled'] : true,
+                    'limit' => (string) ($custom['limit'] ?? ''),
                 ];
             }
         }
 
-        if ($fallback) {
-            $xp = (int) $fallback['xp'];
-            $coins = isset($fallback['coins']) ? (int) $fallback['coins'] : (int) round(((float) $xp) * 0.30);
-            return [
-                'xp' => $xp,
-                'coins' => $coins,
-                'enabled' => (bool) ($fallback['enabled'] ?? true),
-                'limit' => (string) ($fallback['limit'] ?? ''),
-            ];
-        }
-
+        // If no rule has been set by instructor or admin, points do not accumulate
         return [
             'xp' => 0,
             'coins' => 0,
-            'enabled' => true,
+            'enabled' => false,
             'limit' => '',
         ];
     }
 }
+
