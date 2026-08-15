@@ -66,8 +66,13 @@ class EnrollmentsRelationManager extends RelationManager
                     ->action(function (Enrollment $record): void {
                         if ($record->completed_at) {
                             $record->markAsIncomplete();
+                            Certificate::query()
+                                ->where('user_id', $record->user_id)
+                                ->where('course_id', $record->course_id)
+                                ->delete();
+
                             Notification::make()
-                                ->title('Course completion reset')
+                                ->title('Course completion reset and certificate locked')
                                 ->info()
                                 ->send();
                         } else {

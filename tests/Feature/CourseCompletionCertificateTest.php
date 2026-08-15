@@ -130,4 +130,126 @@ class CourseCompletionCertificateTest extends TestCase
         $this->assertNull($enrollment->completed_by_user_id);
         $this->assertFalse($enrollment->isCompleted());
     }
+
+    public function test_preexisting_certificate_is_locked_and_hidden_until_instructor_signs_off(): void
+    {
+        $instructor = User::factory()->create([
+            'role' => 'instructor',
+        ]);
+
+        $student = User::factory()->create([
+            'role' => 'student',
+        ]);
+
+        $course = Course::create([
+            'title' => 'Cloud Computing',
+            'code' => 'CLD-101',
+            'description' => 'Cloud infrastructure',
+            'is_active' => true,
+            'is_open_enrollment' => true,
+        ]);
+        $course->instructors()->attach($instructor);
+
+        // Student is enrolled, but instructor has NOT signed off (completed_at is null)
+        $enrollment = Enrollment::create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+            'completed_at' => null,
+        ]);
+
+        // Pre-existing certificate row exists in database (e.g. from prior platform version)
+        $certificate = Certificate::create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+            'verification_code' => 'LOCKTEST123',
+            'issued_at' => now()->subDays(5),
+        ]);
+
+        // 1. CertificateService::issue returns null because enrollment completed_at is null
+        $this->assertNull(app(CertificateService::class)->issue($student, $course));
+
+        // 2. Student cannot download certificate (forbidden / locked)
+        $this->actingAs($student);
+        $downloadResponse = $this->get(route('certificates.download', $certificate));
+        $downloadResponse->assertForbidden();
+
+        // 3. Public verification does not validate it
+        $verifyResponse = $this->get(route('certificates.verify', 'LOCKTEST123'));
+        $verifyResponse->assertOk();
+        $verifyResponse->assertSee('Certificate Not Found');
+
+        // 4. Student Certificates page does not display it
+        $this->actingAs($student);
+        Livewire::test(\App\Filament\Student\Pages\Certificates::class)
+            ->assertSet('certificates', []);
+
+        // 5. Student Courses page shows certificate locked (not claimed)
+        $coursesTest = Livewire::test(StudentCoursesPage::class);
+        $courseData = collect($coursesTest->get('courses'))->firstWhere('id', $course->id);
+        $this->assertFalse($courseData['certificate_claimed']);
+        $this->assertStringContainsString('Program completion must be signed off by your instructor', $courseData['certificate_lock_reason']);
+
+        // 6. Instructor signs off
+        $this->actingAs($instructor);
+        Livewire::test(StudentResults::class)
+            ->call('markCourseComplete', $student->id, $course->id);
+
+        $enrollment->refresh();
+        $this->assertTrue($enrollment->isCompleted());
+
+        // 7. Now student can download
+        $this->actingAs($student);
+        $this->get(route('certificates.download', $certificate))->assertOk();
+
+        // 8. Public verification is now authentic
+        $verifySuccess = $this->get(route('certificates.verify', 'LOCKTEST123'));
+        $verifySuccess->assertOk();
+        $verifySuccess->assertSee('Authentic Certificate');
+    }
+
+    public function test_instructor_unmarking_completion_deletes_and_locks_certificate(): void
+    {
+        $instructor = User::factory()->create([
+            'role' => 'instructor',
+        ]);
+
+        $student = User::factory()->create([
+            'role' => 'student',
+        ]);
+
+        $course = Course::create([
+            'title' => 'Data Engineering',
+            'code' => 'DAT-201',
+            'description' => 'Data pipelines',
+            'is_active' => true,
+        ]);
+        $course->instructors()->attach($instructor);
+
+        $enrollment = Enrollment::create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+            'completed_at' => now(),
+            'completed_by_user_id' => $instructor->id,
+        ]);
+
+        $certificate = Certificate::create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+            'verification_code' => 'DATAENG999',
+            'issued_at' => now(),
+        ]);
+
+        $this->actingAs($instructor);
+        Livewire::test(StudentResults::class)
+            ->call('unmarkCourseComplete', $student->id, $course->id);
+
+        $enrollment->refresh();
+        $this->assertNull($enrollment->completed_at);
+        $this->assertFalse($enrollment->isCompleted());
+
+        // Certificate record must be deleted
+        $this->assertDatabaseMissing('certificates', [
+            'id' => $certificate->id,
+        ]);
+    }
 }
