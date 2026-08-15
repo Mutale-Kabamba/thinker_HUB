@@ -13,6 +13,12 @@ class Enrollment extends Model
     protected $fillable = [
         'user_id',
         'course_id',
+        'completed_at',
+        'completed_by_user_id',
+    ];
+
+    protected $casts = [
+        'completed_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -23,5 +29,31 @@ class Enrollment extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function completedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'completed_by_user_id');
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->completed_at !== null;
+    }
+
+    public function markAsCompleted(?User $instructor = null): void
+    {
+        $this->update([
+            'completed_at' => now(),
+            'completed_by_user_id' => $instructor?->id,
+        ]);
+    }
+
+    public function markAsIncomplete(): void
+    {
+        $this->update([
+            'completed_at' => null,
+            'completed_by_user_id' => null,
+        ]);
     }
 }

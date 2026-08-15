@@ -7,10 +7,15 @@ use App\Models\Assessment;
 use App\Models\AssessmentSubmission;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Models\Certificate;
 use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
+use App\Notifications\CertificateIssuedNotification;
+use App\Services\CertificateService;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -183,6 +188,78 @@ class StudentResults extends Page
         $this->search = '';
         $this->sortBy = 'score_desc';
         $this->selectedTaskKey = '';
+    }
+
+    public function markCourseComplete(int $studentId, int $courseId): void
+    {
+        $scopedCourseIds = static::instructorCourseIds();
+        if (! in_array($courseId, $scopedCourseIds, true)) {
+            Notification::make()
+                ->title('Unauthorized')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $student = User::query()->find($studentId);
+        $course = Course::query()->find($courseId);
+        $enrollment = Enrollment::query()
+            ->where('user_id', $studentId)
+            ->where('course_id', $courseId)
+            ->first();
+
+        if (! $student || ! $course || ! $enrollment) {
+            Notification::make()
+                ->title('Student enrollment not found')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $enrollment->markAsCompleted(auth()->user());
+
+        // Automatically issue certificate and notify student
+        $certificate = app(CertificateService::class)->issue($student, $course, force: true);
+
+        if ($certificate && $certificate->wasRecentlyCreated) {
+            try {
+                $student->notify(new CertificateIssuedNotification($certificate));
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        Notification::make()
+            ->title('Program Marked Complete!')
+            ->body('Course completion recorded. Certificate is now ready for ' . $student->name . '.')
+            ->success()
+            ->send();
+    }
+
+    public function unmarkCourseComplete(int $studentId, int $courseId): void
+    {
+        $scopedCourseIds = static::instructorCourseIds();
+        if (! in_array($courseId, $scopedCourseIds, true)) {
+            return;
+        }
+
+        $student = User::query()->find($studentId);
+        $enrollment = Enrollment::query()
+            ->where('user_id', $studentId)
+            ->where('course_id', $courseId)
+            ->first();
+
+        if ($enrollment) {
+            $enrollment->markAsIncomplete();
+
+            Notification::make()
+                ->title('Completion Status Reset')
+                ->body('Course completion status was reset for ' . ($student?->name ?? 'student') . '.')
+                ->info()
+                ->send();
+        }
     }
 
     /**
@@ -689,6 +766,19 @@ class StudentResults extends Page
             ->get()
             ->groupBy('user_id');
 
+        // 4. Fetch Enrollments and Certificates for completion & certificate status
+        $enrollments = Enrollment::query()
+            ->whereIn('user_id', $studentIds)
+            ->whereIn('course_id', $effectiveCourseIds)
+            ->get()
+            ->groupBy('user_id');
+
+        $certificates = Certificate::query()
+            ->whereIn('user_id', $studentIds)
+            ->whereIn('course_id', $effectiveCourseIds)
+            ->get()
+            ->groupBy('user_id');
+
         $rows = [];
 
         foreach ($students as $student) {
@@ -867,13 +957,32 @@ class StudentResults extends Page
                 }
             }
 
+            $userEnrollments = $enrollments->get($student->id, collect());
+            $userCertificates = $certificates->get($student->id, collect());
+
+            $coursesData = $student->courses->map(function ($c) use ($userEnrollments, $userCertificates) {
+                $enr = $userEnrollments->firstWhere('course_id', $c->id);
+                $cert = $userCertificates->firstWhere('course_id', $c->id);
+
+                return [
+                    'id' => $c->id,
+                    'title' => $c->title,
+                    'code' => $c->code,
+                    'is_completed' => (bool) ($enr && $enr->completed_at !== null),
+                    'completed_at' => $enr?->completed_at?->format('M d, Y'),
+                    'certificate_issued' => $cert !== null,
+                    'certificate_id' => $cert?->id,
+                ];
+            })->all();
+
             $rows[] = [
                 'id' => $student->id,
                 'name' => $student->name,
                 'email' => $student->email,
                 'track' => $student->track ?: 'Beginner',
-                'courses' => $student->courses->map(fn ($c) => ['id' => $c->id, 'title' => $c->title, 'code' => $c->code])->all(),
-                'courses_count' => $student->courses->count(),
+                'courses' => $coursesData,
+                'courses_count' => count($coursesData),
+                'all_courses_completed' => count($coursesData) > 0 && ! collect($coursesData)->contains('is_completed', false),
 
                 // Quizzes
                 'total_quizzes' => $totalQuizzes,

@@ -636,6 +636,13 @@
                                             <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
                                                 <span style="font-weight: 700; font-size: 0.84rem; color: var(--hub-ink);">{{ $row['name'] }}</span>
                                                 <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.3rem;">{{ $row['track'] }}</span>
+
+                                                {{-- Overall Course Completion Badge --}}
+                                                @if(!empty($row['all_courses_completed']))
+                                                    <span class="hub-chip hub-chip-green" style="font-size: 0.58rem; padding: 0.05rem 0.3rem; display: inline-flex; align-items: center; gap: 0.2rem;">
+                                                        <x-heroicon-s-check-circle style="width: 0.65rem; height: 0.65rem;" /> Completed
+                                                    </span>
+                                                @endif
                                             </div>
                                             <div style="font-size: 0.68rem; color: var(--hub-muted);">
                                                 {{ $row['email'] }}
@@ -643,8 +650,8 @@
                                         </div>
                                     </div>
 
-                                    {{-- Mini Scores Breakdown --}}
-                                    <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.72rem;">
+                                    {{-- Mini Scores Breakdown & Course Completion Actions --}}
+                                    <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.72rem; flex-wrap: wrap;">
                                         <div style="text-align: center;">
                                             <span style="color: var(--hub-muted); font-size: 0.64rem; display: block;">Quiz</span>
                                             <strong style="color: #10b981;">{{ $row['avg_quiz_score'] !== null ? $row['avg_quiz_score'].'%' : '—' }}</strong>
@@ -659,7 +666,7 @@
                                         </div>
 
                                         {{-- Overall Score --}}
-                                        <div style="text-align: right; min-width: 60px;">
+                                        <div style="text-align: right; min-width: 55px;">
                                             <span style="color: var(--hub-muted); font-size: 0.64rem; display: block;">Overall</span>
                                             <span style="font-size: 0.88rem; font-weight: 800; color: {{ match($row['tier_key']) {
                                                 'distinction' => '#059669',
@@ -671,6 +678,26 @@
                                             </span>
                                         </div>
 
+                                        {{-- Quick Mark Complete Buttons (Per Enrolled Course) --}}
+                                        @foreach ($row['courses'] as $c)
+                                            @if($c['is_completed'])
+                                                <span class="hub-chip hub-chip-green" style="font-size: 0.64rem; padding: 0.2rem 0.45rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+                                                    <x-heroicon-s-check-circle style="width: 0.75rem; height: 0.75rem;" />
+                                                    {{ $c['code'] ?: 'Course' }}: Ready
+                                                </span>
+                                            @else
+                                                <button type="button"
+                                                        wire:click="markCourseComplete({{ $row['id'] }}, {{ $c['id'] }})"
+                                                        style="font-size: 0.68rem; padding: 0.22rem 0.5rem; background: #059669; color: #ffffff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem; transition: background 0.15s ease;"
+                                                        onmouseover="this.style.background='#047857'"
+                                                        onmouseout="this.style.background='#059669'"
+                                                        title="Mark course as completed to release certificate for {{ $row['name'] }}">
+                                                    <x-heroicon-s-check style="width: 0.75rem; height: 0.75rem;" />
+                                                    Complete {{ $c['code'] ?: 'Course' }}
+                                                </button>
+                                            @endif
+                                        @endforeach
+
                                         <button type="button"
                                                 wire:click="toggleExpand({{ $row['id'] }})"
                                                 style="font-size: 0.68rem; padding: 0.2rem 0.45rem; background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: 4px; color: var(--hub-ink); cursor: pointer;">
@@ -679,9 +706,65 @@
                                     </div>
                                 </div>
 
-                                {{-- Expanded Student Breakdown (DEC Order) --}}
+                                {{-- Expanded Student Breakdown (DEC Order & Course Completion Card) --}}
                                 @if($isExpanded)
                                     <div style="padding: 0.6rem 0.85rem 0.75rem 2.2rem; background: var(--hub-surface); border-top: 1px solid var(--hub-border);">
+                                        
+                                        {{-- Course Completion & Certificate Section --}}
+                                        <div style="margin-bottom: 0.75rem; padding: 0.55rem 0.75rem; background: var(--hub-surface-soft); border-radius: 8px; border: 1px solid var(--hub-border);">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.35rem;">
+                                                <span style="font-size: 0.7rem; font-weight: 700; color: var(--hub-primary); text-transform: uppercase; letter-spacing: 0.03em;">
+                                                    Course Completion &amp; Certificate Readiness
+                                                </span>
+                                                <span style="font-size: 0.65rem; color: var(--hub-muted);">
+                                                    Certificates are unlocked once instructor clicks completion
+                                                </span>
+                                            </div>
+
+                                            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                                @foreach ($row['courses'] as $c)
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; padding: 0.35rem 0.5rem; background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: 6px; font-size: 0.74rem;">
+                                                        <div>
+                                                            <strong style="color: var(--hub-ink);">{{ $c['title'] }}</strong>
+                                                            @if(!empty($c['code']))
+                                                                <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem;">{{ $c['code'] }}</span>
+                                                            @endif
+                                                        </div>
+
+                                                        <div style="display: flex; align-items: center; gap: 0.45rem;">
+                                                            @if($c['is_completed'])
+                                                                <span class="hub-chip hub-chip-green" style="font-size: 0.62rem; padding: 0.1rem 0.4rem; display: inline-flex; align-items: center; gap: 0.2rem;">
+                                                                    <x-heroicon-s-check-circle style="width: 0.75rem; height: 0.75rem;" />
+                                                                    Completed on {{ $c['completed_at'] }}
+                                                                </span>
+                                                                <span class="hub-chip" style="font-size: 0.62rem; padding: 0.1rem 0.4rem; background: rgba(16, 185, 129, 0.12); color: #065f46; font-weight: 700;">
+                                                                    Certificate Ready
+                                                                </span>
+                                                                <button type="button"
+                                                                        wire:click="unmarkCourseComplete({{ $row['id'] }}, {{ $c['id'] }})"
+                                                                        style="font-size: 0.62rem; padding: 0.15rem 0.35rem; background: transparent; border: 1px solid var(--hub-border); border-radius: 4px; color: var(--hub-muted); cursor: pointer;"
+                                                                        title="Reset completion status">
+                                                                    Reset
+                                                                </button>
+                                                            @else
+                                                                <span class="hub-chip hub-chip-amber" style="font-size: 0.62rem; padding: 0.1rem 0.4rem;">
+                                                                    In Progress
+                                                                </span>
+                                                                <button type="button"
+                                                                        wire:click="markCourseComplete({{ $row['id'] }}, {{ $c['id'] }})"
+                                                                        style="font-size: 0.7rem; padding: 0.25rem 0.65rem; background: #059669; color: #ffffff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; transition: background 0.15s ease;"
+                                                                        onmouseover="this.style.background='#047857'"
+                                                                        onmouseout="this.style.background='#059669'">
+                                                                    <x-heroicon-s-check-circle style="width: 0.8rem; height: 0.8rem;" />
+                                                                    Mark Complete &amp; Issue Certificate
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+
                                         {{-- Quizzes DEC --}}
                                         @if(count($row['quiz_details']) > 0)
                                             <div style="margin-bottom: 0.5rem;">

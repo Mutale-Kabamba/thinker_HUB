@@ -3,11 +3,16 @@
 namespace App\Filament\Resources\Students\Students\RelationManagers;
 
 use App\Models\Course;
+use App\Models\Enrollment;
+use App\Notifications\CertificateIssuedNotification;
+use App\Services\CertificateService;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -43,12 +48,47 @@ class EnrollmentsRelationManager extends RelationManager
                     ->label('Enrolled At')
                     ->dateTime()
                     ->sortable(),
+                TextColumn::make('completed_at')
+                    ->label('Completion & Certificate')
+                    ->badge()
+                    ->color(fn ($state) => $state ? 'success' : 'warning')
+                    ->formatStateUsing(fn ($state) => $state ? 'Completed (' . $state->format('M d, Y') . ')' : 'In Progress'),
             ])
             ->defaultSort('created_at', 'desc')
             ->headerActions([
                 CreateAction::make()->label('Enrol in Course'),
             ])
             ->recordActions([
+                Action::make('toggle_completion')
+                    ->label(fn (Enrollment $record): string => $record->completed_at ? 'Reset Status' : 'Mark Complete')
+                    ->icon(fn (Enrollment $record): string => $record->completed_at ? 'heroicon-o-arrow-path' : 'heroicon-o-check-circle')
+                    ->color(fn (Enrollment $record): string => $record->completed_at ? 'gray' : 'success')
+                    ->action(function (Enrollment $record): void {
+                        if ($record->completed_at) {
+                            $record->markAsIncomplete();
+                            Notification::make()
+                                ->title('Course completion reset')
+                                ->info()
+                                ->send();
+                        } else {
+                            $record->markAsCompleted(auth()->user());
+                            if ($record->user && $record->course) {
+                                $certificate = app(CertificateService::class)->issue($record->user, $record->course, force: true);
+                                if ($certificate && $certificate->wasRecentlyCreated) {
+                                    try {
+                                        $record->user->notify(new CertificateIssuedNotification($certificate));
+                                    } catch (\Throwable $e) {
+                                        report($e);
+                                    }
+                                }
+                            }
+                            Notification::make()
+                                ->title('Course Marked Complete!')
+                                ->body('Certificate is now ready for ' . ($record->user?->name ?? 'student') . '.')
+                                ->success()
+                                ->send();
+                        }
+                    }),
                 DeleteAction::make()->label('Unenrol'),
             ])
             ->toolbarActions([
