@@ -215,7 +215,7 @@
                                     {{ $row['name'] }}{{ $isMe ? ' (you)' : '' }}
                                 </span>
 
-                                {{-- Badges Showcase --}}
+                                {{-- Badges Showcase (Icons only) --}}
                                 @if (!empty($row['badges']))
                                     <div style="display:inline-flex;align-items:center;gap:0.18rem;" title="{{ $row['badge_count'] }} {{ Str::plural('badge', $row['badge_count']) }}">
                                         @foreach ($row['badges'] as $b)
@@ -223,23 +223,22 @@
                                                 $bKey = is_array($b) ? ($b['key'] ?? '') : ($b->key ?? '');
                                                 $bName = is_array($b) ? ($b['name'] ?? '') : ($b->name ?? '');
                                             @endphp
-                                            <span class="hub-chip hub-chip-amber" style="font-size:0.58rem;padding:0.04rem 0.22rem;display:inline-flex;align-items:center;gap:0.12rem;line-height:1;" title="{{ $bName }}">
+                                            <span class="hub-chip hub-chip-amber" style="width:1.2rem;height:1.2rem;padding:0;border-radius:9999px;display:inline-flex;align-items:center;justify-content:center;line-height:1;" title="{{ $bName }}">
                                                 @if ($bKey === 'course_completed')
-                                                    <x-heroicon-s-academic-cap style="width:0.6rem;height:0.6rem;color:#0f766e;" />
+                                                    <x-heroicon-s-academic-cap style="width:0.72rem;height:0.72rem;color:#0f766e;" />
                                                 @elseif (str_contains($bKey, 'streak'))
-                                                    <x-heroicon-s-fire style="width:0.6rem;height:0.6rem;color:#ea580c;" />
+                                                    <x-heroicon-s-fire style="width:0.72rem;height:0.72rem;color:#ea580c;" />
                                                 @elseif ($bKey === 'first_perfect_quiz')
-                                                    <x-heroicon-s-check-badge style="width:0.6rem;height:0.6rem;color:#10b981;" />
+                                                    <x-heroicon-s-check-badge style="width:0.72rem;height:0.72rem;color:#10b981;" />
                                                 @elseif ($bKey === 'mastermind')
-                                                    <x-heroicon-s-sparkles style="width:0.6rem;height:0.6rem;color:#8b5cf6;" />
+                                                    <x-heroicon-s-sparkles style="width:0.72rem;height:0.72rem;color:#8b5cf6;" />
                                                 @elseif ($bKey === 'study_networker')
-                                                    <x-heroicon-s-user-group style="width:0.6rem;height:0.6rem;color:#0284c7;" />
+                                                    <x-heroicon-s-user-group style="width:0.72rem;height:0.72rem;color:#0284c7;" />
                                                 @elseif ($bKey === 'active_contributor')
-                                                    <x-heroicon-s-chat-bubble-left-right style="width:0.6rem;height:0.6rem;color:#6366f1;" />
+                                                    <x-heroicon-s-chat-bubble-left-right style="width:0.72rem;height:0.72rem;color:#6366f1;" />
                                                 @else
-                                                    <x-heroicon-s-trophy style="width:0.6rem;height:0.6rem;color:#d97706;" />
+                                                    <x-heroicon-s-trophy style="width:0.72rem;height:0.72rem;color:#d97706;" />
                                                 @endif
-                                                <span style="font-weight:600;">{{ Str::limit($bName, 10) }}</span>
                                             </span>
                                         @endforeach
                                     </div>
@@ -275,9 +274,22 @@
                                                         $bKey = is_array($b) ? ($b['key'] ?? '') : ($b->key ?? '');
                                                         $bName = is_array($b) ? ($b['name'] ?? '') : ($b->name ?? '');
                                                     @endphp
-                                                    <span class="hub-chip hub-chip-amber" style="font-size:0.58rem;padding:0.04rem 0.22rem;display:inline-flex;align-items:center;gap:0.12rem;line-height:1;" title="{{ $bName }}">
-                                                        <x-heroicon-s-trophy style="width:0.6rem;height:0.6rem;color:#d97706;" />
-                                                        <span>{{ Str::limit($bName, 10) }}</span>
+                                                    <span class="hub-chip hub-chip-amber" style="width:1.2rem;height:1.2rem;padding:0;border-radius:9999px;display:inline-flex;align-items:center;justify-content:center;line-height:1;" title="{{ $bName }}">
+                                                        @if ($bKey === 'course_completed')
+                                                            <x-heroicon-s-academic-cap style="width:0.72rem;height:0.72rem;color:#0f766e;" />
+                                                        @elseif (str_contains($bKey, 'streak'))
+                                                            <x-heroicon-s-fire style="width:0.72rem;height:0.72rem;color:#ea580c;" />
+                                                        @elseif ($bKey === 'first_perfect_quiz')
+                                                            <x-heroicon-s-check-badge style="width:0.72rem;height:0.72rem;color:#10b981;" />
+                                                        @elseif ($bKey === 'mastermind')
+                                                            <x-heroicon-s-sparkles style="width:0.72rem;height:0.72rem;color:#8b5cf6;" />
+                                                        @elseif ($bKey === 'study_networker')
+                                                            <x-heroicon-s-user-group style="width:0.72rem;height:0.72rem;color:#0284c7;" />
+                                                        @elseif ($bKey === 'active_contributor')
+                                                            <x-heroicon-s-chat-bubble-left-right style="width:0.72rem;height:0.72rem;color:#6366f1;" />
+                                                        @else
+                                                            <x-heroicon-s-trophy style="width:0.72rem;height:0.72rem;color:#d97706;" />
+                                                        @endif
                                                     </span>
                                                 @endforeach
                                             </div>
@@ -295,16 +307,20 @@
                             </div>
 
                             {{-- Expand / Collapse Button --}}
-                            <button
-                                type="button"
-                                @click="showAllLeaderboard = !showAllLeaderboard"
-                                style="width:100%;padding:0.38rem 0.55rem;margin-top:0.2rem;border-radius:0.45rem;border:1px solid var(--hub-border);background:var(--hub-surface);color:var(--hub-ink);font-size:0.75rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:0.35rem;cursor:pointer;transition:all .15s ease;"
-                            >
-                                <span x-text="showAllLeaderboard ? 'Collapse to Top 5' : 'View More (Rank 6–{{ $allRows->count() }})'"></span>
-                                <svg style="width:0.85rem;height:0.85rem;color:var(--hub-ink);transition:transform .2s ease;" :style="showAllLeaderboard ? 'transform:rotate(180deg);' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </button>
+                            <div style="padding:0.15rem 0;">
+                                <button
+                                    type="button"
+                                    @click="showAllLeaderboard = !showAllLeaderboard"
+                                    style="width:100%;padding:0.32rem 0.5rem;border-radius:0.375rem;border:1px dashed var(--hub-border);background:transparent;color:var(--hub-muted);font-size:0.73rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:0.3rem;cursor:pointer;line-height:1.2;transition:all .15s ease;"
+                                    onmouseover="this.style.color='var(--hub-ink)';this.style.borderColor='var(--hub-primary)';"
+                                    onmouseout="this.style.color='var(--hub-muted)';this.style.borderColor='var(--hub-border)';"
+                                >
+                                    <span x-text="showAllLeaderboard ? 'Collapse to Top 5' : 'View More (Rank 6–{{ $allRows->count() }})'"></span>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;max-width:12px;max-height:12px;flex-shrink:0;transition:transform .2s ease;" :style="showAllLeaderboard ? 'transform:rotate(180deg);' : ''">
+                                        <path d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </button>
+                            </div>
                         @endif
 
                         {{-- Pinned User Row if outside Top 5 while collapsed --}}
@@ -314,6 +330,33 @@
                                     <div style="display:flex;align-items:center;gap:0.4rem;padding:0.28rem 0.5rem;border-radius:0.4rem;border:1px solid color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%);background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);">
                                         <span style="min-width:1.6rem;text-align:center;font-size:0.78rem;font-weight:800;color:var(--hub-ink);">#{{ $myRowInList['rank'] }}</span>
                                         <span style="flex:1;font-size:0.8rem;font-weight:700;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $myRowInList['name'] }} (you)</span>
+                                        @if (!empty($myRowInList['badges']))
+                                            <div style="display:inline-flex;align-items:center;gap:0.18rem;" title="{{ $myRowInList['badge_count'] }} Badges">
+                                                @foreach ($myRowInList['badges'] as $b)
+                                                    @php
+                                                        $bKey = is_array($b) ? ($b['key'] ?? '') : ($b->key ?? '');
+                                                        $bName = is_array($b) ? ($b['name'] ?? '') : ($b->name ?? '');
+                                                    @endphp
+                                                    <span class="hub-chip hub-chip-amber" style="width:1.2rem;height:1.2rem;padding:0;border-radius:9999px;display:inline-flex;align-items:center;justify-content:center;line-height:1;" title="{{ $bName }}">
+                                                        @if ($bKey === 'course_completed')
+                                                            <x-heroicon-s-academic-cap style="width:0.72rem;height:0.72rem;color:#0f766e;" />
+                                                        @elseif (str_contains($bKey, 'streak'))
+                                                            <x-heroicon-s-fire style="width:0.72rem;height:0.72rem;color:#ea580c;" />
+                                                        @elseif ($bKey === 'first_perfect_quiz')
+                                                            <x-heroicon-s-check-badge style="width:0.72rem;height:0.72rem;color:#10b981;" />
+                                                        @elseif ($bKey === 'mastermind')
+                                                            <x-heroicon-s-sparkles style="width:0.72rem;height:0.72rem;color:#8b5cf6;" />
+                                                        @elseif ($bKey === 'study_networker')
+                                                            <x-heroicon-s-user-group style="width:0.72rem;height:0.72rem;color:#0284c7;" />
+                                                        @elseif ($bKey === 'active_contributor')
+                                                            <x-heroicon-s-chat-bubble-left-right style="width:0.72rem;height:0.72rem;color:#6366f1;" />
+                                                        @else
+                                                            <x-heroicon-s-trophy style="width:0.72rem;height:0.72rem;color:#d97706;" />
+                                                        @endif
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                         <span style="font-size:0.7rem;color:var(--hub-muted);display:inline-flex;align-items:center;gap:0.12rem;">
                                             <x-heroicon-s-trophy style="width:0.68rem;height:0.68rem;color:#f59e0b;" />
                                             <span>{{ $myRowInList['badge_count'] }}</span>
@@ -374,15 +417,13 @@
                         </div>
                     </div>
 
-                    <button
-                        type="button"
-                        style="width:1.9rem;height:1.9rem;min-width:1.9rem;border-radius:9999px;background:var(--hub-surface);border:1px solid var(--hub-border);display:flex;align-items:center;justify-content:center;color:var(--hub-ink);cursor:pointer;transition:all 0.15s ease;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,0.05);"
-                        aria-label="Toggle XP breakdown"
+                    <div
+                        style="width:1.75rem;height:1.75rem;min-width:1.75rem;max-width:1.75rem;border-radius:9999px;background:var(--hub-surface);border:1px solid var(--hub-border);display:flex;align-items:center;justify-content:center;color:var(--hub-ink);flex-shrink:0;"
                     >
-                        <svg style="width:1rem;height:1rem;color:var(--hub-ink);transition:transform .2s ease;" :style="showXpEarned ? 'transform:rotate(180deg);' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;max-width:13px;max-height:13px;flex-shrink:0;transition:transform .2s ease;" :style="showXpEarned ? 'transform:rotate(180deg);' : ''">
+                            <path d="M19 9l-7 7-7-7"/>
                         </svg>
-                    </button>
+                    </div>
                 </div>
 
 
