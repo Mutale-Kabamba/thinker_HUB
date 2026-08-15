@@ -472,4 +472,56 @@ class CourseTiedGamificationAndClaimTest extends TestCase
             ->assertSee('+80 XP')
             ->assertSee('24 TC');
     }
+
+    public function test_no_points_accumulate_when_no_rules_are_set(): void
+    {
+        $service = app(GamificationService::class);
+
+        /** @var User $student */
+        $student = User::factory()->create([
+            'role' => 'student',
+            'lifetime_xp' => 0,
+            'spendable_coins' => 0,
+        ]);
+
+        /** @var Course $course */
+        $course = Course::create([
+            'title' => 'Unconfigured Course',
+            'code' => 'UNC-101',
+            'is_active' => true,
+            'gamification_settings' => null,
+        ]);
+
+        $quiz = Quiz::create([
+            'course_id' => $course->id,
+            'title' => 'Unconfigured Quiz',
+            'passing_score' => 60,
+            'is_published' => true,
+        ]);
+
+        $attempt = QuizAttempt::create([
+            'user_id' => $student->id,
+            'quiz_id' => $quiz->id,
+            'score' => 100,
+            'total_questions' => 10,
+            'percentage' => 100,
+            'passed' => true,
+            'completed_at' => now(),
+        ]);
+
+        // When no rules are set by instructor or admin, passing a quiz awards 0 XP and 0 Coins
+        $service->awardQuizPassed($student, $attempt);
+        $student->refresh();
+
+        $this->assertSame(0, $student->lifetime_xp);
+        $this->assertSame(0, $student->spendable_coins);
+
+        // Daily login with no rules set awards 0 points
+        $service->checkDailyStreak($student);
+        $student->refresh();
+
+        $this->assertSame(0, $student->lifetime_xp);
+        $this->assertSame(0, $student->spendable_coins);
+    }
 }
+

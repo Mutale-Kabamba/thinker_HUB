@@ -584,17 +584,20 @@ class GamificationService
         $sessionTitle = $session?->title ?? 'Live Class Session';
         $course = $session?->course;
 
-        $attendanceXp = $course ? $course->gamificationRule('attendance_xp', self::XP_ATTENDANCE_PRESENT) : self::XP_ATTENDANCE_PRESENT;
-        $attendanceCoins = $course ? $course->gamificationRule('attendance_coins', self::COINS_ATTENDANCE_PRESENT) : self::COINS_ATTENDANCE_PRESENT;
+        $rule = CourseGamificationRule::getRuleForCourse($course, 'attendance');
+        $attendanceXp = $course ? $course->gamificationRule('attendance_xp', $rule['xp']) : $rule['xp'];
+        $attendanceCoins = $course ? $course->gamificationRule('attendance_coins', $rule['coins']) : $rule['coins'];
 
-        $this->awardPoints(
-            $user,
-            'attendance_present',
-            $attendance,
-            $attendanceXp,
-            $attendanceCoins,
-            "Attended session: {$sessionTitle}"
-        );
+        if ($attendanceXp > 0 || $attendanceCoins > 0) {
+            $this->awardPoints(
+                $user,
+                'attendance_present',
+                $attendance,
+                $attendanceXp,
+                $attendanceCoins,
+                "Attended session: {$sessionTitle}"
+            );
+        }
 
         $this->evaluateStreak($user);
 
@@ -611,14 +614,17 @@ class GamificationService
                     ->count();
 
                 if ($presentCount >= $totalCourseSessions) {
-                    $this->awardPoints(
-                        $user,
-                        'perfect_attendance',
-                        $session,
-                        self::XP_PERFECT_ATTENDANCE,
-                        self::COINS_PERFECT_ATTENDANCE,
-                        '100% Course Attendance: '.($session->course?->title ?? 'Course')
-                    );
+                    $rulePerf = CourseGamificationRule::getRuleForCourse($session->course, 'perfect_attendance');
+                    if ($rulePerf['enabled'] && ($rulePerf['xp'] > 0 || $rulePerf['coins'] > 0)) {
+                        $this->awardPoints(
+                            $user,
+                            'perfect_attendance',
+                            $session,
+                            $rulePerf['xp'],
+                            $rulePerf['coins'],
+                            '100% Course Attendance: '.($session->course?->title ?? 'Course')
+                        );
+                    }
                     $this->awardBadge($user, 'always_present');
                 }
             }
@@ -800,20 +806,23 @@ class GamificationService
      */
     public function awardFriendship(User $user, Friendship $friendship): void
     {
-        $buddyCount = XpTransaction::query()
-            ->where('user_id', $user->id)
-            ->where(fn ($q) => $q->where('activity_type', 'study_buddy')->orWhere('source', 'study_buddy'))
-            ->count();
+        $rule = CourseGamificationRule::getRuleForCourse(null, 'study_buddy');
+        if ($rule['enabled'] && ($rule['xp'] > 0 || $rule['coins'] > 0)) {
+            $buddyCount = XpTransaction::query()
+                ->where('user_id', $user->id)
+                ->where(fn ($q) => $q->where('activity_type', 'study_buddy')->orWhere('source', 'study_buddy'))
+                ->count();
 
-        if ($buddyCount < 5) {
-            $this->awardPoints(
-                $user,
-                'study_buddy',
-                $friendship,
-                self::XP_STUDY_BUDDY,
-                self::COINS_STUDY_BUDDY,
-                'Connected with study buddy'
-            );
+            if ($buddyCount < 5) {
+                $this->awardPoints(
+                    $user,
+                    'study_buddy',
+                    $friendship,
+                    $rule['xp'],
+                    $rule['coins'],
+                    'Connected with study buddy'
+                );
+            }
         }
 
         $friendsCount = Friendship::query()
@@ -831,14 +840,17 @@ class GamificationService
      */
     public function awardOpportunitySubmission(User $user, int $opportunityId, string $title): void
     {
-        $this->awardPoints(
-            $user,
-            'opportunity_submitted',
-            null,
-            self::XP_OPPORTUNITY_SUBMIT,
-            self::COINS_OPPORTUNITY_SUBMIT,
-            "Submitted to Opportunities Hub: {$title}"
-        );
+        $rule = CourseGamificationRule::getRuleForCourse(null, 'opportunity_submit');
+        if ($rule['enabled'] && ($rule['xp'] > 0 || $rule['coins'] > 0)) {
+            $this->awardPoints(
+                $user,
+                'opportunity_submitted',
+                null,
+                $rule['xp'],
+                $rule['coins'],
+                "Submitted to Opportunities Hub: {$title}"
+            );
+        }
 
         $this->awardBadge($user, 'innovator');
         $this->evaluateStreak($user);
