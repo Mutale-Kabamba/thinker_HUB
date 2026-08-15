@@ -346,8 +346,8 @@ class GamificationService
 
                 // Early submission bonus (at least 24 hours before deadline end)
                 if ($submittedAt->lte($dueDateEnd->copy()->subHours(24))) {
-                    $earlyXp = (int) round($baseXp * 0.33);
-                    $earlyCoins = (int) round($baseCoins * 0.33);
+                    $earlyXp = self::XP_SUBMISSION_EARLY;
+                    $earlyCoins = self::COINS_SUBMISSION_EARLY;
                     if ($earlyXp > 0 || $earlyCoins > 0) {
                         $this->awardPoints(
                             $user,
