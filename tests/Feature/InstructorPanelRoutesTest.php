@@ -45,6 +45,7 @@ class InstructorPanelRoutesTest extends TestCase
         $urls = [
             '/teach/instructor-overview',
             '/teach/analytics',
+            '/teach/student-results',
             '/teach/schedule',
             '/teach/broadcasts',
             '/teach/course-resource/courses',
@@ -90,6 +91,7 @@ class InstructorPanelRoutesTest extends TestCase
         $urls = [
             '/teach/instructor-overview',
             '/teach/analytics',
+            '/teach/student-results',
             '/teach/schedule',
             '/teach/broadcasts',
             '/teach/course-resource/courses',
@@ -223,4 +225,275 @@ class InstructorPanelRoutesTest extends TestCase
             'feedback' => 'Great performance.',
         ]);
     }
+
+    public function test_instructor_can_view_consolidated_student_results_and_breakdown(): void
+    {
+        $instructor = User::factory()->create([
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+
+        $course = Course::query()->create([
+            'title' => 'Biology 101',
+            'code' => 'BIO-101',
+            'is_active' => true,
+        ]);
+        $instructor->instructorCourses()->attach($course->id);
+
+        $student = User::factory()->create([
+            'role' => 'student',
+            'name' => 'Alice Student',
+            'email' => 'alice@example.com',
+            'track' => 'Beginner',
+            'is_active' => true,
+        ]);
+        $student->enrollments()->create([
+            'course_id' => $course->id,
+            'status' => 'enrolled',
+        ]);
+
+        // 1. Quiz
+        $quiz = \App\Models\Quiz::query()->create([
+            'title' => 'Biology Quiz 1',
+            'course_id' => $course->id,
+            'is_active' => true,
+            'pass_percentage' => 60,
+        ]);
+        $attempt = \App\Models\QuizAttempt::query()->create([
+            'quiz_id' => $quiz->id,
+            'user_id' => $student->id,
+            'started_at' => now()->subHour(),
+            'completed_at' => now(),
+            'score' => 80,
+            'total_points' => 100,
+            'percentage' => 80,
+            'passed' => true,
+        ]);
+
+        // 2. Assignment
+        $assignment = \App\Models\Assignment::query()->create([
+            'name' => 'Cell Structure Lab',
+            'course_id' => $course->id,
+            'target_level' => 'Beginner',
+            'date_given' => now(),
+            'due_date' => now()->addDays(5),
+        ]);
+        \App\Models\AssignmentSubmission::query()->create([
+            'assignment_id' => $assignment->id,
+            'user_id' => $student->id,
+            'status' => 'Graded',
+            'grade' => 90,
+            'submitted_at' => now(),
+            'feedback' => 'Well done on diagrams.',
+        ]);
+
+        // 3. Assessment
+        $assessment = \App\Models\Assessment::query()->create([
+            'user_id' => $student->id,
+            'name' => 'Midterm Practical',
+            'course_id' => $course->id,
+            'target_level' => 'Beginner',
+            'date_given' => now(),
+            'due_date' => now()->addDays(7),
+        ]);
+        \App\Models\AssessmentSubmission::query()->create([
+            'assessment_id' => $assessment->id,
+            'user_id' => $student->id,
+            'status' => 'Graded',
+            'score' => 85,
+            'submitted_at' => now(),
+            'feedback' => 'Good scientific analysis.',
+        ]);
+
+        $this->actingAs($instructor);
+
+        $component = \Livewire\Livewire::test(\App\Filament\Instructor\Pages\StudentResults::class);
+        $component->assertSuccessful();
+
+        $studentsData = $component->instance()->getStudentsData();
+        $this->assertCount(1, $studentsData);
+
+        $studentRow = $studentsData[0];
+        $this->assertEquals('Alice Student', $studentRow['name']);
+        $this->assertEquals(80.0, $studentRow['avg_quiz_score']);
+        $this->assertEquals(90.0, $studentRow['avg_assignment_grade']);
+        $this->assertEquals(85.0, $studentRow['avg_assessment_score']);
+        // Overall: (80 + 90 + 85) / 3 = 85.0
+        $this->assertEquals(85.0, $studentRow['overall_score']);
+        $this->assertEquals('distinction', $studentRow['tier_key']);
+
+        // Test toggle expand and tab setting
+        $component->call('toggleExpand', $student->id)
+            ->assertSet('expandedStudents.' . $student->id, true);
+
+        $component->call('setTab', $student->id, 'quizzes')
+            ->assertSet('activeTabs.' . $student->id, 'quizzes');
+
+        $component->call('expandAll');
+        $this->assertTrue($component->get('expandedStudents')[$student->id]);
+
+        $component->call('collapseAll');
+        $this->assertEmpty($component->get('expandedStudents'));
+    }
+
+    public function test_instructor_can_filter_student_results_and_export_csv(): void
+    {
+        $instructor = User::factory()->create([
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+
+        $course1 = Course::query()->create([
+            'title' => 'Course 1',
+            'code' => 'C1',
+            'is_active' => true,
+        ]);
+        $course2 = Course::query()->create([
+            'title' => 'Course 2',
+            'code' => 'C2',
+            'is_active' => true,
+        ]);
+        $instructor->instructorCourses()->attach([$course1->id, $course2->id]);
+
+        $student1 = User::factory()->create([
+            'role' => 'student',
+            'name' => 'Alice Beginner',
+            'email' => 'alice@test.com',
+            'track' => 'Beginner',
+            'is_active' => true,
+        ]);
+        $student1->enrollments()->create(['course_id' => $course1->id, 'status' => 'enrolled']);
+
+        $student2 = User::factory()->create([
+            'role' => 'student',
+            'name' => 'Bob Advanced',
+            'email' => 'bob@test.com',
+            'track' => 'Advanced',
+            'is_active' => true,
+        ]);
+        $student2->enrollments()->create(['course_id' => $course2->id, 'status' => 'enrolled']);
+
+        $this->actingAs($instructor);
+
+        $component = \Livewire\Livewire::test(\App\Filament\Instructor\Pages\StudentResults::class);
+        $this->assertCount(2, $component->instance()->getStudentsData());
+
+        // Filter by course 1
+        $component->set('courseFilter', (string) $course1->id);
+        $data = $component->instance()->getStudentsData();
+        $this->assertCount(1, $data);
+        $this->assertEquals('Alice Beginner', $data[0]['name']);
+
+        // Filter by track
+        $component->set('courseFilter', '')
+            ->set('trackFilter', 'Advanced');
+        $data = $component->instance()->getStudentsData();
+        $this->assertCount(1, $data);
+        $this->assertEquals('Bob Advanced', $data[0]['name']);
+
+        // Search
+        $component->set('trackFilter', '')
+            ->set('search', 'alice');
+        $data = $component->instance()->getStudentsData();
+        $this->assertCount(1, $data);
+        $this->assertEquals('Alice Beginner', $data[0]['name']);
+
+        // Reset
+        $component->call('resetFilters');
+        $this->assertEquals('', $component->get('search'));
+        $this->assertEquals('', $component->get('trackFilter'));
+
+        // Test export CSV
+        $response = $component->instance()->exportCsv();
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $response);
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertStringContainsString('text/csv', (string) $response->headers->get('Content-Type'));
+    }
+
+    public function test_instructor_can_view_tasks_and_results_in_descending_order(): void
+    {
+        $instructor = User::factory()->create([
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+
+        $course = Course::query()->create([
+            'title' => 'Math 101',
+            'code' => 'MTH-101',
+            'is_active' => true,
+        ]);
+        $instructor->instructorCourses()->attach($course->id);
+
+        $student1 = User::factory()->create(['role' => 'student', 'name' => 'Low Scorer', 'is_active' => true]);
+        $student2 = User::factory()->create(['role' => 'student', 'name' => 'Top Scorer', 'is_active' => true]);
+        $student1->enrollments()->create(['course_id' => $course->id, 'status' => 'enrolled']);
+        $student2->enrollments()->create(['course_id' => $course->id, 'status' => 'enrolled']);
+
+        // Quiz with two attempts
+        $quiz = \App\Models\Quiz::query()->create([
+            'title' => 'Calculus Quiz',
+            'course_id' => $course->id,
+            'is_active' => true,
+        ]);
+        \App\Models\QuizAttempt::query()->create([
+            'quiz_id' => $quiz->id,
+            'user_id' => $student1->id,
+            'completed_at' => now(),
+            'score' => 45,
+            'total_points' => 100,
+            'percentage' => 45,
+            'passed' => false,
+        ]);
+        \App\Models\QuizAttempt::query()->create([
+            'quiz_id' => $quiz->id,
+            'user_id' => $student2->id,
+            'completed_at' => now(),
+            'score' => 95,
+            'total_points' => 100,
+            'percentage' => 95,
+            'passed' => true,
+        ]);
+
+        $this->actingAs($instructor);
+
+        $component = \Livewire\Livewire::test(\App\Filament\Instructor\Pages\StudentResults::class);
+        $tasksData = $component->instance()->getTasksData();
+
+        $this->assertNotEmpty($tasksData['quizzes']);
+        $quizTask = $tasksData['quizzes'][0];
+        $this->assertEquals('Calculus Quiz', $quizTask['title']);
+
+        // Assert student results are in DESCENDING order: Top Scorer (95%) first, Low Scorer (45%) second
+        $this->assertCount(2, $quizTask['results']);
+        $this->assertEquals('Top Scorer', $quizTask['results'][0]['student_name']);
+        $this->assertEquals(95, $quizTask['results'][0]['percentage']);
+        $this->assertEquals('Low Scorer', $quizTask['results'][1]['student_name']);
+        $this->assertEquals(45, $quizTask['results'][1]['percentage']);
+
+        // Test switching task filters and view modes
+        $component->call('setViewMode', 'tasks')
+            ->assertSet('viewMode', 'tasks');
+
+        $component->call('setTaskType', 'quizzes')
+            ->assertSet('taskTypeFilter', 'quizzes');
+
+        // Test clicking horizontal category card to open full details
+        $component->call('selectCategory', 'assignments')
+            ->assertSet('activeCategory', 'assignments');
+
+        $component->call('selectCategory', 'assessments')
+            ->assertSet('activeCategory', 'assessments');
+
+        $component->call('selectCategory', 'quizzes')
+            ->assertSet('activeCategory', 'quizzes');
+
+        // Test category stats presence
+        $this->assertArrayHasKey('category_stats', $tasksData);
+        $this->assertEquals(1, $tasksData['category_stats']['quizzes']['count']);
+        $this->assertEquals(2, $tasksData['category_stats']['quizzes']['attempts']);
+    }
 }
+
+
+
+
