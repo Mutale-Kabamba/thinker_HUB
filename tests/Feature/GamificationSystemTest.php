@@ -131,7 +131,7 @@ class GamificationSystemTest extends TestCase
         $this->assertDatabaseHas('xp_transactions', [
             'user_id' => $student->id,
             'source' => 'assignment_perfect',
-            'points' => 60,
+            'points' => 50,
         ]);
 
         // Perfectionist badge awarded
@@ -312,5 +312,149 @@ class GamificationSystemTest extends TestCase
             'user_id' => $student->id,
             'source' => 'course_completed',
         ]);
+    }
+
+    public function test_no_points_or_badges_awarded_when_rules_are_not_set_or_inactive(): void
+    {
+        // 1. Clear all rules so neither course nor global rules exist
+        \App\Models\CourseGamificationRule::query()->delete();
+
+        $student = User::factory()->create(['role' => 'student', 'lifetime_xp' => 0, 'spendable_coins' => 0]);
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $service = app(GamificationService::class);
+
+        $course = Course::query()->create([
+            'title' => 'Unconfigured Course',
+            'code' => 'UNC101',
+            'is_active' => true,
+        ]);
+
+        $enr = Enrollment::create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+            'completed_at' => null,
+        ]);
+
+        // Daily login
+        $service->recordDailyLogin($student);
+
+        // Assignment submission
+        $assignment = Assignment::create([
+            'course_id' => $course->id,
+            'name' => 'Unconfigured Assignment',
+            'due_date' => now()->addDays(2)->toDateString(),
+        ]);
+        $submission = AssignmentSubmission::create([
+            'assignment_id' => $assignment->id,
+            'user_id' => $student->id,
+            'content' => 'My solution',
+            'submitted_at' => now(),
+        ]);
+        $submission->update(['grade' => '100%']);
+
+        // Attendance
+        $session = CourseSession::create([
+            'course_id' => $course->id,
+            'title' => 'Class 1',
+            'session_date' => now()->toDateString(),
+            'start_time' => '10:00:00',
+            'end_time' => '11:00:00',
+            'status' => 'completed',
+        ]);
+        $attendance = Attendance::create([
+            'course_session_id' => $session->id,
+            'user_id' => $student->id,
+            'status' => 'present',
+        ]);
+        $service->awardAttendance($student, $attendance);
+
+        // Course completion
+        $enr->markAsCompleted($instructor);
+        $service->awardCourseCompleted($student, $course);
+
+        // Direct badge award attempt without active rules
+        $badgeResult = $service->awardBadge($student, 'streak_7');
+        $this->assertNull($badgeResult);
+
+        // Assert zero transactions and zero badges
+        $this->assertSame(0, XpTransaction::where('user_id', $student->id)->count());
+        $this->assertSame(0, \Illuminate\Support\Facades\DB::table('user_badge')->where('user_id', $student->id)->count());
+        $this->assertSame(0, (int) $student->fresh()->lifetime_xp);
+        $this->assertSame(0, (int) $student->fresh()->spendable_coins);
+    }
+
+    public function test_points_and_badges_awarded_only_from_active_rules(): void
+    {
+        // 1. Clear all rules
+        \App\Models\CourseGamificationRule::query()->delete();
+
+        $student = User::factory()->create(['role' => 'student', 'lifetime_xp' => 0, 'spendable_coins' => 0]);
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $service = app(GamificationService::class);
+
+        $course = Course::query()->create([
+            'title' => 'Configured Course',
+            'code' => 'CFG101',
+            'is_active' => true,
+        ]);
+
+        $enr = Enrollment::create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+            'completed_at' => null,
+        ]);
+
+        // 2. Instructor sets ONLY course completion rule (active, 120 XP, 36 coins), keeping all others inactive
+        \App\Models\CourseGamificationRule::query()->create([
+            'course_id' => $course->id,
+            'is_active' => true,
+            'rules' => [
+                [
+                    'activity_key' => 'course_completion',
+                    'activity_name' => 'Course Completion',
+                    'category' => 'Core Milestones',
+                    'xp' => 120,
+                    'coins' => 36,
+                    'limit' => '1 time per course',
+                    'enabled' => true,
+                ],
+                [
+                    'activity_key' => 'assignment_ontime',
+                    'activity_name' => 'On-Time Submission',
+                    'category' => 'Assignments',
+                    'xp' => 30,
+                    'coins' => 9,
+                    'limit' => '',
+                    'enabled' => false, // explicitly disabled
+                ],
+            ],
+        ]);
+
+        // On-time submission should yield NO points or badges because it is disabled
+        $assignment = Assignment::create([
+            'course_id' => $course->id,
+            'name' => 'Assignment 1',
+            'due_date' => now()->addDays(2)->toDateString(),
+        ]);
+        $submission = AssignmentSubmission::create([
+            'assignment_id' => $assignment->id,
+            'user_id' => $student->id,
+            'content' => 'Work',
+            'submitted_at' => now(),
+        ]);
+
+        $this->assertSame(0, XpTransaction::where('user_id', $student->id)->count());
+
+        // Course completion is enabled -> awards exact configured 120 XP / 36 coins and Graduate badge
+        $enr->markAsCompleted($instructor);
+        $service->awardCourseCompleted($student, $course);
+
+        $this->assertDatabaseHas('xp_transactions', [
+            'user_id' => $student->id,
+            'source' => 'course_completed',
+            'amount_xp' => 120,
+            'amount_coins' => 36,
+        ]);
+        $this->assertTrue($student->badges()->where('badges.key', 'course_completed')->exists());
     }
 }

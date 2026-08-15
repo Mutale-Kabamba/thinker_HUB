@@ -270,7 +270,7 @@ class GamificationService
         // Milestone streak bonuses
         if ($user->current_streak === 7) {
             $streak7Rule = CourseGamificationRule::getRuleForCourse(null, 'streak_7');
-            if ($streak7Rule['enabled']) {
+            if ($streak7Rule['enabled'] && ($streak7Rule['xp'] > 0 || $streak7Rule['coins'] > 0)) {
                 $this->awardPoints(
                     $user,
                     'streak_7_milestone',
@@ -279,11 +279,11 @@ class GamificationService
                     $streak7Rule['coins'],
                     '7-Day Streak Milestone Reward (+'.$streak7Rule['xp'].' XP / +'.$streak7Rule['coins'].' TC)'
                 );
+                $this->awardBadge($user, 'streak_7', awardBadgeXp: false);
             }
-            $this->awardBadge($user, 'streak_7', awardBadgeXp: false);
         } elseif ($user->current_streak === 30) {
             $streak30Rule = CourseGamificationRule::getRuleForCourse(null, 'streak_30');
-            if ($streak30Rule['enabled']) {
+            if ($streak30Rule['enabled'] && ($streak30Rule['xp'] > 0 || $streak30Rule['coins'] > 0)) {
                 $this->awardPoints(
                     $user,
                     'streak_30_milestone',
@@ -292,8 +292,8 @@ class GamificationService
                     $streak30Rule['coins'],
                     '30-Day Streak Milestone Reward (+'.$streak30Rule['xp'].' XP / +'.$streak30Rule['coins'].' TC)'
                 );
+                $this->awardBadge($user, 'streak_30', awardBadgeXp: false);
             }
-            $this->awardBadge($user, 'streak_30', awardBadgeXp: false);
         }
     }
 
@@ -320,10 +320,10 @@ class GamificationService
         $title = $item?->name ?? ucfirst($type);
         $course = $item?->course;
 
-        $matrixKey = $type === 'assignment' ? 'assignment_ontime' : 'assignment_ontime';
+        $matrixKey = 'assignment_ontime';
         $rule = CourseGamificationRule::getRuleForCourse($course, $matrixKey);
 
-        if (! $rule['enabled']) {
+        if (! $rule['enabled'] || ($rule['xp'] <= 0 && $rule['coins'] <= 0)) {
             return;
         }
 
@@ -346,14 +346,18 @@ class GamificationService
 
                 // Early submission bonus (at least 24 hours before deadline end)
                 if ($submittedAt->lte($dueDateEnd->copy()->subHours(24))) {
-                    $this->awardPoints(
-                        $user,
-                        "{$type}_early",
-                        $submission,
-                        self::XP_SUBMISSION_EARLY,
-                        self::COINS_SUBMISSION_EARLY,
-                        "Early submission bonus: {$title}"
-                    );
+                    $earlyXp = (int) round($baseXp * 0.33);
+                    $earlyCoins = (int) round($baseCoins * 0.33);
+                    if ($earlyXp > 0 || $earlyCoins > 0) {
+                        $this->awardPoints(
+                            $user,
+                            "{$type}_early",
+                            $submission,
+                            $earlyXp,
+                            $earlyCoins,
+                            "Early submission bonus: {$title}"
+                        );
+                    }
                 }
             }
         }
@@ -367,7 +371,7 @@ class GamificationService
             ->count();
 
         if ($onTimeCount >= 5) {
-            $this->awardBadge($user, 'punctual_scholar');
+            $this->awardBadge($user, 'punctual_scholar', course: $course);
         }
 
         // Check Early Bird badge (3 early submissions)
@@ -377,7 +381,7 @@ class GamificationService
             ->count();
 
         if ($earlyCount >= 3) {
-            $this->awardBadge($user, 'early_bird');
+            $this->awardBadge($user, 'early_bird', course: $course);
         }
     }
 
@@ -405,9 +409,10 @@ class GamificationService
 
         $gradeARule = CourseGamificationRule::getRuleForCourse($course, 'assignment_grade_a');
         $assessmentRule = CourseGamificationRule::getRuleForCourse($course, 'assessment_passed');
+        $assignmentRule = CourseGamificationRule::getRuleForCourse($course, 'assignment_ontime');
 
         // Assessment passed
-        if ($type === 'assessment' && $numericScore >= 50 && $assessmentRule['enabled']) {
+        if ($type === 'assessment' && $numericScore >= 50 && $assessmentRule['enabled'] && ($assessmentRule['xp'] > 0 || $assessmentRule['coins'] > 0)) {
             $this->awardPoints(
                 $user,
                 'assessment_passed',
@@ -416,22 +421,24 @@ class GamificationService
                 $course ? $course->gamificationRule('assessment_coins', $assessmentRule['coins']) : $assessmentRule['coins'],
                 "Passed Assessment ({$numericScore}%): {$title}"
             );
-        } elseif ($type === 'assignment' && $numericScore >= 50) {
-            $passXp = $course ? $course->gamificationRule('passing_xp', self::XP_PASSING_GRADE) : self::XP_PASSING_GRADE;
-            $passCoins = $course ? $course->gamificationRule('passing_coins', self::COINS_PASSING_GRADE) : self::COINS_PASSING_GRADE;
+        } elseif ($type === 'assignment' && $numericScore >= 50 && $assignmentRule['enabled'] && ($assignmentRule['xp'] > 0 || $assignmentRule['coins'] > 0)) {
+            $passXp = $course ? $course->gamificationRule('passing_xp', $assignmentRule['xp']) : $assignmentRule['xp'];
+            $passCoins = $course ? $course->gamificationRule('passing_coins', $assignmentRule['coins']) : $assignmentRule['coins'];
 
-            $this->awardPoints(
-                $user,
-                'assignment_passed',
-                $submission,
-                $passXp,
-                $passCoins,
-                "Passed assignment ({$numericScore}%): {$title}"
-            );
+            if ($passXp > 0 || $passCoins > 0) {
+                $this->awardPoints(
+                    $user,
+                    'assignment_passed',
+                    $submission,
+                    $passXp,
+                    $passCoins,
+                    "Passed assignment ({$numericScore}%): {$title}"
+                );
+            }
         }
 
         // High Grade (Grade A / 90%+)
-        if ($numericScore >= 90 && $gradeARule['enabled']) {
+        if ($numericScore >= 90 && $gradeARule['enabled'] && ($gradeARule['xp'] > 0 || $gradeARule['coins'] > 0)) {
             $this->awardPoints(
                 $user,
                 "{$type}_distinction",
@@ -448,30 +455,35 @@ class GamificationService
                 ->count();
 
             if ($distinctionCount >= 3) {
-                $this->awardBadge($user, 'distinction_club');
+                $this->awardBadge($user, 'distinction_club', course: $course);
             }
-        } elseif ($numericScore >= 80) {
-            $this->awardPoints(
-                $user,
-                "{$type}_distinction",
-                $submission,
-                self::XP_DISTINCTION_GRADE,
-                self::COINS_DISTINCTION_GRADE,
-                "Distinction bonus ({$numericScore}%): {$title}"
-            );
+        } elseif ($numericScore >= 80 && $gradeARule['enabled'] && ($gradeARule['xp'] > 0 || $gradeARule['coins'] > 0)) {
+            $distXp = (int) round($gradeARule['xp'] * 0.75);
+            $distCoins = (int) round($gradeARule['coins'] * 0.75);
+            if ($distXp > 0 || $distCoins > 0) {
+                $this->awardPoints(
+                    $user,
+                    "{$type}_distinction",
+                    $submission,
+                    $distXp,
+                    $distCoins,
+                    "Distinction bonus ({$numericScore}%): {$title}"
+                );
+            }
         }
 
         // Perfect score bonus (100%)
-        if ($numericScore >= 100) {
+        $perfectRule = CourseGamificationRule::getRuleForCourse($course, 'quiz_score_100');
+        if ($numericScore >= 100 && $perfectRule['enabled'] && ($perfectRule['xp'] > 0 || $perfectRule['coins'] > 0)) {
             $this->awardPoints(
                 $user,
                 "{$type}_perfect",
                 $submission,
-                self::XP_PERFECT_GRADE,
-                self::COINS_PERFECT_GRADE,
+                $perfectRule['xp'],
+                $perfectRule['coins'],
                 "Perfect score bonus (100%): {$title}"
             );
-            $this->awardBadge($user, 'first_perfect_quiz');
+            $this->awardBadge($user, 'first_perfect_quiz', course: $course);
         }
     }
 
@@ -508,7 +520,7 @@ class GamificationService
         $quizXp = $course ? $course->gamificationRule('quiz_xp', $rule80['xp']) : $rule80['xp'];
         $quizCoins = $course ? $course->gamificationRule('quiz_coins', $rule80['coins']) : $rule80['coins'];
 
-        if ($rule80['enabled']) {
+        if ($rule80['enabled'] && ($quizXp > 0 || $quizCoins > 0)) {
             $this->awardPoints(
                 $user,
                 'quiz_passed',
@@ -519,7 +531,7 @@ class GamificationService
             );
         }
 
-        if ((int) $attempt->percentage >= 100 && $rule100['enabled']) {
+        if ((int) $attempt->percentage >= 100 && $rule100['enabled'] && ($rule100['xp'] > 0 || $rule100['coins'] > 0)) {
             $this->awardPoints(
                 $user,
                 'quiz_perfect',
@@ -528,7 +540,7 @@ class GamificationService
                 $rule100['coins'],
                 'Perfect quiz score (100%): '.$quiz->title
             );
-            $this->awardBadge($user, 'first_perfect_quiz');
+            $this->awardBadge($user, 'first_perfect_quiz', course: $course);
         }
     }
 
@@ -544,7 +556,7 @@ class GamificationService
         $course = $video instanceof CourseSession ? $video->course : null;
         $rule = CourseGamificationRule::getRuleForCourse($course, 'video_completed');
 
-        if (! $rule['enabled']) {
+        if (! $rule['enabled'] || ($rule['xp'] <= 0 && $rule['coins'] <= 0)) {
             return false;
         }
 
@@ -588,7 +600,7 @@ class GamificationService
         $attendanceXp = $course ? $course->gamificationRule('attendance_xp', $rule['xp']) : $rule['xp'];
         $attendanceCoins = $course ? $course->gamificationRule('attendance_coins', $rule['coins']) : $rule['coins'];
 
-        if ($attendanceXp > 0 || $attendanceCoins > 0) {
+        if ($rule['enabled'] && ($attendanceXp > 0 || $attendanceCoins > 0)) {
             $this->awardPoints(
                 $user,
                 'attendance_present',
@@ -624,8 +636,8 @@ class GamificationService
                             $rulePerf['coins'],
                             '100% Course Attendance: '.($session->course?->title ?? 'Course')
                         );
+                        $this->awardBadge($user, 'always_present', course: $session->course);
                     }
-                    $this->awardBadge($user, 'always_present');
                 }
             }
         }
@@ -647,7 +659,7 @@ class GamificationService
         }
 
         $rule = CourseGamificationRule::getRuleForCourse($course, 'course_completion');
-        if (! $rule['enabled']) {
+        if (! $rule['enabled'] || ($rule['xp'] <= 0 && $rule['coins'] <= 0)) {
             return;
         }
 
@@ -663,7 +675,7 @@ class GamificationService
             'Completed course: '.$course->title
         );
 
-        $this->awardBadge($user, 'course_completed');
+        $this->awardBadge($user, 'course_completed', course: $course);
 
         // Check Mastermind badge (3 completed courses signed off by instructor)
         $completedCoursesCount = Enrollment::query()
@@ -672,7 +684,7 @@ class GamificationService
             ->count();
 
         if ($completedCoursesCount >= 3) {
-            $this->awardBadge($user, 'mastermind');
+            $this->awardBadge($user, 'mastermind', course: $course);
         }
     }
 
@@ -753,7 +765,7 @@ class GamificationService
         $course = $rating->course;
         $rule = CourseGamificationRule::getRuleForCourse($course, 'course_rating');
 
-        if (! $rule['enabled']) {
+        if (! $rule['enabled'] || ($rule['xp'] <= 0 && $rule['coins'] <= 0)) {
             return;
         }
 
@@ -777,7 +789,7 @@ class GamificationService
         $course = $material->course;
         $rule = CourseGamificationRule::getRuleForCourse($course, 'material_read');
 
-        if (! $rule['enabled']) {
+        if (! $rule['enabled'] || ($rule['xp'] <= 0 && $rule['coins'] <= 0)) {
             return;
         }
 
@@ -910,10 +922,63 @@ class GamificationService
     }
 
     /**
-     * Grant a badge once. A newly granted badge also banks its xp_reward and notifies the student.
+     * Check whether gamification rules for a badge's underlying action are actively enabled.
      */
-    public function awardBadge(User $user, string $key, bool $awardBadgeXp = true): ?Badge
+    public function isBadgeRuleActive(string $badgeKey, ?Course $course = null): bool
     {
+        $activityKey = match ($badgeKey) {
+            'first_perfect_quiz' => 'quiz_score_100',
+            'streak_7' => 'streak_7',
+            'streak_30' => 'streak_30',
+            'course_completed', 'mastermind' => 'course_completion',
+            'punctual_scholar', 'early_bird' => 'assignment_ontime',
+            'distinction_club' => 'assignment_grade_a',
+            'always_present' => 'perfect_attendance',
+            'innovator' => 'opportunity_submit',
+            'study_networker' => 'study_buddy',
+            'active_contributor' => 'hub_post_published',
+            default => $badgeKey,
+        };
+
+        $rule = CourseGamificationRule::getRuleForCourse($course, $activityKey);
+
+        if (! empty($rule['enabled']) && ((int) ($rule['xp'] ?? 0) > 0 || (int) ($rule['coins'] ?? 0) > 0)) {
+            return true;
+        }
+
+        if (! $course) {
+            $globalRule = CourseGamificationRule::getRuleForCourse(null, $activityKey);
+            if (! empty($globalRule['enabled']) && ((int) ($globalRule['xp'] ?? 0) > 0 || (int) ($globalRule['coins'] ?? 0) > 0)) {
+                return true;
+            }
+
+            return CourseGamificationRule::query()
+                ->whereNotNull('course_id')
+                ->where('is_active', true)
+                ->get()
+                ->contains(function ($cr) use ($activityKey) {
+                    if (! is_array($cr->rules)) {
+                        return false;
+                    }
+                    $custom = CourseGamificationRule::findRuleInArray($cr->rules, $activityKey, $activityKey);
+
+                    return $custom && ! empty($custom['enabled']) && ((int) ($custom['xp'] ?? 0) > 0 || (int) ($custom['coins'] ?? 0) > 0);
+                });
+        }
+
+        return false;
+    }
+
+    /**
+     * Grant a badge once. A newly granted badge also banks its xp_reward and notifies the student.
+     * Badges can only be granted when the underlying point rules are actively enabled by an instructor or admin.
+     */
+    public function awardBadge(User $user, string $key, bool $awardBadgeXp = true, ?Course $course = null): ?Badge
+    {
+        if (! $this->isBadgeRuleActive($key, $course)) {
+            return null;
+        }
+
         $badge = Badge::query()->where('key', $key)->first();
 
         if (! $badge) {

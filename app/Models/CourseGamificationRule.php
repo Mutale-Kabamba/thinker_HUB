@@ -396,19 +396,23 @@ class CourseGamificationRule extends Model
     {
         $defaultMatrix = self::getDefaultMatrix();
 
+        // Strip _xp or _coins suffix if present
+        $cleanKey = preg_replace('/(_xp|_coins)$/', '', $activityKey);
+
         // Map common aliases
-        $normalizedKey = match ($activityKey) {
-            'quiz', 'quiz_xp', 'quiz_coins', 'quiz_passed' => 'quiz_score_80',
+        $normalizedKey = match ($cleanKey) {
+            'quiz', 'quiz_passed' => 'quiz_score_80',
             'quiz_perfect' => 'quiz_score_100',
-            'assignment', 'assignment_xp', 'assignment_coins' => 'assignment_ontime',
-            'assessment', 'assessment_xp', 'assessment_coins' => 'assessment_passed',
-            'course_completion_xp', 'course_completion_coins' => 'course_completion',
+            'assignment', 'passing' => 'assignment_ontime',
+            'assessment' => 'assessment_passed',
+            'course_completion' => 'course_completion',
             'video_watched' => 'video_completed',
             'material_viewed' => 'material_read',
-            default => $activityKey,
+            'distinction' => 'assignment_grade_a',
+            default => $cleanKey,
         };
 
-        $fallback = $defaultMatrix[$normalizedKey] ?? $defaultMatrix[$activityKey] ?? null;
+        $fallback = $defaultMatrix[$normalizedKey] ?? $defaultMatrix[$cleanKey] ?? $defaultMatrix[$activityKey] ?? null;
 
         if ($course) {
             $ruleSet = self::query()->where('course_id', $course->id)->where('is_active', true)->first();

@@ -294,18 +294,25 @@ class Course extends Model
     /**
      * Retrieve a course-specific gamification point or coin rule with fallback.
      */
-    public function gamificationRule(string $key, int $default): int
+    public function gamificationRule(string $key, int $default = 0): int
     {
         // 1. Dedicated CourseGamificationRule table
         $hasCustomRuleSet = CourseGamificationRule::query()->where('course_id', $this->id)->where('is_active', true)->exists();
         if ($hasCustomRuleSet) {
             $rule = CourseGamificationRule::getRuleForCourse($this, $key);
-            if (str_ends_with($key, '_xp') && ! empty($rule['xp'])) {
-                return (int) $rule['xp'];
+            if (! empty($rule['enabled'])) {
+                if (str_ends_with($key, '_xp') && ! empty($rule['xp'])) {
+                    return (int) $rule['xp'];
+                }
+                if (str_ends_with($key, '_coins') && ! empty($rule['coins'])) {
+                    return (int) $rule['coins'];
+                }
+                if (! empty($rule['xp'])) {
+                    return (int) $rule['xp'];
+                }
             }
-            if (str_ends_with($key, '_coins') && ! empty($rule['coins'])) {
-                return (int) $rule['coins'];
-            }
+
+            return 0;
         }
 
         // 2. Course JSON settings
@@ -316,13 +323,18 @@ class Course extends Model
 
         // 3. Fallback check on Global Matrix
         $rule = CourseGamificationRule::getRuleForCourse(null, $key);
-        if (str_ends_with($key, '_xp') && ! empty($rule['xp'])) {
-            return (int) $rule['xp'];
-        }
-        if (str_ends_with($key, '_coins') && ! empty($rule['coins'])) {
-            return (int) $rule['coins'];
+        if (! empty($rule['enabled'])) {
+            if (str_ends_with($key, '_xp') && ! empty($rule['xp'])) {
+                return (int) $rule['xp'];
+            }
+            if (str_ends_with($key, '_coins') && ! empty($rule['coins'])) {
+                return (int) $rule['coins'];
+            }
+            if (! empty($rule['xp'])) {
+                return (int) $rule['xp'];
+            }
         }
 
-        return $default;
+        return 0;
     }
 }
