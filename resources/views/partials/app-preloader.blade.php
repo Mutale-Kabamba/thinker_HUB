@@ -1,4 +1,4 @@
-<div id="thinker-app-preloader" class="thinker-preloader-root" aria-hidden="true">
+<div id="thinker-app-preloader" class="thinker-preloader-root" aria-hidden="true" style="display: none;">
     <div class="preloader-ambient"></div>
     <div class="preloader-content">
         <div class="preloader-logo-ring">
@@ -15,7 +15,7 @@
         </div>
 
         <div class="preloader-status" id="preloader-status-text">
-            Initializing your workspace...
+            Initializing mobile app...
         </div>
     </div>
 </div>
@@ -25,7 +25,7 @@
         position: fixed;
         inset: 0;
         z-index: 999999;
-        display: flex;
+        display: none;
         align-items: center;
         justify-content: center;
         background: radial-gradient(circle at center, #0a242c 0%, #06161a 100%);
@@ -37,6 +37,10 @@
         pointer-events: all;
         user-select: none;
         -webkit-user-select: none;
+    }
+
+    .thinker-preloader-root.preloader-active {
+        display: flex !important;
     }
 
     .thinker-preloader-root.preloader-hidden {
@@ -159,47 +163,53 @@
     const preloader = document.getElementById('thinker-app-preloader');
     if (!preloader) return;
 
-    // Check if launched as PWA standalone or first visit in session
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    const lastPreloadTime = sessionStorage.getItem('thinker_last_preload');
-    const now = Date.now();
+    // Check if on a mobile device / PWA standalone app
+    const isMobileApp = window.matchMedia('(display-mode: standalone)').matches 
+        || window.navigator.standalone === true 
+        || window.innerWidth <= 768 
+        || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
-    // Show full 3-second preloader on standalone app launch OR first launch of session (or after 30 mins)
-    const shouldRunPreload = isStandalone || !lastPreloadTime || (now - parseInt(lastPreloadTime, 10) > 1800000);
+    const path = window.location.pathname.toLowerCase();
+    const isLoginPage = path.includes('/login') 
+        || path.includes('/register') 
+        || path.includes('/auth') 
+        || path === '/' 
+        || document.body.classList.contains('fi-body-guest');
 
-    if (!shouldRunPreload) {
-        // Instant pass-through for rapid internal navigations
-        preloader.style.display = 'none';
-        return;
-    }
+    const alreadyPreloaded = sessionStorage.getItem('thinker_login_preloaded');
 
-    sessionStorage.setItem('thinker_last_preload', now.toString());
+    // ONLY run on mobile app at login for initial launch in session
+    if (isMobileApp && isLoginPage && !alreadyPreloaded) {
+        sessionStorage.setItem('thinker_login_preloaded', 'true');
+        preloader.classList.add('preloader-active');
 
-    const bar = document.getElementById('preloader-bar');
-    const statusText = document.getElementById('preloader-status-text');
+        const bar = document.getElementById('preloader-bar');
+        const statusText = document.getElementById('preloader-status-text');
 
-    // Trigger 3-second animated progress bar
-    requestAnimationFrame(function () {
-        if (bar) {
-            bar.style.width = '100%';
-        }
-    });
+        requestAnimationFrame(function () {
+            if (bar) {
+                bar.style.width = '100%';
+            }
+        });
 
-    // Milestone text updates
-    setTimeout(function () {
-        if (statusText) statusText.textContent = 'Syncing course progress & badges...';
-    }, 1100);
-
-    setTimeout(function () {
-        if (statusText) statusText.textContent = 'Workspace ready!';
-    }, 2300);
-
-    // Complete at 3.0 seconds with smooth fade-out
-    setTimeout(function () {
-        preloader.classList.add('preloader-hidden');
         setTimeout(function () {
-            preloader.style.display = 'none';
-        }, 600);
-    }, 3000);
+            if (statusText) statusText.textContent = 'Preparing secure session...';
+        }, 1100);
+
+        setTimeout(function () {
+            if (statusText) statusText.textContent = 'Welcome to think.er HUB!';
+        }, 2300);
+
+        setTimeout(function () {
+            preloader.classList.add('preloader-hidden');
+            setTimeout(function () {
+                preloader.classList.remove('preloader-active');
+                preloader.style.display = 'none';
+            }, 600);
+        }, 3000);
+    } else {
+        // Instant pass-through for page switching and normal browsing
+        preloader.style.display = 'none';
+    }
 })();
 </script>
