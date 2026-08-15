@@ -2,15 +2,22 @@
 
 namespace App\Filament\Instructor\Pages;
 
+use App\Filament\Instructor\Concerns\ScopedToInstructor;
 use App\Mail\CohortBroadcast;
 use App\Models\Broadcast;
-use App\Models\Enrollment;
+use App\Models\Course;
+use App\Models\User;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class Broadcasts extends Page
 {
+    use ScopedToInstructor;
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-megaphone';
 
     protected static string|\UnitEnum|null $navigationGroup = 'COMMUNITY & SYSTEM';
@@ -37,23 +44,46 @@ class Broadcasts extends Page
 
     public function mount(): void
     {
+        $this->loadCourses();
+        $this->loadHistory();
+    }
+
+    public function loadCourses(): void
+    {
         $user = auth()->user();
 
         if (! $user) {
             return;
         }
 
-        $this->courseOptions = $user->instructorCourses()
+        $courseIds = static::instructorCourseIds();
+
+        $this->courseOptions = Course::query()
+            ->whereIn('id', $courseIds)
             ->where('is_active', true)
             ->orderBy('title')
-            ->get(['courses.id', 'courses.title', 'courses.code'])
+            ->get(['id', 'title', 'code'])
             ->map(fn ($course): array => [
                 'id' => (string) $course->id,
-                'label' => $course->title.($course->code ? ' ('.$course->code.')' : ''),
+                'label' => $course->title . ($course->code ? ' (' . $course->code . ')' : ''),
             ])
             ->all();
+    }
 
-        $this->loadHistory();
+    public function getEnrolledCountProperty(): int
+    {
+        $courseId = (int) $this->courseId;
+
+        if ($courseId <= 0) {
+            return 0;
+        }
+
+        return User::query()
+            ->whereHas('enrollments', fn ($q) => $q->where('course_id', $courseId))
+            ->whereNotNull('email')
+            ->where('email', '!=', '')
+            ->distinct()
+            ->count();
     }
 
     public function send(): void
@@ -77,12 +107,15 @@ class Broadcasts extends Page
             return;
         }
 
-        // Server-side guard: only the instructor's own courses.
-        $course = $user->instructorCourses()->where('courses.id', $courseId)->first();
+        // Server-side guard: verify course belongs to instructor
+        $course = Course::query()
+            ->whereIn('id', static::instructorCourseIds())
+            ->whereKey($courseId)
+            ->first();
 
         if (! $course) {
             Notification::make()
-                ->title('You can only broadcast to your own courses.')
+                ->title('You can only broadcast to your own active courses.')
                 ->danger()
                 ->send();
 
@@ -91,8 +124,17 @@ class Broadcasts extends Page
 
         [$recipients, $failed] = $this->dispatchToCourse($course, $user, $subject, $body);
 
+        if ($recipients === 0 && $failed === 0) {
+            Notification::make()
+                ->title('No enrolled students with email addresses found in this course.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
         Notification::make()
-            ->title('Broadcast queued for '.$recipients.' student'.($recipients === 1 ? '' : 's').($failed > 0 ? ' ('.$failed.' failed)' : ''))
+            ->title('Broadcast sent to ' . $recipients . ' student' . ($recipients === 1 ? '' : 's') . ($failed > 0 ? ' (' . $failed . ' email errors)' : ''))
             ->success()
             ->send();
 
@@ -102,14 +144,21 @@ class Broadcasts extends Page
     }
 
     /**
-     * Queue the mailable to every enrolled student and write the audit row.
+     * Send email and in-app database notification to every enrolled student and write the audit row.
      *
      * @return array{0: int, 1: int} [recipients, failed]
      */
-    protected function dispatchToCourse($course, $sender, string $subject, string $body): array
+    protected function dispatchToCourse(Course $course, User $sender, string $subject, string $body): array
     {
         $recipients = 0;
         $failed = 0;
+
+        $students = User::query()
+            ->whereHas('enrollments', fn ($q) => $q->where('course_id', $course->id))
+            ->whereNotNull('email')
+            ->where('email', '!=', '')
+            ->distinct()
+            ->get();
 
         $broadcast = Broadcast::query()->create([
             'course_id' => $course->id,
@@ -119,26 +168,39 @@ class Broadcasts extends Page
             'sent_at' => now(),
         ]);
 
-        Enrollment::query()
-            ->where('course_id', $course->id)
-            ->with('user')
-            ->chunkById(100, function ($enrollments) use (&$recipients, &$failed, $course, $sender, $subject, $body): void {
-                foreach ($enrollments as $enrollment) {
-                    $student = $enrollment->user;
+        foreach ($students as $student) {
+            $mailSent = false;
 
-                    if (! $student || blank($student->email)) {
-                        continue;
-                    }
+            try {
+                Mail::to($student->email)->send(new CohortBroadcast($course, $sender, $body, $subject));
+                $mailSent = true;
+            } catch (\Throwable $e) {
+                Log::warning("Cohort broadcast email delivery failed for user #{$student->id} ({$student->email}): " . $e->getMessage());
+                $failed++;
+            }
 
-                    try {
-                        Mail::to($student)->queue(new CohortBroadcast($course, $sender, $body, $subject));
-                        $recipients++;
-                    } catch (\Throwable $e) {
-                        $failed++;
-                        report($e);
-                    }
-                }
-            });
+            if ($mailSent) {
+                $recipients++;
+            }
+
+            // Always deliver in-app notification to student dashboard so they see the announcement immediately
+            try {
+                Notification::make()
+                    ->title('Announcement: ' . $subject)
+                    ->body(Str::limit($body, 200))
+                    ->icon('heroicon-o-megaphone')
+                    ->info()
+                    ->actions([
+                        Action::make('view')
+                            ->label('View Dashboard')
+                            ->url('/learn')
+                            ->markAsRead(),
+                    ])
+                    ->sendToDatabase($student);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
 
         $broadcast->update([
             'recipients_count' => $recipients,
@@ -152,18 +214,29 @@ class Broadcasts extends Page
     {
         $user = auth()->user();
 
-        $this->history = Broadcast::query()
+        if (! $user) {
+            return;
+        }
+
+        $query = Broadcast::query()
             ->with('course:id,title,code')
-            ->where('user_id', $user?->id ?? 0)
-            ->latest()
+            ->latest('sent_at');
+
+        if (! $user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
+
+        $this->history = $query
             ->limit(30)
             ->get()
             ->map(fn (Broadcast $broadcast): array => [
+                'id' => $broadcast->id,
                 'course' => $broadcast->course?->title ?? '—',
                 'subject' => $broadcast->subject,
+                'body' => $broadcast->body,
                 'recipients_count' => $broadcast->recipients_count,
                 'failed_count' => $broadcast->failed_count,
-                'sent_at' => $broadcast->sent_at?->format('M d, Y H:i'),
+                'sent_at' => $broadcast->sent_at?->format('M d, Y H:i') ?? $broadcast->created_at?->format('M d, Y H:i'),
             ])
             ->all();
     }
