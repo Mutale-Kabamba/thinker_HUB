@@ -317,6 +317,20 @@ class CommunityChatEnhancementsTest extends TestCase
         }
 
         $viewer = $students->last(); // 8th student (rank #8)
+
+        // Give viewer a badge
+        $badge = \App\Models\Badge::firstOrCreate(
+            ['key' => 'first_perfect_quiz'],
+            [
+                'name' => 'Perfectionist',
+                'description' => 'Score 100% on a quiz',
+                'icon' => 'check-badge',
+                'xp_reward' => 50,
+            ]
+        );
+        $viewer->badges()->syncWithoutDetaching([$badge->id => ['earned_at' => now()]]);
+
+
         $this->actingAs($viewer);
 
         // Record an XP transaction for the viewer
@@ -340,12 +354,17 @@ class CommunityChatEnhancementsTest extends TestCase
             ->assertSee('View More (Rank 6–8)')
             // Pinned viewer row is visible
             ->assertSee('Ranked Student 8 (you)')
-            // XP Earned collapsible section is visible
+            // XP Earned & Badges collapsible section is visible
             ->assertSee('XP Earned')
+            ->assertSee('Badges')
             ->assertSee('+200 XP')
-            ->assertSee('View Breakdown')
-            ->assertSee('Recent Point Earning History')
+            ->assertSee('Unlocked Badges')
+            ->assertSee('Perfectionist')
+            ->assertSee('Recent Point Activity')
             ->assertSee('Passed Physics Midterm Quiz');
+
     }
 }
+
+
 

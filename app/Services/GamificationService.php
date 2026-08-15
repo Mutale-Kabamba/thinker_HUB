@@ -987,15 +987,16 @@ class GamificationService
             ->selectRaw('user_id, COUNT(*) as c')
             ->pluck('c', 'user_id');
 
-        $badgeIcons = DB::table('user_badge')
+        $badgeDetails = DB::table('user_badge')
             ->join('badges', 'badges.id', '=', 'user_badge.badge_id')
             ->whereIn('user_badge.user_id', $userIds)
             ->orderBy('user_badge.earned_at')
-            ->get(['user_badge.user_id', 'badges.icon'])
-            ->groupBy('user_id')
-            ->map(fn ($rows) => $rows->pluck('icon')->filter()->take(5)->values()->all());
+            ->get(['user_badge.user_id', 'badges.id', 'badges.key', 'badges.name', 'badges.icon', 'badges.xp_reward'])
+            ->groupBy('user_id');
 
-        return $students->values()->map(function (User $student, int $index) use ($badgeCounts, $badgeIcons): array {
+        $badgeIcons = $badgeDetails->map(fn ($rows) => $rows->pluck('icon')->filter()->take(5)->values()->all());
+
+        return $students->values()->map(function (User $student, int $index) use ($badgeCounts, $badgeIcons, $badgeDetails): array {
             $rankInfo = $this->calculateUserRank((int) $student->lifetime_xp);
 
             return [
@@ -1008,9 +1009,11 @@ class GamificationService
                 'multiplier' => $rankInfo['multiplier'],
                 'badge_count' => (int) ($badgeCounts[$student->id] ?? 0),
                 'badge_icons' => $badgeIcons[$student->id] ?? [],
+                'badges' => ($badgeDetails[$student->id] ?? collect())->take(4)->values()->all(),
             ];
         });
     }
+
 
     /**
      * Distinct activity dates (Y-m-d) for streak evaluation.
