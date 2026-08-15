@@ -302,4 +302,50 @@ class CommunityChatEnhancementsTest extends TestCase
             ->assertSee('Reply')
             ->assertSee('Copy');
     }
+
+    public function test_leaderboard_renders_top_5_with_collapsible_more_and_xp_earned_breakdown(): void
+    {
+        // Create 8 students with various XP
+        $students = collect();
+        for ($i = 1; $i <= 8; $i++) {
+            $students->push(User::factory()->create([
+                'name' => "Ranked Student {$i}",
+                'role' => 'student',
+                'lifetime_xp' => (10 - $i) * 100, // 900, 800, 700, 600, 500, 400, 300, 200
+                'spendable_coins' => 50,
+            ]));
+        }
+
+        $viewer = $students->last(); // 8th student (rank #8)
+        $this->actingAs($viewer);
+
+        // Record an XP transaction for the viewer
+        \App\Models\XpTransaction::create([
+            'user_id' => $viewer->id,
+            'points' => 200,
+            'amount_xp' => 200,
+            'amount_coins' => 50,
+            'activity_type' => 'quiz_passed',
+            'source' => 'quiz_passed',
+            'description' => 'Passed Physics Midterm Quiz',
+        ]);
+
+        Livewire::test(Community::class)
+            ->set('tab', 'leaderboard')
+            ->assertSee('Leaderboard')
+            ->assertSee('Top 8 Students')
+            ->assertSee('Ranked Student 1')
+            ->assertSee('Ranked Student 5')
+            ->assertSee('Collapse to Top 5')
+            ->assertSee('View More (Rank 6–8)')
+            // Pinned viewer row is visible
+            ->assertSee('Ranked Student 8 (you)')
+            // XP Earned collapsible section is visible
+            ->assertSee('XP Earned')
+            ->assertSee('+200 XP')
+            ->assertSee('View Breakdown')
+            ->assertSee('Recent Point Earning History')
+            ->assertSee('Passed Physics Midterm Quiz');
+    }
 }
+
