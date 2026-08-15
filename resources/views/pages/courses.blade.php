@@ -119,12 +119,20 @@
                                 </div>
                                 <div class="mt-4 flex items-center justify-between gap-2">
                                     <div class="flex items-center gap-2">
-                                        <a
-                                            href="{{ route('checkout.show', $course) }}"
-                                            class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm"
-                                        >
-                                            Enroll &amp; Pay
-                                        </a>
+                                        @if ($isOpenEnrollment)
+                                            <a
+                                                href="{{ route('checkout.show', $course) }}"
+                                                class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm"
+                                            >
+                                                Enroll &amp; Pay
+                                            </a>
+                                        @else
+                                            <span
+                                                class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400 cursor-not-allowed border border-slate-200"
+                                            >
+                                                <i class="fa-solid fa-lock text-[10px] text-amber-500"></i> Locked
+                                            </span>
+                                        @endif
                                         <a
                                             href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
                                             class="inline-flex items-center justify-center rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"

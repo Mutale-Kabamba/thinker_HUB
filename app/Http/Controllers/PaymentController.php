@@ -22,8 +22,13 @@ class PaymentController extends Controller
     /**
      * Show the checkout page for a course.
      */
-    public function showCheckout(Request $request, Course $course): View
+    public function showCheckout(Request $request, Course $course): View|RedirectResponse
     {
+        if ($course->is_open_enrollment === false) {
+            return redirect()->route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)])
+                ->with('error', 'Enrollment is currently locked for this course.');
+        }
+
         $course->loadMissing(['instructors:id,name,email,whatsapp']);
 
         $selectedLevel = (string) $request->query('track', $request->query('level', Auth::user()?->track ?? 'Beginner'));
@@ -52,6 +57,13 @@ class PaymentController extends Controller
      */
     public function processPayment(Request $request, Course $course): JsonResponse|RedirectResponse
     {
+        if ($course->is_open_enrollment === false) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Enrollment is currently locked for this course.'], 403);
+            }
+            return redirect()->back()->with('error', 'Enrollment is currently locked for this course.');
+        }
+
         $currentUser = Auth::user();
 
         $rules = [

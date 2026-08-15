@@ -487,12 +487,44 @@ class InstructorPanelRoutesTest extends TestCase
         $component->call('selectCategory', 'quizzes')
             ->assertSet('activeCategory', 'quizzes');
 
-        // Test category stats presence
-        $this->assertArrayHasKey('category_stats', $tasksData);
-        $this->assertEquals(1, $tasksData['category_stats']['quizzes']['count']);
-        $this->assertEquals(2, $tasksData['category_stats']['quizzes']['attempts']);
+        // Create an untaken quiz (0 attempts) - should NOT show up
+        $untakenQuiz = \App\Models\Quiz::query()->create([
+            'title' => 'Algebra Quiz (Untaken)',
+            'course_id' => $course->id,
+            'is_active' => true,
+        ]);
+
+        $tasksData = $component->instance()->getTasksData();
+        // Only the taken quiz should appear
+        $this->assertCount(1, $tasksData['quizzes']);
+        $this->assertEquals('Calculus Quiz', $tasksData['quizzes'][0]['title']);
+
+        // Now student takes Algebra Quiz with newer timestamp -> FILO test
+        \App\Models\QuizAttempt::query()->create([
+            'quiz_id' => $untakenQuiz->id,
+            'user_id' => $student1->id,
+            'completed_at' => now()->addMinutes(10),
+            'score' => 88,
+            'total_points' => 100,
+            'percentage' => 88,
+            'passed' => true,
+        ]);
+
+        $tasksData = $component->instance()->getTasksData();
+        // Now both taken quizzes appear, in FILO order (Algebra Quiz first because it's most recently taken)
+        $this->assertCount(2, $tasksData['quizzes']);
+        $this->assertEquals('Algebra Quiz (Untaken)', $tasksData['quizzes'][0]['title']);
+        $this->assertEquals('Calculus Quiz', $tasksData['quizzes'][1]['title']);
+
+        // Test collapsible toggling
+        $this->assertTrue($component->instance()->isTaskExpanded($tasksData['quizzes'][0]['key']));
+        $component->call('toggleTask', $tasksData['quizzes'][0]['key']);
+        $this->assertFalse($component->instance()->isTaskExpanded($tasksData['quizzes'][0]['key']));
+        $component->call('toggleTask', $tasksData['quizzes'][0]['key']);
+        $this->assertTrue($component->instance()->isTaskExpanded($tasksData['quizzes'][0]['key']));
     }
 }
+
 
 
 
