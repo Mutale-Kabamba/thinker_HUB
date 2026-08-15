@@ -729,7 +729,7 @@
                     {{-- RIGHT COLUMN: RATINGS (1 Part of 2:1 Ratio -> 4 Columns) --}}
                     <div class="md:col-span-4 md:pl-4 lg:pl-6">
                         <div class="text-center md:text-left">
-                            <h3 class="text-xl font-bold text-slate-900">Customer reviews</h3>
+                            <h3 class="text-xl font-bold text-slate-900">User ratings</h3>
 
                             {{-- Star pill & rating score --}}
                             <div class="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-50 border border-slate-200/80 px-3.5 py-1.5">
@@ -747,7 +747,7 @@
                                 <span class="text-xs font-semibold text-slate-700">{{ $avgRating > 0 ? $avgRating : '0' }} out of 5</span>
                             </div>
 
-                            <p class="mt-2 text-xs text-slate-500">{{ $totalRatingsCount }} customer {{ Str::plural('rating', $totalRatingsCount) }}</p>
+                            <p class="mt-2 text-xs text-slate-500">{{ $totalRatingsCount }} user {{ Str::plural('rating', $totalRatingsCount) }}</p>
                         </div>
 
                         {{-- Star Distribution Breakdown Bars --}}

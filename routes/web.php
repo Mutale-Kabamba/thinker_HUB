@@ -153,6 +153,54 @@ $loadRecentCourseReviews = static function (int $limit = 6) {
     }
 };
 
+$loadGlobalRatingStats = static function () {
+    try {
+        if (config('database.default') === 'sqlite') {
+            $sqlitePath = (string) config('database.connections.sqlite.database');
+
+            if (! $sqlitePath || ($sqlitePath !== ':memory:' && ! is_file($sqlitePath))) {
+                return [
+                    'avgRating' => 0,
+                    'totalRatingsCount' => 0,
+                    'starCounts' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
+                ];
+            }
+        }
+
+        if (! Schema::hasTable('course_ratings')) {
+            return [
+                'avgRating' => 0,
+                'totalRatingsCount' => 0,
+                'starCounts' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
+            ];
+        }
+
+        $allRatings = CourseRating::query()->get();
+        $total = $allRatings->count();
+        $avg = $total > 0 ? round((float) $allRatings->avg('rating'), 1) : 0;
+
+        return [
+            'avgRating' => $avg,
+            'totalRatingsCount' => $total,
+            'starCounts' => [
+                5 => $allRatings->where('rating', 5)->count(),
+                4 => $allRatings->where('rating', 4)->count(),
+                3 => $allRatings->where('rating', 3)->count(),
+                2 => $allRatings->where('rating', 2)->count(),
+                1 => $allRatings->where('rating', 1)->count(),
+            ],
+        ];
+    } catch (Throwable $e) {
+        report($e);
+
+        return [
+            'avgRating' => 0,
+            'totalRatingsCount' => 0,
+            'starCounts' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
+        ];
+    }
+};
+
 $courseSlug = static function (Course $course): string {
     $source = trim((string) ($course->title ?: $course->code ?: $course->id));
 
@@ -181,7 +229,7 @@ $databaseReady = static function (): bool {
     return true;
 };
 
-Route::get('/', function () use ($loadPublicCourses, $loadHomeStats, $publicCourseStudentCount, $loadRecentCourseReviews) {
+Route::get('/', function () use ($loadPublicCourses, $loadHomeStats, $publicCourseStudentCount, $loadRecentCourseReviews, $loadGlobalRatingStats) {
     $allCourses = $loadPublicCourses();
     $coursesWithStudents = $allCourses
         ->filter(fn (Course $course): bool => $publicCourseStudentCount($course) > 0)
@@ -204,19 +252,25 @@ Route::get('/', function () use ($loadPublicCourses, $loadHomeStats, $publicCour
     $courses = $courses->take(3);
     $stats = $loadHomeStats();
     $reviews = $loadRecentCourseReviews();
+    $ratingStats = $loadGlobalRatingStats();
 
     return view('welcome', [
         'courses' => $courses,
         'stats' => $stats,
         'reviews' => $reviews,
+        'ratingStats' => $ratingStats,
     ]);
 })->name('home');
 
-Route::get('/courses', function () use ($loadPublicCourses) {
+Route::get('/courses', function () use ($loadPublicCourses, $loadRecentCourseReviews, $loadGlobalRatingStats) {
     $courses = $loadPublicCourses();
+    $reviews = $loadRecentCourseReviews();
+    $ratingStats = $loadGlobalRatingStats();
 
     return view('pages.courses', [
         'courses' => $courses,
+        'reviews' => $reviews,
+        'ratingStats' => $ratingStats,
     ]);
 })->name('landing.courses');
 
