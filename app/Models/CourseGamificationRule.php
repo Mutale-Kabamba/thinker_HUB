@@ -187,12 +187,46 @@ class CourseGamificationRule extends Model
                 'category' => 'Community & Peer Engagement',
                 'label' => 'Receiving 10 Upvotes / Reactions',
                 'xp' => 10,
-                'coins' => 3, // 30% of 10 = 3
+                'coins' => 3,
                 'limit' => 'Cap at 50 TC per day from engagement',
                 'enabled' => true,
             ],
+            'study_buddy' => [
+                'category' => 'Community & Peer Engagement',
+                'label' => 'Study Buddy Connection',
+                'xp' => 15,
+                'coins' => 5,
+                'limit' => 'Per accepted connection',
+                'enabled' => true,
+            ],
+            'opportunity_submit' => [
+                'category' => 'Community & Peer Engagement',
+                'label' => 'Opportunity Hub Submission',
+                'xp' => 50,
+                'coins' => 15,
+                'limit' => 'Per opportunity application',
+                'enabled' => true,
+            ],
 
-            // 6. Feedback & Platform Support
+            // 6. Attendance & Live Sessions
+            'attendance' => [
+                'category' => 'Attendance & Participation',
+                'label' => 'Session Attendance',
+                'xp' => 25,
+                'coins' => 8,
+                'limit' => 'Per session',
+                'enabled' => true,
+            ],
+            'perfect_attendance' => [
+                'category' => 'Attendance & Participation',
+                'label' => 'Perfect Course Attendance',
+                'xp' => 100,
+                'coins' => 30,
+                'limit' => 'Course wide',
+                'enabled' => true,
+            ],
+
+            // 7. Feedback & Platform Support
             'course_rating' => [
                 'category' => 'Feedback & Platform Support',
                 'label' => 'Rating/Reviewing a Course',
