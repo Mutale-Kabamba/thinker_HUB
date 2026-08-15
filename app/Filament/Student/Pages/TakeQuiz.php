@@ -31,6 +31,8 @@ class TakeQuiz extends Page
 
     public bool $submitted = false;
 
+    public bool $isRetake = false;
+
     public array $results = [];
 
     public function mount(): void
@@ -81,19 +83,12 @@ class TakeQuiz extends Page
         $quiz->load(['questions.options', 'course']);
 
         // Check if user has an existing completed attempt
-        $existingAttempt = QuizAttempt::query()
+        $latestCompletedAttempt = QuizAttempt::query()
             ->where('quiz_id', $quiz->id)
             ->where('user_id', $user->id)
             ->whereNotNull('completed_at')
-            ->latest()
+            ->latest('id')
             ->first();
-
-        if ($existingAttempt) {
-            $this->submitted = true;
-            $this->loadResults($existingAttempt, $quiz);
-
-            return;
-        }
 
         // Check for in-progress attempt
         $inProgress = QuizAttempt::query()
@@ -101,6 +96,18 @@ class TakeQuiz extends Page
             ->where('user_id', $user->id)
             ->whereNull('completed_at')
             ->first();
+
+        // If user already has a completed attempt and retake is NOT allowed and no in-progress retake attempt exists:
+        if ($latestCompletedAttempt && ! $latestCompletedAttempt->retake_allowed && ! $inProgress) {
+            $this->submitted = true;
+            $this->loadResults($latestCompletedAttempt, $quiz);
+
+            return;
+        }
+
+        // Determine if this attempt is an instructor-granted retake
+        $isRetake = ($latestCompletedAttempt && $latestCompletedAttempt->retake_allowed) || ($inProgress && $inProgress->is_retake);
+        $this->isRetake = (bool) $isRetake;
 
         if ($inProgress) {
             $this->attemptId = $inProgress->id;
@@ -118,7 +125,16 @@ class TakeQuiz extends Page
                 'quiz_id' => $quiz->id,
                 'user_id' => $user->id,
                 'started_at' => Carbon::now(),
+                'is_retake' => $isRetake,
+                'retake_granted_by' => $latestCompletedAttempt?->retake_granted_by,
+                'retake_granted_at' => $latestCompletedAttempt?->retake_granted_at,
             ]);
+
+            // Clear retake_allowed on previous attempt once new retake session starts
+            if ($latestCompletedAttempt && $latestCompletedAttempt->retake_allowed) {
+                $latestCompletedAttempt->update(['retake_allowed' => false]);
+            }
+
             $this->attemptId = $attempt->id;
         }
 
@@ -199,14 +215,26 @@ class TakeQuiz extends Page
             );
         }
 
-        $percentage = $totalPoints > 0 ? round(($earnedPoints / $totalPoints) * 100) : 0;
+        $rawPercentage = $totalPoints > 0 ? (int) round(($earnedPoints / $totalPoints) * 100) : 0;
+        $passPercentage = (int) ($quiz->pass_percentage ?? 50);
+        $isPassed = $rawPercentage >= $passPercentage;
+
+        $finalPercentage = $rawPercentage;
+        $finalScore = $earnedPoints;
+
+        // Academic Policy: If it's a retake, even if someone gets 100, the recorded marks = the passing mark.
+        if ($attempt->is_retake && $isPassed) {
+            $finalPercentage = $passPercentage;
+            $finalScore = (int) round(($totalPoints * $passPercentage) / 100);
+        }
 
         $attempt->update([
             'completed_at' => Carbon::now(),
-            'score' => $earnedPoints,
+            'score' => $finalScore,
             'total_points' => $totalPoints,
-            'percentage' => $percentage,
-            'passed' => $percentage >= $quiz->pass_percentage,
+            'percentage' => $finalPercentage,
+            'passed' => $isPassed,
+            'raw_score' => $earnedPoints,
         ]);
 
         $this->submitted = true;
@@ -232,6 +260,8 @@ class TakeQuiz extends Page
             'total' => $attempt->total_points,
             'percentage' => $attempt->percentage,
             'passed' => $attempt->passed,
+            'is_retake' => (bool) $attempt->is_retake,
+            'raw_score' => $attempt->raw_score,
             'completed_at' => $attempt->completed_at?->format('M d, Y H:i'),
         ];
 

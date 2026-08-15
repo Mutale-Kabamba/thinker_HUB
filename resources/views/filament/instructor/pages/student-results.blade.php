@@ -336,6 +336,26 @@
                                                                 {{ $res['passed'] ? 'Passed' : 'Failed' }}
                                                             </span>
 
+                                                            @if(!empty($res['is_retake']))
+                                                                <span class="hub-chip" style="font-size: 0.58rem; padding: 0.08rem 0.3rem; background: rgba(59, 130, 246, 0.12); color: #1d4ed8; font-weight: 700;" title="2nd Attempt (Capped at pass mark {{ $q['pass_percentage'] ?? 50 }}%)">
+                                                                    2nd Try
+                                                                </span>
+                                                            @endif
+
+                                                            @if(!empty($res['retake_allowed']))
+                                                                <button type="button" wire:click="revokeQuizRetake({{ $res['student_id'] }}, {{ $q['id'] }})"
+                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; cursor: pointer; font-weight: 700;"
+                                                                        title="Click to revoke 2nd try permission">
+                                                                    ⭐ 2nd Try Granted (Revoke)
+                                                                </button>
+                                                            @else
+                                                                <button type="button" wire:click="grantQuizRetake({{ $res['student_id'] }}, {{ $q['id'] }})"
+                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: var(--hub-surface); color: var(--hub-primary); border: 1px solid var(--hub-border); border-radius: 6px; cursor: pointer; font-weight: 600;"
+                                                                        title="Allow student to take this quiz again (score capped at pass mark)">
+                                                                    + Grant 2nd Try
+                                                                </button>
+                                                            @endif
+
                                                             <span style="font-size: 0.66rem; color: var(--hub-muted); min-width: 75px;">
                                                                 {{ $res['completed_at'] }}
                                                             </span>
@@ -455,6 +475,26 @@
                                                             <span class="hub-chip {{ ($res['status'] ?? '') === 'Graded' ? 'hub-chip-green' : 'hub-chip-amber' }}" style="font-size: 0.6rem; padding: 0.08rem 0.35rem;">
                                                                 {{ $res['status'] ?? 'Submitted' }}
                                                             </span>
+
+                                                            @if(!empty($res['is_retake']))
+                                                                <span class="hub-chip" style="font-size: 0.58rem; padding: 0.08rem 0.3rem; background: rgba(99, 102, 241, 0.12); color: #4338ca; font-weight: 700;" title="2nd Attempt (Capped at 50%)">
+                                                                    2nd Try
+                                                                </span>
+                                                            @endif
+
+                                                            @if(!empty($res['retake_allowed']))
+                                                                <button type="button" wire:click="revokeAssignmentRetake({{ $res['submission_id'] }})"
+                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: rgba(99, 102, 241, 0.15); color: #4338ca; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 6px; cursor: pointer; font-weight: 700;"
+                                                                        title="Click to revoke 2nd try permission">
+                                                                    ⭐ 2nd Try Granted (Revoke)
+                                                                </button>
+                                                            @else
+                                                                <button type="button" wire:click="grantAssignmentRetake({{ $res['submission_id'] }})"
+                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: var(--hub-surface); color: #4338ca; border: 1px solid var(--hub-border); border-radius: 6px; cursor: pointer; font-weight: 600;"
+                                                                        title="Allow student to submit a second attempt (grade capped at 50%)">
+                                                                    + Grant 2nd Try
+                                                                </button>
+                                                            @endif
 
                                                             <span style="font-size: 0.66rem; color: var(--hub-muted); min-width: 75px;">
                                                                 {{ $res['submitted_at'] }}
@@ -582,6 +622,26 @@
                                                             <span class="hub-chip {{ ($res['status'] ?? '') === 'Graded' ? 'hub-chip-green' : 'hub-chip-amber' }}" style="font-size: 0.6rem; padding: 0.08rem 0.35rem;">
                                                                 {{ $res['status'] ?? 'Submitted' }}
                                                             </span>
+
+                                                            @if(!empty($res['is_retake']))
+                                                                <span class="hub-chip" style="font-size: 0.58rem; padding: 0.08rem 0.3rem; background: rgba(14, 165, 233, 0.12); color: #0369a1; font-weight: 700;" title="2nd Attempt (Capped at 50%)">
+                                                                    2nd Try
+                                                                </span>
+                                                            @endif
+
+                                                            @if(!empty($res['retake_allowed']))
+                                                                <button type="button" wire:click="revokeAssessmentRetake({{ $res['submission_id'] }})"
+                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: rgba(14, 165, 233, 0.15); color: #0369a1; border: 1px solid rgba(14, 165, 233, 0.3); border-radius: 6px; cursor: pointer; font-weight: 700;"
+                                                                        title="Click to revoke 2nd try permission">
+                                                                    ⭐ 2nd Try Granted (Revoke)
+                                                                </button>
+                                                            @else
+                                                                <button type="button" wire:click="grantAssessmentRetake({{ $res['submission_id'] }})"
+                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: var(--hub-surface); color: #0369a1; border: 1px solid var(--hub-border); border-radius: 6px; cursor: pointer; font-weight: 600;"
+                                                                        title="Allow student to submit a second attempt (score capped at 50%)">
+                                                                    + Grant 2nd Try
+                                                                </button>
+                                                            @endif
 
                                                             <span style="font-size: 0.66rem; color: var(--hub-muted); min-width: 75px;">
                                                                 {{ $res['submitted_at'] }}
@@ -769,12 +829,26 @@
                                         @if(count($row['quiz_details']) > 0)
                                             <div style="margin-bottom: 0.5rem;">
                                                 <span style="font-size: 0.68rem; font-weight: 700; color: #10b981; text-transform: uppercase;">Quizzes (DEC Order)</span>
-                                                <div style="display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.2rem;">
+                                                <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.2rem;">
                                                     @foreach ($row['quiz_details'] as $qd)
-                                                        <div style="display: flex; justify-content: space-between; font-size: 0.72rem; padding: 0.2rem 0.4rem; background: var(--hub-surface-soft); border-radius: 4px;">
+                                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; padding: 0.25rem 0.4rem; background: var(--hub-surface-soft); border-radius: 4px; flex-wrap: wrap; gap: 0.3rem;">
                                                             <span>{{ $qd['title'] }} ({{ $qd['course'] }})</span>
-                                                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                                            <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;">
                                                                 <strong style="color: {{ $qd['passed'] ? '#059669' : '#dc2626' }};">{{ $qd['percentage'] }}%</strong>
+                                                                @if(!empty($qd['is_retake']))
+                                                                    <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(59, 130, 246, 0.12); color: #1d4ed8; font-weight: 700;">2nd Try</span>
+                                                                @endif
+                                                                @if(!empty($qd['retake_allowed']))
+                                                                    <button type="button" wire:click="revokeQuizRetake({{ $row['id'] }}, {{ $qd['quiz_id'] }})"
+                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 4px; cursor: pointer; font-weight: 700;">
+                                                                        ⭐ 2nd Try Granted (Revoke)
+                                                                    </button>
+                                                                @else
+                                                                    <button type="button" wire:click="grantQuizRetake({{ $row['id'] }}, {{ $qd['quiz_id'] }})"
+                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: var(--hub-surface); color: var(--hub-primary); border: 1px solid var(--hub-border); border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                                                        + Grant 2nd Try
+                                                                    </button>
+                                                                @endif
                                                                 <span style="color: var(--hub-muted); font-size: 0.65rem;">{{ $qd['date'] }}</span>
                                                             </div>
                                                         </div>
@@ -787,13 +861,27 @@
                                         @if(count($row['assignment_details']) > 0)
                                             <div style="margin-bottom: 0.5rem;">
                                                 <span style="font-size: 0.68rem; font-weight: 700; color: #6366f1; text-transform: uppercase;">Assignments (DEC Order)</span>
-                                                <div style="display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.2rem;">
+                                                <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.2rem;">
                                                     @foreach ($row['assignment_details'] as $ad)
-                                                        <div style="display: flex; justify-content: space-between; font-size: 0.72rem; padding: 0.2rem 0.4rem; background: var(--hub-surface-soft); border-radius: 4px;">
+                                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; padding: 0.25rem 0.4rem; background: var(--hub-surface-soft); border-radius: 4px; flex-wrap: wrap; gap: 0.3rem;">
                                                             <span>{{ $ad['title'] }} ({{ $ad['course'] }})</span>
-                                                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                                            <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;">
                                                                 <strong>{{ $ad['grade'] !== null ? $ad['grade'].'%' : 'Ungraded' }}</strong>
                                                                 <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem;">{{ $ad['status'] }}</span>
+                                                                @if(!empty($ad['is_retake']))
+                                                                    <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(99, 102, 241, 0.12); color: #4338ca; font-weight: 700;">2nd Try</span>
+                                                                @endif
+                                                                @if(!empty($ad['retake_allowed']))
+                                                                    <button type="button" wire:click="revokeAssignmentRetake({{ $ad['id'] }})"
+                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: rgba(99, 102, 241, 0.15); color: #4338ca; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 4px; cursor: pointer; font-weight: 700;">
+                                                                        ⭐ 2nd Try Granted (Revoke)
+                                                                    </button>
+                                                                @else
+                                                                    <button type="button" wire:click="grantAssignmentRetake({{ $ad['id'] }})"
+                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: var(--hub-surface); color: #4338ca; border: 1px solid var(--hub-border); border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                                                        + Grant 2nd Try
+                                                                    </button>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                     @endforeach
@@ -805,13 +893,27 @@
                                         @if(count($row['assessment_details']) > 0)
                                             <div>
                                                 <span style="font-size: 0.68rem; font-weight: 700; color: #8b5cf6; text-transform: uppercase;">Assessments (DEC Order)</span>
-                                                <div style="display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.2rem;">
+                                                <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.2rem;">
                                                     @foreach ($row['assessment_details'] as $asub)
-                                                        <div style="display: flex; justify-content: space-between; font-size: 0.72rem; padding: 0.2rem 0.4rem; background: var(--hub-surface-soft); border-radius: 4px;">
+                                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; padding: 0.25rem 0.4rem; background: var(--hub-surface-soft); border-radius: 4px; flex-wrap: wrap; gap: 0.3rem;">
                                                             <span>{{ $asub['title'] }} ({{ $asub['course'] }})</span>
-                                                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                                            <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;">
                                                                 <strong>{{ $asub['score'] !== null ? $asub['score'].'%' : 'Ungraded' }}</strong>
                                                                 <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem;">{{ $asub['status'] }}</span>
+                                                                @if(!empty($asub['is_retake']))
+                                                                    <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(14, 165, 233, 0.12); color: #0369a1; font-weight: 700;">2nd Try</span>
+                                                                @endif
+                                                                @if(!empty($asub['retake_allowed']))
+                                                                    <button type="button" wire:click="revokeAssessmentRetake({{ $asub['id'] }})"
+                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: rgba(14, 165, 233, 0.15); color: #0369a1; border: 1px solid rgba(14, 165, 233, 0.3); border-radius: 4px; cursor: pointer; font-weight: 700;">
+                                                                        ⭐ 2nd Try Granted (Revoke)
+                                                                    </button>
+                                                                @else
+                                                                    <button type="button" wire:click="grantAssessmentRetake({{ $asub['id'] }})"
+                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: var(--hub-surface); color: #0369a1; border: 1px solid var(--hub-border); border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                                                        + Grant 2nd Try
+                                                                    </button>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                     @endforeach

@@ -141,6 +141,11 @@
                                         </h4>
                                         <button @click="expanded = null; panel = null;" style="background:none;border:none;cursor:pointer;color:var(--hub-muted);font-size:1.1rem;line-height:1;" title="Close">&times;</button>
                                     </div>
+                                    @if (!empty($assignment['retake_allowed']))
+                                        <div style="padding:0.5rem 0.75rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:0.8rem;color:#1e40af;margin-bottom:0.6rem;">
+                                            <strong>⭐ 2nd Chance Granted:</strong> Your instructor has granted you another chance to submit this assignment. (Recorded grade capped at passing mark).
+                                        </div>
+                                    @endif
                                     @if (!empty($assignment['is_graded']))
                                         <div style="padding:0.5rem 0.75rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-size:0.8rem;color:#166534;margin-bottom:0.6rem;">
                                             <strong>Graded:</strong> This assignment has already been graded{{ $assignment['grade'] !== null ? ' (' . $assignment['grade'] . '%)' : '' }}. Further submissions and changes are locked.
@@ -294,6 +299,11 @@
                                 </h4>
                                 <button @click="expanded = null; panel = null;" style="background:none;border:none;cursor:pointer;color:var(--hub-muted);font-size:1.1rem;line-height:1;" title="Close">&times;</button>
                             </div>
+                            @if (!empty($assignment['retake_allowed']))
+                                <div style="padding:0.5rem 0.75rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:0.8rem;color:#1e40af;margin-bottom:0.6rem;">
+                                    <strong>⭐ 2nd Chance Granted:</strong> Your instructor has granted you another chance to submit this assignment. (Recorded grade capped at passing mark).
+                                </div>
+                            @endif
                             @if (!empty($assignment['is_graded']))
                                 <div style="padding:0.5rem 0.75rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-size:0.8rem;color:#166534;margin-bottom:0.6rem;">
                                     <strong>Graded:</strong> This assignment has already been graded{{ $assignment['grade'] !== null ? ' (' . $assignment['grade'] . '%)' : '' }}. Further submissions and changes are locked.
