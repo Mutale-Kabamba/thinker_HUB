@@ -15,6 +15,7 @@ use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Notifications\CertificateIssuedNotification;
 use App\Services\CertificateService;
+use App\Services\GamificationService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
@@ -231,9 +232,16 @@ class StudentResults extends Page
             }
         }
 
+        // Award course completion XP and badges (Graduate, Mastermind)
+        try {
+            app(GamificationService::class)->awardCourseCompleted($student, $course);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         Notification::make()
             ->title('Program Marked Complete!')
-            ->body('Course completion recorded. Certificate is now ready for ' . $student->name . '.')
+            ->body('Course completion recorded. Certificate and completion badges are now ready for ' . $student->name . '.')
             ->success()
             ->send();
     }
@@ -246,6 +254,7 @@ class StudentResults extends Page
         }
 
         $student = User::query()->find($studentId);
+        $course = Course::query()->find($courseId);
         $enrollment = Enrollment::query()
             ->where('user_id', $studentId)
             ->where('course_id', $courseId)
@@ -259,9 +268,17 @@ class StudentResults extends Page
                 ->where('course_id', $courseId)
                 ->delete();
 
+            if ($student && $course) {
+                try {
+                    app(GamificationService::class)->revokeCourseCompleted($student, $course);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+
             Notification::make()
                 ->title('Completion Status Reset')
-                ->body('Course completion status was reset and certificate locked for ' . ($student?->name ?? 'student') . '.')
+                ->body('Course completion status, certificate, and completion badges were reset for ' . ($student?->name ?? 'student') . '.')
                 ->info()
                 ->send();
         }

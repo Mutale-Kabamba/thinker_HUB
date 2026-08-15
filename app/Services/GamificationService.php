@@ -12,6 +12,7 @@ use App\Models\ChatMessage;
 use App\Models\Course;
 use App\Models\CourseRating;
 use App\Models\CourseSession;
+use App\Models\Enrollment;
 use App\Models\Friendship;
 use App\Models\LearningMaterial;
 use App\Models\QuizAttempt;
@@ -291,21 +292,83 @@ class GamificationService
 
     /**
      * Award course-completion XP, Graduate badge, and evaluate Mastermind badge.
+     * Requires the enrollment to have been signed off as completed by an instructor.
      */
     public function awardCourseCompleted(User $user, Course $course): void
     {
+        $enrollment = Enrollment::query()
+            ->where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->first();
+
+        if (! $enrollment || $enrollment->completed_at === null) {
+            return;
+        }
+
         $this->awardXp($user, self::XP_COURSE_COMPLETED, 'course_completed', $course->id, 'Completed course: '.$course->title);
         $this->awardBadge($user, 'course_completed');
 
-        // Check Mastermind badge (3 completed courses)
-        $completedCoursesCount = XpTransaction::query()
+        // Check Mastermind badge (3 completed courses signed off by instructor)
+        $completedCoursesCount = Enrollment::query()
             ->where('user_id', $user->id)
-            ->where('source', 'course_completed')
+            ->whereNotNull('completed_at')
             ->count();
 
         if ($completedCoursesCount >= 3) {
             $this->awardBadge($user, 'mastermind');
         }
+    }
+
+    /**
+     * Revoke course-completion XP, Graduate badge, and Mastermind badge if no longer eligible.
+     */
+    public function revokeCourseCompleted(User $user, Course $course): void
+    {
+        // 1. Remove course completed XP transaction for this course
+        XpTransaction::query()
+            ->where('user_id', $user->id)
+            ->where('source', 'course_completed')
+            ->where('source_id', $course->id)
+            ->delete();
+
+        // 2. Re-evaluate remaining instructor-completed courses
+        $completedCoursesCount = Enrollment::query()
+            ->where('user_id', $user->id)
+            ->whereNotNull('completed_at')
+            ->count();
+
+        // If fewer than 3 completed courses, revoke Mastermind badge
+        if ($completedCoursesCount < 3) {
+            $this->revokeBadge($user, 'mastermind');
+        }
+
+        // If 0 completed courses, revoke Graduate (course_completed) badge
+        if ($completedCoursesCount < 1) {
+            $this->revokeBadge($user, 'course_completed');
+        }
+    }
+
+    /**
+     * Revoke a badge and remove its awarded badge XP.
+     */
+    public function revokeBadge(User $user, string $key): void
+    {
+        $badge = Badge::query()->where('key', $key)->first();
+
+        if (! $badge) {
+            return;
+        }
+
+        DB::table('user_badge')
+            ->where('user_id', $user->id)
+            ->where('badge_id', $badge->id)
+            ->delete();
+
+        XpTransaction::query()
+            ->where('user_id', $user->id)
+            ->where('source', 'badge')
+            ->where('source_id', $badge->id)
+            ->delete();
     }
 
     /**

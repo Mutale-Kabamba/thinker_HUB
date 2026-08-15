@@ -243,4 +243,82 @@ class GamificationSystemTest extends TestCase
 
         $this->assertTrue($student->badges()->where('badges.key', 'punctual_scholar')->exists());
     }
+
+    public function test_course_completion_and_mastermind_badges_only_awarded_after_instructor_signoff_and_reset_on_unmarking(): void
+    {
+        $student = User::factory()->create(['role' => 'student']);
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $service = app(GamificationService::class);
+
+        $courses = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $courses[$i] = Course::query()->create([
+                'title' => "Track Course {$i}",
+                'code' => "TRK-{$i}",
+                'is_active' => true,
+            ]);
+            Enrollment::create([
+                'user_id' => $student->id,
+                'course_id' => $courses[$i]->id,
+                'completed_at' => null,
+            ]);
+        }
+
+        // 1. Before sign-off, awardCourseCompleted does nothing
+        $service->awardCourseCompleted($student, $courses[1]);
+        $this->assertFalse($student->badges()->where('badges.key', 'course_completed')->exists());
+        $this->assertDatabaseMissing('xp_transactions', [
+            'user_id' => $student->id,
+            'source' => 'course_completed',
+        ]);
+
+        // 2. Instructor signs off first course
+        $enr1 = Enrollment::where('user_id', $student->id)->where('course_id', $courses[1]->id)->first();
+        $enr1->markAsCompleted($instructor);
+
+        $service->awardCourseCompleted($student, $courses[1]);
+        $this->assertTrue($student->badges()->where('badges.key', 'course_completed')->exists());
+        $this->assertDatabaseHas('xp_transactions', [
+            'user_id' => $student->id,
+            'source' => 'course_completed',
+            'source_id' => $courses[1]->id,
+            'points' => 300,
+        ]);
+        // Not mastermind yet (only 1 course)
+        $this->assertFalse($student->badges()->where('badges.key', 'mastermind')->exists());
+
+        // 3. Complete 2 more courses
+        $enr2 = Enrollment::where('user_id', $student->id)->where('course_id', $courses[2]->id)->first();
+        $enr2->markAsCompleted($instructor);
+        $service->awardCourseCompleted($student, $courses[2]);
+
+        $enr3 = Enrollment::where('user_id', $student->id)->where('course_id', $courses[3]->id)->first();
+        $enr3->markAsCompleted($instructor);
+        $service->awardCourseCompleted($student, $courses[3]);
+
+        // Now Mastermind (3 courses) should be earned
+        $this->assertTrue($student->badges()->where('badges.key', 'mastermind')->exists());
+
+        // 4. Instructor resets/unmarks course 3
+        $enr3->markAsIncomplete();
+        $service->revokeCourseCompleted($student, $courses[3]);
+
+        // Mastermind should be revoked because now only 2 completed courses
+        $this->assertFalse($student->badges()->where('badges.key', 'mastermind')->exists());
+        // Still has Graduate badge
+        $this->assertTrue($student->badges()->where('badges.key', 'course_completed')->exists());
+
+        // 5. Instructor resets course 1 and course 2
+        $enr1->markAsIncomplete();
+        $service->revokeCourseCompleted($student, $courses[1]);
+        $enr2->markAsIncomplete();
+        $service->revokeCourseCompleted($student, $courses[2]);
+
+        // Graduate badge revoked because 0 completed courses
+        $this->assertFalse($student->badges()->where('badges.key', 'course_completed')->exists());
+        $this->assertDatabaseMissing('xp_transactions', [
+            'user_id' => $student->id,
+            'source' => 'course_completed',
+        ]);
+    }
 }

@@ -254,14 +254,17 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     }
 
     /**
-     * Course completion rule for certificates: enrolled + 100% progress on
-     * gradable content (quizzes, assignments, assessments). Kept as the
-     * single completion gate used by observers and gamification; certificate
-     * issuing additionally enforces attendance in CertificateService.
+     * Course completion rule: enrolled + signed off as completed by instructor
+     * (enrollment->completed_at != null).
      */
     public function hasCompletedCourse(Course $course): bool
     {
-        return $this->courseProgress($course)['complete'];
+        $enrollment = Enrollment::query()
+            ->where('user_id', $this->id)
+            ->where('course_id', $course->id)
+            ->first();
+
+        return (bool) ($enrollment && $enrollment->completed_at !== null);
     }
 
     /**
