@@ -30,11 +30,21 @@
                                 <td style="padding:0.55rem 0.5rem;text-align:center;color:var(--hub-muted);">{{ $quiz['question_count'] }}</td>
                                 <td style="padding:0.55rem 0.5rem;text-align:center;color:var(--hub-muted);">{{ $quiz['time_limit'] ? $quiz['time_limit'] . ' min' : 'No limit' }}</td>
                                 <td style="padding:0.55rem 0.5rem;text-align:center;">
-                                    <span class="hub-chip {{ $quiz['status'] === 'completed' ? ($quiz['passed'] ? 'hub-chip-green' : 'hub-chip-red') : ($quiz['status'] === 'in_progress' ? 'hub-chip-blue' : ($quiz['status'] === 'scheduled' ? 'hub-chip-purple' : 'hub-chip-amber')) }}" style="font-size:0.7rem;">{{ $quiz['status_label'] }}</span>
+                                    <span class="hub-chip {{ $quiz['status'] === 'completed' ? ($quiz['passed'] ? 'hub-chip-green' : 'hub-chip-red') : ($quiz['status'] === 'retake_allowed' ? 'hub-chip-blue' : ($quiz['status'] === 'in_progress' ? 'hub-chip-blue' : ($quiz['status'] === 'scheduled' ? 'hub-chip-purple' : 'hub-chip-amber'))) }}" style="font-size:0.7rem;">{{ $quiz['status_label'] }}</span>
                                 </td>
-                                <td style="padding:0.55rem 0.5rem;text-align:center;font-weight:700;color:{{ $quiz['score'] !== null ? ($quiz['passed'] ? '#15803d' : '#dc2626') : 'var(--hub-muted)' }};">{{ $quiz['score'] !== null ? $quiz['score'] . '%' : '-' }}</td>
+                                <td style="padding:0.55rem 0.5rem;text-align:center;font-weight:700;color:{{ $quiz['score'] !== null ? ($quiz['passed'] ? '#15803d' : '#dc2626') : 'var(--hub-muted)' }};">
+                                    {{ $quiz['score'] !== null ? $quiz['score'] . '%' : '-' }}
+                                    @if(!empty($quiz['is_retake']))
+                                        <span style="font-size:0.6rem;color:var(--hub-primary);display:block;">2nd Try</span>
+                                    @endif
+                                </td>
                                 <td style="padding:0.55rem 0.75rem;text-align:right;">
-                                    @if ($quiz['status'] === 'completed')
+                                    @if ($quiz['status'] === 'retake_allowed')
+                                        <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-btn hub-btn-sm" style="background:#0284c7;color:#fff;border:1px solid #0284c7;font-size:0.74rem;text-decoration:none;display:inline-flex;align-items:center;gap:0.3rem;white-space:nowrap;font-weight:700;">
+                                            <x-heroicon-s-arrow-path style="width:0.75rem;height:0.75rem;" />
+                                            Retake Quiz (2nd Try)
+                                        </a>
+                                    @elseif ($quiz['status'] === 'completed')
                                         <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-btn hub-btn-sm" style="background:var(--hub-surface);border:1px solid var(--hub-border);color:var(--hub-ink);font-size:0.74rem;text-decoration:none;display:inline-flex;align-items:center;gap:0.3rem;white-space:nowrap;">
                                             <x-heroicon-s-eye style="width:0.75rem;height:0.75rem;" />
                                             View Results
@@ -82,7 +92,7 @@
                                 </span>
                             </div>
                         </div>
-                        <span class="hub-chip {{ $quiz['status'] === 'completed' ? ($quiz['passed'] ? 'hub-chip-green' : 'hub-chip-red') : ($quiz['status'] === 'in_progress' ? 'hub-chip-blue' : ($quiz['status'] === 'scheduled' ? 'hub-chip-purple' : 'hub-chip-amber')) }}" style="font-size:0.62rem;padding:0.1rem 0.35rem;flex-shrink:0;white-space:nowrap;">
+                        <span class="hub-chip {{ $quiz['status'] === 'completed' ? ($quiz['passed'] ? 'hub-chip-green' : 'hub-chip-red') : ($quiz['status'] === 'retake_allowed' ? 'hub-chip-blue' : ($quiz['status'] === 'in_progress' ? 'hub-chip-blue' : ($quiz['status'] === 'scheduled' ? 'hub-chip-purple' : 'hub-chip-amber'))) }}" style="font-size:0.62rem;padding:0.1rem 0.35rem;flex-shrink:0;white-space:nowrap;">
                             {{ $quiz['status_label'] }}
                         </span>
                     </div>
@@ -113,7 +123,12 @@
 
                     {{-- Action Button --}}
                     <div style="margin-top:0.6rem;">
-                        @if ($quiz['status'] === 'completed')
+                        @if ($quiz['status'] === 'retake_allowed')
+                            <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-action-btn" style="width:100%;box-sizing:border-box;background:#0284c7;color:#fff;border:1px solid #0284c7;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:0.35rem;font-size:0.76rem;font-weight:700;padding:0.45rem 0.5rem;min-height:38px;border-radius:0.45rem;white-space:nowrap;box-shadow:0 1px 2px rgba(2,132,199,0.2);">
+                                <x-heroicon-s-arrow-path style="width:0.85rem;height:0.85rem;color:#fff;" />
+                                <span>Retake Quiz (2nd Try)</span>
+                            </a>
+                        @elseif ($quiz['status'] === 'completed')
                             <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}" class="hub-action-btn" style="width:100%;box-sizing:border-box;background:var(--hub-surface);color:var(--hub-ink);border:1px solid var(--hub-border);text-decoration:none;display:flex;align-items:center;justify-content:center;gap:0.35rem;font-size:0.76rem;font-weight:600;padding:0.45rem 0.5rem;min-height:38px;border-radius:0.45rem;white-space:nowrap;">
                                 <x-heroicon-s-eye style="width:0.85rem;height:0.85rem;color:var(--hub-muted);" />
                                 <span>View Results</span>

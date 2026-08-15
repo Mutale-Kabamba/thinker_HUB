@@ -54,7 +54,9 @@ class Assessments extends Page
             ->where('user_id', $user->id)
             ->first();
 
-        if ($existing && (($existing->score !== null && $existing->score !== '-') || in_array($existing->status, ['Graded', 'Checked'], true))) {
+        $canResubmit = $existing && (bool) $existing->retake_allowed;
+
+        if ($existing && ! $canResubmit && (($existing->score !== null && $existing->score !== '-') || in_array($existing->status, ['Graded', 'Checked'], true))) {
             Notification::make()->title('This assessment has already been graded and cannot be resubmitted.')->warning()->send();
 
             return;
@@ -76,6 +78,7 @@ class Assessments extends Page
         }
 
         $filePath = PublicDiskPath::normalize($filePath);
+        $isRetake = $canResubmit || (bool) $existing?->is_retake;
 
         AssessmentSubmission::query()->updateOrCreate(
             [
@@ -89,12 +92,14 @@ class Assessments extends Page
                 'video_url' => $video,
                 'status' => 'Submitted',
                 'submitted_at' => Carbon::now(),
+                'is_retake' => $isRetake,
+                'retake_allowed' => false,
             ],
         );
         User::query()->where('role', 'admin')->get()->each(
             fn (User $admin) => $admin->notify(new StudentSubmissionNotification($user->name, 'assessment', $assessment->name ?: 'Assessment #'.$assessment->id, $assessment->id))
         );
-        Notification::make()->title('Assessment submitted.')->success()->send();
+        Notification::make()->title($isRetake ? 'Revised assessment submitted successfully!' : 'Assessment submitted.')->success()->send();
         $this->refreshAssessments();
     }
 
@@ -111,7 +116,7 @@ class Assessments extends Page
             ->where('user_id', $user->id)
             ->first();
 
-        if ($existing && (($existing->score !== null && $existing->score !== '-') || in_array($existing->status, ['Graded', 'Checked'], true))) {
+        if ($existing && ! $existing->retake_allowed && (($existing->score !== null && $existing->score !== '-') || in_array($existing->status, ['Graded', 'Checked'], true))) {
             Notification::make()->title('Graded submissions cannot be deleted.')->warning()->send();
 
             return;
@@ -176,7 +181,8 @@ class Assessments extends Page
             ->map(function (Assessment $item) use ($submissions): array {
                 $sub = $submissions->get($item->id);
                 $score = $sub?->score ?? $item->score ?? '-';
-                $isGraded = $sub && (($sub->score !== null && $sub->score !== '-') || in_array($sub->status, ['Graded', 'Checked'], true));
+                $retakeAllowed = $sub && (bool) $sub->retake_allowed;
+                $isGraded = $sub && ! $retakeAllowed && (($sub->score !== null && $sub->score !== '-') || in_array($sub->status, ['Graded', 'Checked'], true));
 
                 return [
                     'id' => $item->id,
@@ -187,8 +193,10 @@ class Assessments extends Page
                     'score' => $score,
                     'due_date' => $item->due_date?->format('Y-m-d') ?? '-',
                     'updated_at' => $item->updated_at?->format('Y-m-d') ?? '-',
-                    'submission_status' => $sub?->status ?? 'Not submitted',
+                    'submission_status' => $retakeAllowed ? '2nd Try Available' : ($sub?->status ?? 'Not submitted'),
                     'is_graded' => $isGraded,
+                    'retake_allowed' => $retakeAllowed,
+                    'is_retake' => (bool) $sub?->is_retake,
                     'submission' => [
                         'id' => $sub?->id,
                         'text' => $sub?->content ?? '',

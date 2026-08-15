@@ -20,6 +20,11 @@ class QuizAttempt extends Model
         'total_points',
         'percentage',
         'passed',
+        'is_retake',
+        'retake_allowed',
+        'retake_granted_at',
+        'retake_granted_by',
+        'raw_score',
     ];
 
     protected function casts(): array
@@ -31,6 +36,10 @@ class QuizAttempt extends Model
             'total_points' => 'integer',
             'percentage' => 'integer',
             'passed' => 'boolean',
+            'is_retake' => 'boolean',
+            'retake_allowed' => 'boolean',
+            'retake_granted_at' => 'datetime',
+            'raw_score' => 'integer',
         ];
     }
 
@@ -42,6 +51,11 @@ class QuizAttempt extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function retakeGrantedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'retake_granted_by');
     }
 
     public function answers(): HasMany
@@ -57,5 +71,28 @@ class QuizAttempt extends Model
     public function isInProgress(): bool
     {
         return $this->started_at !== null && $this->completed_at === null;
+    }
+
+    public function canRetake(): bool
+    {
+        return (bool) $this->retake_allowed;
+    }
+
+    public function grantRetake(User $instructor): void
+    {
+        $this->update([
+            'retake_allowed' => true,
+            'retake_granted_at' => now(),
+            'retake_granted_by' => $instructor->id,
+        ]);
+    }
+
+    public function revokeRetake(): void
+    {
+        $this->update([
+            'retake_allowed' => false,
+            'retake_granted_at' => null,
+            'retake_granted_by' => null,
+        ]);
     }
 }

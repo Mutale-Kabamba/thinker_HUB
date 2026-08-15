@@ -284,6 +284,154 @@ class StudentResults extends Page
         }
     }
 
+    public function grantQuizRetake(int $studentId, int $quizId): void
+    {
+        $scopedCourseIds = static::instructorCourseIds();
+        $quiz = Quiz::query()->find($quizId);
+
+        if (! $quiz || ! in_array($quiz->course_id, $scopedCourseIds, true)) {
+            Notification::make()->title('Unauthorized')->danger()->send();
+
+            return;
+        }
+
+        $attempt = QuizAttempt::query()
+            ->where('user_id', $studentId)
+            ->where('quiz_id', $quizId)
+            ->whereNotNull('completed_at')
+            ->latest('id')
+            ->first();
+
+        if (! $attempt) {
+            Notification::make()->title('No completed attempt found to grant retake for.')->warning()->send();
+
+            return;
+        }
+
+        $attempt->grantRetake(auth()->user());
+
+        $student = User::query()->find($studentId);
+        if ($student) {
+            Notification::make()
+                ->title('Second Chance Granted: ' . $quiz->title)
+                ->body('Your instructor has granted you another chance to take this quiz. Your recorded score on the retake will be capped at the passing mark (' . $quiz->pass_percentage . '%).')
+                ->success()
+                ->sendToDatabase($student);
+        }
+
+        Notification::make()
+            ->title('Second Chance Granted!')
+            ->body('Student ' . ($student?->name ?? 'User #' . $studentId) . ' can now retake ' . $quiz->title . '.')
+            ->success()
+            ->send();
+    }
+
+    public function revokeQuizRetake(int $studentId, int $quizId): void
+    {
+        $scopedCourseIds = static::instructorCourseIds();
+        $quiz = Quiz::query()->find($quizId);
+
+        if (! $quiz || ! in_array($quiz->course_id, $scopedCourseIds, true)) {
+            return;
+        }
+
+        $attempt = QuizAttempt::query()
+            ->where('user_id', $studentId)
+            ->where('quiz_id', $quizId)
+            ->whereNotNull('completed_at')
+            ->latest('id')
+            ->first();
+
+        if ($attempt) {
+            $attempt->revokeRetake();
+            Notification::make()->title('Quiz retake permission revoked.')->info()->send();
+        }
+    }
+
+    public function grantAssignmentRetake(int $submissionId): void
+    {
+        $scopedCourseIds = static::instructorCourseIds();
+        $submission = AssignmentSubmission::with('assignment')->find($submissionId);
+
+        if (! $submission || ! in_array($submission->assignment?->course_id, $scopedCourseIds, true)) {
+            Notification::make()->title('Unauthorized')->danger()->send();
+
+            return;
+        }
+
+        $submission->grantRetake(auth()->user());
+
+        $student = $submission->user;
+        if ($student) {
+            Notification::make()
+                ->title('Second Chance Granted: ' . ($submission->assignment?->name ?? 'Assignment'))
+                ->body('Your instructor has granted you another chance to resubmit this assignment. Recorded grade will be capped at the passing mark (50%).')
+                ->success()
+                ->sendToDatabase($student);
+        }
+
+        Notification::make()
+            ->title('Second Chance Granted!')
+            ->body('Student ' . ($student?->name ?? 'User #' . $submission->user_id) . ' can now resubmit ' . ($submission->assignment?->name ?? 'assignment') . '.')
+            ->success()
+            ->send();
+    }
+
+    public function revokeAssignmentRetake(int $submissionId): void
+    {
+        $scopedCourseIds = static::instructorCourseIds();
+        $submission = AssignmentSubmission::with('assignment')->find($submissionId);
+
+        if (! $submission || ! in_array($submission->assignment?->course_id, $scopedCourseIds, true)) {
+            return;
+        }
+
+        $submission->revokeRetake();
+        Notification::make()->title('Assignment resubmission permission revoked.')->info()->send();
+    }
+
+    public function grantAssessmentRetake(int $submissionId): void
+    {
+        $scopedCourseIds = static::instructorCourseIds();
+        $submission = AssessmentSubmission::with('assessment')->find($submissionId);
+
+        if (! $submission || ! in_array($submission->assessment?->course_id, $scopedCourseIds, true)) {
+            Notification::make()->title('Unauthorized')->danger()->send();
+
+            return;
+        }
+
+        $submission->grantRetake(auth()->user());
+
+        $student = $submission->user;
+        if ($student) {
+            Notification::make()
+                ->title('Second Chance Granted: ' . ($submission->assessment?->name ?? 'Assessment'))
+                ->body('Your instructor has granted you another chance to resubmit this assessment. Recorded score will be capped at the passing mark (50%).')
+                ->success()
+                ->sendToDatabase($student);
+        }
+
+        Notification::make()
+            ->title('Second Chance Granted!')
+            ->body('Student ' . ($student?->name ?? 'User #' . $submission->user_id) . ' can now resubmit ' . ($submission->assessment?->name ?? 'assessment') . '.')
+            ->success()
+            ->send();
+    }
+
+    public function revokeAssessmentRetake(int $submissionId): void
+    {
+        $scopedCourseIds = static::instructorCourseIds();
+        $submission = AssessmentSubmission::with('assessment')->find($submissionId);
+
+        if (! $submission || ! in_array($submission->assessment?->course_id, $scopedCourseIds, true)) {
+            return;
+        }
+
+        $submission->revokeRetake();
+        Notification::make()->title('Assessment resubmission permission revoked.')->info()->send();
+    }
+
     /**
      * Options for the Course filter dropdown.
      *
@@ -385,11 +533,16 @@ class StudentResults extends Page
             $latestTakenAt = $attempts->max(fn ($a) => $a->completed_at ? $a->completed_at->timestamp : ($a->created_at ? $a->created_at->timestamp : 0)) ?? 0;
 
             // Group by student and pick best attempt, then sort in DESCENDING order
-            $studentResults = $attempts->groupBy('user_id')->map(function ($userAttempts) {
+            $studentResults = $attempts->groupBy('user_id')->map(function ($userAttempts) use ($quiz) {
                 $best = $userAttempts->sortByDesc('percentage')->first();
+                $latest = $userAttempts->sortByDesc('id')->first();
                 $user = $best->user;
+                $retakeAllowed = (bool) ($latest?->retake_allowed || $best?->retake_allowed);
+
                 return [
                     'student_id' => $best->user_id,
+                    'quiz_id' => $quiz->id,
+                    'attempt_id' => $latest->id,
                     'student_name' => $user?->name ?? 'Unknown',
                     'student_email' => $user?->email ?? '',
                     'student_track' => $user?->track ?? 'Beginner',
@@ -397,6 +550,9 @@ class StudentResults extends Page
                     'total_points' => $best->total_points,
                     'percentage' => $best->percentage,
                     'passed' => (bool) $best->passed,
+                    'is_retake' => (bool) $best->is_retake,
+                    'retake_allowed' => $retakeAllowed,
+                    'raw_score' => $best->raw_score,
                     'attempts_count' => $userAttempts->count(),
                     'completed_at' => $best->completed_at?->format('M d, Y h:i A') ?? '—',
                 ];
@@ -495,6 +651,9 @@ class StudentResults extends Page
                     'student_track' => $user?->track ?? 'Beginner',
                     'status' => $sub->status ?: 'Submitted',
                     'grade' => $sub->grade !== null ? (float) $sub->grade : null,
+                    'is_retake' => (bool) $sub->is_retake,
+                    'retake_allowed' => (bool) $sub->retake_allowed,
+                    'raw_grade' => $sub->raw_grade,
                     'feedback' => $sub->feedback,
                     'submitted_at' => $sub->submitted_at?->format('M d, Y h:i A') ?? '—',
                 ];
@@ -604,6 +763,9 @@ class StudentResults extends Page
                     'student_track' => $user?->track ?? 'Beginner',
                     'status' => $sub->status ?: 'Submitted',
                     'score' => $sub->score !== null ? (float) $sub->score : null,
+                    'is_retake' => (bool) $sub->is_retake,
+                    'retake_allowed' => (bool) $sub->retake_allowed,
+                    'raw_score' => $sub->raw_score,
                     'feedback' => $sub->feedback,
                     'submitted_at' => $sub->submitted_at?->format('M d, Y h:i A') ?? '—',
                 ];
@@ -825,6 +987,8 @@ class StudentResults extends Page
 
                 $quizDetails[] = [
                     'id' => $attempt->id,
+                    'quiz_id' => $attempt->quiz_id,
+                    'student_id' => $student->id,
                     'title' => $attempt->quiz?->title ?? 'Quiz #' . $attempt->quiz_id,
                     'course' => $quizCourse?->title ?? '—',
                     'course_code' => $quizCourse?->code ?? '',
@@ -832,6 +996,9 @@ class StudentResults extends Page
                     'total_points' => $attempt->total_points,
                     'percentage' => $attempt->percentage,
                     'passed' => (bool) $attempt->passed,
+                    'is_retake' => (bool) $attempt->is_retake,
+                    'retake_allowed' => (bool) $attempt->retake_allowed,
+                    'raw_score' => $attempt->raw_score,
                     'pass_percentage' => $attempt->quiz?->pass_percentage ?? 50,
                     'date' => $attempt->completed_at?->format('M d, Y h:i A') ?? '—',
                 ];
@@ -868,11 +1035,16 @@ class StudentResults extends Page
 
                 $assignmentDetails[] = [
                     'id' => $sub->id,
+                    'student_id' => $student->id,
+                    'assignment_id' => $sub->assignment_id,
                     'title' => $sub->assignment?->name ?? 'Assignment #' . $sub->assignment_id,
                     'course' => $assignCourse?->title ?? '—',
                     'course_code' => $assignCourse?->code ?? '',
                     'status' => $sub->status ?: 'Submitted',
                     'grade' => $sub->grade !== null ? (float) $sub->grade : null,
+                    'is_retake' => (bool) $sub->is_retake,
+                    'retake_allowed' => (bool) $sub->retake_allowed,
+                    'raw_grade' => $sub->raw_grade,
                     'due_date' => $sub->assignment?->due_date?->format('M d, Y') ?? '—',
                     'submitted_at' => $sub->submitted_at?->format('M d, Y h:i A') ?? '—',
                     'feedback' => $sub->feedback,
@@ -910,11 +1082,16 @@ class StudentResults extends Page
 
                 $assessmentDetails[] = [
                     'id' => $sub->id,
+                    'student_id' => $student->id,
+                    'assessment_id' => $sub->assessment_id,
                     'title' => $sub->assessment?->name ?? 'Assessment #' . $sub->assessment_id,
                     'course' => $assessCourse?->title ?? '—',
                     'course_code' => $assessCourse?->code ?? '',
                     'status' => $sub->status ?: 'Submitted',
                     'score' => $sub->score !== null ? (float) $sub->score : null,
+                    'is_retake' => (bool) $sub->is_retake,
+                    'retake_allowed' => (bool) $sub->retake_allowed,
+                    'raw_score' => $sub->raw_score,
                     'due_date' => $sub->assessment?->due_date?->format('M d, Y') ?? '—',
                     'submitted_at' => $sub->submitted_at?->format('M d, Y h:i A') ?? '—',
                     'feedback' => $sub->feedback,

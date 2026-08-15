@@ -56,7 +56,9 @@ class Assignments extends Page
             ->where('user_id', $user->id)
             ->first();
 
-        if ($existing && ($existing->grade !== null || in_array($existing->status, ['Graded', 'Checked'], true))) {
+        $canResubmit = $existing && (bool) $existing->retake_allowed;
+
+        if ($existing && ! $canResubmit && ($existing->grade !== null || in_array($existing->status, ['Graded', 'Checked'], true))) {
             Notification::make()->title('This assignment has already been graded and cannot be resubmitted.')->warning()->send();
 
             return;
@@ -78,6 +80,7 @@ class Assignments extends Page
         }
 
         $filePath = PublicDiskPath::normalize($filePath);
+        $isRetake = $canResubmit || (bool) $existing?->is_retake;
 
         AssignmentSubmission::query()->updateOrCreate(
             [
@@ -91,6 +94,8 @@ class Assignments extends Page
                 'video_url' => $video,
                 'status' => 'Submitted',
                 'submitted_at' => Carbon::now(),
+                'is_retake' => $isRetake,
+                'retake_allowed' => false,
             ],
         );
         User::query()->where('role', 'admin')->get()->each(function (User $admin) use ($user, $assignment): void {
@@ -107,7 +112,7 @@ class Assignments extends Page
                 ]);
             }
         });
-        Notification::make()->title('Assignment submitted.')->success()->send();
+        Notification::make()->title($isRetake ? 'Revised assignment submitted successfully!' : 'Assignment submitted.')->success()->send();
         $this->refreshAssignments();
     }
 
@@ -124,7 +129,7 @@ class Assignments extends Page
             ->where('user_id', $user->id)
             ->first();
 
-        if ($existing && ($existing->grade !== null || in_array($existing->status, ['Graded', 'Checked'], true))) {
+        if ($existing && ! $existing->retake_allowed && ($existing->grade !== null || in_array($existing->status, ['Graded', 'Checked'], true))) {
             Notification::make()->title('Graded submissions cannot be deleted.')->warning()->send();
 
             return;
@@ -149,25 +154,51 @@ class Assignments extends Page
 
         $assignment = Assignment::query()->visibleTo($user)->released()->whereKey($assignmentId)->first();
 
-        if (! $assignment || empty($assignment->file_path)) {
-            Notification::make()->title('File not available.')->danger()->send();
-
-            return null;
-        }
-
-        $path = PublicDiskPath::normalize($assignment->file_path);
-        $disk = Storage::disk('public');
-
-        if (! $path || ! $disk->exists($path)) {
+        if (! $assignment || ! $assignment->file_path) {
             Notification::make()->title('File not found.')->danger()->send();
 
             return null;
         }
 
-        $extension = pathinfo($path, PATHINFO_EXTENSION);
-        $downloadName = Str::slug($assignment->name) . '.' . $extension;
+        $path = PublicDiskPath::normalize($assignment->file_path);
 
-        return $disk->download($path, $downloadName);
+        if (! $path || ! Storage::disk('public')->exists($path)) {
+            Notification::make()->title('Attachment is missing from storage.')->danger()->send();
+
+            return null;
+        }
+
+        return Storage::disk('public')->download($path, Str::afterLast($path, '/'));
+    }
+
+    public function downloadSubmissionFile(int $assignmentId): ?StreamedResponse
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        $submission = AssignmentSubmission::query()
+            ->where('assignment_id', $assignmentId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $submission || ! $submission->file_path) {
+            Notification::make()->title('Submission file not found.')->danger()->send();
+
+            return null;
+        }
+
+        $path = PublicDiskPath::normalize($submission->file_path);
+
+        if (! $path || ! Storage::disk('public')->exists($path)) {
+            Notification::make()->title('Submission attachment is missing from storage.')->danger()->send();
+
+            return null;
+        }
+
+        return Storage::disk('public')->download($path, Str::afterLast($path, '/'));
     }
 
     protected function refreshAssignments(): void
@@ -175,6 +206,8 @@ class Assignments extends Page
         $user = auth()->user();
 
         if (! $user) {
+            $this->assignments = [];
+
             return;
         }
 
@@ -198,7 +231,8 @@ class Assignments extends Page
             ->get()
             ->map(function (Assignment $item) use ($submissions, $scopeLabels): array {
                 $sub = $submissions->get($item->id);
-                $isGraded = $sub && ($sub->grade !== null || in_array($sub->status, ['Graded', 'Checked'], true));
+                $retakeAllowed = $sub && (bool) $sub->retake_allowed;
+                $isGraded = $sub && ! $retakeAllowed && ($sub->grade !== null || in_array($sub->status, ['Graded', 'Checked'], true));
 
                 return [
                     'course' => $item->course?->title ?? 'Unassigned course',
@@ -208,9 +242,11 @@ class Assignments extends Page
                     'file_path' => $item->file_path,
                     'scope' => $scopeLabels[$item->scope] ?? ucfirst($item->scope),
                     'due' => optional($item->due_date)?->format('Y-m-d') ?? 'No due date',
-                    'status' => $sub?->status ?? 'Not submitted',
+                    'status' => $retakeAllowed ? '2nd Try Available' : ($sub?->status ?? 'Not submitted'),
                     'submitted_at' => optional($sub?->submitted_at)?->format('Y-m-d H:i') ?: '-',
                     'is_graded' => $isGraded,
+                    'retake_allowed' => $retakeAllowed,
+                    'is_retake' => (bool) $sub?->is_retake,
                     'submission' => [
                         'id' => $sub?->id,
                         'text' => $sub?->content ?? '',

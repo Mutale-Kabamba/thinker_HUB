@@ -19,6 +19,12 @@
 
                 <p style="font-size:0.9rem;color:var(--hub-muted);margin:0 0 1rem;">{{ $quiz['course'] }}</p>
 
+                @if (!empty($results['is_retake']))
+                    <div style="margin: 0.5rem auto 1rem auto; max-width: 420px; padding: 0.45rem 0.8rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; font-size: 0.76rem; color: #1d4ed8;">
+                        <span style="font-weight: 700;">⭐ 2nd Attempt (Retake):</span> Recorded marks are capped at the passing mark ({{ $quiz['pass_percentage'] }}%).
+                    </div>
+                @endif
+
                 <div style="display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:1rem;">
                     <div>
                         <p style="font-size:2rem;font-weight:800;color:var(--hub-ink);margin:0;">{{ $results['percentage'] }}%</p>
@@ -92,6 +98,12 @@
 
         @elseif (!empty($questions))
             {{-- =================== QUIZ FORM =================== --}}
+            @if ($isRetake)
+                <div style="margin-bottom: 0.75rem; padding: 0.55rem 0.85rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; font-size: 0.8rem; color: #1d4ed8;">
+                    <strong>⭐ 2nd Attempt / Retake:</strong> You are taking your 2nd attempt for this quiz. (Recorded mark is capped at the passing mark of {{ $quiz['pass_percentage'] }}%).
+                </div>
+            @endif
+
             <section class="hub-card" style="padding:0.75rem 1rem;">
                 <p class="hub-eyebrow">{{ $quiz['course'] }}</p>
                 <h2 class="hub-title" style="font-size:1.1rem;">{{ $quiz['title'] }}</h2>

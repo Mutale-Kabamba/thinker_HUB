@@ -80,16 +80,20 @@ class Quizzes extends Page
         $this->quizzes = $visibleQuizzes
             ->map(function (Quiz $quiz) use ($attempts) {
                 $quizAttempts = $attempts->get($quiz->id);
-                $completedAttempt = $quizAttempts?->first(fn (QuizAttempt $a) => $a->completed_at !== null);
+                $latestCompletedAttempt = $quizAttempts?->filter(fn (QuizAttempt $a) => $a->completed_at !== null)->sortByDesc('id')->first();
                 $inProgress = $quizAttempts?->first(fn (QuizAttempt $a) => $a->completed_at === null);
                 $isReleased = $quiz->isReleased();
+                $retakeAllowed = (bool) ($latestCompletedAttempt?->retake_allowed);
 
-                if ($completedAttempt) {
-                    $status = 'completed';
-                    $statusLabel = 'Completed';
-                } elseif ($inProgress) {
+                if ($inProgress) {
                     $status = 'in_progress';
                     $statusLabel = 'In Progress';
+                } elseif ($retakeAllowed) {
+                    $status = 'retake_allowed';
+                    $statusLabel = '2nd Try Available';
+                } elseif ($latestCompletedAttempt) {
+                    $status = 'completed';
+                    $statusLabel = 'Completed';
                 } elseif (! $isReleased) {
                     $status = 'scheduled';
                     $statusLabel = 'Available ' . ($quiz->publish_at ? $quiz->publish_at->format('M j, g:i A') : 'Soon');
@@ -109,9 +113,11 @@ class Quizzes extends Page
                     'status' => $status,
                     'status_label' => $statusLabel,
                     'is_released' => $isReleased,
-                    'score' => $completedAttempt?->percentage,
-                    'passed' => $completedAttempt?->passed,
-                    'completed_at' => $completedAttempt?->completed_at?->format('M d, Y H:i'),
+                    'retake_allowed' => $retakeAllowed,
+                    'score' => $latestCompletedAttempt?->percentage,
+                    'passed' => $latestCompletedAttempt?->passed,
+                    'is_retake' => (bool) $latestCompletedAttempt?->is_retake,
+                    'completed_at' => $latestCompletedAttempt?->completed_at?->format('M d, Y H:i'),
                 ];
             })
             ->values()
