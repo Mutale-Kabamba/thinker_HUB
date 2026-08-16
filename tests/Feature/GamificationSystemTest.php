@@ -316,7 +316,7 @@ class GamificationSystemTest extends TestCase
 
     public function test_no_points_or_badges_awarded_when_rules_are_not_set_or_inactive(): void
     {
-        // 1. Clear all rules so neither course nor global rules exist
+        // 1. Clear all rules and create course with disabled rules
         \App\Models\CourseGamificationRule::query()->delete();
 
         $student = User::factory()->create(['role' => 'student', 'lifetime_xp' => 0, 'spendable_coins' => 0]);
@@ -327,6 +327,19 @@ class GamificationSystemTest extends TestCase
             'title' => 'Unconfigured Course',
             'code' => 'UNC101',
             'is_active' => true,
+        ]);
+
+        $disabledRules = array_map(fn ($key) => [
+            'activity_key' => $key,
+            'enabled' => false,
+            'xp' => 0,
+            'coins' => 0,
+        ], array_keys(\App\Models\CourseGamificationRule::getDefaultMatrix()));
+
+        \App\Models\CourseGamificationRule::create([
+            'course_id' => null,
+            'is_active' => true,
+            'rules' => $disabledRules,
         ]);
 
         $enr = Enrollment::create([
@@ -373,7 +386,7 @@ class GamificationSystemTest extends TestCase
         $service->awardCourseCompleted($student, $course);
 
         // Direct badge award attempt without active rules
-        $badgeResult = $service->awardBadge($student, 'streak_7');
+        $badgeResult = $service->awardBadge($student, 'streak_7', course: $course);
         $this->assertNull($badgeResult);
 
         // Assert zero transactions and zero badges

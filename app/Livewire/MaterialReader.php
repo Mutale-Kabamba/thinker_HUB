@@ -77,12 +77,17 @@ class MaterialReader extends Component
             ];
         }
 
+        $course = $this->material?->course;
+        $rule = \App\Models\CourseGamificationRule::getRuleForCourse($course, 'material_read');
+        $baseXp = $rule['enabled'] ? $rule['xp'] : 5;
+        $baseCoins = $rule['enabled'] ? $rule['coins'] : 2;
+
         $awarded = $gamificationService->awardPoints(
             user: $user,
             activityType: 'material_read',
             subject: $this->material,
-            baseXp: 5,
-            baseCoins: 2,
+            baseXp: $baseXp,
+            baseCoins: $baseCoins,
             description: "Read learning material: {$this->material->title}"
         );
 
@@ -90,15 +95,15 @@ class MaterialReader extends Component
             $this->pointsEarned = true;
 
             $this->dispatch('points-awarded', [
-                'xp' => 5,
-                'coins' => 2,
-                'message' => '+5 XP and +2 Thinker Coins (TC) earned!',
+                'xp' => $baseXp,
+                'coins' => $baseCoins,
+                'message' => "+{$baseXp} XP and +{$baseCoins} Thinker Coins (TC) earned!",
             ]);
 
             try {
                 Notification::make()
                     ->title('Reading Points Claimed!')
-                    ->body('You earned +5 XP and +2 Thinker Coins for active reading.')
+                    ->body("You earned +{$baseXp} XP and +{$baseCoins} Thinker Coins for active reading.")
                     ->success()
                     ->send();
             } catch (\Throwable) {
@@ -107,9 +112,9 @@ class MaterialReader extends Component
 
             return [
                 'status' => 'success',
-                'xp' => 5,
-                'coins' => 2,
-                'message' => 'Points Claimed! +5 XP and +2 TC awarded.',
+                'xp' => $baseXp,
+                'coins' => $baseCoins,
+                'message' => "Points Claimed! +{$baseXp} XP and +{$baseCoins} TC awarded.",
             ];
         }
 

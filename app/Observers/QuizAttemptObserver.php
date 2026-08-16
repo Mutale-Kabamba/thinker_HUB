@@ -26,6 +26,11 @@ class QuizAttemptObserver
             return;
         }
 
+        $this->handlePassedAttempt($attempt);
+    }
+
+    private function handlePassedAttempt(QuizAttempt $attempt): void
+    {
         try {
             $course = $attempt->quiz?->course;
 

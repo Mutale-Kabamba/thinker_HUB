@@ -136,6 +136,12 @@ class TakeQuiz extends Page
             }
 
             $this->attemptId = $attempt->id;
+
+            try {
+                app(\App\Services\GamificationService::class)->awardQuizAttempt($user, $attempt);
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
 
         $this->quiz = [

@@ -305,6 +305,12 @@ class HubIndex extends Component
             $this->storeAttachments($post);
             $this->storeAttachments($opp);
 
+            try {
+                app(\App\Services\GamificationService::class)->awardOpportunitySubmission($user, $opp->id, $this->submitTitle);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
         } else {
             $this->validate([
                 'submitTitle' => 'required|string|max:255',
@@ -332,6 +338,14 @@ class HubIndex extends Component
             ]);
 
             $this->storeAttachments($post);
+
+            if ($isPublished) {
+                try {
+                    app(\App\Services\GamificationService::class)->awardHubPost($user, $post);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
         }
 
         if ($isPublished) {

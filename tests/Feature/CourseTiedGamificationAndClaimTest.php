@@ -492,9 +492,28 @@ class CourseTiedGamificationAndClaimTest extends TestCase
             'gamification_settings' => null,
         ]);
 
+        $disabledRules = array_map(fn ($key) => [
+            'activity_key' => $key,
+            'enabled' => false,
+            'xp' => 0,
+            'coins' => 0,
+        ], array_keys(\App\Models\CourseGamificationRule::getDefaultMatrix()));
+
+        \App\Models\CourseGamificationRule::create([
+            'course_id' => null,
+            'is_active' => true,
+            'rules' => $disabledRules,
+        ]);
+
+        \App\Models\CourseGamificationRule::create([
+            'course_id' => $course->id,
+            'is_active' => true,
+            'rules' => $disabledRules,
+        ]);
+
         $quiz = Quiz::create([
             'course_id' => $course->id,
-            'title' => 'Unconfigured Quiz',
+            'title' => 'Disabled Rules Quiz',
             'passing_score' => 60,
             'is_published' => true,
         ]);
@@ -509,19 +528,70 @@ class CourseTiedGamificationAndClaimTest extends TestCase
             'completed_at' => now(),
         ]);
 
-        // When no rules are set by instructor or admin, passing a quiz awards 0 XP and 0 Coins
+        // When rules are disabled in matrix, passing a quiz awards 0 XP and 0 Coins
         $service->awardQuizPassed($student, $attempt);
         $student->refresh();
 
         $this->assertSame(0, $student->lifetime_xp);
         $this->assertSame(0, $student->spendable_coins);
 
-        // Daily login with no rules set awards 0 points
+        // Daily login with disabled rule awards 0 points
         $service->checkDailyStreak($student);
         $student->refresh();
 
         $this->assertSame(0, $student->lifetime_xp);
         $this->assertSame(0, $student->spendable_coins);
+    }
+
+    public function test_points_accumulate_when_point_earning_matrices_are_active(): void
+    {
+        $service = app(GamificationService::class);
+
+        /** @var User $student */
+        $student = User::factory()->create([
+            'role' => 'student',
+            'lifetime_xp' => 0,
+            'spendable_coins' => 0,
+        ]);
+
+        /** @var Course $course */
+        $course = Course::create([
+            'title' => 'Web Development Bootcamp',
+            'code' => 'WEB-101',
+            'is_active' => true,
+        ]);
+
+        // 1. Daily Login accumulation (+5 XP, +2 TC)
+        $service->checkDailyStreak($student);
+        $student->refresh();
+
+        $this->assertSame(5, $student->lifetime_xp);
+        $this->assertSame(2, $student->spendable_coins);
+
+        // 2. Quiz Attempt and Passing Quiz accumulation (+25 XP, +8 TC)
+        $quiz = Quiz::create([
+            'course_id' => $course->id,
+            'title' => 'HTML Basics',
+            'passing_score' => 60,
+            'is_published' => true,
+        ]);
+
+        $attempt = QuizAttempt::create([
+            'user_id' => $student->id,
+            'quiz_id' => $quiz->id,
+            'score' => 85,
+            'total_questions' => 10,
+            'percentage' => 85,
+            'passed' => true,
+            'completed_at' => now(),
+        ]);
+
+        $service->awardQuizPassed($student, $attempt);
+        $student->refresh();
+
+        // 5 (daily login) + 25 (quiz passed) = 30 XP; 2 + 8 = 10 TC
+        $this->assertSame(30, $student->lifetime_xp);
+        $this->assertSame(10, $student->spendable_coins);
     }
 }
 

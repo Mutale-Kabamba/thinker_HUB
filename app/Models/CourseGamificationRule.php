@@ -248,32 +248,64 @@ class CourseGamificationRule extends Model
 
     /**
      * Get effective rule matrix list for a course.
-     * Only returns rules explicitly configured by the instructor or admin.
+     * Merges default matrix with active global and course-level overrides.
      *
      * @return array<int, array{activity_key: string, activity_name: string, category: string, xp: int, coins: int, limit: string, enabled: bool}>
      */
     public static function getEffectiveMatrixForCourse(?Course $course): array
     {
-        if ($course) {
-            $ruleSet = self::query()->where('course_id', $course->id)->where('is_active', true)->first();
-            if ($ruleSet && is_array($ruleSet->rules) && ! empty($ruleSet->rules)) {
-                $normalized = self::normalizeRulesForRepeater($ruleSet->rules);
-                if (! empty($normalized)) {
-                    return array_values(array_filter($normalized, fn ($row) => ($row['enabled'] ?? true) === true));
+        $defaultRows = self::getDefaultRepeaterRows();
+        $rulesMap = [];
+
+        foreach ($defaultRows as $row) {
+            $rulesMap[$row['activity_key']] = $row;
+        }
+
+        // Global Default if active
+        $globalRuleSet = self::query()->whereNull('course_id')->where('is_active', true)->first();
+        if ($globalRuleSet && is_array($globalRuleSet->rules) && ! empty($globalRuleSet->rules)) {
+            $normalized = self::normalizeRulesForRepeater($globalRuleSet->rules);
+            foreach ($normalized as $row) {
+                if (! empty($row['activity_key'])) {
+                    $key = $row['activity_key'];
+                    $rulesMap[$key] = array_merge($rulesMap[$key] ?? [], $row);
                 }
             }
         }
 
-        // Global Default if explicitly created by admin
-        $globalRuleSet = self::query()->whereNull('course_id')->where('is_active', true)->first();
-        if ($globalRuleSet && is_array($globalRuleSet->rules) && ! empty($globalRuleSet->rules)) {
-            $normalized = self::normalizeRulesForRepeater($globalRuleSet->rules);
-            if (! empty($normalized)) {
-                return array_values(array_filter($normalized, fn ($row) => ($row['enabled'] ?? true) === true));
+        // Course-specific if active
+        if ($course) {
+            $courseRuleSet = self::query()->where('course_id', $course->id)->where('is_active', true)->first();
+            if ($courseRuleSet && is_array($courseRuleSet->rules) && ! empty($courseRuleSet->rules)) {
+                $normalized = self::normalizeRulesForRepeater($courseRuleSet->rules);
+                foreach ($normalized as $row) {
+                    if (! empty($row['activity_key'])) {
+                        $key = $row['activity_key'];
+                        $rulesMap[$key] = array_merge($rulesMap[$key] ?? [], $row);
+                    }
+                }
+            }
+
+            if (is_array($course->gamification_settings)) {
+                foreach ($course->gamification_settings as $k => $v) {
+                    if (is_numeric($v)) {
+                        $clean = preg_replace('/(_xp|_coins)$/', '', $k);
+                        if (isset($rulesMap[$clean])) {
+                            if (str_ends_with($k, '_coins')) {
+                                $rulesMap[$clean]['coins'] = (int) $v;
+                            } else {
+                                $rulesMap[$clean]['xp'] = (int) $v;
+                                if (! isset($course->gamification_settings[$clean.'_coins'])) {
+                                    $rulesMap[$clean]['coins'] = (int) round(((float) $v) * 0.30);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        return [];
+        return array_values(array_filter($rulesMap, fn ($row) => ($row['enabled'] ?? true) === true));
     }
 
     /**
@@ -412,19 +444,28 @@ class CourseGamificationRule extends Model
             default => $cleanKey,
         };
 
-        $fallback = $defaultMatrix[$normalizedKey] ?? $defaultMatrix[$cleanKey] ?? $defaultMatrix[$activityKey] ?? null;
+        $fallback = $defaultMatrix[$normalizedKey] ?? $defaultMatrix[$cleanKey] ?? $defaultMatrix[$activityKey] ?? [
+            'category' => 'Custom Actions',
+            'label' => ucfirst(str_replace('_', ' ', $activityKey)),
+            'xp' => 0,
+            'coins' => 0,
+            'limit' => '',
+            'enabled' => true,
+        ];
 
+        // 1. Check Course-specific rule set if active
         if ($course) {
             $ruleSet = self::query()->where('course_id', $course->id)->where('is_active', true)->first();
             if ($ruleSet && is_array($ruleSet->rules)) {
                 $custom = self::findRuleInArray($ruleSet->rules, $activityKey, $normalizedKey);
                 if ($custom) {
+                    $enabled = isset($custom['enabled']) ? (bool) $custom['enabled'] : (bool) ($fallback['enabled'] ?? true);
                     $xp = isset($custom['xp']) && is_numeric($custom['xp']) ? (int) $custom['xp'] : (int) ($fallback['xp'] ?? 0);
                     $coins = isset($custom['coins']) && is_numeric($custom['coins']) ? (int) $custom['coins'] : (int) round(((float) $xp) * 0.30);
                     return [
-                        'xp' => $xp,
-                        'coins' => $coins,
-                        'enabled' => isset($custom['enabled']) ? (bool) $custom['enabled'] : (bool) ($fallback['enabled'] ?? true),
+                        'xp' => $enabled ? $xp : 0,
+                        'coins' => $enabled ? $coins : 0,
+                        'enabled' => $enabled,
                         'limit' => (string) ($custom['limit'] ?? ($fallback['limit'] ?? '')),
                     ];
                 }
@@ -456,28 +497,33 @@ class CourseGamificationRule extends Model
             }
         }
 
-        // Check Global rule set if explicitly set by admin
+        // 2. Check Global rule set if active
         $globalRuleSet = self::query()->whereNull('course_id')->where('is_active', true)->first();
         if ($globalRuleSet && is_array($globalRuleSet->rules)) {
             $custom = self::findRuleInArray($globalRuleSet->rules, $activityKey, $normalizedKey);
             if ($custom) {
-                $xp = isset($custom['xp']) && is_numeric($custom['xp']) ? (int) $custom['xp'] : 0;
+                $enabled = isset($custom['enabled']) ? (bool) $custom['enabled'] : (bool) ($fallback['enabled'] ?? true);
+                $xp = isset($custom['xp']) && is_numeric($custom['xp']) ? (int) $custom['xp'] : (int) ($fallback['xp'] ?? 0);
                 $coins = isset($custom['coins']) && is_numeric($custom['coins']) ? (int) $custom['coins'] : (int) round(((float) $xp) * 0.30);
                 return [
-                    'xp' => $xp,
-                    'coins' => $coins,
-                    'enabled' => isset($custom['enabled']) ? (bool) $custom['enabled'] : true,
-                    'limit' => (string) ($custom['limit'] ?? ''),
+                    'xp' => $enabled ? $xp : 0,
+                    'coins' => $enabled ? $coins : 0,
+                    'enabled' => $enabled,
+                    'limit' => (string) ($custom['limit'] ?? ($fallback['limit'] ?? '')),
                 ];
             }
         }
 
-        // If no rule has been set by instructor or admin, points do not accumulate
+        // 3. Fallback to active platform default matrix values
+        $enabled = (bool) ($fallback['enabled'] ?? true);
+        $xp = (int) ($fallback['xp'] ?? 0);
+        $coins = isset($fallback['coins']) ? (int) $fallback['coins'] : (int) round(((float) $xp) * 0.30);
+
         return [
-            'xp' => 0,
-            'coins' => 0,
-            'enabled' => false,
-            'limit' => '',
+            'xp' => $enabled ? $xp : 0,
+            'coins' => $enabled ? $coins : 0,
+            'enabled' => $enabled,
+            'limit' => (string) ($fallback['limit'] ?? ''),
         ];
     }
 }
