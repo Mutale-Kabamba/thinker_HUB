@@ -160,6 +160,10 @@
                     @endforelse
                 </div>
             </section>
+        </div>
+
+        <div class="hub-grid hub-grid-2">
+            @include('partials.passkey-manager')
 
             {{-- Password --}}
             <section class="hub-card">

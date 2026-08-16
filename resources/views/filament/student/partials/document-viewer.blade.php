@@ -143,6 +143,12 @@
     <div @click.away="closeViewer()" class="doc-viewer-panel" style="background:#fff;border-radius:12px;width:95vw;max-width:900px;max-height:92vh;margin:auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:0.65rem 1rem;border-bottom:1px solid #e5e7eb;gap:0.5rem;">
             <p style="margin:0;font-size:0.85rem;font-weight:600;color:#1f2937;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;" x-text="viewerName"></p>
+            <template x-if="viewerType === 'pdf' && viewerRawUrl.includes('/file/view/material/')">
+                <a :href="'/materials/' + viewerRawUrl.split('/').pop() + '/read'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-sm transition" style="text-decoration:none;">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>Reader (+XP)</span>
+                </a>
+            </template>
             <a :href="viewerRawUrl" target="_blank" rel="noopener" title="Open in new tab"
                 style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid #e5e7eb;border-radius:999px;color:#475569;text-decoration:none;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>

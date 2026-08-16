@@ -19,11 +19,13 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Laravel\Passkeys\Contracts\PasskeyUser;
+use Laravel\Passkeys\PasskeyAuthenticatable;
 
-class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, PasskeyAuthenticatable;
 
     /**
      * The attributes that are mass assignable.

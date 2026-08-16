@@ -537,6 +537,12 @@ Route::middleware('auth')->group(function () {
         Route::redirect('/materials', '/manage/learning-materials')->name('materials');
     });
 
+    Route::middleware('auth')->group(function () {
+        Route::get('/materials/{material}/read', \App\Livewire\MaterialReader::class)->name('materials.read');
+        Route::get('/materials/{material}', \App\Livewire\MaterialReader::class)->name('materials.show');
+        Route::get('/lessons/{lesson}', \App\Livewire\VideoPlayer::class)->name('lessons.show');
+    });
+
     // Serve files from storage without requiring the storage:link symlink.
     Route::get('/file/view/{type}/{id}', function (string $type, int $id) {
         $user = Auth::user();

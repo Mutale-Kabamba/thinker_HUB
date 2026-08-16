@@ -76,6 +76,8 @@
         </div>
 
         <div class="hub-grid hub-grid-2">
+            @include('partials.passkey-manager')
+
             <section class="hub-card">
                 <p class="hub-eyebrow">Security</p>
                 <h2 class="hub-title">Update Password</h2>

@@ -55,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(LogoutResponseContract::class, FilamentLogoutResponse::class);
+        $this->app->singleton(\Laravel\Passkeys\Contracts\PasskeyLoginResponse::class, \App\Http\Responses\PasskeyLoginResponse::class);
     }
 
     /**
