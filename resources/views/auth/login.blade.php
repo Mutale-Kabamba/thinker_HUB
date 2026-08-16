@@ -50,17 +50,34 @@
                 {{ __('Login') }}
             </x-primary-button>
 
-            <button
-                type="button"
-                id="google-signin-login"
-                class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-[0.75rem] font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-            >
-                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm dark:bg-slate-900" aria-hidden="true">
-                    <i class="fa-brands fa-google text-sm" style="background: conic-gradient(from 300deg, #4285F4 0deg 90deg, #34A853 90deg 180deg, #FBBC05 180deg 270deg, #EA4335 270deg 360deg); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>
-                </span>
-                Continue with Google
-            </button>
+            <div class="relative my-2 flex items-center justify-center">
+                <div class="w-full border-t border-slate-200 dark:border-slate-800"></div>
+                <span class="absolute bg-white px-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:bg-slate-900">Or continue with</span>
+            </div>
 
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                    type="button"
+                    id="fingerprint-signin-login"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-teal-200 bg-teal-50/70 px-3 py-2.5 text-[0.75rem] font-bold text-teal-800 transition hover:bg-teal-100 hover:border-teal-300 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-200 dark:hover:bg-teal-900/60"
+                >
+                    <i class="fa-solid fa-fingerprint text-base text-teal-600 dark:text-teal-400"></i>
+                    <span>Fingerprint / Passkey</span>
+                </button>
+
+                <button
+                    type="button"
+                    id="google-signin-login"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-[0.75rem] font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                >
+                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm dark:bg-slate-900" aria-hidden="true">
+                        <i class="fa-brands fa-google text-xs" style="background: conic-gradient(from 300deg, #4285F4 0deg 90deg, #34A853 90deg 180deg, #FBBC05 180deg 270deg, #EA4335 270deg 360deg); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>
+                    </span>
+                    <span>Google</span>
+                </button>
+            </div>
+
+            <p id="fingerprint-signin-feedback" class="text-xs text-center font-medium text-amber-600 hidden"></p>
             <p id="google-signin-login-feedback" class="text-xs text-center text-slate-500"></p>
 
             <p class="text-center text-sm text-slate-600 dark:text-slate-400">
@@ -466,5 +483,112 @@
             bindProvider(googleButton, googleProvider, 'Signing in...');
             }
         }
+
+        // Fingerprint & Biometric Login
+        (function() {
+            const fingerprintBtn = document.getElementById('fingerprint-signin-login');
+            const fingerprintFeedback = document.getElementById('fingerprint-signin-feedback');
+
+            if (!fingerprintBtn) return;
+
+            fingerprintBtn.addEventListener('click', async () => {
+                if (fingerprintFeedback) {
+                    fingerprintFeedback.classList.add('hidden');
+                    fingerprintFeedback.textContent = '';
+                }
+
+                if (!window.PublicKeyCredential) {
+                    if (fingerprintFeedback) {
+                        fingerprintFeedback.classList.remove('hidden');
+                        fingerprintFeedback.textContent = 'Biometric passkeys are not supported on this browser/device.';
+                    }
+                    return;
+                }
+
+                const remember = document.getElementById('remember_me')?.checked ?? false;
+                const originalHtml = fingerprintBtn.innerHTML;
+                fingerprintBtn.disabled = true;
+                fingerprintBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-teal-600"></i> <span>Scanning...</span>';
+
+                try {
+                    if (window.Passkeys && typeof window.Passkeys.verify === 'function') {
+                        const response = await window.Passkeys.verify({ remember });
+                        if (response && response.redirect) {
+                            window.location.href = response.redirect;
+                            return;
+                        }
+                    } else {
+                        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                        const optionsRes = await fetch('/passkeys/login/options', {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': csrf
+                            }
+                        });
+
+                        if (!optionsRes.ok) throw new Error('Could not get passkey login options.');
+                        const { options } = await optionsRes.json();
+
+                        const challenge = Uint8Array.from(atob(options.challenge.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+                        const allowCredentials = (options.allowCredentials || []).map(c => ({
+                            ...c,
+                            id: Uint8Array.from(atob(c.id.replace(/-/g, '+').replace(/_/g, '/')), ch => ch.charCodeAt(0))
+                        }));
+
+                        const credential = await navigator.credentials.get({
+                            publicKey: {
+                                ...options,
+                                challenge,
+                                allowCredentials,
+                            }
+                        });
+
+                        if (!credential) throw new Error('Authentication was cancelled.');
+
+                        const verifyRes = await fetch('/passkeys/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': csrf,
+                            },
+                            body: JSON.stringify({
+                                id: credential.id,
+                                rawId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
+                                type: credential.type,
+                                response: {
+                                    authenticatorData: btoa(String.fromCharCode(...new Uint8Array(credential.response.authenticatorData))),
+                                    clientDataJSON: btoa(String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON))),
+                                    signature: btoa(String.fromCharCode(...new Uint8Array(credential.response.signature))),
+                                    userHandle: credential.response.userHandle ? btoa(String.fromCharCode(...new Uint8Array(credential.response.userHandle))) : null,
+                                },
+                                remember,
+                            })
+                        });
+
+                        const verifyData = await verifyRes.json();
+                        if (!verifyRes.ok) {
+                            throw new Error(verifyData.message || 'Fingerprint verification failed.');
+                        }
+
+                        window.location.href = verifyData.redirect || '/dashboard';
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Passkey authentication error:', err);
+                    if (fingerprintFeedback) {
+                        fingerprintFeedback.classList.remove('hidden');
+                        if (err.name === 'NotAllowedError') {
+                            fingerprintFeedback.textContent = 'Biometric scan was cancelled or timed out.';
+                        } else {
+                            fingerprintFeedback.textContent = err.message || 'No registered biometric credentials found on this device.';
+                        }
+                    }
+                } finally {
+                    fingerprintBtn.disabled = false;
+                    fingerprintBtn.innerHTML = originalHtml;
+                }
+            });
+        })();
     </script>
 </x-guest-layout>
