@@ -510,6 +510,26 @@
                 fingerprintBtn.disabled = true;
                 fingerprintBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-teal-600"></i> <span>Scanning...</span>';
 
+                function b64ToUint8(str) {
+                    if (!str) return new Uint8Array(0);
+                    const pad = '='.repeat((4 - (str.length % 4)) % 4);
+                    const base64 = (str + pad).replace(/-/g, '+').replace(/_/g, '/');
+                    const raw = atob(base64);
+                    const arr = new Uint8Array(raw.length);
+                    for (let i = 0; i < raw.length; ++i) arr[i] = raw.charCodeAt(i);
+                    return arr;
+                }
+
+                function bufToB64Url(buf) {
+                    if (!buf) return '';
+                    const bytes = new Uint8Array(buf);
+                    let binary = '';
+                    for (let i = 0; i < bytes.byteLength; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+                }
+
                 try {
                     if (window.Passkeys && typeof window.Passkeys.verify === 'function') {
                         const response = await window.Passkeys.verify({ remember });
@@ -529,10 +549,10 @@
                         if (!optionsRes.ok) throw new Error('Could not get passkey login options.');
                         const { options } = await optionsRes.json();
 
-                        const challenge = Uint8Array.from(atob(options.challenge.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+                        const challenge = b64ToUint8(options.challenge);
                         const allowCredentials = (options.allowCredentials || []).map(c => ({
                             ...c,
-                            id: Uint8Array.from(atob(c.id.replace(/-/g, '+').replace(/_/g, '/')), ch => ch.charCodeAt(0))
+                            id: b64ToUint8(c.id)
                         }));
 
                         const credential = await navigator.credentials.get({
@@ -553,14 +573,18 @@
                                 'X-CSRF-TOKEN': csrf,
                             },
                             body: JSON.stringify({
-                                id: credential.id,
-                                rawId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
-                                type: credential.type,
-                                response: {
-                                    authenticatorData: btoa(String.fromCharCode(...new Uint8Array(credential.response.authenticatorData))),
-                                    clientDataJSON: btoa(String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON))),
-                                    signature: btoa(String.fromCharCode(...new Uint8Array(credential.response.signature))),
-                                    userHandle: credential.response.userHandle ? btoa(String.fromCharCode(...new Uint8Array(credential.response.userHandle))) : null,
+                                credential: {
+                                    id: credential.id,
+                                    rawId: bufToB64Url(credential.rawId),
+                                    type: credential.type,
+                                    response: {
+                                        authenticatorData: bufToB64Url(credential.response.authenticatorData),
+                                        clientDataJSON: bufToB64Url(credential.response.clientDataJSON),
+                                        signature: bufToB64Url(credential.response.signature),
+                                        userHandle: credential.response.userHandle ? bufToB64Url(credential.response.userHandle) : null,
+                                    },
+                                    clientExtensionResults: credential.getClientExtensionResults ? credential.getClientExtensionResults() : {},
+                                    authenticatorAttachment: credential.authenticatorAttachment || 'platform'
                                 },
                                 remember,
                             })
@@ -578,8 +602,13 @@
                     console.error('Passkey authentication error:', err);
                     if (fingerprintFeedback) {
                         fingerprintFeedback.classList.remove('hidden');
-                        if (err.name === 'NotAllowedError') {
+                        const msg = (err.message || '').toLowerCase();
+                        if (err.name === 'NotAllowedError' || msg.includes('cancelled') || msg.includes('canceled')) {
                             fingerprintFeedback.textContent = 'Biometric scan was cancelled or timed out.';
+                        } else if (err.name === 'InvalidDomainError' || msg.includes('domain')) {
+                            fingerprintFeedback.textContent = 'Domain security mismatch. Please use the official domain over HTTPS.';
+                        } else if (msg.includes('credential manager') || msg.includes('lock screen') || msg.includes('screen lock')) {
+                            fingerprintFeedback.textContent = 'Device security prompt error. Please ensure screen lock or fingerprint is enabled in device settings.';
                         } else {
                             fingerprintFeedback.textContent = err.message || 'No registered biometric credentials found on this device.';
                         }
