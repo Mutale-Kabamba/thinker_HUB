@@ -13,10 +13,11 @@ use Filament\Pages\Page;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Livewire\WithFileUploads;
 
 class Broadcasts extends Page
 {
-    use ScopedToInstructor;
+    use ScopedToInstructor, WithFileUploads;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-megaphone';
 
@@ -35,6 +36,9 @@ class Broadcasts extends Page
     public string $subject = '';
 
     public string $message = '';
+
+    /** @var mixed */
+    public $attachment = null;
 
     /** @var array<int, array<string, mixed>> */
     public array $courseOptions = [];
@@ -86,6 +90,11 @@ class Broadcasts extends Page
             ->count();
     }
 
+    public function removeAttachment(): void
+    {
+        $this->attachment = null;
+    }
+
     public function send(): void
     {
         $user = auth()->user();
@@ -107,6 +116,13 @@ class Broadcasts extends Page
             return;
         }
 
+        // Validate optional attachment if uploaded (Max 25MB)
+        if ($this->attachment) {
+            $this->validate([
+                'attachment' => 'file|max:25600', // 25 MB max
+            ]);
+        }
+
         // Server-side guard: verify course belongs to instructor
         $course = Course::query()
             ->whereIn('id', static::instructorCourseIds())
@@ -122,7 +138,28 @@ class Broadcasts extends Page
             return;
         }
 
-        [$recipients, $failed] = $this->dispatchToCourse($course, $user, $subject, $body);
+        $attachmentPath = null;
+        $attachmentName = null;
+        $attachmentMime = null;
+        $attachmentSize = null;
+
+        if ($this->attachment) {
+            $attachmentName = $this->attachment->getClientOriginalName();
+            $attachmentMime = $this->attachment->getMimeType();
+            $attachmentSize = $this->attachment->getSize();
+            $attachmentPath = $this->attachment->store('broadcasts', 'public');
+        }
+
+        [$recipients, $failed] = $this->dispatchToCourse(
+            $course,
+            $user,
+            $subject,
+            $body,
+            $attachmentPath,
+            $attachmentName,
+            $attachmentMime,
+            $attachmentSize
+        );
 
         if ($recipients === 0 && $failed === 0) {
             Notification::make()
@@ -134,12 +171,13 @@ class Broadcasts extends Page
         }
 
         Notification::make()
-            ->title('Broadcast sent to ' . $recipients . ' student' . ($recipients === 1 ? '' : 's') . ($failed > 0 ? ' (' . $failed . ' email errors)' : ''))
+            ->title('Broadcast sent to ' . $recipients . ' student' . ($recipients === 1 ? '' : 's') . ($failed > 0 ? ' (' . $failed . ' email errors)' : '') . ($attachmentPath ? ' with media attachment' : ''))
             ->success()
             ->send();
 
         $this->subject = '';
         $this->message = '';
+        $this->attachment = null;
         $this->loadHistory();
     }
 
@@ -148,8 +186,16 @@ class Broadcasts extends Page
      *
      * @return array{0: int, 1: int} [recipients, failed]
      */
-    protected function dispatchToCourse(Course $course, User $sender, string $subject, string $body): array
-    {
+    protected function dispatchToCourse(
+        Course $course,
+        User $sender,
+        string $subject,
+        string $body,
+        ?string $attachmentPath = null,
+        ?string $attachmentName = null,
+        ?string $attachmentMime = null,
+        ?int $attachmentSize = null
+    ): array {
         $recipients = 0;
         $failed = 0;
 
@@ -165,6 +211,10 @@ class Broadcasts extends Page
             'user_id' => $sender->id,
             'subject' => $subject,
             'body' => $body,
+            'attachment_path' => $attachmentPath,
+            'attachment_name' => $attachmentName,
+            'attachment_mime' => $attachmentMime,
+            'attachment_size' => $attachmentSize,
             'sent_at' => now(),
         ]);
 
@@ -172,7 +222,15 @@ class Broadcasts extends Page
             $mailSent = false;
 
             try {
-                Mail::to($student->email)->send(new CohortBroadcast($course, $sender, $body, $subject));
+                Mail::to($student->email)->send(new CohortBroadcast(
+                    $course,
+                    $sender,
+                    $body,
+                    $subject,
+                    $attachmentPath,
+                    $attachmentName,
+                    $attachmentMime
+                ));
                 $mailSent = true;
             } catch (\Throwable $e) {
                 Log::warning("Cohort broadcast email delivery failed for user #{$student->id} ({$student->email}): " . $e->getMessage());
@@ -185,9 +243,14 @@ class Broadcasts extends Page
 
             // Always deliver in-app notification to student dashboard so they see the announcement immediately
             try {
+                $notificationBody = Str::limit($body, 180);
+                if ($attachmentName) {
+                    $notificationBody .= ' 📎 ' . $attachmentName;
+                }
+
                 Notification::make()
                     ->title('Announcement: ' . $subject)
-                    ->body(Str::limit($body, 200))
+                    ->body($notificationBody)
                     ->icon('heroicon-o-megaphone')
                     ->info()
                     ->actions([
@@ -234,6 +297,9 @@ class Broadcasts extends Page
                 'course' => $broadcast->course?->title ?? '—',
                 'subject' => $broadcast->subject,
                 'body' => $broadcast->body,
+                'attachment_path' => $broadcast->attachment_path,
+                'attachment_name' => $broadcast->attachment_name,
+                'attachment_size' => $broadcast->formatted_attachment_size,
                 'recipients_count' => $broadcast->recipients_count,
                 'failed_count' => $broadcast->failed_count,
                 'sent_at' => $broadcast->sent_at?->format('M d, Y H:i') ?? $broadcast->created_at?->format('M d, Y H:i'),

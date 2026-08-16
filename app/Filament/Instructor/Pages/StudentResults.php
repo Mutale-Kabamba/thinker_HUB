@@ -58,6 +58,8 @@ class StudentResults extends Page
 
     public string $sortBy = 'score_desc';
 
+    public ?int $selectedQuizAttemptId = null;
+
     /** @var array<string, bool> */
     public array $expandedTasks = [];
 
@@ -74,6 +76,7 @@ class StudentResults extends Page
         $this->activeTabs = [];
         $this->activeCategory = 'quizzes';
         $this->selectedTaskKey = '';
+        $this->selectedQuizAttemptId = null;
     }
 
     public function selectCategory(string $category): void
@@ -430,6 +433,34 @@ class StudentResults extends Page
 
         $submission->revokeRetake();
         Notification::make()->title('Assessment resubmission permission revoked.')->info()->send();
+    }
+
+    public function viewQuizAttempt(int $attemptId): void
+    {
+        $scopedCourseIds = static::instructorCourseIds();
+        $attempt = QuizAttempt::with(['quiz.course', 'quiz.questions.options', 'answers.option', 'answers.question', 'user'])->find($attemptId);
+
+        if (! $attempt || ! in_array($attempt->quiz?->course_id, $scopedCourseIds, true)) {
+            Notification::make()->title('Quiz attempt not found or unauthorized.')->danger()->send();
+
+            return;
+        }
+
+        $this->selectedQuizAttemptId = $attempt->id;
+    }
+
+    public function closeQuizAttemptModal(): void
+    {
+        $this->selectedQuizAttemptId = null;
+    }
+
+    public function getSelectedQuizAttemptProperty(): ?QuizAttempt
+    {
+        if (! $this->selectedQuizAttemptId) {
+            return null;
+        }
+
+        return QuizAttempt::with(['quiz.course', 'quiz.questions.options', 'answers.option', 'answers.question', 'user'])->find($this->selectedQuizAttemptId);
     }
 
     /**

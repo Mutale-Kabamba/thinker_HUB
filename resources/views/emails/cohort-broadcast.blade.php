@@ -52,12 +52,31 @@
 
                     <!-- Message Body -->
                     <tr>
-                        <td style="padding:12px 32px 24px;">
+                        <td style="padding:12px 32px 20px;">
                             <div style="background:#ffffff;border:1px solid #cbd5e1;border-left:4px solid #0f766e;border-radius:10px;padding:20px 22px;font-size:15px;line-height:1.75;color:#334155;word-break:break-word;">
                                 {!! nl2br(e($messageBody)) !!}
                             </div>
                         </td>
                     </tr>
+
+                    @if (filled($attachmentPath))
+                    <!-- Media Attachment Info -->
+                    <tr>
+                        <td style="padding:0 32px 20px;">
+                            <div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;">
+                                <div style="font-size:20px;">📎</div>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#0f766e;">
+                                        Attachment Included
+                                    </div>
+                                    <div style="font-size:14px;font-weight:600;color:#0f172a;margin-top:2px;">
+                                        {{ $attachmentName ?: basename($attachmentPath) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @endif
 
                     <!-- Quick Dashboard CTA -->
                     <tr>

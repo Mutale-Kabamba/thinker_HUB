@@ -39,6 +39,20 @@ class QuizAttemptsRelationManager extends RelationManager
                     ->sortable()
                     ->placeholder('In progress'),
             ])
+            ->recordActions([
+                \Filament\Actions\Action::make('viewAnswers')
+                    ->label('View Answers')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->visible(fn ($record) => $record->completed_at !== null)
+                    ->modalHeading(fn ($record) => 'Quiz Breakdown & Answers: ' . ($record->quiz?->title ?? 'Quiz Attempt'))
+                    ->modalWidth('4xl')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close')
+                    ->modalContent(fn ($record) => view('filament.instructor.modals.quiz-attempt-answers', [
+                        'attempt' => $record->loadMissing(['quiz.questions.options', 'quiz.course', 'answers.option', 'answers.question', 'user']),
+                    ])),
+            ])
             ->defaultSort('started_at', 'desc');
     }
 }

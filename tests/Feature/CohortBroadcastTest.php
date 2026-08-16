@@ -170,4 +170,49 @@ class CohortBroadcastTest extends TestCase
 
         Mail::assertSent(CohortBroadcast::class, 1);
     }
+
+    public function test_instructor_can_send_broadcast_with_media_attachment(): void
+    {
+        Mail::fake();
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $instructor = User::factory()->create(['role' => 'instructor', 'name' => 'Jane Instructor']);
+        $student = User::factory()->create(['role' => 'student', 'name' => 'Alice Student', 'email' => 'alice@example.com']);
+
+        $course = Course::query()->create([
+            'title' => 'Design & UI Mastery',
+            'code' => 'DES101',
+            'is_active' => true,
+        ]);
+        $course->instructors()->attach($instructor->id);
+
+        Enrollment::create(['user_id' => $student->id, 'course_id' => $course->id]);
+
+        $this->actingAs($instructor);
+
+        $file = \Illuminate\Http\UploadedFile::fake()->create('project-guidelines.pdf', 1024, 'application/pdf');
+
+        Livewire::test(Broadcasts::class)
+            ->set('courseId', (string) $course->id)
+            ->set('subject', 'Important Project Guidelines Attached')
+            ->set('message', 'Please review the attached PDF document for your rubric.')
+            ->set('attachment', $file)
+            ->call('send')
+            ->assertNotified('Broadcast sent to 1 student with media attachment')
+            ->assertSet('attachment', null);
+
+        // Verify Mailable sent with attachment
+        Mail::assertSent(CohortBroadcast::class, function (CohortBroadcast $mail) {
+            return $mail->hasTo('alice@example.com')
+                && $mail->subjectLine === 'Important Project Guidelines Attached'
+                && $mail->attachmentName === 'project-guidelines.pdf';
+        });
+
+        // Verify database records
+        $broadcast = Broadcast::query()->where('course_id', $course->id)->first();
+        $this->assertNotNull($broadcast);
+        $this->assertSame('project-guidelines.pdf', $broadcast->attachment_name);
+        $this->assertNotNull($broadcast->attachment_path);
+        $this->assertTrue(\Illuminate\Support\Facades\Storage::disk('public')->exists($broadcast->attachment_path));
+    }
 }
