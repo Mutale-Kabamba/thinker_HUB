@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\LearningMaterials\Tables;
 
+use App\Models\LearningMaterial;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -27,8 +28,15 @@ class LearningMaterialsTable
                     ->color(fn (string $state): string => match ($state) {
                         'Curriculum' => 'primary',
                         'Study Material' => 'success',
+                        'Quiz Preps' => 'warning',
+                        'Answer Kits' => 'info',
+                        'Project Guides' => 'indigo',
+                        'Cheat Sheets' => 'purple',
+                        'Practice Exercises' => 'teal',
+                        'Past Papers' => 'amber',
                         'Rules' => 'danger',
-                        'General Notices' => 'warning',
+                        'General Notices' => 'gray',
+                        'Supplementary Resources' => 'cyan',
                         default => 'gray',
                     })
                     ->sortable(),
@@ -67,12 +75,7 @@ class LearningMaterialsTable
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('category')
-                    ->options([
-                        'Curriculum' => 'Curriculum',
-                        'Study Material' => 'Study Material',
-                        'Rules' => 'Rules',
-                        'General Notices' => 'General Notices',
-                    ]),
+                    ->options(LearningMaterial::categoryOptions()),
                 SelectFilter::make('material_type')
                     ->label('Type')
                     ->options([

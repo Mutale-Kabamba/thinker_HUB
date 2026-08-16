@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LearningMaterials\Schemas;
 
 use App\Models\Course;
+use App\Models\LearningMaterial;
 use App\Models\User;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -23,13 +24,9 @@ class LearningMaterialForm
                 Select::make('category')
                     ->label('Category')
                     ->required()
-                    ->options([
-                        'Curriculum' => 'Curriculum',
-                        'Study Material' => 'Study Material',
-                        'Rules' => 'Rules',
-                        'General Notices' => 'General Notices',
-                    ])
-                    ->default('General Notices'),
+                    ->searchable()
+                    ->options(LearningMaterial::categoryOptions())
+                    ->default('Study Material'),
 
                 Textarea::make('description')
                     ->label('Description')
