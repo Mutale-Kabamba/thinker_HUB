@@ -342,6 +342,13 @@
                                                                 </span>
                                                             @endif
 
+                                                            <button type="button" wire:click="viewQuizAttempt({{ $res['attempt_id'] }})"
+                                                                    style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: var(--hub-surface-soft); color: var(--hub-ink); border: 1px solid var(--hub-border); border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.2rem;"
+                                                                    title="View questions, student selected options, and submitted answers">
+                                                                <x-heroicon-o-eye style="width: 0.75rem; height: 0.75rem; color: var(--hub-primary);" />
+                                                                View Answers
+                                                            </button>
+
                                                             @if(!empty($res['retake_allowed']))
                                                                 <button type="button" wire:click="revokeQuizRetake({{ $res['student_id'] }}, {{ $q['id'] }})"
                                                                         style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; cursor: pointer; font-weight: 700;"
@@ -838,6 +845,14 @@
                                                                 @if(!empty($qd['is_retake']))
                                                                     <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(59, 130, 246, 0.12); color: #1d4ed8; font-weight: 700;">2nd Try</span>
                                                                 @endif
+
+                                                                <button type="button" wire:click="viewQuizAttempt({{ $qd['id'] }})"
+                                                                        style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: var(--hub-surface); color: var(--hub-ink); border: 1px solid var(--hub-border); border-radius: 4px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.2rem;"
+                                                                        title="View questions, student selected options, and submitted answers">
+                                                                    <x-heroicon-o-eye style="width: 0.7rem; height: 0.7rem; color: var(--hub-primary);" />
+                                                                    Answers
+                                                                </button>
+
                                                                 @if(!empty($qd['retake_allowed']))
                                                                     <button type="button" wire:click="revokeQuizRetake({{ $row['id'] }}, {{ $qd['quiz_id'] }})"
                                                                             style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 4px; cursor: pointer; font-weight: 700;">
@@ -926,6 +941,63 @@
                         @endforeach
                     </div>
                 @endif
+            </div>
+        @endif
+
+        {{-- ==================== QUIZ ATTEMPT ANSWERS REVIEW MODAL ==================== --}}
+        @if ($this->selectedQuizAttempt)
+            <div style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);"
+                 x-data
+                 @keydown.escape.window="$wire.closeQuizAttemptModal()">
+                <div style="position: relative; width: 100%; max-width: 920px; max-height: 90vh; background: #ffffff; border-radius: 14px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--hub-border);">
+                    {{-- Modal Top Bar --}}
+                    <div style="padding: 0.75rem 1.25rem; background: #f8fafc; border-bottom: 1px solid var(--hub-border); display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(13, 148, 136, 0.12); display: flex; align-items: center; justify-content: center;">
+                                <x-heroicon-o-academic-cap style="width: 1.1rem; height: 1.1rem; color: var(--hub-primary);" />
+                            </div>
+                            <div>
+                                <span style="font-weight: 800; font-size: 0.95rem; color: var(--hub-ink); display: block; line-height: 1.2;">
+                                    Student Quiz Review &amp; Answers
+                                </span>
+                                <span style="font-size: 0.7rem; color: var(--hub-muted);">
+                                    Full question breakdown, student selections, and answer accuracy
+                                </span>
+                            </div>
+                        </div>
+                        <button type="button" wire:click="closeQuizAttemptModal"
+                                style="background: transparent; border: none; font-size: 1.3rem; line-height: 1; color: var(--hub-muted); cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 6px;"
+                                title="Close modal">
+                            &times;
+                        </button>
+                    </div>
+
+                    {{-- Scrollable Content Body --}}
+                    <div style="padding: 1.25rem; overflow-y: auto; flex: 1; background: #fafafa;">
+                        @include('filament.instructor.modals.quiz-attempt-answers', ['attempt' => $this->selectedQuizAttempt])
+                    </div>
+
+                    {{-- Modal Footer --}}
+                    <div style="padding: 0.75rem 1.25rem; background: #f8fafc; border-top: 1px solid var(--hub-border); display: flex; justify-content: flex-end; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                        @php $modalAttempt = $this->selectedQuizAttempt; @endphp
+                        @if ($modalAttempt && !empty($modalAttempt->retake_allowed))
+                            <button type="button" wire:click="revokeQuizRetake({{ $modalAttempt->user_id }}, {{ $modalAttempt->quiz_id }})"
+                                    style="font-size: 0.78rem; padding: 0.4rem 0.85rem; background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; cursor: pointer; font-weight: 700;">
+                                ⭐ 2nd Try Granted (Revoke)
+                            </button>
+                        @elseif ($modalAttempt && $modalAttempt->completed_at)
+                            <button type="button" wire:click="grantQuizRetake({{ $modalAttempt->user_id }}, {{ $modalAttempt->quiz_id }})"
+                                    style="font-size: 0.78rem; padding: 0.4rem 0.85rem; background: var(--hub-primary); color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">
+                                + Grant 2nd Try
+                            </button>
+                        @endif
+                        <button type="button" wire:click="closeQuizAttemptModal"
+                                class="hub-btn"
+                                style="font-size: 0.78rem; padding: 0.4rem 0.95rem; border-radius: 6px; cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                </div>
             </div>
         @endif
     </div>
