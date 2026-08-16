@@ -30,8 +30,12 @@ class QuizObserver
 
         try {
             $enrolledStudents = User::query()
-                ->where('role', 'student')
-                ->whereHas('courses', fn ($q) => $q->where('courses.id', $quiz->course_id))
+                ->where(function ($q): void {
+                    $q->whereNull('role')->orWhere('role', 'student');
+                })
+                ->whereHas('enrollments', fn ($q) => $q->where('course_id', $quiz->course_id))
+                ->whereNotNull('email')
+                ->where('email', '!=', '')
                 ->get();
 
             foreach ($enrolledStudents as $student) {
@@ -40,7 +44,8 @@ class QuizObserver
                     ->where('notifiable_type', $student->getMorphClass())
                     ->where('notifiable_id', $student->id)
                     ->where('type', QuizPublishedNotification::class)
-                    ->where('data', 'like', '%'.$quiz->title.'%')
+                    ->where('data', 'like', '%"title":"New quiz available"%')
+                    ->where('data', 'like', '%' . addcslashes($quiz->title, '%_\\') . '%')
                     ->exists();
 
                 if (! $alreadyNotified) {

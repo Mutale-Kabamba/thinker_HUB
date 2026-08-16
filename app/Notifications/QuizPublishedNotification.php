@@ -7,11 +7,10 @@ use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class QuizPublishedNotification extends Notification implements ShouldQueue
+class QuizPublishedNotification extends Notification
 {
     use Queueable, ResolvesMailPersonalization;
 

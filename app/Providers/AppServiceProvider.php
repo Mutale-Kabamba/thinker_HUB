@@ -18,6 +18,7 @@ use App\Models\LearningMaterial;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
+use App\Observers\AssessmentObserver;
 use App\Observers\AssignmentObserver;
 use App\Observers\AttendanceObserver;
 use App\Observers\ChatMessageObserver;
@@ -65,6 +66,7 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        Assessment::observe(AssessmentObserver::class);
         Assignment::observe(AssignmentObserver::class);
         AssignmentSubmission::observe(SubmissionObserver::class);
         AssessmentSubmission::observe(SubmissionObserver::class);

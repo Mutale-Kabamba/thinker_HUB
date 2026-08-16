@@ -42,6 +42,15 @@ class Assignment extends Model
         });
     }
 
+    public function isReleased(): bool
+    {
+        if ($this->publish_at !== null) {
+            return $this->publish_at->lte(now());
+        }
+
+        return true;
+    }
+
     public function targetUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'target_user_id');
