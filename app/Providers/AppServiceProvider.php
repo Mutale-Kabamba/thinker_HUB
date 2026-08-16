@@ -67,6 +67,25 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        // Dynamically align WebAuthn Relying Party ID and Allowed Origins with current request
+        if (! $this->app->runningInConsole()) {
+            try {
+                $host = request()->getHost();
+                if ($host) {
+                    config(['passkeys.relying_party_id' => env('PASSKEYS_RP_ID') ?: $host]);
+
+                    $origins = config('passkeys.allowed_origins', []);
+                    $schemeAndHost = request()->getSchemeAndHttpHost();
+                    $origins[] = $schemeAndHost;
+                    $origins[] = 'https://' . $host;
+                    $origins[] = 'http://' . $host;
+                    config(['passkeys.allowed_origins' => array_values(array_unique(array_filter($origins)))]);
+                }
+            } catch (\Throwable) {
+                // Ignore during early bootstrap
+            }
+        }
+
         Assessment::observe(AssessmentObserver::class);
         Assignment::observe(AssignmentObserver::class);
         AssignmentSubmission::observe(SubmissionObserver::class);

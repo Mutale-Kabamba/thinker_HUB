@@ -153,8 +153,15 @@
                 } catch (err) {
                     console.error('Passkey register error:', err);
                     this.isSuccess = false;
-                    if (err.name === 'NotAllowedError') {
+                    const msg = (err.message || '').toLowerCase();
+                    if (err.name === 'NotAllowedError' || msg.includes('cancelled') || msg.includes('canceled')) {
                         this.message = 'Biometric registration was cancelled or timed out.';
+                    } else if (err.name === 'InvalidDomainError' || msg.includes('domain')) {
+                        this.message = 'Domain security mismatch. Please ensure you are accessing via HTTPS on the official domain.';
+                    } else if (msg.includes('credential manager')) {
+                        this.message = 'Device security prompt error. Please ensure screen lock or fingerprint is enabled on your device and try again.';
+                    } else if (msg.includes('already registered')) {
+                        this.message = 'This biometric credential is already registered on your account.';
                     } else {
                         this.message = err.message || 'Failed to register biometric device.';
                     }

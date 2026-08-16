@@ -13,7 +13,11 @@ return [
     |
     */
 
-    'relying_party_id' => env('PASSKEYS_RP_ID', parse_url(config('app.url'), PHP_URL_HOST) ?: 'localhost'),
+    'relying_party_id' => env('PASSKEYS_RP_ID') ?: (
+        isset($_SERVER['HTTP_HOST'])
+            ? preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'])
+            : (parse_url(config('app.url', 'http://localhost'), PHP_URL_HOST) ?: 'localhost')
+    ),
 
     /*
     |--------------------------------------------------------------------------
@@ -28,11 +32,18 @@ return [
 
     'allowed_origins' => array_values(array_unique(array_filter([
         config('app.url'),
+        env('APP_URL'),
+        'https://thinkerhub.online',
+        'http://thinkerhub.online',
+        'https://www.thinkerhub.online',
+        'http://www.thinkerhub.online',
         'http://localhost:8000',
         'http://localhost',
         'http://127.0.0.1:8000',
         'http://127.0.0.1',
-        env('APP_URL'),
+        isset($_SERVER['HTTP_HOST']) ? ('https://' . preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'])) : null,
+        isset($_SERVER['HTTP_HOST']) ? ('http://' . preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'])) : null,
+        isset($_SERVER['HTTP_HOST']) ? ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . $_SERVER['HTTP_HOST']) : null,
     ]))),
 
     /*
