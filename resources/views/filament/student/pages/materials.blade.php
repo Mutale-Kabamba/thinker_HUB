@@ -17,12 +17,11 @@
         {{-- ======================== FILTERS ======================== --}}
         <section class="hub-card" style="padding:0.65rem 1rem;">
             <div class="hub-filter-row" style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
-                <select wire:model.live="filterCategory" class="hub-input" style="max-width:180px;font-size:0.8rem;padding:0.3rem 0.5rem;">
+                <select wire:model.live="filterCategory" class="hub-input" style="max-width:200px;font-size:0.8rem;padding:0.3rem 0.5rem;">
                     <option value="">All Categories</option>
-                    <option value="Curriculum">Curriculum</option>
-                    <option value="Study Material">Study Material</option>
-                    <option value="Rules">Rules</option>
-                    <option value="General Notices">General Notices</option>
+                    @foreach (\App\Models\LearningMaterial::categoryOptions() as $catKey => $catLabel)
+                        <option value="{{ $catKey }}">{{ $catLabel }}</option>
+                    @endforeach
                 </select>
                 <select wire:model.live="filterType" class="hub-input" style="max-width:160px;font-size:0.8rem;padding:0.3rem 0.5rem;">
                     <option value="">All Types</option>
@@ -55,6 +54,22 @@
                 </thead>
                 <tbody>
                     @forelse ($materials as $material)
+                        @php
+                            $catChip = match ($material['category']) {
+                                'Curriculum' => 'hub-chip-primary',
+                                'Study Material' => 'hub-chip-green',
+                                'Quiz Preps' => 'hub-chip-amber',
+                                'Answer Kits' => 'hub-chip-blue',
+                                'Project Guides' => 'hub-chip-primary',
+                                'Cheat Sheets' => 'hub-chip-blue',
+                                'Practice Exercises' => 'hub-chip-green',
+                                'Past Papers' => 'hub-chip-amber',
+                                'Rules' => 'hub-chip-red',
+                                'General Notices' => 'hub-chip-gray',
+                                'Supplementary Resources' => 'hub-chip-blue',
+                                default => 'hub-chip-gray',
+                            };
+                        @endphp
                         {{-- Table Row --}}
                         <tr style="border-bottom:1px solid var(--hub-border);transition:background 0.1s;" onmouseover="this.style.background='var(--hub-surface)'" onmouseout="this.style.background=''">
                             <td style="padding:0.55rem 0.75rem;">
@@ -62,7 +77,7 @@
                                 <p style="margin:0.15rem 0 0;font-size:0.74rem;color:var(--hub-muted);">{{ $material['course'] }}</p>
                             </td>
                             <td style="padding:0.55rem 0.5rem;">
-                                <span class="hub-chip {{ $material['category'] === 'Curriculum' ? 'hub-chip-primary' : ($material['category'] === 'Rules' ? 'hub-chip-danger' : 'hub-chip-amber') }}" style="font-size:0.7rem;">{{ $material['category'] }}</span>
+                                <span class="hub-chip {{ $catChip }}" style="font-size:0.7rem;">{{ $material['category'] }}</span>
                             </td>
                             <td style="padding:0.55rem 0.5rem;text-align:center;">
                                 <span class="hub-chip hub-chip-blue" style="font-size:0.7rem;">{{ $material['type'] }}</span>
@@ -140,9 +155,25 @@
                         <span class="hub-chip hub-chip-blue" style="font-size:0.7rem;flex-shrink:0;">{{ $material['type'] }}</span>
                     </div>
 
+                    @php
+                        $mobileCatChip = match ($material['category']) {
+                            'Curriculum' => 'hub-chip-primary',
+                            'Study Material' => 'hub-chip-green',
+                            'Quiz Preps' => 'hub-chip-amber',
+                            'Answer Kits' => 'hub-chip-blue',
+                            'Project Guides' => 'hub-chip-primary',
+                            'Cheat Sheets' => 'hub-chip-blue',
+                            'Practice Exercises' => 'hub-chip-green',
+                            'Past Papers' => 'hub-chip-amber',
+                            'Rules' => 'hub-chip-red',
+                            'General Notices' => 'hub-chip-gray',
+                            'Supplementary Resources' => 'hub-chip-blue',
+                            default => 'hub-chip-gray',
+                        };
+                    @endphp
                     {{-- Meta: category + scope + date --}}
                     <div style="display:flex;gap:0.5rem;margin-top:0.45rem;font-size:0.74rem;flex-wrap:wrap;align-items:center;">
-                        <span class="hub-chip {{ $material['category'] === 'Curriculum' ? 'hub-chip-primary' : ($material['category'] === 'Rules' ? 'hub-chip-danger' : 'hub-chip-amber') }}" style="font-size:0.68rem;">{{ $material['category'] }}</span>
+                        <span class="hub-chip {{ $mobileCatChip }}" style="font-size:0.68rem;">{{ $material['category'] }}</span>
                         <span style="color:var(--hub-muted);">{{ $material['scope'] }}</span>
                         <span style="color:var(--hub-muted);">{{ $material['created_at'] }}</span>
                     </div>

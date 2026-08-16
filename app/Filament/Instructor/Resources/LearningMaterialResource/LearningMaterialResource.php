@@ -49,13 +49,9 @@ class LearningMaterialResource extends Resource
                 Select::make('category')
                     ->label('Category')
                     ->required()
-                    ->options([
-                        'Curriculum' => 'Curriculum',
-                        'Study Material' => 'Study Material',
-                        'Rules' => 'Rules',
-                        'General Notices' => 'General Notices',
-                    ])
-                    ->default('General Notices'),
+                    ->searchable()
+                    ->options(LearningMaterial::categoryOptions())
+                    ->default('Study Material'),
 
                 Textarea::make('description')
                     ->label('Description')
@@ -186,8 +182,15 @@ class LearningMaterialResource extends Resource
                     ->color(fn (string $state): string => match ($state) {
                         'Curriculum' => 'primary',
                         'Study Material' => 'success',
+                        'Quiz Preps' => 'warning',
+                        'Answer Kits' => 'info',
+                        'Project Guides' => 'indigo',
+                        'Cheat Sheets' => 'purple',
+                        'Practice Exercises' => 'teal',
+                        'Past Papers' => 'amber',
                         'Rules' => 'danger',
-                        'General Notices' => 'warning',
+                        'General Notices' => 'gray',
+                        'Supplementary Resources' => 'cyan',
                         default => 'gray',
                     })
                     ->sortable(),
@@ -219,12 +222,7 @@ class LearningMaterialResource extends Resource
             ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('course_id', static::instructorCourseIds()))
             ->filters([
                 SelectFilter::make('category')
-                    ->options([
-                        'Curriculum' => 'Curriculum',
-                        'Study Material' => 'Study Material',
-                        'Rules' => 'Rules',
-                        'General Notices' => 'General Notices',
-                    ]),
+                    ->options(LearningMaterial::categoryOptions()),
                 SelectFilter::make('material_type')
                     ->label('Type')
                     ->options([

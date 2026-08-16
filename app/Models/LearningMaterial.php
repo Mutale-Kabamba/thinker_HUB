@@ -14,6 +14,37 @@ class LearningMaterial extends Model
 {
     use HasFactory;
 
+    public const CATEGORY_CURRICULUM = 'Curriculum';
+    public const CATEGORY_STUDY_MATERIAL = 'Study Material';
+    public const CATEGORY_QUIZ_PREPS = 'Quiz Preps';
+    public const CATEGORY_ANSWER_KITS = 'Answer Kits';
+    public const CATEGORY_PROJECT_GUIDES = 'Project Guides';
+    public const CATEGORY_CHEAT_SHEETS = 'Cheat Sheets';
+    public const CATEGORY_PRACTICE_EXERCISES = 'Practice Exercises';
+    public const CATEGORY_PAST_PAPERS = 'Past Papers';
+    public const CATEGORY_RULES = 'Rules';
+    public const CATEGORY_GENERAL_NOTICES = 'General Notices';
+    public const CATEGORY_SUPPLEMENTARY = 'Supplementary Resources';
+
+    public const CATEGORIES = [
+        self::CATEGORY_CURRICULUM => 'Curriculum & Syllabus',
+        self::CATEGORY_STUDY_MATERIAL => 'Study Material & Lecture Notes',
+        self::CATEGORY_QUIZ_PREPS => 'Quiz Preps & Study Guides',
+        self::CATEGORY_ANSWER_KITS => 'Answer Kits & Solutions',
+        self::CATEGORY_PROJECT_GUIDES => 'Project Guides & Lab Manuals',
+        self::CATEGORY_CHEAT_SHEETS => 'Cheat Sheets & Quick References',
+        self::CATEGORY_PRACTICE_EXERCISES => 'Practice Exercises & Worksheets',
+        self::CATEGORY_PAST_PAPERS => 'Past Papers & Mock Tests',
+        self::CATEGORY_RULES => 'Rules & Guidelines',
+        self::CATEGORY_GENERAL_NOTICES => 'General Notices & Announcements',
+        self::CATEGORY_SUPPLEMENTARY => 'Supplementary & Reading Resources',
+    ];
+
+    public static function categoryOptions(): array
+    {
+        return self::CATEGORIES;
+    }
+
     protected $fillable = [
         'course_id',
         'title',
