@@ -7,11 +7,10 @@ use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class RescheduleRequestDeclinedNotification extends Notification implements ShouldQueue
+class RescheduleRequestDeclinedNotification extends Notification
 {
     use Queueable, ResolvesMailPersonalization;
 

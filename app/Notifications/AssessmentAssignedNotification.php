@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\LearningMaterial;
+use App\Models\Assessment;
 use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
@@ -10,11 +10,11 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class MaterialPublishedNotification extends Notification
+class AssessmentAssignedNotification extends Notification
 {
     use Queueable, ResolvesMailPersonalization;
 
-    public function __construct(private readonly LearningMaterial $material) {}
+    public function __construct(private readonly Assessment $assessment) {}
 
     public function via(object $notifiable): array
     {
@@ -30,9 +30,9 @@ class MaterialPublishedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('New Material: '.$this->material->title)
-            ->markdown('emails.material-published', [
-                'material' => $this->material,
+            ->subject('New Assessment: '.$this->assessment->name)
+            ->markdown('emails.assessment-assigned', [
+                'assessment' => $this->assessment,
                 'notifiable' => $notifiable,
                 'recipientName' => $this->resolveRecipientName($notifiable),
                 'signerName' => $this->resolveSignerName(),
@@ -41,13 +41,19 @@ class MaterialPublishedNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
+        $body = $this->assessment->name;
+
+        if ($this->assessment->due_date) {
+            $body .= ' — due '.$this->assessment->due_date->format('M j, Y');
+        }
+
         return FilamentNotification::make()
-            ->title('New material available')
-            ->body($this->material->title)
+            ->title('New assessment assigned')
+            ->body($body)
             ->actions([
                 Action::make('view')
-                    ->label('View materials')
-                    ->url('/learn/materials')
+                    ->label('View assessments')
+                    ->url('/learn/assessments')
                     ->markAsRead(),
             ])
             ->getDatabaseMessage();

@@ -6,11 +6,10 @@ use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class SubmissionGradedNotification extends Notification implements ShouldQueue
+class SubmissionGradedNotification extends Notification
 {
     use Queueable, ResolvesMailPersonalization;
 

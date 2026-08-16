@@ -200,6 +200,40 @@ Schedule::command('seo:generate')
     ->dailyAt('02:30')
     ->withoutOverlapping();
 
+Artisan::command('evaluations:publish', function (): int {
+    $publishedQuizzes = \App\Models\Quiz::publishScheduled();
+
+    $assignmentObserver = new \App\Observers\AssignmentObserver();
+    $assignments = \App\Models\Assignment::query()
+        ->whereNotNull('publish_at')
+        ->where('publish_at', '<=', now())
+        ->get();
+    $assignmentsCount = 0;
+    foreach ($assignments as $assignment) {
+        $assignmentObserver->handleRelease($assignment);
+        $assignmentsCount++;
+    }
+
+    $assessmentObserver = new \App\Observers\AssessmentObserver();
+    $assessments = \App\Models\Assessment::query()
+        ->whereNotNull('publish_at')
+        ->where('publish_at', '<=', now())
+        ->get();
+    $assessmentsCount = 0;
+    foreach ($assessments as $assessment) {
+        $assessmentObserver->handleRelease($assessment);
+        $assessmentsCount++;
+    }
+
+    $this->info("Published {$publishedQuizzes} quizzes, checked {$assignmentsCount} assignments and {$assessmentsCount} assessments.");
+
+    return self::SUCCESS;
+})->purpose('Publish any scheduled quizzes, assignments, and assessments whose publish_at timestamp has passed.');
+
+Schedule::command('evaluations:publish')
+    ->everyMinute()
+    ->withoutOverlapping();
+
 Artisan::command('quizzes:publish', function (): int {
     $published = \App\Models\Quiz::publishScheduled();
     $this->info("Published {$published} scheduled quizzes.");
