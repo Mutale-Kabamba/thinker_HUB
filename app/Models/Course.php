@@ -301,18 +301,18 @@ class Course extends Model
         if ($hasCustomRuleSet) {
             $rule = CourseGamificationRule::getRuleForCourse($this, $key);
             if (! empty($rule['enabled'])) {
-                if (str_ends_with($key, '_xp') && ! empty($rule['xp'])) {
+                if (str_ends_with($key, '_xp') && isset($rule['xp']) && $rule['xp'] > 0) {
                     return (int) $rule['xp'];
                 }
-                if (str_ends_with($key, '_coins') && ! empty($rule['coins'])) {
+                if (str_ends_with($key, '_coins') && isset($rule['coins']) && $rule['coins'] > 0) {
                     return (int) $rule['coins'];
                 }
                 if (! empty($rule['xp'])) {
                     return (int) $rule['xp'];
                 }
+            } elseif (isset($rule['enabled']) && ! $rule['enabled']) {
+                return 0;
             }
-
-            return 0;
         }
 
         // 2. Course JSON settings
@@ -321,13 +321,13 @@ class Course extends Model
             return (int) $settings[$key];
         }
 
-        // 3. Fallback check on Global Matrix
+        // 3. Fallback check on Global / Default Matrix
         $rule = CourseGamificationRule::getRuleForCourse(null, $key);
         if (! empty($rule['enabled'])) {
-            if (str_ends_with($key, '_xp') && ! empty($rule['xp'])) {
+            if (str_ends_with($key, '_xp') && isset($rule['xp']) && $rule['xp'] > 0) {
                 return (int) $rule['xp'];
             }
-            if (str_ends_with($key, '_coins') && ! empty($rule['coins'])) {
+            if (str_ends_with($key, '_coins') && isset($rule['coins']) && $rule['coins'] > 0) {
                 return (int) $rule['coins'];
             }
             if (! empty($rule['xp'])) {
@@ -335,6 +335,6 @@ class Course extends Model
             }
         }
 
-        return 0;
+        return $default > 0 ? $default : 0;
     }
 }

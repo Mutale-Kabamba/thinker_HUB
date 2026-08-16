@@ -545,15 +545,56 @@ class GamificationService
     }
 
     /**
-     * Anti-Gaming: Video watched points trigger only if watch_duration >= 85%.
+     * Award XP & TC for attempting a quiz (Point Earning Matrix limit: Max 3 quiz attempts rewarded/day).
+     */
+    public function awardQuizAttempt(User $user, QuizAttempt $attempt): void
+    {
+        if ($user->role !== 'student' && ! $user->isStudent()) {
+            return;
+        }
+
+        $quiz = $attempt->quiz;
+        $course = $quiz?->course;
+
+        $rule = CourseGamificationRule::getRuleForCourse($course, 'quiz_attempt');
+        if (! $rule['enabled'] || ($rule['xp'] <= 0 && $rule['coins'] <= 0)) {
+            return;
+        }
+
+        $todayAttempts = XpTransaction::query()
+            ->where('user_id', $user->id)
+            ->where('activity_type', 'quiz_attempt')
+            ->whereDate('created_at', now()->toDateString())
+            ->count();
+
+        if ($todayAttempts >= 3) {
+            return;
+        }
+
+        $title = $quiz?->title ?? 'Quiz';
+
+        $this->awardPoints(
+            $user,
+            'quiz_attempt',
+            $attempt,
+            $rule['xp'],
+            $rule['coins'],
+            "Attempted quiz: {$title}"
+        );
+
+        $this->evaluateStreak($user);
+    }
+
+    /**
+     * Anti-Gaming: Video watched points trigger only if watch_duration >= 80%.
      */
     public function awardVideoWatched(User $user, Model $video, float $watchPercentage): bool
     {
-        if ($watchPercentage < 85.0) {
+        if ($watchPercentage < 80.0) {
             return false;
         }
 
-        $course = $video instanceof CourseSession ? $video->course : null;
+        $course = $video instanceof CourseSession ? $video->course : ($video->course ?? null);
         $rule = CourseGamificationRule::getRuleForCourse($course, 'video_completed');
 
         if (! $rule['enabled'] || ($rule['xp'] <= 0 && $rule['coins'] <= 0)) {
@@ -563,7 +604,7 @@ class GamificationService
         // Limit: Max 5 videos/day eligible for rewards
         $todayVideos = XpTransaction::query()
             ->where('user_id', $user->id)
-            ->where(fn ($q) => $q->where('activity_type', 'video_watched')->orWhere('source', 'video_watched'))
+            ->where(fn ($q) => $q->where('activity_type', 'video_watched')->orWhere('activity_type', 'lesson_video_completed')->orWhere('source', 'video_watched'))
             ->whereDate('created_at', now()->toDateString())
             ->count();
 
@@ -579,7 +620,7 @@ class GamificationService
             $video,
             $rule['xp'],
             $rule['coins'],
-            "Completed video (85%+ watched): {$videoTitle}"
+            "Completed video (80%+ watched): {$videoTitle}"
         );
     }
 
@@ -865,6 +906,34 @@ class GamificationService
         }
 
         $this->awardBadge($user, 'innovator');
+        $this->evaluateStreak($user);
+    }
+
+    /**
+     * Award XP & TC for publishing a Community Hub post/tutorial (Point Earning Matrix).
+     */
+    public function awardHubPost(User $user, Model $post): void
+    {
+        if ($user->role !== 'student' && ! $user->isStudent()) {
+            return;
+        }
+
+        $rule = CourseGamificationRule::getRuleForCourse(null, 'hub_post_published');
+        if (! $rule['enabled'] || ($rule['xp'] <= 0 && $rule['coins'] <= 0)) {
+            return;
+        }
+
+        $title = $post->title ?? 'Hub Post';
+
+        $this->awardPoints(
+            $user,
+            'hub_post_published',
+            $post,
+            $rule['xp'],
+            $rule['coins'],
+            "Published Hub Post / Resource: {$title}"
+        );
+
         $this->evaluateStreak($user);
     }
 

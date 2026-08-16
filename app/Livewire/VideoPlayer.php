@@ -95,12 +95,17 @@ class VideoPlayer extends Component
             ];
         }
 
+        $course = $this->lesson?->course;
+        $rule = \App\Models\CourseGamificationRule::getRuleForCourse($course, 'video_completed');
+        $baseXp = $rule['enabled'] ? $rule['xp'] : 10;
+        $baseCoins = $rule['enabled'] ? $rule['coins'] : 3;
+
         $awarded = $gamificationService->awardPoints(
             user: $user,
             activityType: 'lesson_video_completed',
             subject: $this->lesson,
-            baseXp: 10,
-            baseCoins: 5,
+            baseXp: $baseXp,
+            baseCoins: $baseCoins,
             description: "Completed video lesson: {$this->lesson->title}"
         );
 
@@ -108,15 +113,15 @@ class VideoPlayer extends Component
             $this->pointsEarned = true;
 
             $this->dispatch('points-awarded', [
-                'xp' => 10,
-                'coins' => 5,
-                'message' => '+10 XP and +5 Thinker Coins (TC) earned!',
+                'xp' => $baseXp,
+                'coins' => $baseCoins,
+                'message' => "+{$baseXp} XP and +{$baseCoins} Thinker Coins (TC) earned!",
             ]);
 
             try {
                 Notification::make()
                     ->title('Points Claimed!')
-                    ->body('You earned +10 XP and +5 Thinker Coins for completing this video lesson.')
+                    ->body("You earned +{$baseXp} XP and +{$baseCoins} Thinker Coins for completing this video lesson.")
                     ->success()
                     ->send();
             } catch (\Throwable) {
