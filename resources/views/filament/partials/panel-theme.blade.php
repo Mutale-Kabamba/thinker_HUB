@@ -2611,3 +2611,4 @@
         z-index: 99999 !important;
     }
 </style>
+@vite(['resources/js/app.js'])

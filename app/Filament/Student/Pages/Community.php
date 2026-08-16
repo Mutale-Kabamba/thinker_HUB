@@ -365,22 +365,69 @@ class Community extends Page
             ->orWhere(fn ($q) => $q->where('user_id', $target->id)->where('friend_id', $viewer->id))
             ->first();
 
+        $service = app(GamificationService::class);
+        $rankTier = $service->calculateUserRank((int) ($target->lifetime_xp ?? 0));
+
+        // Get rank on the leaderboard
+        $allLeaderboard = $service->leaderboard();
+        $leaderboardRow = $allLeaderboard->firstWhere('user_id', $target->id);
+        $rankPosition = $leaderboardRow ? $leaderboardRow['rank'] : (
+            User::query()
+                ->where('role', 'student')
+                ->where('is_active', true)
+                ->where('lifetime_xp', '>', (int) ($target->lifetime_xp ?? 0))
+                ->count() + 1
+        );
+
+        $earnedBadges = $target->badges()
+            ->orderBy('user_badge.earned_at', 'desc')
+            ->get();
+
+        $recentTransactions = XpTransaction::query()
+            ->where('user_id', $target->id)
+            ->latest('created_at')
+            ->take(8)
+            ->get();
+
         $this->profileUser = [
             'id' => $target->id,
             'name' => $target->name,
             'role_label' => 'Student',
             'bio' => $target->bio,
             'avatar' => $target->getFilamentAvatarUrl(),
-            'xp' => $target->xpTotal(),
-            'badges' => $target->badges()->orderBy('user_badge.earned_at')->get()
-                ->map(fn ($b): array => ['icon' => $b->icon, 'name' => $b->name, 'description' => $b->description])
-                ->all(),
-            'badge_count' => $target->badges()->count(),
+            'xp' => (int) ($target->lifetime_xp ?? $target->xpTotal()),
+            'coins' => (int) ($target->spendable_coins ?? 0),
+            'streak' => (int) ($target->current_streak ?? 0),
+            'rank_position' => $rankPosition,
+            'rank_tier' => $rankTier,
+            'badges' => $earnedBadges->map(fn ($b): array => [
+                'id' => $b->id,
+                'key' => $b->key,
+                'name' => $b->name,
+                'description' => $b->description,
+                'icon' => $b->icon,
+                'xp_reward' => (int) ($b->xp_reward ?? 0),
+                'earned_at' => $b->pivot?->earned_at ? \Illuminate\Support\Carbon::parse($b->pivot->earned_at)->diffForHumans() : 'Earned',
+            ])->all(),
+            'badge_count' => $earnedBadges->count(),
+            'recent_transactions' => $recentTransactions->map(fn ($tx): array => [
+                'id' => $tx->id,
+                'activity_type' => $tx->activity_type,
+                'description' => $tx->description ?: ucwords(str_replace('_', ' ', (string) $tx->activity_type)),
+                'amount_xp' => (int) ($tx->amount_xp ?: $tx->points),
+                'amount_coins' => (int) ($tx->amount_coins ?? 0),
+                'created_at' => $tx->created_at?->diffForHumans() ?? 'Recently',
+            ])->all(),
             'courses_count' => $target->courses()->count(),
             'shared_courses' => $sharedCourses->all(),
             'friendship' => $friendship ? $this->friendshipState($friendship, $viewer->id) : ['state' => 'none', 'friendship_id' => null],
             'is_self' => $target->id === $viewer->id,
         ];
+    }
+
+    public function showStudentGamification(int $userId): void
+    {
+        $this->showProfile($userId);
     }
 
     public function closeProfile(): void

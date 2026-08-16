@@ -74,6 +74,26 @@
 
 <script>
     function passkeyManager() {
+        function b64ToUint8(str) {
+            if (!str) return new Uint8Array(0);
+            const pad = '='.repeat((4 - (str.length % 4)) % 4);
+            const base64 = (str + pad).replace(/-/g, '+').replace(/_/g, '/');
+            const raw = atob(base64);
+            const arr = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; ++i) arr[i] = raw.charCodeAt(i);
+            return arr;
+        }
+
+        function bufToB64Url(buf) {
+            if (!buf) return '';
+            const bytes = new Uint8Array(buf);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
         return {
             loading: false,
             message: '',
@@ -96,18 +116,23 @@
                     if (window.Passkeys && typeof window.Passkeys.register === 'function') {
                         await window.Passkeys.register({ name: deviceName });
                     } else {
-                        // Direct WebAuthn registration
+                        // Direct WebAuthn registration fallback
+                        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
                         const optionsRes = await fetch('/user/passkeys/options', {
                             headers: {
                                 'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                                'X-CSRF-TOKEN': csrf
                             }
                         });
                         if (!optionsRes.ok) throw new Error('Could not get registration options.');
                         const { options } = await optionsRes.json();
 
-                        const challenge = Uint8Array.from(atob(options.challenge.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-                        const userHandle = Uint8Array.from(atob(options.user.id.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+                        const challenge = b64ToUint8(options.challenge);
+                        const userHandle = b64ToUint8(options.user.id);
+                        const excludeCredentials = (options.excludeCredentials || []).map(item => ({
+                            ...item,
+                            id: b64ToUint8(item.id)
+                        }));
 
                         const credential = await navigator.credentials.create({
                             publicKey: {
@@ -116,7 +141,8 @@
                                 user: {
                                     ...options.user,
                                     id: userHandle,
-                                }
+                                },
+                                excludeCredentials
                             }
                         });
 
@@ -127,16 +153,21 @@
                             headers: {
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                                'X-CSRF-TOKEN': csrf
                             },
                             body: JSON.stringify({
                                 name: deviceName,
-                                id: credential.id,
-                                rawId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
-                                type: credential.type,
-                                response: {
-                                    clientDataJSON: btoa(String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON))),
-                                    attestationObject: btoa(String.fromCharCode(...new Uint8Array(credential.response.attestationObject))),
+                                credential: {
+                                    id: credential.id,
+                                    rawId: bufToB64Url(credential.rawId),
+                                    type: credential.type,
+                                    response: {
+                                        clientDataJSON: bufToB64Url(credential.response.clientDataJSON),
+                                        attestationObject: bufToB64Url(credential.response.attestationObject),
+                                        transports: credential.response.getTransports ? credential.response.getTransports() : ['internal', 'hybrid']
+                                    },
+                                    clientExtensionResults: credential.getClientExtensionResults ? credential.getClientExtensionResults() : {},
+                                    authenticatorAttachment: credential.authenticatorAttachment || 'platform'
                                 }
                             })
                         });
@@ -158,8 +189,8 @@
                         this.message = 'Biometric registration was cancelled or timed out.';
                     } else if (err.name === 'InvalidDomainError' || msg.includes('domain')) {
                         this.message = 'Domain security mismatch. Please ensure you are accessing via HTTPS on the official domain.';
-                    } else if (msg.includes('credential manager')) {
-                        this.message = 'Device security prompt error. Please ensure screen lock or fingerprint is enabled on your device and try again.';
+                    } else if (msg.includes('credential manager') || msg.includes('lock screen') || msg.includes('screen lock')) {
+                        this.message = 'Device security prompt error. Please ensure a secure screen lock (PIN, fingerprint, or pattern) is enabled in your Android settings and try again.';
                     } else if (msg.includes('already registered')) {
                         this.message = 'This biometric credential is already registered on your account.';
                     } else {
@@ -174,11 +205,12 @@
                 if (!confirm('Are you sure you want to remove this biometric login?')) return;
 
                 try {
+                    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
                     const res = await fetch(`/user/passkeys/${id}`, {
                         method: 'DELETE',
                         headers: {
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                            'X-CSRF-TOKEN': csrf
                         }
                     });
 

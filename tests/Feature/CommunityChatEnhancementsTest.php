@@ -364,6 +364,66 @@ class CommunityChatEnhancementsTest extends TestCase
             ->assertSee('Passed Physics Midterm Quiz');
 
     }
+
+    public function test_clicking_leaderboard_student_name_shows_xp_and_badge_earnings_modal(): void
+    {
+        $topStudent = User::factory()->create([
+            'name' => 'Champion Learner',
+            'role' => 'student',
+            'lifetime_xp' => 1500,
+            'spendable_coins' => 300,
+            'current_streak' => 14,
+            'bio' => 'Passionate about algorithms and mathematics.',
+        ]);
+
+        $badge = \App\Models\Badge::updateOrCreate(
+            ['key' => 'mastermind'],
+            [
+                'name' => 'Mastermind',
+                'description' => 'Completed advanced certification',
+                'icon' => 'sparkles',
+                'xp_reward' => 250,
+            ]
+        );
+        $topStudent->badges()->syncWithoutDetaching([$badge->id => ['earned_at' => now()]]);
+
+        \App\Models\XpTransaction::create([
+            'user_id' => $topStudent->id,
+            'points' => 250,
+            'amount_xp' => 250,
+            'amount_coins' => 50,
+            'activity_type' => 'badge_unlocked',
+            'source' => 'badge_unlocked',
+            'description' => 'Unlocked Mastermind Badge',
+        ]);
+
+        $viewer = User::factory()->create([
+            'name' => 'Viewer Student',
+            'role' => 'student',
+            'lifetime_xp' => 100,
+        ]);
+
+        $this->actingAs($viewer);
+
+        Livewire::test(Community::class)
+            ->set('tab', 'leaderboard')
+            ->assertSee('Champion Learner')
+            ->call('showProfile', $topStudent->id)
+            ->assertSee('XP & Badge Earnings')
+            ->assertSee('Champion Learner')
+            ->assertSee('Passionate about algorithms and mathematics.')
+            ->assertSee('1,500')
+            ->assertSee('300')
+            ->assertSee('14-Day Streak')
+            ->assertSee('Earned Badges & Accolades')
+            ->assertSee('Mastermind')
+            ->assertSee($badge->description)
+            ->assertSee('+250 XP')
+            ->assertSee('Recent XP & Point Earnings')
+            ->assertSee('Unlocked Mastermind Badge')
+            ->call('closeProfile')
+            ->assertDontSee('XP & Badge Earnings');
+    }
 }
 
 
