@@ -311,4 +311,134 @@ class PointEarningMatrixAccumulationTest extends TestCase
             ->assertSee('Attendance & Participation')
             ->assertSee('Feedback & Platform Support');
     }
+
+    public function test_daily_login_only_awards_once_per_day_on_first_login(): void
+    {
+        $service = app(GamificationService::class);
+
+        /** @var User $student */
+        $student = User::factory()->create([
+            'role' => 'student',
+            'lifetime_xp' => 0,
+            'spendable_coins' => 0,
+        ]);
+
+        // First login of the day: awards +5 XP and +2 TC
+        $service->checkDailyStreak($student);
+        $student->refresh();
+
+        $this->assertSame(5, $student->lifetime_xp);
+        $this->assertSame(2, $student->spendable_coins);
+
+        // Second login on the same day: awards 0 additional points
+        $service->checkDailyStreak($student);
+        $student->refresh();
+
+        $this->assertSame(5, $student->lifetime_xp);
+        $this->assertSame(2, $student->spendable_coins);
+
+        // Third login on the same day: awards 0 additional points
+        $service->recordDailyLogin($student);
+        $student->refresh();
+
+        $this->assertSame(5, $student->lifetime_xp);
+        $this->assertSame(2, $student->spendable_coins);
+
+        $loginTransactions = \App\Models\XpTransaction::query()
+            ->where('user_id', $student->id)
+            ->where(fn ($q) => $q->where('activity_type', 'daily_login')->orWhere('source', 'daily_login'))
+            ->count();
+
+        $this->assertSame(1, $loginTransactions);
+    }
+
+    public function test_quiz_attempt_awards_points_on_first_try_and_zero_points_on_second_try(): void
+    {
+        $service = app(GamificationService::class);
+
+        /** @var User $student */
+        $student = User::factory()->create([
+            'role' => 'student',
+            'lifetime_xp' => 0,
+            'spendable_coins' => 0,
+        ]);
+
+        /** @var Course $course */
+        $course = Course::create([
+            'title' => 'Python Fundamentals',
+            'code' => 'PY-101',
+            'is_active' => true,
+        ]);
+
+        $quiz = Quiz::create([
+            'course_id' => $course->id,
+            'title' => 'Functions and Loops Quiz',
+            'passing_score' => 60,
+            'is_published' => true,
+        ]);
+
+        // 1. First Quiz Attempt (1st try): awards +5 XP and +2 TC
+        $firstAttempt = QuizAttempt::create([
+            'user_id' => $student->id,
+            'quiz_id' => $quiz->id,
+            'is_retake' => false,
+            'score' => 50,
+            'total_questions' => 10,
+            'percentage' => 50,
+            'passed' => false,
+            'completed_at' => now(),
+        ]);
+
+        $service->awardQuizAttempt($student, $firstAttempt);
+        $student->refresh();
+
+        $this->assertSame(5, $student->lifetime_xp);
+        $this->assertSame(2, $student->spendable_coins);
+
+        // 2. Second Quiz Attempt (2nd try / Retake with is_retake = true): awards 0 points
+        $secondAttempt = QuizAttempt::create([
+            'user_id' => $student->id,
+            'quiz_id' => $quiz->id,
+            'is_retake' => true,
+            'score' => 90,
+            'total_questions' => 10,
+            'percentage' => 90,
+            'passed' => true,
+            'completed_at' => now(),
+        ]);
+
+        $service->awardQuizAttempt($student, $secondAttempt);
+        $student->refresh();
+
+        // Points should remain unchanged (+0 from 2nd try attempt)
+        $this->assertSame(5, $student->lifetime_xp);
+        $this->assertSame(2, $student->spendable_coins);
+
+        // 3. Another attempt for the same quiz even without is_retake flag set: awards 0 points
+        $thirdAttempt = QuizAttempt::create([
+            'user_id' => $student->id,
+            'quiz_id' => $quiz->id,
+            'is_retake' => false,
+            'score' => 100,
+            'total_questions' => 10,
+            'percentage' => 100,
+            'passed' => true,
+            'completed_at' => now(),
+        ]);
+
+        $service->awardQuizAttempt($student, $thirdAttempt);
+        $student->refresh();
+
+        // Points still remain unchanged
+        $this->assertSame(5, $student->lifetime_xp);
+        $this->assertSame(2, $student->spendable_coins);
+
+        $attemptTransactions = \App\Models\XpTransaction::query()
+            ->where('user_id', $student->id)
+            ->where(fn ($q) => $q->where('activity_type', 'quiz_attempt')->orWhere('source', 'quiz_attempt'))
+            ->count();
+
+        $this->assertSame(1, $attemptTransactions);
+    }
 }
+

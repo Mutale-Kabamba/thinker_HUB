@@ -233,10 +233,14 @@ class GamificationService
             return;
         }
 
+        // Daily login points are awarded strictly once per day (on the first login of the day)
         $alreadyClaimedToday = XpTransaction::query()
             ->where('user_id', $user->id)
-            ->where('activity_type', 'daily_login')
-            ->whereDate('created_at', now()->toDateString())
+            ->where(function ($q) {
+                $q->where('activity_type', 'daily_login')
+                    ->orWhere('source', 'daily_login');
+            })
+            ->where('created_at', '>=', now()->startOfDay())
             ->exists();
 
         if ($alreadyClaimedToday) {
@@ -488,6 +492,14 @@ class GamificationService
     }
 
     /**
+     * Backward-compatible alias for awardGradedSubmission.
+     */
+    public function awardGrading(User $user, AssignmentSubmission|AssessmentSubmission $submission): void
+    {
+        $this->awardGradedSubmission($user, $submission);
+    }
+
+    /**
      * Award XP & TC for a passed quiz attempt.
      * Anti-Gaming: Re-taking an already passed quiz awards +0 TC / +0 XP.
      */
@@ -546,6 +558,7 @@ class GamificationService
 
     /**
      * Award XP & TC for attempting a quiz (Point Earning Matrix limit: Max 3 quiz attempts rewarded/day).
+     * Anti-Gaming: Second try / retake attempts do not award any points.
      */
     public function awardQuizAttempt(User $user, QuizAttempt $attempt): void
     {
@@ -553,8 +566,29 @@ class GamificationService
             return;
         }
 
+        // Anti-gaming: If it's a 2nd try / retake, do not award any points
+        if ($attempt->is_retake) {
+            return;
+        }
+
         $quiz = $attempt->quiz;
-        $course = $quiz?->course;
+
+        if (! $quiz) {
+            return;
+        }
+
+        // Anti-gaming: Check if user already attempted this quiz previously (second try awards 0 points)
+        $priorAttemptExists = QuizAttempt::query()
+            ->where('user_id', $user->id)
+            ->where('quiz_id', $quiz->id)
+            ->where('id', '!=', $attempt->id)
+            ->exists();
+
+        if ($priorAttemptExists) {
+            return;
+        }
+
+        $course = $quiz->course;
 
         $rule = CourseGamificationRule::getRuleForCourse($course, 'quiz_attempt');
         if (! $rule['enabled'] || ($rule['xp'] <= 0 && $rule['coins'] <= 0)) {
@@ -563,15 +597,18 @@ class GamificationService
 
         $todayAttempts = XpTransaction::query()
             ->where('user_id', $user->id)
-            ->where('activity_type', 'quiz_attempt')
-            ->whereDate('created_at', now()->toDateString())
+            ->where(function ($q) {
+                $q->where('activity_type', 'quiz_attempt')
+                    ->orWhere('source', 'quiz_attempt');
+            })
+            ->where('created_at', '>=', now()->startOfDay())
             ->count();
 
         if ($todayAttempts >= 3) {
             return;
         }
 
-        $title = $quiz?->title ?? 'Quiz';
+        $title = $quiz->title ?? 'Quiz';
 
         $this->awardPoints(
             $user,
