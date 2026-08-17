@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Notifications\QueuedVerifyEmail;
 use App\Support\PublicDiskPath;
 use App\Services\CertificateService;
+use App\Traits\HasReviews;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
@@ -25,7 +26,7 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
 class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, PasskeyAuthenticatable;
+    use HasFactory, HasReviews, Notifiable, PasskeyAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -57,6 +58,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         'spendable_coins',
         'current_streak',
         'last_activity_at',
+        'instructor_rating',
+        'instructor_review_count',
     ];
 
     /**
@@ -86,6 +89,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             'last_activity_at' => 'datetime',
             'pending_login_token_expires_at' => 'datetime',
             'pending_login_token_used_at' => 'datetime',
+            'instructor_rating' => 'decimal:2',
+            'instructor_review_count' => 'integer',
         ];
     }
 

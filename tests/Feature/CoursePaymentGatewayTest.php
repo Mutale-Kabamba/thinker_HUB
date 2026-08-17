@@ -16,6 +16,44 @@ class CoursePaymentGatewayTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Http::fake([
+            '*/collections/mobile-money' => Http::response([
+                'status' => true,
+                'message' => 'Prompt sent to customer',
+                'data' => [
+                    'id' => 'LENCO-MM-123456',
+                    'status' => 'pending',
+                ],
+            ], 200),
+            '*/collections/card' => Http::response([
+                'status' => true,
+                'message' => 'Card processed successfully',
+                'data' => [
+                    'id' => 'LENCO-CARD-123456',
+                    'status' => 'successful',
+                ],
+            ], 200),
+            '*/collections/verify/*' => Http::response([
+                'status' => true,
+                'message' => 'Pending authorization',
+                'data' => [
+                    'status' => 'pending',
+                ],
+            ], 200),
+            '*/collections/*' => Http::response([
+                'status' => true,
+                'message' => 'Pending authorization',
+                'data' => [
+                    'status' => 'pending',
+                ],
+            ], 200),
+        ]);
+    }
+
     public function test_checkout_screen_can_be_rendered_for_course(): void
     {
         $course = Course::create([

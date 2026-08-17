@@ -7,6 +7,7 @@ use App\Models\Assessment;
 use App\Models\AssessmentSubmission;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Models\Badge;
 use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
@@ -44,7 +45,7 @@ class StudentResults extends Page
 
     public string $activeCategory = 'quizzes'; // 'all', 'quizzes', 'assignments', 'assessments'
 
-    public string $taskTypeFilter = 'all';
+    public string $taskTypeFilter = 'all'; // 'all', 'quizzes', 'assignments', 'assessments'
 
     public string $selectedTaskKey = '';
 
@@ -59,6 +60,29 @@ class StudentResults extends Page
     public string $sortBy = 'score_desc';
 
     public ?int $selectedQuizAttemptId = null;
+
+    // Award Gamification Modal State
+    public bool $showAwardModal = false;
+
+    public ?int $awardStudentId = null;
+
+    public string $awardStudentName = '';
+
+    public string $awardCourseId = '';
+
+    public string $awardActivityType = 'Outstanding Presentation';
+
+    public string $awardCustomActivity = '';
+
+    public int $awardXp = 50;
+
+    public int $awardCoins = 15;
+
+    public ?int $awardBadgeId = null;
+
+    public bool $awardBadgeBonusXp = false;
+
+    public string $awardNote = '';
 
     /** @var array<string, bool> */
     public array $expandedTasks = [];
@@ -77,6 +101,8 @@ class StudentResults extends Page
         $this->activeCategory = 'quizzes';
         $this->selectedTaskKey = '';
         $this->selectedQuizAttemptId = null;
+        $this->showAwardModal = false;
+        $this->awardStudentId = null;
     }
 
     public function selectCategory(string $category): void
@@ -285,6 +311,83 @@ class StudentResults extends Page
                 ->info()
                 ->send();
         }
+    }
+
+    public function openAwardModal(int $studentId): void
+    {
+        $student = User::query()->find($studentId);
+        if (! $student) {
+            return;
+        }
+
+        $this->awardStudentId = $student->id;
+        $this->awardStudentName = $student->name;
+        $this->awardCourseId = ! empty($this->courseFilter) ? $this->courseFilter : '';
+        $this->awardActivityType = 'Outstanding Presentation';
+        $this->awardCustomActivity = '';
+        $this->awardXp = 50;
+        $this->awardCoins = 15;
+        $this->awardBadgeId = null;
+        $this->awardBadgeBonusXp = false;
+        $this->awardNote = '';
+        $this->showAwardModal = true;
+    }
+
+    public function closeAwardModal(): void
+    {
+        $this->showAwardModal = false;
+        $this->awardStudentId = null;
+    }
+
+    public function updatedAwardXp($value): void
+    {
+        $val = (int) $value;
+        if ($val > 0) {
+            $this->awardCoins = (int) round($val * 0.30);
+        }
+    }
+
+    public function submitAward(): void
+    {
+        $instructor = auth()->user();
+        if (! $instructor || ! $this->awardStudentId) {
+            return;
+        }
+
+        $student = User::query()->find($this->awardStudentId);
+        if (! $student) {
+            $this->closeAwardModal();
+
+            return;
+        }
+
+        $activityName = $this->awardActivityType === 'custom'
+            ? (trim($this->awardCustomActivity) ?: 'Special Recognition')
+            : $this->awardActivityType;
+
+        $course = ! empty($this->awardCourseId) ? Course::query()->find((int) $this->awardCourseId) : null;
+        $xp = max(1, (int) $this->awardXp);
+        $coins = max(0, (int) $this->awardCoins);
+
+        $result = app(GamificationService::class)->awardManualInstructorReward(
+            instructor: $instructor,
+            student: $student,
+            course: $course,
+            activityName: $activityName,
+            xp: $xp,
+            coins: $coins,
+            badgeKeyOrId: $this->awardBadgeId,
+            awardBadgeXp: $this->awardBadgeBonusXp,
+            note: $this->awardNote
+        );
+
+        $this->closeAwardModal();
+
+        Notification::make()
+            ->title('Recognition Awarded!')
+            ->body("Successfully awarded +{$result['xp']} XP and +{$result['coins']} TC" . ($result['badge'] ? " and the '{$result['badge']}' badge" : '') . " to {$student->name}.")
+            ->success()
+            ->send();
     }
 
     public function grantQuizRetake(int $studentId, int $quizId): void

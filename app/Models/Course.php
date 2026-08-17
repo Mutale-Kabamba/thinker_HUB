@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasReviews;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,6 +12,7 @@ use Illuminate\Support\Collection;
 class Course extends Model
 {
     use HasFactory;
+    use HasReviews;
 
     protected $fillable = [
         'title',
@@ -27,6 +29,8 @@ class Course extends Model
         'is_open_enrollment',
         'is_active',
         'gamification_settings',
+        'average_rating',
+        'review_count',
     ];
 
     protected function casts(): array
@@ -35,6 +39,8 @@ class Course extends Model
             'is_active' => 'boolean',
             'is_open_enrollment' => 'boolean',
             'gamification_settings' => 'array',
+            'average_rating' => 'decimal:2',
+            'review_count' => 'integer',
         ];
     }
 

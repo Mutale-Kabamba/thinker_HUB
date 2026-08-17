@@ -17,6 +17,7 @@ use App\Models\Friendship;
 use App\Models\LearningMaterial;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
+use App\Models\Review;
 use App\Models\User;
 use App\Observers\AssessmentObserver;
 use App\Observers\AssignmentObserver;
@@ -27,6 +28,7 @@ use App\Observers\CourseSessionObserver;
 use App\Observers\FriendshipObserver;
 use App\Observers\LearningMaterialObserver;
 use App\Observers\QuizAttemptObserver;
+use App\Observers\ReviewObserver;
 use App\Observers\SubmissionObserver;
 use App\Observers\UserObserver;
 use App\Policies\AssessmentPolicy;
@@ -98,6 +100,7 @@ class AppServiceProvider extends ServiceProvider
         LearningMaterial::observe(LearningMaterialObserver::class);
         Quiz::observe(\App\Observers\QuizObserver::class);
         QuizAttempt::observe(QuizAttemptObserver::class);
+        Review::observe(ReviewObserver::class);
         User::observe(UserObserver::class);
 
         Event::listen(Login::class, function (Login $event): void {

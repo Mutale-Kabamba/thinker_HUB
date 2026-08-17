@@ -4,11 +4,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Lenco by BroadPay Configuration
+    | Lenco Payment Gateway Configuration
     |--------------------------------------------------------------------------
     |
-    | Configuration options for Lenco by BroadPay payment gateway.
-    | Handles Mobile Money collections (Airtel, MTN, Zamtel) and Card payments.
+    | Configuration options for Lenco payment gateway (api.lenco.co/access/v2).
+    | Handles Mobile Money collections (Airtel, MTN, Zamtel) and Card collections.
     |
     */
 

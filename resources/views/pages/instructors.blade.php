@@ -119,6 +119,10 @@
                                             </a>
                                         </h3>
 
+                                        <div class="my-1">
+                                            <x-rating-stars :rating="$member->instructor_rating ?? 0" :count="$member->instructor_review_count ?? 0" size="xs" />
+                                        </div>
+
                                         @if ($member->occupation || $member->company)
                                             <p class="text-[11px] sm:text-xs font-medium text-slate-500 mt-0.5 truncate" title="{{ $member->occupation ?: $member->company }}">
                                                 {{ $member->occupation ?: $member->company }}

@@ -766,6 +766,14 @@
                                         @endforeach
 
                                         <button type="button"
+                                                wire:click="openAwardModal({{ $row['id'] }})"
+                                                style="font-size: 0.68rem; padding: 0.22rem 0.5rem; background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem; transition: opacity 0.15s ease;"
+                                                title="Award XP Points & Badges for off-platform activities (Presentations, Hackathons, Debate, etc.)">
+                                            <x-heroicon-s-sparkles style="width: 0.75rem; height: 0.75rem;" />
+                                            Award XP/Badge
+                                        </button>
+
+                                        <button type="button"
                                                 wire:click="toggleExpand({{ $row['id'] }})"
                                                 style="font-size: 0.68rem; padding: 0.2rem 0.45rem; background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: 4px; color: var(--hub-ink); cursor: pointer;">
                                             {{ $isExpanded ? 'Hide' : 'Details' }}
@@ -995,6 +1003,156 @@
                                 class="hub-btn"
                                 style="font-size: 0.78rem; padding: 0.4rem 0.95rem; border-radius: 6px; cursor: pointer;">
                             Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- ==================== AWARD XP & BADGES MODAL ==================== --}}
+        @if ($this->showAwardModal)
+            <div style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);"
+                 x-data
+                 @keydown.escape.window="$wire.closeAwardModal()">
+                <div style="position: relative; width: 100%; max-width: 580px; max-height: 90vh; background: #ffffff; border-radius: 14px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--hub-border);">
+                    {{-- Modal Top Bar --}}
+                    <div style="padding: 0.85rem 1.25rem; background: linear-gradient(135deg, #fffbeb, #fef3c7); border-bottom: 1px solid #fde68a; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background: #f59e0b; display: flex; align-items: center; justify-content: center; color: #ffffff;">
+                                <x-heroicon-s-sparkles style="width: 1.2rem; height: 1.2rem;" />
+                            </div>
+                            <div>
+                                <span style="font-weight: 800; font-size: 0.95rem; color: #92400e; display: block; line-height: 1.2;">
+                                    Award XP &amp; Badges to {{ $this->awardStudentName }}
+                                </span>
+                                <span style="font-size: 0.7rem; color: #b45309;">
+                                    Recognize presentations, hackathons, debate, and off-platform excellence
+                                </span>
+                            </div>
+                        </div>
+                        <button type="button" wire:click="closeAwardModal"
+                                style="background: transparent; border: none; font-size: 1.3rem; line-height: 1; color: #92400e; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 6px;"
+                                title="Close modal">
+                            &times;
+                        </button>
+                    </div>
+
+                    {{-- Form Content Body --}}
+                    <div style="padding: 1.25rem; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.82rem;">
+                        {{-- Course Select --}}
+                        <div>
+                            <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
+                                Associated Course (Optional)
+                            </label>
+                            <select wire:model.live="awardCourseId"
+                                    style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem;">
+                                <option value="">None / General Off-Platform Activity</option>
+                                @foreach ($this->instructorCourseOptions() as $cId => $cTitle)
+                                    <option value="{{ $cId }}">{{ $cTitle }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Activity Type --}}
+                        <div>
+                            <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
+                                Activity / Recognition Reason <span style="color: #dc2626;">*</span>
+                            </label>
+                            <select wire:model.live="awardActivityType"
+                                    style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem;">
+                                <option value="Outstanding Presentation">🎤 Outstanding Presentation</option>
+                                <option value="Classroom Participation & Debate">💬 Classroom Participation & Debate</option>
+                                <option value="Project Demo & Showcase">💻 Project Demo & Showcase</option>
+                                <option value="Hackathon / Competition Winner">🚀 Hackathon / Competition Winner</option>
+                                <option value="Peer Mentoring & Collaboration">🤝 Peer Mentoring & Collaboration</option>
+                                <option value="Lab Practical Excellence">⚙️ Lab Practical Excellence</option>
+                                <option value="Leadership & Teamwork">👑 Leadership & Teamwork</option>
+                                <option value="Extracurricular Contribution">🌟 Extracurricular Contribution</option>
+                                <option value="custom">➕ Other / Custom Activity</option>
+                            </select>
+                        </div>
+
+                        @if ($this->awardActivityType === 'custom')
+                            <div>
+                                <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
+                                    Custom Activity Name <span style="color: #dc2626;">*</span>
+                                </label>
+                                <input type="text" wire:model="awardCustomActivity"
+                                       placeholder="e.g. AI Prompt Challenge Winner"
+                                       style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem;" />
+                            </div>
+                        @endif
+
+                        {{-- XP and Coins Grid --}}
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <div>
+                                <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
+                                    XP Points <span style="color: #dc2626;">*</span>
+                                </label>
+                                <input type="number" wire:model.live.debounce.300ms="awardXp" min="1" max="2000"
+                                       style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem; font-weight: 700;" />
+                                <span style="font-size: 0.65rem; color: var(--hub-muted); display: block; margin-top: 0.15rem;">
+                                    Contributes to lifetime rank
+                                </span>
+                            </div>
+
+                            <div>
+                                <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
+                                    Thinker Coins (TC)
+                                </label>
+                                <input type="number" wire:model="awardCoins" min="0" max="1000"
+                                       style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem; font-weight: 700;" />
+                                <span style="font-size: 0.65rem; color: var(--hub-muted); display: block; margin-top: 0.15rem;">
+                                    Spendable reward coins (30%)
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Badge Selection --}}
+                        <div>
+                            <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
+                                Award Badge (Optional)
+                            </label>
+                            <select wire:model.live="awardBadgeId"
+                                    style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem;">
+                                <option value="">No Badge (XP / Coins only)</option>
+                                @foreach (\App\Models\Badge::all() as $b)
+                                    <option value="{{ $b->id }}">{{ $b->icon }} {{ $b->name }} (+{{ $b->xp_reward }} XP)</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        @if ($this->awardBadgeId)
+                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                <input type="checkbox" id="awardBadgeBonusXp" wire:model="awardBadgeBonusXp" style="cursor: pointer;" />
+                                <label for="awardBadgeBonusXp" style="font-size: 0.74rem; color: var(--hub-ink); cursor: pointer;">
+                                    Also grant badge's inherent bonus XP reward to student
+                                </label>
+                            </div>
+                        @endif
+
+                        {{-- Commendation Note --}}
+                        <div>
+                            <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
+                                Commendation Note / Reason (Optional)
+                            </label>
+                            <textarea wire:model="awardNote" rows="2"
+                                      placeholder="e.g. Delivered a captivating presentation with outstanding live demonstration."
+                                      style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem;"></textarea>
+                        </div>
+                    </div>
+
+                    {{-- Modal Footer --}}
+                    <div style="padding: 0.75rem 1.25rem; background: #f8fafc; border-top: 1px solid var(--hub-border); display: flex; justify-content: flex-end; align-items: center; gap: 0.6rem;">
+                        <button type="button" wire:click="closeAwardModal"
+                                class="hub-btn"
+                                style="font-size: 0.78rem; padding: 0.4rem 0.95rem; border-radius: 6px; cursor: pointer;">
+                            Cancel
+                        </button>
+                        <button type="button" wire:click="submitAward"
+                                style="font-size: 0.78rem; padding: 0.4rem 1.1rem; background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
+                            <x-heroicon-s-sparkles style="width: 0.85rem; height: 0.85rem;" />
+                            Award Recognition
                         </button>
                     </div>
                 </div>
