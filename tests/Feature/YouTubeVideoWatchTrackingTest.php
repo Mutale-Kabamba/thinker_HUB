@@ -70,7 +70,7 @@ class YouTubeVideoWatchTrackingTest extends TestCase
 
         $student->refresh();
         $this->assertEquals(10, $student->lifetime_xp);
-        $this->assertEquals(5, $student->spendable_coins);
+        $this->assertEquals(3, $student->spendable_coins);
 
         $this->assertDatabaseHas('xp_transactions', [
             'user_id' => $student->id,
@@ -78,7 +78,7 @@ class YouTubeVideoWatchTrackingTest extends TestCase
             'subject_type' => Lesson::class,
             'subject_id' => $lesson->id,
             'amount_xp' => 10,
-            'amount_coins' => 5,
+            'amount_coins' => 3,
         ]);
     }
 
@@ -171,7 +171,7 @@ class YouTubeVideoWatchTrackingTest extends TestCase
 
         $student->refresh();
         $this->assertEquals(10, $student->lifetime_xp);
-        $this->assertEquals(5, $student->spendable_coins);
+        $this->assertEquals(3, $student->spendable_coins);
 
         // Second Claim Attempt
         $component->call('awardVideoCompletionPoints', [
@@ -180,10 +180,10 @@ class YouTubeVideoWatchTrackingTest extends TestCase
             'currentTime' => 100,
         ]);
 
-        // Should still only have 10 XP and 5 TC
+        // Should still only have 10 XP and 3 TC
         $student->refresh();
         $this->assertEquals(10, $student->lifetime_xp);
-        $this->assertEquals(5, $student->spendable_coins);
+        $this->assertEquals(3, $student->spendable_coins);
         $this->assertDatabaseCount('xp_transactions', 1);
     }
 

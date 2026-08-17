@@ -98,7 +98,7 @@ class VideoPlayer extends Component
         $course = $this->lesson?->course;
         $rule = \App\Models\CourseGamificationRule::getRuleForCourse($course, 'video_completed');
         $baseXp = $rule['enabled'] ? $rule['xp'] : 10;
-        $baseCoins = $rule['enabled'] ? $rule['coins'] : 3;
+        $baseCoins = $rule['enabled'] ? $rule['coins'] : 5;
 
         $awarded = $gamificationService->awardPoints(
             user: $user,
