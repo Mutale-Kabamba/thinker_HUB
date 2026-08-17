@@ -20,11 +20,14 @@ trait HasReviews
     public function updateCachedRating(): void
     {
         $stats = $this->approvedReviews()
-            ->selectRaw('AVG(rating) as avg_rating, COUNT(*) as count')
+            ->whereNotNull('rating')
+            ->selectRaw('AVG(rating) as avg_rating, COUNT(rating) as rating_count')
             ->first();
 
+        $totalReviewCount = $this->approvedReviews()->count();
+
         $avg = $stats && $stats->avg_rating !== null ? round((float) $stats->avg_rating, 2) : 0.00;
-        $count = $stats && $stats->count !== null ? (int) $stats->count : 0;
+        $count = $totalReviewCount;
 
         if ($this instanceof \App\Models\Course) {
             $this->updateQuietly([

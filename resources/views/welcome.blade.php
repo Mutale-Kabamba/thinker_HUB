@@ -102,7 +102,16 @@
                             <div class="text-center lg:text-left"><p class="text-xl sm:text-2xl font-bold text-white">{{ ($stats['tutors'] ?? 0) < 10 ? ($stats['tutors'] ?? 0) : '10+' }}</p><p class="text-[10px] sm:text-xs uppercase tracking-tighter text-slate-400">Tutors</p></div>
                             <div class="text-center lg:text-left"><p class="text-xl sm:text-2xl font-bold text-white">{{ ($stats['students'] ?? 0) < 10 ? ($stats['students'] ?? 0) : '10+' }}</p><p class="text-[10px] sm:text-xs uppercase tracking-tighter text-slate-400">Students</p></div>
                             <div class="text-center lg:text-left"><p class="text-xl sm:text-2xl font-bold text-white">{{ ($stats['courses'] ?? 0) < 10 ? ($stats['courses'] ?? 0) : '10+' }}</p><p class="text-[10px] sm:text-xs uppercase tracking-tighter text-slate-400">Courses</p></div>
-                            <div class="text-center lg:text-left"><p class="text-xl sm:text-2xl font-bold text-amber-300">4.9 ★</p><p class="text-[10px] sm:text-xs uppercase tracking-tighter text-slate-400">Rating</p></div>
+                            <div class="text-center lg:text-left">
+                                @php
+                                    $heroAvgRating = (float) ($stats['avg_rating'] ?? ($ratingStats['avgRating'] ?? 5.0));
+                                    if ($heroAvgRating <= 0) {
+                                        $heroAvgRating = 5.0;
+                                    }
+                                @endphp
+                                <p class="text-xl sm:text-2xl font-bold text-amber-300">{{ number_format($heroAvgRating, 1) }} ★</p>
+                                <p class="text-[10px] sm:text-xs uppercase tracking-tighter text-slate-400">Rating</p>
+                            </div>
                         </div>
                     </div>
 

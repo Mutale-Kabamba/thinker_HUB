@@ -42,13 +42,16 @@ class ReviewList extends Component
         $this->resetPage();
     }
 
-    public function openSubmitModal(): void
+    public function openSubmitModal()
     {
-        $this->dispatch('openSubmitReviewModal',
-            targetType: $this->targetType,
-            targetId: $this->targetId,
-            targetTitle: $this->targetTitle
-        );
+        if (! \Illuminate\Support\Facades\Auth::check()) {
+            return $this->redirect(route('login'));
+        }
+
+        return $this->redirect(route('reviews.create', [
+            'type' => $this->targetType ?: 'platform',
+            'id' => $this->targetId,
+        ]));
     }
 
     public function render()
@@ -73,14 +76,16 @@ class ReviewList extends Component
         // Stats across all ratings for this target
         $allReviews = (clone $baseQuery)->get();
         $totalCount = $allReviews->count();
-        $avgRating = $totalCount > 0 ? round((float) $allReviews->avg('rating'), 2) : 0.00;
+        $ratedReviews = $allReviews->whereNotNull('rating');
+        $ratingCount = $ratedReviews->count();
+        $avgRating = $ratingCount > 0 ? round((float) $ratedReviews->avg('rating'), 2) : 0.00;
 
         $starCounts = [
-            5 => $allReviews->where('rating', 5)->count(),
-            4 => $allReviews->where('rating', 4)->count(),
-            3 => $allReviews->where('rating', 3)->count(),
-            2 => $allReviews->where('rating', 2)->count(),
-            1 => $allReviews->where('rating', 1)->count(),
+            5 => $ratedReviews->where('rating', 5)->count(),
+            4 => $ratedReviews->where('rating', 4)->count(),
+            3 => $ratedReviews->where('rating', 3)->count(),
+            2 => $ratedReviews->where('rating', 2)->count(),
+            1 => $ratedReviews->where('rating', 1)->count(),
         ];
 
         // Filtered list
@@ -95,6 +100,7 @@ class ReviewList extends Component
         return view('livewire.reviews.review-list', [
             'reviews' => $reviews,
             'totalCount' => $totalCount,
+            'ratingCount' => $ratingCount,
             'avgRating' => $avgRating,
             'starCounts' => $starCounts,
         ]);

@@ -45,6 +45,11 @@ class Review extends Model
         return $query->where('is_approved', true);
     }
 
+    public function scopePlatform(Builder $query): Builder
+    {
+        return $query->whereNull('reviewable_type')->whereNull('reviewable_id');
+    }
+
     public function scopePlatformOnly(Builder $query): Builder
     {
         return $query->whereNull('reviewable_type')->whereNull('reviewable_id');

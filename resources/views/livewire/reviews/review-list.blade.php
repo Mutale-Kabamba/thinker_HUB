@@ -23,16 +23,17 @@
                     Based on {{ number_format($totalCount) }} verified {{ Str::plural('rating', $totalCount) }}
                 </p>
 
-                <div class="mt-4">
-                    <button type="button"
-                            wire:click="openSubmitModal"
-                            class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:from-teal-700 hover:to-emerald-700 transition">
-                        <svg class="w-4 h-4 text-amber-300" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        Write a Review (+10 XP)
-                    </button>
-                </div>
+                @auth
+                    <div class="mt-4">
+                        <a href="{{ route('reviews.create', ['type' => $targetType ?: 'platform', 'id' => $targetId]) }}"
+                           class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:from-teal-700 hover:to-emerald-700 transition">
+                            <svg class="w-4 h-4 text-amber-300" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            Write a Review (+10 XP)
+                        </a>
+                    </div>
+                @endauth
             </div>
 
             {{-- Breakdown Bars (8 Cols) --}}
@@ -83,13 +84,14 @@
             </div>
             <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">No reviews found</h4>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-                {{ $filterRating ? "There are no {$filterRating}-star reviews yet." : 'Be the first to share your learning experience!' }}
+                {{ $filterRating ? "There are no {$filterRating}-star reviews yet." : 'Learner reviews will appear here once submitted.' }}
             </p>
-            <button type="button"
-                    wire:click="openSubmitModal"
-                    class="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-teal-700 transition">
-                + Write First Review
-            </button>
+            @auth
+                <a href="{{ route('reviews.create', ['type' => $targetType ?: 'platform', 'id' => $targetId]) }}"
+                   class="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-teal-700 transition">
+                    + Write First Review
+                </a>
+            @endauth
         </div>
     @else
         <div class="grid gap-4 sm:grid-cols-2">
@@ -98,7 +100,13 @@
                     <div>
                         {{-- Review Top: Stars + Verified Badge + Date --}}
                         <div class="flex items-center justify-between gap-2 flex-wrap">
-                            <x-rating-stars :rating="$review->rating" size="sm" :showText="false" />
+                            @if ($review->rating)
+                                <x-rating-stars :rating="$review->rating" size="sm" :showText="false" />
+                            @else
+                                <span class="inline-flex items-center gap-1 rounded-md bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 px-2 py-0.5 text-[10px] font-bold">
+                                    <i class="fa-regular fa-comment-dots"></i> Written Review
+                                </span>
+                            @endif
 
                             <div class="flex items-center gap-2">
                                 @if ($review->is_verified)
@@ -123,9 +131,11 @@
                         @endif
 
                         {{-- Comment --}}
-                        <p class="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300 whitespace-pre-line">
-                            {{ $review->comment }}
-                        </p>
+                        @if ($review->comment)
+                            <p class="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300 whitespace-pre-line">
+                                {{ $review->comment }}
+                            </p>
+                        @endif
                     </div>
 
                     {{-- Review Author Footer --}}

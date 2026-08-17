@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Reviews\CreateReviewPage;
 use App\Livewire\Reviews\ReviewList;
 use App\Livewire\Reviews\SubmitReviewModal;
 use App\Models\Course;
@@ -260,4 +261,275 @@ class UnifiedReviewsAndRatingsTest extends TestCase
             ->assertSee('Amazing Course')
             ->assertDontSee('Great Pace');
     }
+
+    public function test_unauthenticated_guest_cannot_submit_review_and_is_redirected_to_login(): void
+    {
+        $course = $this->createCourse();
+
+        // 1. SubmitReviewModal redirects guest
+        Livewire::test(SubmitReviewModal::class)
+            ->call('openModal', 'course', $course->id, $course->title)
+            ->assertRedirect(route('login'));
+
+        Livewire::test(SubmitReviewModal::class)
+            ->set('rating', 5)
+            ->set('comment', 'Guest trying to submit')
+            ->call('submitReview')
+            ->assertRedirect(route('login'));
+
+        $this->assertEquals(0, Review::count());
+
+        // 2. ReviewList openSubmitModal redirects guest
+        Livewire::test(ReviewList::class, [
+            'targetType' => 'course',
+            'targetId' => $course->id,
+            'targetTitle' => $course->title,
+        ])
+            ->call('openSubmitModal')
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_public_guest_view_of_review_list_is_strictly_display_only_without_interaction_options(): void
+    {
+        $course = $this->createCourse();
+        $student = User::factory()->create(['role' => 'student']);
+
+        // 1. Guest view: Strictly read-only display
+        Livewire::test(ReviewList::class, [
+            'targetType' => 'course',
+            'targetId' => $course->id,
+            'targetTitle' => $course->title,
+        ])
+            ->assertSee('Community Feedback')
+            ->assertDontSee('Write a Review')
+            ->assertDontSee('Sign in to Review')
+            ->assertDontSee('+ Write First Review')
+            ->assertDontSee('Sign in to Write First Review');
+
+        // 2. Authenticated registered user view: Sees interactive write button
+        Livewire::actingAs($student)
+            ->test(ReviewList::class, [
+                'targetType' => 'course',
+                'targetId' => $course->id,
+                'targetTitle' => $course->title,
+            ])
+            ->assertSee('Write a Review (+10 XP)')
+            ->assertSee('+ Write First Review');
+    }
+
+    public function test_home_page_rating_stat_pulls_actual_ratings_data(): void
+    {
+        $course = $this->createCourse();
+        $student1 = User::factory()->create(['role' => 'student']);
+        $student2 = User::factory()->create(['role' => 'student']);
+
+        Review::create([
+            'user_id' => $student1->id,
+            'reviewable_type' => Course::class,
+            'reviewable_id' => $course->id,
+            'rating' => 5,
+            'title' => 'Top notch',
+            'comment' => 'Outstanding course quality and mentorship.',
+            'is_approved' => true,
+        ]);
+
+        Review::create([
+            'user_id' => $student2->id,
+            'reviewable_type' => Course::class,
+            'reviewable_id' => $course->id,
+            'rating' => 4,
+            'title' => 'Very solid',
+            'comment' => 'Great pace and relevant practical examples.',
+            'is_approved' => true,
+        ]);
+
+        $response = $this->get(route('home'));
+        $response->assertOk();
+        $response->assertSee('4.5 ★');
+        $response->assertSee('Rating');
+    }
+
+    public function test_create_review_page_requires_authentication(): void
+    {
+        $guestResponse = $this->get(route('reviews.create'));
+        $guestResponse->assertRedirect(route('login'));
+
+        $student = User::factory()->create(['role' => 'student']);
+        $authResponse = $this->actingAs($student)->get(route('reviews.create', ['type' => 'course', 'id' => 1]));
+        $authResponse->assertRedirect(route('filament.student.pages.reviews', ['type' => 'course', 'id' => 1]));
+
+        $portalResponse = $this->actingAs($student)->get(route('filament.student.pages.reviews'));
+        $portalResponse->assertOk();
+    }
+
+    public function test_create_review_page_allows_submitting_platform_course_and_instructor_reviews(): void
+    {
+        $student = User::factory()->create(['role' => 'student', 'name' => 'John Doe']);
+        $instructor = User::factory()->create(['role' => 'instructor', 'name' => 'Professor Smith']);
+        $course = $this->createCourse(['title' => 'Advanced Robotics', 'created_by' => $instructor->id]);
+
+        // 1. Submit Platform Review
+        Livewire::actingAs($student)
+            ->test(CreateReviewPage::class)
+            ->set('targetType', 'platform')
+            ->set('rating', 5)
+            ->set('title', 'Superb Platform')
+            ->set('comment', 'The learning experience and navigation are seamless.')
+            ->call('submitReview')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('reviews', [
+            'user_id' => $student->id,
+            'reviewable_type' => null,
+            'reviewable_id' => null,
+            'rating' => 5,
+            'title' => 'Superb Platform',
+        ]);
+
+        // 2. Submit Course Review
+        Livewire::actingAs($student)
+            ->test(CreateReviewPage::class, ['type' => 'course', 'id' => $course->id])
+            ->set('rating', 4)
+            ->set('title', 'Great Hands-On Labs')
+            ->set('comment', 'Challenging robotics assignments and clear syllabus.')
+            ->call('submitReview')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('reviews', [
+            'user_id' => $student->id,
+            'reviewable_type' => Course::class,
+            'reviewable_id' => $course->id,
+            'rating' => 4,
+            'title' => 'Great Hands-On Labs',
+        ]);
+
+        // 3. Submit Instructor Review
+        Livewire::actingAs($student)
+            ->test(CreateReviewPage::class, ['type' => 'instructor', 'id' => $instructor->id])
+            ->set('rating', 5)
+            ->set('title', 'Inspirational Mentor')
+            ->set('comment', 'Patient instructor with deep practical knowledge.')
+            ->call('submitReview')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('reviews', [
+            'user_id' => $student->id,
+            'reviewable_type' => User::class,
+            'reviewable_id' => $instructor->id,
+            'rating' => 5,
+            'title' => 'Inspirational Mentor',
+        ]);
+    }
+
+    public function test_user_can_rate_without_review_and_vice_versa(): void
+    {
+        $student1 = User::factory()->create(['role' => 'student']);
+        $student2 = User::factory()->create(['role' => 'student']);
+        $student3 = User::factory()->create(['role' => 'student']);
+        $course = $this->createCourse(['title' => 'AI Architecture']);
+
+        // 1. Rate without Review (Rating only, no comment)
+        Livewire::actingAs($student1)
+            ->test(CreateReviewPage::class, ['type' => 'course', 'id' => $course->id])
+            ->set('rating', 5)
+            ->set('title', '')
+            ->set('comment', '')
+            ->call('submitReview')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('reviews', [
+            'user_id' => $student1->id,
+            'reviewable_type' => Course::class,
+            'reviewable_id' => $course->id,
+            'rating' => 5,
+            'comment' => null,
+        ]);
+
+        // 2. Review without Rating (Comment only, rating null)
+        Livewire::actingAs($student2)
+            ->test(CreateReviewPage::class, ['type' => 'course', 'id' => $course->id])
+            ->call('clearRating')
+            ->set('title', 'Detailed Text Commentary')
+            ->set('comment', 'This course provided outstanding practical examples and clear exercises.')
+            ->call('submitReview')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('reviews', [
+            'user_id' => $student2->id,
+            'reviewable_type' => Course::class,
+            'reviewable_id' => $course->id,
+            'rating' => null,
+            'title' => 'Detailed Text Commentary',
+            'comment' => 'This course provided outstanding practical examples and clear exercises.',
+        ]);
+
+        // 3. Validation fails if neither rating nor comment is provided
+        Livewire::actingAs($student3)
+            ->test(CreateReviewPage::class, ['type' => 'course', 'id' => $course->id])
+            ->set('rating', null)
+            ->set('title', '')
+            ->set('comment', '')
+            ->call('submitReview')
+            ->assertHasErrors(['comment']);
+
+        // Course average rating should be calculated only from non-null ratings (5.0 / 1 rating, 2 total reviews)
+        $course->refresh();
+        $this->assertEquals(5.0, (float) $course->average_rating);
+        $this->assertEquals(2, $course->review_count);
+    }
+
+    public function test_ratings_and_reviews_appear_on_their_respective_targeted_pages(): void
+    {
+        $student = User::factory()->create(['role' => 'student', 'name' => 'Charlie Day']);
+        $instructor = User::factory()->create(['role' => 'instructor', 'name' => 'Dr. Elena Vance']);
+        $course = $this->createCourse(['title' => 'Quantum Computing 101', 'created_by' => $instructor->id]);
+
+        Review::create([
+            'user_id' => $student->id,
+            'reviewable_type' => null,
+            'reviewable_id' => null,
+            'rating' => 5,
+            'title' => 'Platform is fast',
+            'comment' => 'Platform user experience is second to none!',
+            'is_approved' => true,
+        ]);
+
+        Review::create([
+            'user_id' => $student->id,
+            'reviewable_type' => Course::class,
+            'reviewable_id' => $course->id,
+            'rating' => 5,
+            'title' => 'Mastering Quantum',
+            'comment' => 'Quantum circuits and algorithms explained wonderfully.',
+            'is_approved' => true,
+        ]);
+
+        Review::create([
+            'user_id' => $student->id,
+            'reviewable_type' => User::class,
+            'reviewable_id' => $instructor->id,
+            'rating' => 5,
+            'title' => 'Best teacher',
+            'comment' => 'Elena is always available during office hours.',
+            'is_approved' => true,
+        ]);
+
+        // Home page has platform reviews and platform rating
+        $homeResponse = $this->get(route('home'));
+        $homeResponse->assertOk();
+        $homeResponse->assertSee('5.0 ★');
+
+        // Course page has course reviews
+        $courseResponse = $this->get(route('landing.courses.show', ['course' => $course->id, 'slug' => 'quantum-computing-101']));
+        $courseResponse->assertOk();
+        $courseResponse->assertSee('Course Ratings &amp; Reviews', false);
+
+        // Instructor page has instructor reviews
+        $instructorResponse = $this->get(route('landing.instructors.show', ['instructor' => $instructor->id, 'slug' => 'dr-elena-vance']));
+        $instructorResponse->assertOk();
+        $instructorResponse->assertSee('Student Ratings &amp; Reviews', false);
+    }
 }
+
+
+
