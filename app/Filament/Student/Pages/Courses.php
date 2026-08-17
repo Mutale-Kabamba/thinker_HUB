@@ -220,6 +220,21 @@ class Courses extends Page
             ],
         );
 
+        \App\Models\Review::query()->updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'reviewable_type' => Course::class,
+                'reviewable_id' => $course->id,
+            ],
+            [
+                'rating' => $rating,
+                'title' => null,
+                'comment' => $review !== '' ? $review : 'Course rating',
+                'is_verified' => true,
+                'is_approved' => true,
+            ],
+        );
+
         Notification::make()
             ->title('Your review has been saved.')
             ->success()

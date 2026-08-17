@@ -63,6 +63,10 @@
                             <p class="mt-1 text-sm font-semibold text-teal-200">Specialty: {{ $instructor->specialty ?: $instructor->proficiency }}</p>
                         @endif
 
+                        <div class="mt-3 flex items-center gap-2">
+                            <x-rating-stars :rating="$instructor->instructor_rating ?? 0" :count="$instructor->instructor_review_count ?? 0" size="sm" />
+                        </div>
+
                         <div class="mt-5 flex flex-wrap gap-3 text-xs">
                             @if ($instructor->isInstructor())
                                 <span class="rounded-full bg-white/10 border border-white/15 px-4 py-2 font-semibold text-white">{{ $coursesCount }} {{ \Illuminate\Support\Str::plural('Course', $coursesCount) }}</span>
@@ -197,6 +201,21 @@
                 </div>
             </section>
         @endif
+
+        {{-- Instructor Teaching Reviews Section --}}
+        <section class="pb-20 lg:pb-24">
+            <div class="mx-auto max-w-6xl px-6 lg:px-8">
+                <div class="mb-8">
+                    <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Testimonials &amp; Feedback</span>
+                    <h2 class="text-3xl font-black text-slate-900 mt-1 sm:text-4xl">Student Ratings &amp; Reviews</h2>
+                    <p class="mt-2 text-slate-600 text-sm">Feedback from learners who completed courses and mentorship with {{ $instructor->name }}.</p>
+                </div>
+
+                <livewire:reviews.review-list target-type="instructor" :target-id="$instructor->id" :target-title="$instructor->name" />
+            </div>
+        </section>
+
+        <livewire:reviews.submit-review-modal />
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-12 lg:py-16">

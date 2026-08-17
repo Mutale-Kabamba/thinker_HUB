@@ -358,6 +358,21 @@ Route::post('/courses/{course}/rate', function (Request $request, int $course) u
         ['rating' => $validated['rating'], 'review' => $review !== '' ? $review : null],
     );
 
+    \App\Models\Review::updateOrCreate(
+        [
+            'user_id' => $user->id,
+            'reviewable_type' => Course::class,
+            'reviewable_id' => $courseModel->id,
+        ],
+        [
+            'rating' => $validated['rating'],
+            'title' => null,
+            'comment' => $review !== '' ? $review : 'Course rating',
+            'is_verified' => true,
+            'is_approved' => true,
+        ]
+    );
+
     return redirect()->back()->with('success', 'Your review has been saved!');
 })->middleware('auth')->name('course.rate');
 
