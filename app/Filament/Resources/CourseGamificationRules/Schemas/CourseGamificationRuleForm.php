@@ -217,6 +217,9 @@ class CourseGamificationRuleForm
                 'course_rating' => 'Rating/Reviewing a Course',
                 'feedback_bug_report' => 'Helpful Feedback / Bug Report',
             ],
+            'Instructor Recognition & Off-Platform Achievements' => [
+                'instructor_award' => 'Instructor Special Recognition (Presentations, Hackathons, Debates)',
+            ],
             'Custom Actions' => [
                 'custom' => '➕ Add Custom Action / Activity',
             ],

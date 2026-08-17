@@ -1043,6 +1043,7 @@ class GamificationService
             'innovator' => 'opportunity_submit',
             'study_networker' => 'study_buddy',
             'active_contributor' => 'hub_post_published',
+            'outstanding_presentation', 'hackathon_winner', 'leadership_award', 'practical_excellence', 'instructor_star' => 'instructor_award',
             default => $badgeKey,
         };
 
@@ -1132,6 +1133,127 @@ class GamificationService
         }
 
         return $badge;
+    }
+
+    /**
+     * Award custom XP points, Thinker Coins, and optional badges to a student for off-platform / classroom activities.
+     * (e.g. Good presentations, hackathons, debate participation, project showcases, leadership).
+     */
+    public function awardManualInstructorReward(
+        User $instructor,
+        User $student,
+        ?Course $course,
+        string $activityName,
+        int $xp,
+        ?int $coins = null,
+        string|int|null $badgeKeyOrId = null,
+        bool $awardBadgeXp = true,
+        ?string $note = null
+    ): array {
+        if ($student->role !== 'student' && ! $student->enrollments()->exists()) {
+            return [
+                'success' => false,
+                'message' => 'Recipient is not a student.',
+            ];
+        }
+
+        $calculatedCoins = $coins !== null ? max(0, $coins) : (int) round(((float) $xp) * 0.30);
+        $cleanActivity = trim($activityName) ?: 'Special Recognition';
+        $desc = "Awarded by {$instructor->name} for {$cleanActivity}" . ($note ? ": {$note}" : '');
+
+        $pointsAwarded = false;
+        if ($xp > 0 || $calculatedCoins > 0) {
+            $pointsAwarded = $this->awardPoints(
+                $student,
+                'instructor_award',
+                $course,
+                $xp,
+                $calculatedCoins,
+                $desc
+            );
+        }
+
+        $awardedBadge = null;
+        if (! empty($badgeKeyOrId)) {
+            $badge = is_numeric($badgeKeyOrId)
+                ? Badge::query()->find($badgeKeyOrId)
+                : Badge::query()->where('key', (string) $badgeKeyOrId)->first();
+
+            if ($badge) {
+                $alreadyHas = DB::table('user_badge')
+                    ->where('user_id', $student->id)
+                    ->where('badge_id', $badge->id)
+                    ->exists();
+
+                if (! $alreadyHas) {
+                    try {
+                        DB::table('user_badge')->insert([
+                            'user_id' => $student->id,
+                            'badge_id' => $badge->id,
+                            'earned_at' => now(),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+
+                        if ($awardBadgeXp && $badge->xp_reward > 0) {
+                            $this->awardPoints(
+                                $student,
+                                'badge',
+                                $badge,
+                                $badge->xp_reward,
+                                (int) round($badge->xp_reward * 0.30),
+                                "Badge unlocked ({$badge->name}) awarded by {$instructor->name}"
+                            );
+                        }
+
+                        try {
+                            $student->notify(new BadgeEarnedNotification($badge));
+                        } catch (\Throwable $e) {
+                            report($e);
+                        }
+
+                        $awardedBadge = $badge;
+                    } catch (\Throwable $e) {
+                        report($e);
+                    }
+                } else {
+                    $awardedBadge = $badge;
+                }
+            }
+        }
+
+        // Send friendly notification to student
+        try {
+            $notificationTitle = '🌟 Special Recognition Awarded!';
+            $parts = [];
+            if ($xp > 0) {
+                $parts[] = "+{$xp} XP";
+            }
+            if ($calculatedCoins > 0) {
+                $parts[] = "+{$calculatedCoins} Thinker Coins";
+            }
+            if ($awardedBadge) {
+                $parts[] = "the '{$awardedBadge->name}' badge";
+            }
+
+            $body = "{$instructor->name} awarded you " . implode(' and ', $parts) . " for: {$cleanActivity}" . ($note ? " ({$note})" : '');
+
+            \Filament\Notifications\Notification::make()
+                ->title($notificationTitle)
+                ->body($body)
+                ->success()
+                ->sendToDatabase($student);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return [
+            'success' => true,
+            'xp' => $xp,
+            'coins' => $calculatedCoins,
+            'badge' => $awardedBadge?->name,
+            'activity' => $cleanActivity,
+        ];
     }
 
     /**

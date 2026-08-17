@@ -243,6 +243,16 @@ class CourseGamificationRule extends Model
                 'limit' => 'Verified by Admin',
                 'enabled' => true,
             ],
+
+            // 8. Instructor Recognition & Off-Platform Achievements
+            'instructor_award' => [
+                'category' => 'Instructor Recognition & Off-Platform Achievements',
+                'label' => 'Instructor Special Recognition (Presentations, Hackathons, Debates)',
+                'xp' => 50,
+                'coins' => 15, // 30% of 50 = 15
+                'limit' => 'Awarded directly by course instructors',
+                'enabled' => true,
+            ],
         ];
     }
 
