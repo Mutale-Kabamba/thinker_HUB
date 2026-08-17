@@ -289,6 +289,7 @@ Route::get('/courses/{course}/enroll', [PaymentController::class, 'showCheckout'
 Route::post('/courses/{course}/pay', [PaymentController::class, 'processPayment'])->name('checkout.process');
 Route::get('/payments/receipt/{reference}', [PaymentController::class, 'showReceipt'])->name('payment.receipt');
 Route::get('/payments/status/{reference}', [PaymentController::class, 'checkStatus'])->name('payment.status');
+Route::post('/api/payments/webhook/lenco', [PaymentController::class, 'handleWebhook'])->name('payment.webhook.lenco');
 Route::post('/api/payments/webhook/broadpay', [PaymentController::class, 'handleWebhook'])->name('payment.webhook.broadpay');
 Route::post('/payments/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
 

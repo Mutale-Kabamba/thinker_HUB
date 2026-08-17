@@ -19,13 +19,13 @@ class BroadPayGateway
 
     public function __construct()
     {
-        $this->baseUrl = rtrim((string) config('broadpay.base_url', 'https://api.broadpay.io/v1'), '/');
-        $this->publicKey = config('broadpay.public_key');
-        $this->secretKey = config('broadpay.secret_key');
-        $this->webhookSecret = config('broadpay.webhook_secret');
-        $this->accountId = config('broadpay.account_id');
-        $this->currency = (string) config('broadpay.currency', 'ZMW');
-        $this->timeout = (int) config('broadpay.timeout', 30);
+        $this->baseUrl = rtrim((string) config('lenco.base_url', config('broadpay.base_url', 'https://api.lenco.co/access/v2')), '/');
+        $this->publicKey = config('lenco.public_key', config('broadpay.public_key'));
+        $this->secretKey = config('lenco.secret_key', config('broadpay.secret_key'));
+        $this->webhookSecret = config('lenco.webhook_secret', config('broadpay.webhook_secret'));
+        $this->accountId = config('lenco.account_id', config('broadpay.account_id'));
+        $this->currency = (string) config('lenco.currency', config('broadpay.currency', 'ZMW'));
+        $this->timeout = (int) config('lenco.timeout', config('broadpay.timeout', 30));
     }
 
     /**
@@ -257,6 +257,18 @@ class BroadPayGateway
                 ->withToken($this->secretKey)
                 ->get("{$this->baseUrl}/collections/verify/{$reference}");
 
+            if ($response->status() === 404) {
+                $response = Http::timeout($this->timeout)
+                    ->withToken($this->secretKey)
+                    ->get("{$this->baseUrl}/collections/status/{$reference}");
+            }
+
+            if ($response->status() === 404) {
+                $response = Http::timeout($this->timeout)
+                    ->withToken($this->secretKey)
+                    ->get("{$this->baseUrl}/collections/{$reference}");
+            }
+
             if ($response->successful()) {
                 $body = $response->json() ?? [];
                 $status = strtolower((string) ($body['data']['status'] ?? $body['status'] ?? 'pending'));
@@ -284,7 +296,7 @@ class BroadPayGateway
                 );
             }
         } catch (Throwable $e) {
-            Log::warning('BroadPay verification check failed: ' . $e->getMessage());
+            Log::warning('Lenco verification check failed: ' . $e->getMessage());
         }
 
         return PaymentResult::pending(reference: $reference, message: 'Status check pending.');
