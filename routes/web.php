@@ -5,6 +5,7 @@ use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\InstructorApplicationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Livewire\Reviews\CreateReviewPage;
 use App\Models\Assessment;
 use App\Models\AssessmentSubmission;
 use App\Models\Assignment;
@@ -16,6 +17,7 @@ use App\Models\CourseRating;
 use App\Models\HubPost;
 use App\Models\LearningMaterial;
 use App\Models\Media;
+use App\Models\Review;
 use App\Models\User;
 use App\Support\PublicDiskPath;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -93,6 +95,8 @@ $loadHomeStats = static function () {
         'tutors' => 0,
         'students' => 0,
         'courses' => 0,
+        'avg_rating' => 5.0,
+        'rating_count' => 0,
     ];
 
     try {
@@ -114,6 +118,34 @@ $loadHomeStats = static function () {
             $default['courses'] = Course::query()->where('is_active', true)->count();
         }
 
+        if (Schema::hasTable('reviews')) {
+            $platformReviews = Review::query()->platform()->where('is_approved', true)->whereNotNull('rating');
+            $platformCount = $platformReviews->count();
+            if ($platformCount > 0) {
+                $default['avg_rating'] = round((float) $platformReviews->avg('rating'), 1);
+                $default['rating_count'] = $platformCount;
+            } else {
+                $allApproved = Review::query()->where('is_approved', true)->whereNotNull('rating');
+                $allCount = $allApproved->count();
+                if ($allCount > 0) {
+                    $default['avg_rating'] = round((float) $allApproved->avg('rating'), 1);
+                    $default['rating_count'] = $allCount;
+                } elseif (Schema::hasTable('course_ratings')) {
+                    $legacyCount = CourseRating::query()->count();
+                    if ($legacyCount > 0) {
+                        $default['avg_rating'] = round((float) CourseRating::query()->avg('rating'), 1);
+                        $default['rating_count'] = $legacyCount;
+                    }
+                }
+            }
+        } elseif (Schema::hasTable('course_ratings')) {
+            $legacyCount = CourseRating::query()->count();
+            if ($legacyCount > 0) {
+                $default['avg_rating'] = round((float) CourseRating::query()->avg('rating'), 1);
+                $default['rating_count'] = $legacyCount;
+            }
+        }
+
         return $default;
     } catch (Throwable $e) {
         report($e);
@@ -129,6 +161,19 @@ $loadRecentCourseReviews = static function (int $limit = 6) {
 
             if (! $sqlitePath || ($sqlitePath !== ':memory:' && ! is_file($sqlitePath))) {
                 return collect();
+            }
+        }
+
+        if (Schema::hasTable('reviews') && Schema::hasTable('users')) {
+            $reviews = Review::query()
+                ->where('is_approved', true)
+                ->with(['user:id,name', 'reviewable'])
+                ->latest()
+                ->limit($limit)
+                ->get();
+
+            if ($reviews->isNotEmpty()) {
+                return $reviews;
             }
         }
 
@@ -160,16 +205,34 @@ $loadGlobalRatingStats = static function () {
 
             if (! $sqlitePath || ($sqlitePath !== ':memory:' && ! is_file($sqlitePath))) {
                 return [
-                    'avgRating' => 0,
+                    'avgRating' => 5.0,
                     'totalRatingsCount' => 0,
                     'starCounts' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
                 ];
             }
         }
 
+        if (Schema::hasTable('reviews')) {
+            $ratedReviews = Review::query()->where('is_approved', true)->whereNotNull('rating')->get();
+            $total = $ratedReviews->count();
+            if ($total > 0) {
+                return [
+                    'avgRating' => round((float) $ratedReviews->avg('rating'), 1),
+                    'totalRatingsCount' => $total,
+                    'starCounts' => [
+                        5 => $ratedReviews->where('rating', 5)->count(),
+                        4 => $ratedReviews->where('rating', 4)->count(),
+                        3 => $ratedReviews->where('rating', 3)->count(),
+                        2 => $ratedReviews->where('rating', 2)->count(),
+                        1 => $ratedReviews->where('rating', 1)->count(),
+                    ],
+                ];
+            }
+        }
+
         if (! Schema::hasTable('course_ratings')) {
             return [
-                'avgRating' => 0,
+                'avgRating' => 5.0,
                 'totalRatingsCount' => 0,
                 'starCounts' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
             ];
@@ -177,7 +240,7 @@ $loadGlobalRatingStats = static function () {
 
         $allRatings = CourseRating::query()->get();
         $total = $allRatings->count();
-        $avg = $total > 0 ? round((float) $allRatings->avg('rating'), 1) : 0;
+        $avg = $total > 0 ? round((float) $allRatings->avg('rating'), 1) : 5.0;
 
         return [
             'avgRating' => $avg,
@@ -194,7 +257,7 @@ $loadGlobalRatingStats = static function () {
         report($e);
 
         return [
-            'avgRating' => 0,
+            'avgRating' => 5.0,
             'totalRatingsCount' => 0,
             'starCounts' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
         ];
@@ -456,6 +519,15 @@ Route::get('/network/{instructor}/{slug?}', function (int $instructor, ?string $
 
 Route::get('/instructors/apply', [InstructorApplicationController::class, 'create'])->name('landing.instructors.apply');
 Route::post('/instructors/apply', [InstructorApplicationController::class, 'store'])->name('landing.instructors.apply.store');
+
+Route::get('/reviews/create', function (\Illuminate\Http\Request $request) {
+    if (! Auth::check()) {
+        return redirect()->guest(route('login'));
+    }
+
+    return redirect()->route('filament.student.pages.reviews', $request->query());
+})->name('reviews.create');
+Route::redirect('/reviews/write', '/reviews/create');
 
 Route::view('/contact', 'pages.contact')->name('landing.contact');
 Route::post('/contact', [ContactMessageController::class, 'store'])->middleware('throttle:3,1')->name('landing.contact.store');

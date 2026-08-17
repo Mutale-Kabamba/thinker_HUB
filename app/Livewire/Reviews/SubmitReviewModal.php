@@ -19,7 +19,7 @@ class SubmitReviewModal extends Component
 
     public ?string $targetTitle = null;
 
-    public int $rating = 5;
+    public ?int $rating = 5;
 
     public string $title = '';
 
@@ -32,9 +32,9 @@ class SubmitReviewModal extends Component
     protected function rules(): array
     {
         return [
-            'rating' => 'required|integer|min:1|max:5',
+            'rating' => 'nullable|integer|min:1|max:5',
             'title' => 'nullable|string|max:120',
-            'comment' => 'required|string|min:5|max:1500',
+            'comment' => 'nullable|string|max:1500',
             'isAnonymous' => 'boolean',
         ];
     }
@@ -43,11 +43,7 @@ class SubmitReviewModal extends Component
     public function openModal(?string $targetType = null, ?int $targetId = null, ?string $targetTitle = null): void
     {
         if (! Auth::check()) {
-            $this->dispatch('notify', [
-                'type' => 'warning',
-                'message' => 'Please sign in to submit a review.',
-            ]);
-
+            $this->redirect(route('login'));
             return;
         }
 
@@ -88,18 +84,29 @@ class SubmitReviewModal extends Component
         $this->isOpen = false;
     }
 
-    public function setRating(int $value): void
+    public function setRating(?int $value): void
     {
-        $this->rating = max(1, min(5, $value));
+        $this->rating = $value !== null ? max(1, min(5, $value)) : null;
+    }
+
+    public function clearRating(): void
+    {
+        $this->rating = null;
     }
 
     public function submitReview(): void
     {
         if (! Auth::check()) {
+            $this->redirect(route('login'));
             return;
         }
 
         $this->validate();
+
+        if ($this->rating === null && empty(trim($this->comment))) {
+            $this->addError('comment', 'Please provide either a star rating, a written review, or both.');
+            return;
+        }
 
         $user = Auth::user();
 
@@ -131,7 +138,7 @@ class SubmitReviewModal extends Component
             [
                 'rating' => $this->rating,
                 'title' => trim($this->title) ?: null,
-                'comment' => trim($this->comment),
+                'comment' => ! empty(trim($this->comment)) ? trim($this->comment) : null,
                 'is_anonymous' => $this->isAnonymous,
                 'is_verified' => $isVerified,
                 'is_approved' => true,

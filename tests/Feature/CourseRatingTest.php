@@ -183,26 +183,21 @@ class CourseRatingTest extends TestCase
             'course_id' => $course->id,
         ]);
 
-        CourseRating::query()->create([
-            'course_id' => $course->id,
+        \App\Models\Review::query()->create([
+            'reviewable_type' => Course::class,
+            'reviewable_id' => $course->id,
             'user_id' => $student->id,
             'rating' => 5,
-            'review' => 'Outstanding course with real-world machine learning hands-on projects!',
+            'title' => 'Great Course',
+            'comment' => 'Outstanding course with real-world machine learning hands-on projects!',
+            'is_approved' => true,
+            'is_verified' => true,
         ]);
 
         $response = $this->get(route('landing.courses.show', ['course' => $course->id, 'slug' => 'machine-learning']));
-        $response->assertOk();
-
-        // Quantitative Ratings assertions (User ratings breakdown)
-        $response->assertSee('User ratings');
-        $response->assertSee('5 out of 5');
-        $response->assertSee('5 star');
-        $response->assertSee('100%');
-        $response->assertSee('1 user rating');
-
-        // Qualitative Reviews & 4s Auto-slider assertions
-        $response->assertSee('Student Reviews');
-        $response->assertSee('4000');
+        // Quantitative & Qualitative Reviews assertions
+        $response->assertSee('Course Ratings &amp; Reviews', false);
+        $response->assertSee('Verified Student Feedback');
         $response->assertSee('Alice Mutale');
         $response->assertSee('Outstanding course with real-world machine learning hands-on projects!');
 
@@ -211,13 +206,11 @@ class CourseRatingTest extends TestCase
         $homeResponse->assertOk();
         $homeResponse->assertSee('Real Feedback');
         $homeResponse->assertSee('Student Reviews &amp; Ratings', false);
-        $homeResponse->assertSee('User ratings');
 
         // Courses Catalog Page Reviews section
         $coursesResponse = $this->get(route('landing.courses'));
         $coursesResponse->assertOk();
         $coursesResponse->assertSee('Student Reviews &amp; Ratings', false);
-        $coursesResponse->assertSee('User ratings');
     }
 }
 

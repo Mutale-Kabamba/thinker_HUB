@@ -15,7 +15,7 @@ return new class extends Migration
             // Polymorphic Columns (Nullable for General Platform Reviews)
             $table->nullableMorphs('reviewable');
 
-            $table->unsignedTinyInteger('rating'); // 1 to 5 stars
+            $table->unsignedTinyInteger('rating')->nullable(); // 1 to 5 stars (optional: rate without review or vice versa)
             $table->string('title')->nullable();
             $table->text('comment')->nullable();
 
