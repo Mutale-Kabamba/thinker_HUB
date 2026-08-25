@@ -574,24 +574,13 @@ Route::redirect('/enroll', '/register')->name('enroll');
 Route::redirect('/become-student', '/register')->name('become-student');
 
 Route::get('/dashboard', function () {
-    $adminEmail = strtolower((string) env('ADMIN_EMAIL', 'admin@example.com'));
     $user = Auth::user();
-    $email = strtolower((string) $user?->email);
-    $isAdmin = $user?->role === 'admin' || $email === $adminEmail;
 
-    if ($isAdmin) {
-        return redirect()->route('filament.admin.pages.dashboard');
+    if (! $user) {
+        return redirect()->route('login');
     }
 
-    if ($user?->role === 'instructor') {
-        return redirect('/teach/instructor-overview');
-    }
-
-    if ($user?->isContributor()) {
-        return redirect('/contribute');
-    }
-
-    return redirect()->route('filament.student.pages.overview');
+    return redirect($user->default_portal_url);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/certificates/verify/{code}', [CertificateController::class, 'verify'])->name('certificates.verify');

@@ -44,6 +44,23 @@
                         @enderror
                     </div>
 
+                    @if (count($user->getAvailablePortals()) > 1)
+                        <div>
+                            <label for="default_portal" class="hub-eyebrow">Default Account / Workspace</label>
+                            <p class="hub-copy" style="margin-bottom:0.4rem;font-size:0.8rem;">Select which portal opens automatically when you sign in.</p>
+                            <select id="default_portal" name="default_portal" class="hub-input" style="background:var(--color-surface, #fff);color:inherit;">
+                                @foreach ($user->getAvailablePortals() as $portalKey => $portalData)
+                                    <option value="{{ $portalKey }}" {{ old('default_portal', $user->default_portal ?? '') === $portalKey ? 'selected' : '' }}>
+                                        {{ $portalData['label'] }} ({{ $portalData['path'] }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('default_portal')
+                                <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
+
                     <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
                         <button type="submit" class="hub-btn hub-btn-primary">Save Profile</button>
                         @if (session('status') === 'profile-updated')

@@ -318,9 +318,10 @@
         }
 
         .claim-tab-btn.active {
-            background: #0f4a43;
+            background: #7C3AED;
             color: #ffffff;
-            border-color: #0f4a43;
+            border-color: #7C3AED;
+            box-shadow: 0 4px 12px -2px rgba(124, 58, 237, 0.35);
         }
 
         .dark .claim-tab-btn,
@@ -339,9 +340,9 @@
 
         .dark .claim-tab-btn.active,
         .fi-theme-dark .claim-tab-btn.active {
-            background: #006a67;
+            background: #7C3AED;
             color: #ffffff;
-            border-color: #006a67;
+            border-color: #7C3AED;
         }
 
         .claim-history-btn {

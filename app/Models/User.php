@@ -39,6 +39,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         'firebase_uid',
         'password',
         'role',
+        'default_portal',
         'is_active',
         'email_verified_at',
         'track',
@@ -531,6 +532,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return PublicDiskPath::url($this->profile_photo_path);
     }
 
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        return PublicDiskPath::url($this->profile_photo_path);
+    }
+
     /**
      * Whether this account operates with dual-role privileges (e.g. Student + Instructor).
      */
@@ -590,6 +596,128 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         }
 
         return $this->enrollments()->exists();
+    }
+
+    public function canSwitchToAdmin(): bool
+    {
+        return (bool) ($this->is_active && $this->role === 'admin');
+    }
+
+    public function canSwitchToInstructor(): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        return $this->isAdmin()
+            || $this->role === 'instructor'
+            || $this->instructorCourses()->exists()
+            || $this->instructorApplication()->where('status', 'approved')->exists();
+    }
+
+    public function canSwitchToStudent(): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        if ($this->role === 'student' || empty($this->role)) {
+            return true;
+        }
+
+        return $this->courses()->exists()
+            || $this->enrollments()->exists();
+    }
+
+    public function canSwitchToContributor(): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        if (in_array($this->role, ['blogger', 'researcher', 'employer'], true)) {
+            return true;
+        }
+
+        if ($this->role === 'instructor' && $this->hasDualRole()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get all portals the user has verified access to switch between.
+     *
+     * @return array<string, array{label: string, url: string, path: string}>
+     */
+    public function getAvailablePortals(): array
+    {
+        $portals = [];
+
+        if ($this->canSwitchToAdmin()) {
+            $portals['admin'] = [
+                'label' => 'Admin Portal',
+                'url' => route('filament.admin.pages.dashboard'),
+                'path' => '/manage',
+            ];
+        }
+
+        if ($this->canSwitchToInstructor()) {
+            $portals['instructor'] = [
+                'label' => 'Instructor Hub',
+                'url' => url('/teach/instructor-overview'),
+                'path' => '/teach',
+            ];
+        }
+
+        if ($this->canSwitchToStudent()) {
+            $portals['student'] = [
+                'label' => 'Student Workspace',
+                'url' => route('filament.student.pages.overview'),
+                'path' => '/learn',
+            ];
+        }
+
+        if ($this->canSwitchToContributor()) {
+            $portals['contributor'] = [
+                'label' => 'Contributor Desk',
+                'url' => url('/contribute'),
+                'path' => '/contribute',
+            ];
+        }
+
+        return $portals;
+    }
+
+    /**
+     * Get the default login landing URL based on user preference or role priority.
+     */
+    public function getDefaultPortalUrlAttribute(): string
+    {
+        $available = $this->getAvailablePortals();
+
+        if ($this->default_portal && isset($available[$this->default_portal])) {
+            return $available[$this->default_portal]['url'];
+        }
+
+        if (isset($available['admin'])) {
+            return $available['admin']['url'];
+        }
+
+        if (isset($available['instructor'])) {
+            return $available['instructor']['url'];
+        }
+
+        if (isset($available['contributor'])) {
+            return $available['contributor']['url'];
+        }
+
+        if (isset($available['student'])) {
+            return $available['student']['url'];
+        }
+
+        return route('filament.student.pages.overview');
     }
 
     public function canAccessPanel(Panel $panel): bool

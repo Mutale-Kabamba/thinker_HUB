@@ -213,32 +213,32 @@
                     baseCoins: @js($activeCoins)
                 })"
                 @keydown.escape.window="$wire.closePlayer()"
-                style="position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;"
+                style="position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding:0.5rem;overflow-y:auto;"
             >
-                <div @click.outside="$wire.closePlayer()" style="width:100%;max-width:960px;margin:auto;background:#0f172a;color:#f8fafc;border:1px solid #334155;border-radius:1rem;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.7);">
+                <div @click.outside="$wire.closePlayer()" style="width:100%;max-width:960px;margin:auto;background:#0f172a;color:#f8fafc;border:1px solid #334155;border-radius:0.85rem;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.7);">
                     <!-- Modal Header -->
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;padding:0.75rem 1.1rem;border-bottom:1px solid #1e293b;background:#0f172a;">
-                        <div>
-                            <p style="margin:0;font-weight:700;color:#f1f5f9;font-size:0.95rem;">{{ $playerTitle }}</p>
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;padding:0.55rem 0.85rem;border-bottom:1px solid #1e293b;background:#0f172a;" class="min-w-0">
+                        <div style="min-width:0;flex:1;">
+                            <p style="margin:0;font-weight:700;color:#f1f5f9;font-size:0.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $playerTitle }}">{{ $playerTitle }}</p>
                         </div>
 
                         <!-- Points Claim Status Badge -->
-                        <div style="display:flex;align-items:center;gap:0.6rem;">
+                        <div style="display:flex;align-items:center;gap:0.35rem;flex-shrink:0;">
                             <template x-if="pointsClaimed">
-                                <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.65rem;border-radius:999px;font-size:0.75rem;font-weight:700;background:rgba(16,185,129,.2);color:#6ee7b7;border:1px solid rgba(16,185,129,.3);">
-                                    <svg style="width:0.9rem;height:0.9rem;color:#34d399;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                    <span>Points Claimed (+{{ $activeXp }} XP / +{{ $activeCoins }} TC)</span>
+                                <span style="display:inline-flex;align-items:center;gap:0.25rem;padding:0.18rem 0.5rem;border-radius:999px;font-size:0.68rem;font-weight:700;background:rgba(16,185,129,.2);color:#6ee7b7;border:1px solid rgba(16,185,129,.3);white-space:nowrap;">
+                                    <svg style="width:0.8rem;height:0.8rem;color:#34d399;flex-shrink:0;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    <span>Claimed (+{{ $activeXp }}XP)</span>
                                 </span>
                             </template>
 
                             <template x-if="!pointsClaimed">
-                                <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.65rem;border-radius:999px;font-size:0.75rem;font-weight:600;background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3);">
-                                    <svg style="width:0.9rem;height:0.9rem;color:#fbbf24;" fill="currentColor" viewBox="0 0 20 20"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
-                                    <span>Watch 85% for +{{ $activeXp }} XP / +{{ $activeCoins }} TC</span>
+                                <span style="display:inline-flex;align-items:center;gap:0.25rem;padding:0.18rem 0.5rem;border-radius:999px;font-size:0.68rem;font-weight:600;background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3);white-space:nowrap;">
+                                    <svg style="width:0.8rem;height:0.8rem;color:#fbbf24;flex-shrink:0;" fill="currentColor" viewBox="0 0 20 20"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
+                                    <span>+{{ $activeXp }} XP / +{{ $activeCoins }} TC</span>
                                 </span>
                             </template>
 
-                            <button type="button" wire:click="closePlayer" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1.4rem;line-height:1;padding:0.2rem 0.4rem;">&times;</button>
+                            <button type="button" wire:click="closePlayer" style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;border-radius:999px;background:rgba(255,255,255,0.08);border:none;cursor:pointer;color:#cbd5e1;font-size:1.2rem;line-height:1;transition:background .15s;" title="Close">&times;</button>
                         </div>
                     </div>
 
@@ -276,28 +276,28 @@
                         @endif
                     </div>
 
-                    <!-- Watch Progress Tracker -->
+                    <!-- Watch Progress Tracker (Compact & Responsive) -->
                     @if ($playerSource === 'youtube' || $playerSource === 'file')
-                        <div style="padding:0.75rem 1.1rem;background:#020617;border-bottom:1px solid #1e293b;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;margin-bottom:0.4rem;flex-wrap:wrap;gap:0.5rem;">
-                                <div style="display:flex;align-items:center;gap:0.5rem;">
-                                    <span style="font-weight:600;color:#cbd5e1;">Watch Progress:</span>
+                        <div style="padding:0.5rem 0.85rem;background:#020617;border-bottom:1px solid #1e293b;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;margin-bottom:0.35rem;gap:0.4rem;">
+                                <div style="display:flex;align-items:center;gap:0.35rem;min-width:0;">
+                                    <span style="font-weight:600;color:#cbd5e1;">Watch:</span>
                                     <span style="font-weight:700;color:#2dd4bf;" x-text="progressPercent + '%'">0%</span>
                                     <span
-                                        style="font-size:0.7rem;padding:0.1rem 0.4rem;border-radius:4px;font-weight:500;"
+                                        style="font-size:0.65rem;padding:0.08rem 0.35rem;border-radius:4px;font-weight:600;"
                                         :style="isPlaying ? 'background:rgba(13,148,136,.3);color:#5eead4;border:1px solid rgba(13,148,136,.5);' : 'background:#1e293b;color:#94a3b8;'"
-                                        x-text="isPlaying ? '▶ Actively Playing' : '⏸ Paused'"
+                                        x-text="isPlaying ? 'Playing' : 'Paused'"
                                     ></span>
                                 </div>
-                                <div style="color:#94a3b8;font-family:monospace;font-size:0.72rem;">
+                                <div style="color:#94a3b8;font-family:monospace;font-size:0.7rem;white-space:nowrap;flex-shrink:0;">
                                     <span x-text="formatTime(actualSecondsWatched)">00:00</span> /
                                     <span x-text="formatTime(duration)">00:00</span>
-                                    <span style="color:#64748b;">(Target: 85%)</span>
+                                    <span style="color:#64748b;font-size:0.65rem;">(85%)</span>
                                 </div>
                             </div>
 
                             <!-- Progress Bar -->
-                            <div style="width:100%;height:8px;background:#334155;border-radius:999px;overflow:hidden;position:relative;">
+                            <div style="width:100%;height:6px;background:#334155;border-radius:999px;overflow:hidden;position:relative;">
                                 <div style="position:absolute;top:0;bottom:0;left:85%;width:2px;background:#fbbf24;z-index:2;" title="85% Reward Target"></div>
                                 <div
                                     style="height:100%;border-radius:999px;transition:width 0.3s ease-out;"
@@ -305,17 +305,17 @@
                                 ></div>
                             </div>
 
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.4rem;font-size:0.7rem;color:#94a3b8;flex-wrap:wrap;gap:0.4rem;">
-                                <span>Anti-Scrubbing: Progress counts as you watch.</span>
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.35rem;font-size:0.68rem;color:#94a3b8;gap:0.4rem;">
+                                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Counts as you watch</span>
                                 <template x-if="pointsClaimed">
-                                    <span style="color:#34d399;font-weight:600;">+{{ $activeXp }} XP &amp; +{{ $activeCoins }} TC Awarded!</span>
+                                    <span style="color:#34d399;font-weight:700;white-space:nowrap;flex-shrink:0;">+{{ $activeXp }} XP &amp; +{{ $activeCoins }} TC Awarded</span>
                                 </template>
                                 <template x-if="!pointsClaimed && progressPercent >= 85">
                                     <button
                                         type="button"
                                         @click="claimPoints()"
-                                        style="background:#059669;color:#fff;border:none;padding:0.2rem 0.6rem;border-radius:6px;font-weight:600;cursor:pointer;font-size:0.72rem;"
-                                    >Claim +{{ $activeXp }} XP / +{{ $activeCoins }} TC Now</button>
+                                        style="background:#059669;color:#fff;border:none;padding:0.18rem 0.55rem;border-radius:6px;font-weight:700;cursor:pointer;font-size:0.7rem;white-space:nowrap;flex-shrink:0;"
+                                    >Claim +{{ $activeXp }} XP Now</button>
                                 </template>
                             </div>
                         </div>
@@ -326,7 +326,7 @@
                         x-show="claimMessage"
                         x-cloak
                         x-transition
-                        style="padding:0.6rem 1rem;font-size:0.78rem;display:flex;justify-content:space-between;align-items:center;"
+                        style="padding:0.5rem 0.85rem;font-size:0.74rem;display:flex;justify-content:space-between;align-items:center;"
                         :style="claimSuccess ? 'background:rgba(6,78,59,.8);color:#a7f3d0;border-bottom:1px solid #065f46;' : 'background:rgba(120,53,15,.8);color:#fde68a;border-bottom:1px solid #92400e;'"
                     >
                         <span x-text="claimMessage"></span>
@@ -335,7 +335,7 @@
 
                     <!-- Comments Section -->
                     @if ($commentType && $commentId)
-                        <div style="padding:0.85rem 1rem;max-height:40vh;overflow-y:auto;background:var(--hub-card);">
+                        <div style="padding:0.75rem 0.85rem;max-height:35vh;overflow-y:auto;background:var(--hub-card);">
                             @livewire('comment-section', ['type' => $commentType, 'id' => $commentId], key('cs-'.$commentType.'-'.$commentId))
                         </div>
                     @endif

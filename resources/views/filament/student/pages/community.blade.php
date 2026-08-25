@@ -18,23 +18,23 @@
         </section>
 
         {{-- Tabs --}}
-        <section style="padding:0.15rem 0 0.35rem;">
-            <div style="display:flex;justify-content:center;">
-                <div style="display:flex;gap:0.35rem;max-width:460px;width:100%;padding:0.26rem;border-radius:999px;background:rgba(255,255,255,.5);backdrop-filter:blur(8px);border:1px solid var(--hub-border);box-shadow:0 8px 22px rgba(15,23,42,.07);">
+        <section class="py-2">
+            <div class="flex justify-center">
+                <div class="flex gap-1 max-w-md w-full p-1 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm">
                 <button type="button" wire:click="$set('tab','chats')"
-                    style="flex:1;padding:0.4rem 0.5rem;border-radius:999px;border:none;cursor:pointer;font-size:0.8rem;font-weight:700;letter-spacing:.01em;{{ $tab === 'chats' ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;box-shadow:0 8px 18px rgba(14,116,144,.26);' : 'background:transparent;color:var(--hub-ink);' }}">
+                    class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all {{ $tab === 'chats' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
                     Chats
                 </button>
                 <button type="button" wire:click="$set('tab','friends')"
-                    style="flex:1;padding:0.4rem 0.5rem;border-radius:999px;border:none;cursor:pointer;font-size:0.8rem;font-weight:700;letter-spacing:.01em;{{ $tab === 'friends' ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;box-shadow:0 8px 18px rgba(14,116,144,.26);' : 'background:transparent;color:var(--hub-ink);' }}">
+                    class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all {{ $tab === 'friends' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
                     Friends
                     @if ($this->pendingRequests->count() > 0)
-                        <span style="background:#dc2626;color:#fff;border-radius:999px;font-size:0.65rem;padding:0.05rem 0.4rem;margin-left:0.3rem;">{{ $this->pendingRequests->count() }}</span>
+                        <span class="bg-rose-600 text-white rounded-full text-[10px] px-1.5 py-0.5 ml-1">{{ $this->pendingRequests->count() }}</span>
                     @endif
                 </button>
                 <button type="button" wire:click="$set('tab','leaderboard')"
-                    style="flex:1;padding:0.4rem 0.5rem;border-radius:999px;border:none;cursor:pointer;font-size:0.8rem;font-weight:700;letter-spacing:.01em;display:inline-flex;align-items:center;justify-content:center;gap:0.35rem;{{ $tab === 'leaderboard' ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;box-shadow:0 8px 18px rgba(14,116,144,.26);' : 'background:transparent;color:var(--hub-ink);' }}">
-                    <x-heroicon-o-trophy style="width:0.95rem;height:0.95rem;" />
+                    class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 {{ $tab === 'leaderboard' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
+                    <x-heroicon-o-trophy class="w-4 h-4" />
                     <span>Leaderboard</span>
                 </button>
                 </div>
