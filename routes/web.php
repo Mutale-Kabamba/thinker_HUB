@@ -454,11 +454,18 @@ Route::get('/network', function (Request $request) {
     try {
         if (Schema::hasTable('users')) {
             $query = User::query()
-                ->whereIn('role', ['instructor', 'blogger', 'researcher', 'employer'])
+                ->where(function ($q) {
+                    $q->whereIn('role', ['instructor', 'blogger', 'researcher', 'employer'])
+                        ->orWhere(fn ($sub) => $sub->where('role', 'admin')->whereHas('instructorCourses'));
+                })
                 ->where('is_active', true);
 
             if ($activeRole !== 'all' && in_array($activeRole, ['instructor', 'blogger', 'researcher', 'employer'], true)) {
-                $query->where('role', $activeRole);
+                if ($activeRole === 'instructor') {
+                    $query->where(fn ($q) => $q->where('role', 'instructor')->orWhere(fn ($sub) => $sub->where('role', 'admin')->whereHas('instructorCourses')));
+                } else {
+                    $query->where('role', $activeRole);
+                }
             }
 
             $members = $query->get([

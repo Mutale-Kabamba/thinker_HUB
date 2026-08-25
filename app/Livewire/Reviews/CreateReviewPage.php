@@ -208,7 +208,7 @@ class CreateReviewPage extends Component
             ->get(['id', 'title', 'code']);
 
         $instructors = User::query()
-            ->where('role', 'instructor')
+            ->where(fn ($q) => $q->where('role', 'instructor')->orWhere(fn ($sub) => $sub->where('role', 'admin')->whereHas('instructorCourses')))
             ->where('is_active', true)
             ->orderBy('name')
             ->get(['id', 'name', 'occupation']);

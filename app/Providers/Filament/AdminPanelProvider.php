@@ -56,6 +56,16 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->userMenuItems([
                 MenuItem::make()
+                    ->label('Instructor Workspace')
+                    ->icon('heroicon-o-academic-cap')
+                    ->url('/teach')
+                    ->visible(fn (): bool => (bool) (auth()->user()?->isInstructor() || auth()->user()?->isAdmin())),
+                MenuItem::make()
+                    ->label('Student Workspace')
+                    ->icon('heroicon-o-book-open')
+                    ->url('/learn')
+                    ->visible(fn (): bool => (bool) (auth()->user()?->isStudent() || auth()->user()?->isAdmin())),
+                MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')
                     ->url(fn (): string => route('filament.admin.pages.settings')),

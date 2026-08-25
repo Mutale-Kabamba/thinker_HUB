@@ -47,7 +47,7 @@ class CourseSessionForm
 
                 Select::make('instructor_id')
                     ->label('Instructor')
-                    ->options(User::query()->where('role', 'instructor')->pluck('name', 'id'))
+                    ->options(User::query()->whereIn('role', ['instructor', 'admin'])->orderBy('name')->pluck('name', 'id'))
                     ->searchable()
                     ->nullable(),
 

@@ -51,15 +51,20 @@ class InstructorPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Instructor/Pages'), for: 'App\Filament\Instructor\Pages')
             ->userMenuItems([
                 MenuItem::make()
+                    ->label('Admin Portal')
+                    ->icon('heroicon-o-shield-check')
+                    ->url('/manage')
+                    ->visible(fn (): bool => (bool) (auth()->user()?->isAdmin())),
+                MenuItem::make()
                     ->label('Student Workspace')
                     ->icon('heroicon-o-book-open')
                     ->url('/learn')
-                    ->visible(fn (): bool => (bool) (auth()->user()?->hasDualRole() && auth()->user()?->isStudent())),
+                    ->visible(fn (): bool => (bool) (auth()->user()?->isAdmin() || (auth()->user()?->hasDualRole() && auth()->user()?->isStudent()))),
                 MenuItem::make()
                     ->label('Contributor Desk')
                     ->icon('heroicon-o-sparkles')
                     ->url('/contribute')
-                    ->visible(fn (): bool => (bool) (auth()->user()?->hasDualRole() && auth()->user()?->isContributor())),
+                    ->visible(fn (): bool => (bool) (auth()->user()?->isAdmin() || (auth()->user()?->hasDualRole() && auth()->user()?->isContributor()))),
                 MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')
