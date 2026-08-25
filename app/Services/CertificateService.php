@@ -12,16 +12,15 @@ use Illuminate\Support\Str;
 class CertificateService
 {
     /**
-     * Full certificate eligibility rule: enrolled + instructor marked completion
-     * + 100% progress on program activities + attendance of at least 75%.
-     * Zero-content courses or incomplete enrollments are locked until marked
-     * complete by the instructor.
+     * Certificate eligibility rule:
+     * Enrolled + course completed (either 1. X/X scheduled sessions attended/completed OR 2. Instructor marks as completed)
      *
-     * @return array{eligible: bool, is_instructor_completed: bool, completed_at: mixed, progress: array<string, mixed>, attendance: array<string, mixed>, reasons: list<string>}
+     * @return array{eligible: bool, is_instructor_completed: bool, is_all_sessions_done: bool, completed_at: mixed, progress: array<string, mixed>, sessions: array<string, mixed>, attendance: array<string, mixed>, reasons: list<string>}
      */
     public function eligibility(User $user, Course $course): array
     {
         $progress = $user->courseProgress($course);
+        $sessionsProgress = $user->courseSessionsProgress($course);
         $attendance = $user->courseAttendance($course);
         $enrollment = Enrollment::query()
             ->where('user_id', $user->id)
@@ -30,32 +29,29 @@ class CertificateService
 
         $reasons = [];
 
-        if (! $progress['enrolled'] || ! $enrollment) {
+        if (! $enrollment) {
             $reasons[] = 'Enroll in the course first';
         }
 
-        if ($enrollment && $enrollment->completed_at === null) {
-            $reasons[] = 'Program completion must be signed off by your instructor';
+        $isCourseCompleted = $sessionsProgress['is_completed'];
+
+        if (! $isCourseCompleted) {
+            if ($sessionsProgress['total'] > 0) {
+                $reasons[] = "Complete all scheduled sessions ({$sessionsProgress['completed']}/{$sessionsProgress['total']}) or have your instructor mark course completion";
+            } else {
+                $reasons[] = 'Course completion must be marked by your instructor or all sessions completed';
+            }
         }
 
-        if (! $progress['has_content']) {
-            $reasons[] = 'No gradable content yet — complete course activities first';
-        } elseif (! $progress['complete']) {
-            $reasons[] = "Complete all program activities ({$progress['items_done']}/{$progress['items_total']})";
-        }
-
-        if (! $attendance['ok']) {
-            $reasons[] = "Reach 75% attendance (currently {$attendance['percent']}%)";
-        }
-
-        $isInstructorCompleted = (bool) ($enrollment && $enrollment->completed_at !== null);
-        $isEligible = $isInstructorCompleted && $progress['complete'] && $attendance['ok'];
+        $isEligible = (bool) $enrollment && $isCourseCompleted;
 
         return [
             'eligible' => $isEligible,
-            'is_instructor_completed' => $isInstructorCompleted,
+            'is_instructor_completed' => $sessionsProgress['is_instructor_completed'],
+            'is_all_sessions_done' => $sessionsProgress['is_all_sessions_done'],
             'completed_at' => $enrollment?->completed_at,
             'progress' => $progress,
+            'sessions' => $sessionsProgress,
             'attendance' => $attendance,
             'reasons' => $reasons,
         ];
@@ -63,9 +59,7 @@ class CertificateService
 
     /**
      * Idempotently issue a certificate for a completed course.
-     * Requires the enrollment to have been signed off as completed by an instructor
-     * (completed_at != null). Returns null when the student is not eligible or
-     * not completed by the instructor.
+     * Requires the course to be completed (all scheduled sessions done or instructor marked complete).
      */
     public function issue(User $user, Course $course, bool $force = false): ?Certificate
     {
@@ -78,8 +72,8 @@ class CertificateService
             return null;
         }
 
-        // Instructor completion is required unless force-issued by instructor
-        if (! $force && $enrollment->completed_at === null) {
+        // Completion is required unless force-issued by instructor
+        if (! $force && ! $user->hasCompletedCourse($course)) {
             return null;
         }
 

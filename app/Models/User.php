@@ -298,17 +298,78 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     }
 
     /**
-     * Course completion rule: enrolled + signed off as completed by instructor
-     * (enrollment->completed_at != null).
+     * Determine course sessions progress and completion for this student.
+     * Completion of a course is determined by:
+     * 1. X/X of the scheduled sessions completed/attended, OR
+     * 2. Instructor marks the course as completed (enrollment->completed_at != null).
+     *
+     * @return array{total: int, completed: int, percent: int, is_completed: bool, is_all_sessions_done: bool, is_instructor_completed: bool}
      */
-    public function hasCompletedCourse(Course $course): bool
+    public function courseSessionsProgress(Course $course): array
     {
         $enrollment = Enrollment::query()
             ->where('user_id', $this->id)
             ->where('course_id', $course->id)
             ->first();
 
-        return (bool) ($enrollment && $enrollment->completed_at !== null);
+        $sessions = CourseSession::query()
+            ->where('course_id', $course->id)
+            ->visibleTo($this)
+            ->get();
+
+        $total = $sessions->count();
+        $isInstructorCompleted = (bool) ($enrollment && $enrollment->completed_at !== null);
+
+        if ($total === 0) {
+            return [
+                'total' => 0,
+                'completed' => 0,
+                'percent' => $isInstructorCompleted ? 100 : 0,
+                'is_completed' => $isInstructorCompleted,
+                'is_all_sessions_done' => false,
+                'is_instructor_completed' => $isInstructorCompleted,
+            ];
+        }
+
+        $sessionIds = $sessions->pluck('id');
+
+        $attendedSessionIds = Attendance::query()
+            ->where('user_id', $this->id)
+            ->whereIn('course_session_id', $sessionIds)
+            ->whereIn('status', [Attendance::STATUS_PRESENT, Attendance::STATUS_LATE])
+            ->pluck('course_session_id')
+            ->all();
+
+        $completedStatusSessionIds = $sessions
+            ->where('status', 'completed')
+            ->pluck('id')
+            ->all();
+
+        $doneIds = array_unique(array_merge($attendedSessionIds, $completedStatusSessionIds));
+        $completedCount = min($total, count($doneIds));
+
+        $isAllSessionsDone = ($total > 0 && $completedCount >= $total);
+        $isCompleted = $isInstructorCompleted || $isAllSessionsDone;
+        $percent = $isCompleted ? 100 : (int) round(($completedCount / $total) * 100);
+
+        return [
+            'total' => $total,
+            'completed' => $completedCount,
+            'percent' => $percent,
+            'is_completed' => $isCompleted,
+            'is_all_sessions_done' => $isAllSessionsDone,
+            'is_instructor_completed' => $isInstructorCompleted,
+        ];
+    }
+
+    /**
+     * Course completion rule:
+     * 1. X/X of the scheduled sessions completed/attended, OR
+     * 2. Instructor marks the course as completed (enrollment->completed_at != null).
+     */
+    public function hasCompletedCourse(Course $course): bool
+    {
+        return $this->courseSessionsProgress($course)['is_completed'];
     }
 
     /**
