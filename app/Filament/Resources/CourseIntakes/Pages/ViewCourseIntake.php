@@ -4,10 +4,13 @@ namespace App\Filament\Resources\CourseIntakes\Pages;
 
 use App\Filament\Resources\CourseIntakes\CourseIntakeResource;
 use App\Models\CourseIntake;
+use App\Models\Enrollment;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -19,6 +22,85 @@ class ViewCourseIntake extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('add_students')
+                ->label('Add Students to Intake')
+                ->icon('heroicon-o-user-plus')
+                ->color('primary')
+                ->modalHeading(fn (): string => "Add Students to '{$this->record->name}' ({$this->record->course?->title})")
+                ->modalDescription(function (): string {
+                    /** @var CourseIntake $record */
+                    $record = $this->record;
+                    $current = $record->enrollments()->count();
+                    $capacity = $record->max_capacity ? " (Capacity: {$current} / {$record->max_capacity})" : " ({$current} currently enrolled)";
+                    return "Select students to assign or enroll into this intake cohort{$capacity}.";
+                })
+                ->modalSubmitActionLabel('Add to Intake')
+                ->form([
+                    Select::make('user_ids')
+                        ->label('Select Student(s)')
+                        ->multiple()
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->helperText('Search by student name or email.')
+                        ->options(function (): array {
+                            /** @var CourseIntake $record */
+                            $record = $this->record;
+                            $alreadyInThisIntake = Enrollment::query()
+                                ->where('course_id', $record->course_id)
+                                ->where('course_intake_id', $record->id)
+                                ->pluck('user_id');
+
+                            return User::query()
+                                ->where(function ($q) {
+                                    $q->whereNull('role')->orWhere('role', 'student');
+                                })
+                                ->whereNotIn('id', $alreadyInThisIntake)
+                                ->orderBy('name')
+                                ->get()
+                                ->mapWithKeys(function (User $u) use ($record) {
+                                    $isEnrolledInCourse = Enrollment::query()
+                                        ->where('course_id', $record->course_id)
+                                        ->where('user_id', $u->id)
+                                        ->exists();
+                                    $tag = $isEnrolledInCourse ? ' (Already in Course - Will Assign to Intake)' : '';
+                                    return [$u->id => "{$u->name} ({$u->email}) - Track: " . ($u->track ?? 'Beginner') . $tag];
+                                })
+                                ->toArray();
+                        }),
+                ])
+                ->action(function (array $data): void {
+                    /** @var CourseIntake $record */
+                    $record = $this->record;
+                    $userIds = (array) ($data['user_ids'] ?? []);
+                    $count = 0;
+
+                    foreach ($userIds as $userId) {
+                        $enrollment = Enrollment::query()
+                            ->where('user_id', $userId)
+                            ->where('course_id', $record->course_id)
+                            ->first();
+
+                        if ($enrollment) {
+                            $enrollment->update([
+                                'course_intake_id' => $record->id,
+                            ]);
+                        } else {
+                            Enrollment::create([
+                                'user_id' => $userId,
+                                'course_id' => $record->course_id,
+                                'course_intake_id' => $record->id,
+                            ]);
+                        }
+                        $count++;
+                    }
+
+                    Notification::make()
+                        ->title("Successfully added {$count} student(s) to '{$record->name}'.")
+                        ->success()
+                        ->send();
+                }),
+
             EditAction::make(),
 
             Action::make('activate')

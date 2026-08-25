@@ -4,6 +4,7 @@ namespace App\Filament\Instructor\Resources\StudentResource\StudentResource\Rela
 
 use App\Filament\Instructor\Concerns\ScopedToInstructor;
 use App\Models\Certificate;
+use App\Models\CourseIntake;
 use App\Models\Enrollment;
 use App\Notifications\CertificateIssuedNotification;
 use App\Services\CertificateService;
@@ -12,6 +13,8 @@ use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -34,6 +37,27 @@ class EnrollmentsRelationManager extends RelationManager
                 ->label('Course')
                 ->options(fn (): array => static::instructorCourseOptions())
                 ->required()
+                ->searchable()
+                ->live()
+                ->afterStateUpdated(fn (Set $set) => $set('course_intake_id', null)),
+
+            Select::make('course_intake_id')
+                ->label('Class / Intake (Cohort)')
+                ->placeholder('Select intake cohort (Optional)')
+                ->options(function (Get $get): array {
+                    $courseId = $get('course_id');
+                    if (! $courseId) {
+                        return [];
+                    }
+
+                    return CourseIntake::query()
+                        ->where('course_id', $courseId)
+                        ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
+                        ->orderBy('start_date', 'desc')
+                        ->get()
+                        ->mapWithKeys(fn (CourseIntake $i) => [$i->id => $i->name . ($i->is_active ? ' (Active)' : '')])
+                        ->toArray();
+                })
                 ->searchable(),
         ]);
     }
@@ -47,6 +71,12 @@ class EnrollmentsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('course.code')
                     ->label('Code'),
+                TextColumn::make('intake.name')
+                    ->label('Class / Intake')
+                    ->badge()
+                    ->color('info')
+                    ->placeholder('No cohort assigned')
+                    ->searchable(),
                 TextColumn::make('created_at')
                     ->label('Enrolled At')
                     ->dateTime()
@@ -65,6 +95,35 @@ class EnrollmentsRelationManager extends RelationManager
                 CreateAction::make()->label('Enrol in Course'),
             ])
             ->recordActions([
+                Action::make('assign_intake')
+                    ->label('Assign / Change Intake')
+                    ->icon('heroicon-o-calendar-days')
+                    ->color('primary')
+                    ->modalHeading(fn (Enrollment $record): string => "Assign Intake Cohort for {$record->course?->title}")
+                    ->form([
+                        Select::make('course_intake_id')
+                            ->label('Class / Intake')
+                            ->placeholder('No specific cohort (General)')
+                            ->options(fn (Enrollment $record): array => CourseIntake::query()
+                                ->where('course_id', $record->course_id)
+                                ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
+                                ->orderBy('start_date', 'desc')
+                                ->get()
+                                ->mapWithKeys(fn (CourseIntake $i) => [$i->id => $i->name . ($i->is_active ? ' (Active)' : '')])
+                                ->toArray()
+                            )
+                            ->default(fn (Enrollment $record) => $record->course_intake_id)
+                            ->searchable(),
+                    ])
+                    ->action(function (Enrollment $record, array $data): void {
+                        $record->update(['course_intake_id' => $data['course_intake_id'] ?? null]);
+                        $intakeName = $record->fresh()->intake?->name ?? 'General (No cohort)';
+                        Notification::make()
+                            ->title("Intake updated to '{$intakeName}'.")
+                            ->success()
+                            ->send();
+                    }),
+
                 Action::make('toggle_completion')
                     ->label(fn (Enrollment $record): string => $record->completed_at ? 'Reset Status' : 'Mark Complete')
                     ->icon(fn (Enrollment $record): string => $record->completed_at ? 'heroicon-o-arrow-path' : 'heroicon-o-check-circle')

@@ -51,8 +51,8 @@ class StudentSubmissionNotification extends Notification
     public function toArray(object $notifiable): array
     {
         $url = match ($notifiable->role ?? null) {
-            'admin' => '/manage',
-            'instructor' => '/teach/instructor-overview',
+            'admin' => $this->submissionType === 'assessment' ? '/manage/assessment-submissions' : '/manage/assignment-submissions',
+            'instructor' => $this->submissionType === 'assessment' ? '/teach/assessment-submissions' : '/teach/assignment-submissions',
             default => '/learn/overview',
         };
 
@@ -61,7 +61,7 @@ class StudentSubmissionNotification extends Notification
             ->body($this->studentName.' submitted '.$this->submissionType.': '.$this->itemTitle)
             ->actions([
                 Action::make('view')
-                    ->label('View overview')
+                    ->label('View submissions')
                     ->url($url)
                     ->markAsRead(),
             ])
