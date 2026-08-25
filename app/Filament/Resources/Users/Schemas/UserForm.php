@@ -43,16 +43,17 @@ class UserForm
                     ->default('Beginner')
                     ->visible(fn (callable $get): bool => $get('role') === 'student'),
                 Select::make('instructorCourses')
-                    ->label('Assigned Courses')
+                    ->label('Assigned Instructor Courses')
                     ->relationship('instructorCourses', 'title')
                     ->multiple()
                     ->searchable()
                     ->preload()
-                    ->visible(fn (callable $get): bool => $get('role') === 'instructor'),
+                    ->helperText('Courses this user teaches/instructs.')
+                    ->visible(fn (callable $get): bool => in_array($get('role'), ['instructor', 'admin'], true)),
                 Toggle::make('is_active')
                     ->label('Active')
                     ->default(true)
-                    ->helperText('Inactive instructor accounts cannot access the instructor panel.'),
+                    ->helperText('Inactive accounts cannot access workspaces.'),
             ]);
     }
 }

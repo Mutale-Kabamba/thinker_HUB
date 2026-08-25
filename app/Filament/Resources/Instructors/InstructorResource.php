@@ -128,6 +128,11 @@ class InstructorResource extends Resource
                 TextColumn::make('email')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('role')
+                    ->label('Role')
+                    ->badge()
+                    ->getStateUsing(fn (User $record): string => $record->isAdmin() ? 'Admin & Instructor' : 'Instructor')
+                    ->color(fn (string $state): string => $state === 'Admin & Instructor' ? 'success' : 'info'),
                 TextColumn::make('instructor_courses_count')
                     ->label('Courses')
                     ->counts('instructorCourses')
@@ -165,7 +170,7 @@ class InstructorResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->modifyQueryUsing(fn (Builder $query) => $query->where('role', 'instructor'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->where(fn (Builder $q) => $q->where('role', 'instructor')->orWhere(fn (Builder $sub) => $sub->where('role', 'admin')->whereHas('instructorCourses'))))
             ->filters([
                 SelectFilter::make('course')
                     ->label('Course')

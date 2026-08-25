@@ -452,7 +452,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
     public function isInstructor(): bool
     {
-        return $this->role === 'instructor';
+        return $this->role === 'instructor'
+            || $this->isAdmin()
+            || $this->instructorCourses()->exists()
+            || $this->instructorApplication()->where('status', 'approved')->exists();
     }
 
     public function isBlogger(): bool
