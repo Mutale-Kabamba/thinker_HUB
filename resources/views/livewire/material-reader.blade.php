@@ -10,50 +10,67 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <!-- Top Reading Control Bar (Fixed Header) -->
-    <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-2.5 sm:px-6 shadow-lg">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <!-- Left: Back Navigation & Material Meta -->
-            <div class="flex items-center gap-3 min-w-0">
-                <a
-                    href="{{ url()->previous() ?: route('filament.student.pages.materials') }}"
-                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition shadow-sm flex-shrink-0"
-                    title="Back to Materials"
-                >
-                    <i class="fa-solid fa-arrow-left text-sm"></i>
-                </a>
+    <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 py-2 sm:px-6 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2 sm:gap-3">
+            <!-- Top/Left: Back Navigation & Material Meta & Mobile Controls -->
+            <div class="flex items-center justify-between gap-2 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <a
+                        href="{{ url()->previous() ?: route('filament.student.pages.materials') }}"
+                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition shadow-sm flex-shrink-0"
+                        title="Back to Materials"
+                    >
+                        <i class="fa-solid fa-arrow-left text-sm"></i>
+                    </a>
 
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <h1 class="text-sm sm:text-base font-bold text-white truncate max-w-[280px] sm:max-w-md" title="{{ $material->title }}">
-                            {{ $material->title }}
-                        </h1>
-                        @if ($material->category)
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-950 text-teal-300 border border-teal-800">
-                                {{ $material->category }}
-                            </span>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <h1 class="text-xs sm:text-base font-bold text-white truncate max-w-[200px] sm:max-w-md" title="{{ $material->title }}">
+                                {{ $material->title }}
+                            </h1>
+                            @if ($material->category)
+                                <span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-semibold bg-teal-950 text-teal-300 border border-teal-800 shrink-0">
+                                    {{ $material->category }}
+                                </span>
+                            @endif
+                        </div>
+                        @if ($material->course)
+                            <p class="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                                Course: <span class="text-slate-300 font-medium">{{ $material->course->title }}</span>
+                            </p>
                         @endif
                     </div>
-                    @if ($material->course)
-                        <p class="text-[11px] text-slate-400 truncate">
-                            Course: <span class="text-slate-300 font-medium">{{ $material->course->title }}</span>
-                        </p>
-                    @endif
+                </div>
+
+                <!-- Mobile Page Count & Download -->
+                <div class="flex items-center gap-2 shrink-0 md:hidden">
+                    <span class="text-[11px] text-slate-400 font-mono" x-show="totalPages > 0">
+                        <span x-text="currentPage">1</span> / <span x-text="totalPages">1</span>
+                    </span>
+                    <a
+                        :href="pdfUrl"
+                        download
+                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white text-xs transition"
+                        title="Download PDF"
+                    >
+                        <i class="fa-solid fa-download"></i>
+                    </a>
                 </div>
             </div>
 
             <!-- Middle: Active Reading Tracker & Timer Badge -->
-            <div class="flex items-center gap-3 justify-between md:justify-center flex-wrap">
+            <div class="flex items-center gap-2 sm:gap-3 justify-between md:justify-center flex-wrap">
                 <!-- Reading Timer Badge -->
-                <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 shadow-inner">
+                <div class="flex items-center gap-2 bg-slate-950 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-slate-800 shadow-inner">
                     <div class="flex items-center gap-1.5">
                         <span
                             class="w-2 h-2 rounded-full"
                             :class="pointsClaimed ? 'bg-emerald-400' : (isTabActive ? 'bg-teal-400 animate-ping' : 'bg-amber-400')"
                         ></span>
-                        <span class="text-[11px] font-medium text-slate-400" x-text="isTabActive ? 'Active Reading' : 'Paused (Tab Inactive)'"></span>
+                        <span class="text-[10px] sm:text-[11px] font-medium text-slate-400" x-text="isTabActive ? 'Active Reading' : 'Paused'"></span>
                     </div>
 
-                    <div class="text-xs font-mono font-bold text-teal-300">
+                    <div class="text-[11px] sm:text-xs font-mono font-bold text-teal-300">
                         <span x-text="formatTime(activeSeconds)">00:00</span>
                         <span class="text-slate-500 font-normal">/ 03:00</span>
                     </div>
@@ -62,14 +79,14 @@
                 <!-- Reward Status Chip -->
                 <div>
                     <template x-if="pointsClaimed">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 shadow-sm animate-pulse">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 shadow-sm animate-pulse">
                             <i class="fa-solid fa-circle-check text-emerald-400"></i>
                             <span>Points Awarded (+5 XP / +2 TC)</span>
                         </span>
                     </template>
 
                     <template x-if="!pointsClaimed">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-amber-950/60 text-amber-300 border border-amber-800/60">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-[10px] sm:text-[11px] font-semibold bg-amber-950/60 text-amber-300 border border-amber-800/60">
                             <i class="fa-solid fa-coins text-amber-400"></i>
                             <span>Read 3 min for +5 XP / +2 TC</span>
                         </span>
@@ -77,9 +94,9 @@
                 </div>
             </div>
 
-            <!-- Right: Zoom, Page Controls & Actions -->
-            <div class="flex items-center gap-2 justify-end">
-                <div class="hidden sm:flex items-center gap-1 bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-xs">
+            <!-- Desktop Right: Zoom, Page Controls & Actions -->
+            <div class="hidden md:flex items-center gap-2 justify-end">
+                <div class="flex items-center gap-1 bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-xs">
                     <button type="button" @click="zoomOut()" class="px-2 py-1 hover:bg-slate-700 rounded text-slate-300" title="Zoom Out">
                         <i class="fa-solid fa-minus text-[10px]"></i>
                     </button>
@@ -103,7 +120,7 @@
                     title="Download PDF"
                 >
                     <i class="fa-solid fa-download text-xs"></i>
-                    <span class="hidden sm:inline">Download</span>
+                    <span>Download</span>
                 </a>
             </div>
         </div>
@@ -265,27 +282,60 @@
                     return;
                 }
 
+                let attempts = 0;
                 const checkPdfjs = setInterval(() => {
+                    attempts++;
                     if (typeof window.pdfjsLib !== 'undefined') {
                         clearInterval(checkPdfjs);
                         this.renderPdf();
+                    } else if (attempts > 50) {
+                        clearInterval(checkPdfjs);
+                        this.renderFallbackEmbed('PDF engine loading timed out. Switched to native browser viewer.');
                     }
                 }, 100);
             },
 
             async renderPdf() {
                 try {
-                    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
                     this.loadingStatus = 'Fetching PDF document...';
 
+                    // Configure worker with cross-origin blob fallback
+                    try {
+                        const workerBlob = new Blob(
+                            [`importScripts('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js');`],
+                            { type: 'application/javascript' }
+                        );
+                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
+                    } catch (workerErr) {
+                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    }
+
+                    // Fetch as ArrayBuffer to bypass CORS/Range/Session cookie transport issues
+                    const response = await fetch(this.pdfUrl, {
+                        headers: {
+                            'Accept': 'application/pdf,application/octet-stream,*/*',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Server returned HTTP ${response.status}`);
+                    }
+
+                    const arrayBuffer = await response.arrayBuffer();
+
+                    this.loadingStatus = 'Rendering PDF pages...';
                     const loadingTask = window.pdfjsLib.getDocument({
-                        url: this.pdfUrl,
-                        withCredentials: true
+                        data: new Uint8Array(arrayBuffer),
+                        cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+                        cMapPacked: true,
+                        isEvalSupported: false
                     });
 
                     this.pdfDoc = await loadingTask.promise;
                     this.totalPages = this.pdfDoc.numPages;
                     this.isLoading = false;
+                    this.errorMessage = '';
 
                     const container = this.$refs.pdfContainer;
                     container.innerHTML = '';
@@ -295,7 +345,7 @@
                     const firstPage = await this.pdfDoc.getPage(1);
                     const unscaledViewport = firstPage.getViewport({ scale: 1.0 });
                     if (containerWidth < unscaledViewport.width * 1.2) {
-                        this.scale = (containerWidth / unscaledViewport.width) * 0.95;
+                        this.scale = Math.max(0.6, (containerWidth / unscaledViewport.width) * 0.96);
                     }
 
                     // Render each page sequentially
@@ -303,10 +353,33 @@
                         await this.renderPage(pageNum);
                     }
                 } catch (error) {
-                    console.error('PDF.js render error:', error);
-                    this.isLoading = false;
-                    this.errorMessage = 'Could not render PDF document directly in browser. Please download the file below.';
+                    console.warn('PDF.js canvas rendering error, switching to native browser embed:', error);
+                    this.renderFallbackEmbed();
                 }
+            },
+
+            renderFallbackEmbed(customMessage = null) {
+                this.isLoading = false;
+                this.errorMessage = '';
+                const container = this.$refs.pdfContainer;
+                if (!container) return;
+
+                container.innerHTML = `
+                    <div class="w-full flex flex-col items-center space-y-4">
+                        <div class="w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-900 min-h-[75vh]">
+                            <object data="${this.pdfUrl}" type="application/pdf" class="w-full h-[75vh] block rounded-2xl">
+                                <iframe src="${this.pdfUrl}" class="w-full h-[75vh] border-0 rounded-2xl">
+                                    <div class="p-8 text-center text-slate-400">
+                                        <p class="mb-4">Your browser does not support inline PDF viewing.</p>
+                                        <a href="${this.pdfUrl}" download class="px-4 py-2 rounded-xl bg-teal-600 text-white font-bold">
+                                            Download Document
+                                        </a>
+                                    </div>
+                                </iframe>
+                            </object>
+                        </div>
+                    </div>
+                `;
             },
 
             async renderPage(pageNum) {

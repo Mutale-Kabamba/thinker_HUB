@@ -126,7 +126,7 @@ class MaterialReader extends Component
         ];
     }
 
-    #[Layout('layouts.guest')]
+    #[Layout('layouts.reader')]
     public function render(): View
     {
         return view('livewire.material-reader');
