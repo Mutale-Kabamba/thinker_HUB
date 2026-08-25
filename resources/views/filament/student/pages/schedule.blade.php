@@ -115,43 +115,44 @@
                                 @foreach ($calendarWeeks as $week)
                                     <div class="grid grid-cols-7 gap-1.5">
                                         @foreach ($week as $day)
+                                            @php
+                                                $sessionCount = count($day['sessions']);
+                                            @endphp
                                             <div 
-                                                class="rounded-xl border p-1.5 min-h-[90px] flex flex-col justify-between transition-all duration-200
-                                                    {{ $day['is_today'] ? 'border-purple-300 dark:border-purple-800 bg-purple-50/40 dark:bg-purple-950/20' : 'border-slate-100 dark:border-[#1c2c34] bg-white dark:bg-[#102028]/60 hover:border-purple-200 dark:hover:border-purple-900/60' }}
-                                                    {{ ! $day['in_month'] ? 'opacity-40 bg-slate-50/50 dark:bg-slate-900/30' : '' }}"
+                                                wire:click="selectDay('{{ $day['date_full'] }}')"
+                                                class="rounded-xl border p-2 min-h-[72px] flex flex-col justify-between transition-all duration-200 cursor-pointer group
+                                                    {{ $day['is_today'] ? 'border-purple-300 dark:border-purple-800 bg-purple-50/40 dark:bg-purple-950/20 shadow-2xs' : 'border-slate-100 dark:border-[#1c2c34] bg-white dark:bg-[#102028]/60 hover:border-purple-300 dark:hover:border-purple-800 hover:bg-purple-50/20' }}
+                                                    {{ ! $day['in_month'] ? 'opacity-35 bg-slate-50/50 dark:bg-slate-900/30' : '' }}"
+                                                title="{{ $sessionCount > 0 ? $sessionCount.' class session(s) on '.$day['date_full'].' - Click to view agenda' : $day['date_full'] }}"
                                             >
                                                 {{-- Day Cell Top: Date Number & Count Badge --}}
-                                                <div class="flex items-center justify-between gap-1 mb-1">
-                                                    <button 
-                                                        type="button" 
-                                                        wire:click="selectDay('{{ $day['date_full'] }}')"
+                                                <div class="flex items-center justify-between gap-1">
+                                                    <span 
                                                         class="w-6 h-6 rounded-full text-xs flex items-center justify-center transition-colors
-                                                            {{ $day['is_today'] ? 'bg-[#7C3AED] text-white font-extrabold shadow-2xs' : 'font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}"
-                                                        title="View {{ $day['date_full'] }} agenda"
+                                                            {{ $day['is_today'] ? 'bg-[#7C3AED] text-white font-black shadow-2xs' : 'font-bold text-slate-700 dark:text-slate-300 group-hover:bg-slate-100 dark:group-hover:bg-slate-800' }}"
                                                     >
                                                         {{ $day['date'] }}
-                                                    </button>
-                                                    @if (count($day['sessions']) > 1)
-                                                        <span class="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                                                            +{{ count($day['sessions']) }}
+                                                    </span>
+                                                    @if ($sessionCount > 1)
+                                                        <span class="text-[10px] font-extrabold text-slate-400 dark:text-slate-500">
+                                                            {{ $sessionCount }}
                                                         </span>
                                                     @endif
                                                 </div>
 
-                                                {{-- Session Pills inside Day Cell --}}
-                                                <div class="space-y-1 overflow-hidden">
-                                                    @foreach (array_slice($day['sessions'], 0, 2) as $s)
-                                                        <button 
-                                                            type="button"
-                                                            wire:click="openSessionDetails({{ $s['id'] }})"
-                                                            class="w-full text-left p-1 rounded-lg text-[10px] font-semibold truncate transition-all duration-150 block border
-                                                                {{ $s['status'] === 'completed' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : ($s['status'] === 'rescheduled' ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800' : ($s['status'] === 'cancelled' ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800' : 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200 dark:border-purple-800 hover:bg-purple-100')) }}"
-                                                            title="{{ $s['course_code'] ? $s['course_code'].' · ' : '' }}{{ $s['title'] }} ({{ $s['start_time'] }})"
-                                                        >
-                                                            <span class="font-extrabold">{{ $s['start_time'] }}</span>
-                                                            <span>{{ $s['course_code'] ? $s['course_code'] : $s['title'] }}</span>
-                                                        </button>
+                                                {{-- Dots Container for Scheduled Items --}}
+                                                <div class="flex items-center justify-center gap-1.5 py-1.5 flex-wrap min-h-[14px]">
+                                                    @foreach (array_slice($day['sessions'], 0, 4) as $s)
+                                                        <span 
+                                                            wire:click.stop="openSessionDetails({{ $s['id'] }})"
+                                                            class="w-2.5 h-2.5 rounded-full transition-transform hover:scale-150 cursor-pointer
+                                                                {{ $s['status'] === 'completed' ? 'bg-emerald-500 shadow-2xs' : ($s['status'] === 'rescheduled' ? 'bg-amber-500 shadow-2xs' : ($s['status'] === 'cancelled' ? 'bg-rose-500 shadow-2xs' : 'bg-[#7C3AED] shadow-2xs')) }}"
+                                                            title="{{ $s['course_code'] ? $s['course_code'].' · ' : '' }}{{ $s['title'] }} ({{ $s['start_time'] }}) - Click to view details"
+                                                        ></span>
                                                     @endforeach
+                                                    @if ($sessionCount > 4)
+                                                        <span class="text-[9px] font-black text-[#7C3AED] dark:text-purple-400">+{{ $sessionCount - 4 }}</span>
+                                                    @endif
                                                 </div>
                                             </div>
                                         @endforeach
@@ -300,10 +301,12 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <x-heroicon-o-funnel class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
-                            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Filter Sessions</h3>
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">
+                                {{ $showAllSessions || filled($searchSession) || filled($filterStatus) ? 'Sessions' : 'Current Week' }}
+                            </h3>
                         </div>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                            {{ count($filteredSessions) }} in view
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 border border-purple-100 dark:border-purple-900">
+                            {{ count($displayedSessions) }} {{ $showAllSessions ? 'total' : 'this week' }}
                         </span>
                     </div>
 
@@ -339,9 +342,13 @@
                         </button>
                     </div>
 
-                    {{-- Quick Search Input --}}
-                    <div class="relative">
-                        <x-heroicon-o-magnifying-glass class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    {{-- Quick Search Input (Centered Icon) --}}
+                    <div class="relative flex items-center">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                            </svg>
+                        </div>
                         <input 
                             type="text"
                             wire:model.live.debounce.300ms="searchSession"
@@ -352,7 +359,7 @@
 
                     {{-- Scrollable Session Card List --}}
                     <div class="max-h-[520px] overflow-y-auto space-y-2.5 pr-1">
-                        @forelse ($filteredSessions as $s)
+                        @forelse ($displayedSessions as $s)
                             <div 
                                 wire:click="openSessionDetails({{ $s['id'] }})"
                                 class="p-3.5 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/70 dark:bg-slate-800/40 hover:border-purple-300 dark:hover:border-purple-800 cursor-pointer space-y-2 transition-all"
@@ -386,9 +393,30 @@
                             </div>
                         @empty
                             <div class="py-8 text-center text-slate-400 text-xs">
-                                No sessions match your filter.
+                                No sessions found for this period.
                             </div>
                         @endforelse
+
+                        {{-- View More / Show Current Week Only Button --}}
+                        @if (!$showAllSessions && count($filteredSessions) > count($displayedSessions))
+                            <button 
+                                type="button" 
+                                wire:click="toggleShowAllSessions"
+                                class="w-full py-2.5 rounded-xl border border-dashed border-purple-300 dark:border-purple-800 text-xs font-extrabold text-[#7C3AED] dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors flex items-center justify-center gap-1.5 shadow-2xs mt-2"
+                            >
+                                <span>View More (All {{ count($filteredSessions) }} Sessions)</span>
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                        @elseif ($showAllSessions && count($filteredSessions) > count(array_filter($filteredSessions, fn ($s) => $s['is_current_week'])))
+                            <button 
+                                type="button" 
+                                wire:click="toggleShowAllSessions"
+                                class="w-full py-2 rounded-xl border border-dashed border-slate-200 dark:border-[#233842] text-xs font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 mt-2"
+                            >
+                                <span>Show Current Week Only</span>
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -528,21 +528,73 @@
                         @foreach (($calendar['days'] ?? []) as $day)
                             @php
                                 $isSelected = $selectedDate === $day['date'];
+                                $hasSession = ($day['session_count'] ?? 0) > 0;
+                                $hasAssignment = ($day['assignment_count'] ?? 0) > 0;
+                                $hasAssessment = ($day['assessment_count'] ?? 0) > 0;
+
+                                if ($day['is_today']) {
+                                    $circleBase = 'bg-[#7C3AED] text-white font-extrabold shadow-2xs';
+                                } elseif ($hasSession) {
+                                    $circleBase = 'border-2 border-[#7C3AED] bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 font-extrabold';
+                                } elseif ($hasAssessment && !$hasAssignment) {
+                                    $circleBase = 'border-2 border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 font-extrabold';
+                                } elseif ($hasAssignment && !$hasAssessment) {
+                                    $circleBase = 'border-2 border-rose-500 bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 font-extrabold';
+                                } elseif ($hasAssignment && $hasAssessment) {
+                                    $circleBase = 'border-2 border-rose-500 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-extrabold';
+                                } elseif ($day['is_past']) {
+                                    $circleBase = 'text-slate-300 dark:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/40 font-semibold';
+                                } else {
+                                    $circleBase = 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold';
+                                }
+
+                                $outerRings = '';
+                                if ($hasAssessment && $hasSession) {
+                                    $outerRings .= ' ring-2 ring-emerald-500 ring-offset-1 dark:ring-offset-[#102028]';
+                                }
+                                if ($hasAssignment && $hasSession) {
+                                    $outerRings .= ' outline outline-2 outline-rose-500 outline-offset-2';
+                                }
+                                if ($hasAssignment && $hasAssessment && !$hasSession) {
+                                    $outerRings .= ' ring-2 ring-rose-500 ring-offset-1 dark:ring-offset-[#102028]';
+                                }
+                                if ($day['is_today']) {
+                                    if ($hasAssessment) {
+                                        $outerRings .= ' ring-2 ring-emerald-400 ring-offset-1 dark:ring-offset-[#102028]';
+                                    } elseif ($hasAssignment) {
+                                        $outerRings .= ' ring-2 ring-rose-400 ring-offset-1 dark:ring-offset-[#102028]';
+                                    }
+                                }
                             @endphp
+
                             <button
                                 type="button"
                                 wire:click="selectDay('{{ $day['date'] }}')"
                                 title="{{ $day['has_due'] ? implode(', ', $day['due_names']) : $day['date'] }}"
                                 class="h-7 w-7 mx-auto rounded-full flex items-center justify-center text-xs transition-all relative
-                                    {{ $isSelected ? 'ring-2 ring-[#7C3AED] ring-offset-1 dark:ring-offset-[#102028] font-black z-10' : '' }}
-                                    {{ $day['is_today'] ? 'bg-[#7C3AED] text-white font-extrabold shadow-2xs' : ($day['has_due'] ? 'bg-purple-100 dark:bg-purple-950/60 text-[#7C3AED] dark:text-purple-300 font-bold hover:bg-purple-200 dark:hover:bg-purple-900/80' : ($day['is_past'] ? 'text-slate-300 dark:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/40' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800')) }}"
+                                    {{ $isSelected ? 'scale-110 ring-2 ring-[#7C3AED] ring-offset-2 dark:ring-offset-[#102028] font-black z-10' : '' }}
+                                    {{ $circleBase }}
+                                    {{ $outerRings }}"
                             >
                                 {{ $day['day'] }}
-                                @if ($day['has_due'] && !$day['is_today'])
-                                    <span class="absolute -bottom-0.5 w-1 h-1 rounded-full bg-[#7C3AED] dark:bg-purple-400"></span>
-                                @endif
                             </button>
                         @endforeach
+                    </div>
+
+                    {{-- Calendar Legend --}}
+                    <div class="flex items-center justify-center gap-3 pt-2.5 border-t border-slate-100 dark:border-[#233842] text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                        <div class="flex items-center gap-1">
+                            <span class="w-2.5 h-2.5 rounded-full border-2 border-[#7C3AED] bg-purple-50"></span>
+                            <span>Class</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="w-2.5 h-2.5 rounded-full ring-2 ring-rose-500 bg-rose-50"></span>
+                            <span>Assignment</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="w-2.5 h-2.5 rounded-full ring-2 ring-emerald-500 bg-emerald-50"></span>
+                            <span>Quiz/Test</span>
+                        </div>
                     </div>
                 </div>
 

@@ -83,6 +83,10 @@ class Schedule extends Page
 
     public array $filteredSessions = [];
 
+    public array $displayedSessions = [];
+
+    public bool $showAllSessions = false;
+
     public array $weekDays = [];
 
     public array $dayViewData = [];
@@ -230,6 +234,12 @@ class Schedule extends Page
     {
         $this->currentDate = $date;
         $this->rangeMode = 'day';
+        $this->loadData();
+    }
+
+    public function toggleShowAllSessions(): void
+    {
+        $this->showAllSessions = ! $this->showAllSessions;
         $this->loadData();
     }
 
@@ -501,7 +511,10 @@ class Schedule extends Page
             return true;
         });
 
-        $this->filteredSessions = $filtered->map(function (CourseSession $s): array {
+        $currentWeekStart = Carbon::now()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        $currentWeekEnd = Carbon::now()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+
+        $this->filteredSessions = $filtered->map(function (CourseSession $s) use ($currentWeekStart, $currentWeekEnd): array {
             $canAddToCalendar = in_array($s->status, ['scheduled', 'rescheduled'], true) && $s->effectiveEndAt()->isFuture();
             $effectiveDate = $s->getEffectiveDate();
             $startTime = $s->getEffectiveStartTime();
@@ -523,10 +536,20 @@ class Schedule extends Page
                 'notes' => $s->notes,
                 'is_today' => $effectiveDate->isToday(),
                 'is_past' => $effectiveDate->isPast() && ! $effectiveDate->isToday(),
+                'is_current_week' => $effectiveDate->between($currentWeekStart, $currentWeekEnd),
                 'can_add_to_calendar' => $canAddToCalendar,
                 'google_calendar_url' => $canAddToCalendar ? $this->buildGoogleCalendarUrl($s) : null,
             ];
         })->values()->all();
+
+        if ($this->showAllSessions || filled($this->searchSession) || filled($this->filterStatus)) {
+            $this->displayedSessions = $this->filteredSessions;
+        } else {
+            $this->displayedSessions = array_values(array_filter($this->filteredSessions, fn ($s) => $s['is_current_week']));
+            if (empty($this->displayedSessions) && ! empty($this->filteredSessions)) {
+                $this->displayedSessions = array_slice($this->filteredSessions, 0, 5);
+            }
+        }
 
         // Index sessions by effective date for calendar grids
         $sessionsByDate = [];
