@@ -275,9 +275,18 @@ class Overview extends Page
         $submittedAssignmentsCount = $assignmentSubmissions->count();
 
         $totalLessons = $visibleMaterials->count();
+        $visibleMaterialIds = $visibleMaterials->pluck('id')->all();
         $completedLessons = min(
             $totalLessons,
-            $user->xpTransactions()->where('activity_type', 'material_view')->distinct('source_id')->count()
+            $user->xpTransactions()
+                ->where(function ($q) use ($visibleMaterialIds) {
+                    $q->whereIn('activity_type', ['material_view', 'material_viewed', 'material_read'])
+                        ->orWhereIn('source', ['material_view', 'material_viewed', 'material_read'])
+                        ->orWhere(fn ($sub) => $sub->where('subject_type', LearningMaterial::class)->whereIn('subject_id', $visibleMaterialIds));
+                })
+                ->whereIn('source_id', $visibleMaterialIds)
+                ->distinct('source_id')
+                ->count('source_id')
         );
         $lessonsPercent = $totalLessons > 0 ? (int) round(($completedLessons / $totalLessons) * 100) : 0;
 

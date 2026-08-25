@@ -120,6 +120,25 @@ class Materials extends Page
         return $disk->download($path, $downloadName);
     }
 
+    public function recordView(int $materialId): void
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return;
+        }
+
+        $material = LearningMaterial::query()->visibleTo($user)->find($materialId);
+        if (! $material) {
+            return;
+        }
+
+        try {
+            app(\App\Services\GamificationService::class)->awardMaterialView($user, $material);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
     public function toggleBookmark(int $materialId): void
     {
         $user = auth()->user();
