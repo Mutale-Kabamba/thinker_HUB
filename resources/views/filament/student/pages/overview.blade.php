@@ -215,10 +215,13 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         
                         {{-- Card 1: Learning Materials (Yellow / Peach Pastel) --}}
-                        <div class="bg-[#FFF9EC] dark:bg-[#1c1917] border border-[#FEEFD0] dark:border-[#292524] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-xs">
+                        <a 
+                            href="{{ route('filament.student.pages.materials') }}" 
+                            class="bg-[#FFF9EC] dark:bg-[#1c1917] border border-[#FEEFD0] dark:border-[#292524] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group no-underline"
+                        >
                             <div class="flex items-start justify-between">
                                 {{-- Circular Icon Badge --}}
-                                <div class="w-9 h-9 rounded-full bg-[#FDE68A] text-[#B45309] dark:bg-amber-900/60 dark:text-amber-300 flex items-center justify-center shadow-2xs">
+                                <div class="w-9 h-9 rounded-full bg-[#FDE68A] text-[#B45309] dark:bg-amber-900/60 dark:text-amber-300 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
@@ -240,20 +243,23 @@
                                 <div class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                                     {{ sprintf('%02d', $stats['lessons_completed'] ?? 0) }}
                                 </div>
-                                <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-                                    Learning Materials
+                                <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 group-hover:text-[#B45309] dark:group-hover:text-amber-300 transition-colors">
+                                    Learning Materials &rarr;
                                 </div>
                                 <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                                     of {{ $stats['lessons_total'] ?? 0 }} viewed
                                 </div>
                             </div>
-                        </div>
+                        </a>
 
                         {{-- Card 2: Assignments (Rose / Pink Pastel) --}}
-                        <div class="bg-[#FFF0F3] dark:bg-[#201316] border border-[#FDDDE3] dark:border-[#351920] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-xs">
+                        <a 
+                            href="{{ route('filament.student.pages.assignments') }}" 
+                            class="bg-[#FFF0F3] dark:bg-[#201316] border border-[#FDDDE3] dark:border-[#351920] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group no-underline"
+                        >
                             <div class="flex items-start justify-between">
                                 {{-- Circular Icon Badge --}}
-                                <div class="w-9 h-9 rounded-full bg-[#FECDD3] text-[#E11D48] dark:bg-rose-900/60 dark:text-rose-300 flex items-center justify-center shadow-2xs">
+                                <div class="w-9 h-9 rounded-full bg-[#FECDD3] text-[#E11D48] dark:bg-rose-900/60 dark:text-rose-300 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
@@ -275,20 +281,23 @@
                                 <div class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                                     {{ sprintf('%02d', $stats['assignments_completed'] ?? 0) }}
                                 </div>
-                                <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-                                    Assignments
+                                <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 group-hover:text-[#E11D48] dark:group-hover:text-rose-300 transition-colors">
+                                    Assignments &rarr;
                                 </div>
                                 <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                                     of {{ $stats['assignments_total'] ?? 0 }} completed
                                 </div>
                             </div>
-                        </div>
+                        </a>
 
                         {{-- Card 3: Assessments (Mint / Green Pastel) --}}
-                        <div class="bg-[#F0FDF4] dark:bg-[#0f1f17] border border-[#DCFCE7] dark:border-[#1a3324] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-xs">
+                        <a 
+                            href="{{ route('filament.student.pages.assessments') }}" 
+                            class="bg-[#F0FDF4] dark:bg-[#0f1f17] border border-[#DCFCE7] dark:border-[#1a3324] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group no-underline"
+                        >
                             <div class="flex items-start justify-between">
                                 {{-- Circular Icon Badge --}}
-                                <div class="w-9 h-9 rounded-full bg-[#BBF7D0] text-[#16A34A] dark:bg-emerald-900/60 dark:text-emerald-300 flex items-center justify-center shadow-2xs">
+                                <div class="w-9 h-9 rounded-full bg-[#BBF7D0] text-[#16A34A] dark:bg-emerald-900/60 dark:text-emerald-300 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -310,14 +319,14 @@
                                 <div class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                                     {{ sprintf('%02d', $stats['tests_completed'] ?? 0) }}
                                 </div>
-                                <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-                                    Assessments
+                                <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 group-hover:text-[#16A34A] dark:group-hover:text-emerald-300 transition-colors">
+                                    Assessments &rarr;
                                 </div>
                                 <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                                     of {{ $stats['tests_total'] ?? 0 }} completed
                                 </div>
                             </div>
-                        </div>
+                        </a>
 
                     </div>
                 </div>
@@ -359,14 +368,14 @@
                                 <tr>
                                     <th class="py-2.5 px-2 w-8">#</th>
                                     <th class="py-2.5 px-3">Course Name</th>
-                                    <th class="py-2.5 px-3 min-w-[160px]">Completed</th>
+                                    <th class="py-2.5 px-3 min-w-[160px]">Progress</th>
                                     <th class="py-2.5 px-3 text-right">Status</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-[#233842] font-medium">
                                 @forelse ($enrolledCourses as $idx => $course)
                                     <tr 
-                                        x-show="activeTab === 'active' ? @js($course['progress'] < 100) : @js($course['progress'] >= 100)"
+                                        x-show="activeTab === 'active' ? !@js($course['is_completed']) : @js($course['is_completed'])"
                                         class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group"
                                     >
                                         <td class="py-3.5 px-2 text-slate-400">
@@ -380,9 +389,14 @@
                                                 >
                                                     {{ substr($course['title'], 0, 1) }}
                                                 </div>
-                                                <a href="{{ route('filament.student.pages.courses') }}" class="font-bold text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-[#7C3AED] dark:group-hover:text-purple-400 transition-colors">
-                                                    {{ $course['title'] }}
-                                                </a>
+                                                <div>
+                                                    <a href="{{ route('filament.student.pages.courses') }}" class="font-bold text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-[#7C3AED] dark:group-hover:text-purple-400 transition-colors">
+                                                        {{ $course['title'] }}
+                                                    </a>
+                                                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                                                        {{ $course['sessions_completed'] }} of {{ $course['sessions_total'] }} sessions completed
+                                                    </p>
+                                                </div>
                                             </div>
                                         </td>
                                         <td class="py-3.5 px-3">
@@ -395,20 +409,9 @@
                                             </div>
                                         </td>
                                         <td class="py-3.5 px-3 text-right whitespace-nowrap">
-                                            <div class="inline-flex items-center gap-2.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
-                                                <span class="flex items-center gap-1" title="Materials">
-                                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                                                    {{ $course['lessons_count'] }}
-                                                </span>
-                                                <span class="flex items-center gap-1" title="Assignments">
-                                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                                    {{ $course['assignments_count'] }}
-                                                </span>
-                                                <span class="flex items-center gap-1" title="Assessments">
-                                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                    {{ $course['tests_count'] }}
-                                                </span>
-                                            </div>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold {{ $course['is_completed'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800' }}">
+                                                {{ $course['status'] }}
+                                            </span>
                                         </td>
                                     </tr>
                                 @empty
@@ -426,7 +429,7 @@
                     <div class="md:hidden space-y-3 pt-1">
                         @forelse ($enrolledCourses as $idx => $course)
                             <div 
-                                x-show="activeTab === 'active' ? @js($course['progress'] < 100) : @js($course['progress'] >= 100)"
+                                x-show="activeTab === 'active' ? !@js($course['is_completed']) : @js($course['is_completed'])"
                                 class="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-100 dark:border-[#233842] space-y-2.5"
                             >
                                 <div class="flex items-center justify-between gap-2">
@@ -437,9 +440,14 @@
                                         >
                                             {{ substr($course['title'], 0, 1) }}
                                         </div>
-                                        <a href="{{ route('filament.student.pages.courses') }}" class="font-bold text-xs text-slate-800 dark:text-slate-100 truncate hover:text-[#7C3AED]">
-                                            {{ $course['title'] }}
-                                        </a>
+                                        <div>
+                                            <a href="{{ route('filament.student.pages.courses') }}" class="font-bold text-xs text-slate-800 dark:text-slate-100 truncate hover:text-[#7C3AED]">
+                                                {{ $course['title'] }}
+                                            </a>
+                                            <p class="text-[10px] text-slate-400 dark:text-slate-500">
+                                                {{ $course['sessions_completed'] }}/{{ $course['sessions_total'] }} sessions
+                                            </p>
+                                        </div>
                                     </div>
                                     <span class="text-xs font-black text-[#7C3AED] dark:text-purple-400 flex-shrink-0">
                                         {{ $course['progress'] }}%
@@ -454,18 +462,12 @@
                                 </div>
 
                                 <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800/60">
-                                    <span class="flex items-center gap-1">
-                                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                                        {{ $course['lessons_count'] }} Materials
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold {{ $course['is_completed'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800' }}">
+                                        {{ $course['status'] }}
                                     </span>
-                                    <span class="flex items-center gap-1">
-                                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                        {{ $course['assignments_count'] }} Tasks
-                                    </span>
-                                    <span class="flex items-center gap-1">
-                                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        {{ $course['tests_count'] }} Tests
-                                    </span>
+                                    <a href="{{ route('filament.student.pages.courses') }}" class="text-[#7C3AED] dark:text-purple-400 font-bold hover:underline">
+                                        View Details &rarr;
+                                    </a>
                                 </div>
                             </div>
                         @empty

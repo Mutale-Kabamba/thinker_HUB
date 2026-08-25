@@ -300,7 +300,7 @@ class Overview extends Page
         }
 
         $rawQuizzes = Quiz::query()
-            ->whereIn('course_id', $enrolledCourseIds)
+            ->visibleTo($user)
             ->where(function ($query) {
                 $query->where('is_active', true)
                     ->orWhereNotNull('publish_at');
@@ -313,8 +313,10 @@ class Overview extends Page
             ->get();
 
         $totalQuizzesCount = $rawQuizzes->count();
-        $quizzesPassedCount = $quizAttempts->where('is_passed', true)->pluck('quiz_id')->unique()->count();
-        $quizzesPercent = $totalQuizzesCount > 0 ? (int) round(($quizzesPassedCount / $totalQuizzesCount) * 100) : 0;
+        $completedAttempts = $quizAttempts->filter(fn (QuizAttempt $a) => $a->completed_at !== null);
+        $quizzesDoneCount = $completedAttempts->pluck('quiz_id')->unique()->count();
+        $quizzesPassedCount = $completedAttempts->filter(fn (QuizAttempt $a) => (bool) $a->passed)->pluck('quiz_id')->unique()->count();
+        $quizzesPercent = $totalQuizzesCount > 0 ? (int) round(($quizzesDoneCount / $totalQuizzesCount) * 100) : 0;
 
         $this->stats = [
             'greeting' => 'Hello '.$user->name,
@@ -336,7 +338,8 @@ class Overview extends Page
             'tests_completed' => $completedTestsCount,
             'tests_percent' => $testsPercent,
             'quizzes_total' => $totalQuizzesCount,
-            'quizzes_completed' => $quizzesPassedCount,
+            'quizzes_completed' => $quizzesDoneCount,
+            'quizzes_passed' => $quizzesPassedCount,
             'quizzes_percent' => $quizzesPercent,
         ];
 
@@ -348,14 +351,13 @@ class Overview extends Page
             ['gradient' => 'linear-gradient(135deg, #0284C7, #2563EB)', 'bar' => '#0284C7', 'bg' => 'bg-sky-500'],
         ];
 
-        $this->enrolledCourses = $coursesQuery->map(function ($c, $idx) use ($user, $assignmentSubmissions, $assessmentSubmissions, $gradientPalette) {
-            $totalItems = $c->assignments->count() + $c->assessments->count();
-            $completedItems = $c->assignments->filter(fn ($a) => $assignmentSubmissions->has($a->id))->count()
-                + $c->assessments->filter(fn ($as) => $assessmentSubmissions->has($as->id))->count();
+        $this->enrolledCourses = $coursesQuery->map(function ($c, $idx) use ($user, $gradientPalette) {
+            $sessProgress = $user->courseSessionsProgress($c);
+            $isCompleted = $sessProgress['is_completed'];
+            $courseProgress = $sessProgress['percent'];
             
-            $courseProgress = $totalItems > 0 
-                ? (int) round(($completedItems / $totalItems) * 100)
-                : 0;
+            $totalSessions = $sessProgress['total'];
+            $completedSessions = $sessProgress['completed'];
 
             $palette = $gradientPalette[$idx % count($gradientPalette)];
 
@@ -366,12 +368,15 @@ class Overview extends Page
                 'category' => $c->category ?: 'Development',
                 'duration' => $c->duration ?: '6 Weeks',
                 'progress' => $courseProgress,
-                'modules_count' => $totalItems,
-                'completed_count' => $completedItems,
+                'sessions_total' => $totalSessions,
+                'sessions_completed' => $completedSessions,
+                'modules_count' => $totalSessions,
+                'completed_count' => $completedSessions,
                 'lessons_count' => $c->materials->count(),
                 'assignments_count' => $c->assignments->count(),
                 'tests_count' => $c->assessments->count(),
-                'status' => $courseProgress >= 100 ? 'Completed' : ($courseProgress > 0 ? 'In progress' : 'Pending'),
+                'status' => $isCompleted ? 'Completed' : ($courseProgress > 0 ? 'In progress' : 'Pending'),
+                'is_completed' => $isCompleted,
                 'students' => $c->students->take(4)->values()->all(),
                 'students_count' => $c->students->count(),
                 'instructor' => $c->instructors->first()?->name ?? 'Instructor',
@@ -389,24 +394,29 @@ class Overview extends Page
 
         $mainCourseTitle = $this->activeCourse['title'] ?? ($user->courses()->orderBy('courses.title')->value('courses.title') ?? null);
         $mainCourseProgress = $this->activeCourse['progress'] ?? 0;
-        $mainCourseCompleted = $this->activeCourse['completed_count'] ?? 0;
-        $mainCourseTotal = $this->activeCourse['modules_count'] ?? 0;
+        $mainCourseSessionsDone = $this->activeCourse['sessions_completed'] ?? 0;
+        $mainCourseSessionsTotal = $this->activeCourse['sessions_total'] ?? 0;
+        $mainCourseIsCompleted = ($this->activeCourse['status'] ?? '') === 'Completed';
 
         $this->heroBanners = [
-            // 1. Main Course Progress
+            // 1. Main Course Progress (Determined by sessions X/X or instructor mark)
             [
                 'id' => 'course_progress',
                 'badge' => 'Main Course Progress',
                 'badge_color' => 'bg-indigo-500/25 text-indigo-100 border-indigo-400/40',
                 'title' => $mainCourseTitle ? 'Active Course: ' . $mainCourseTitle : 'Start Your Learning Journey!',
                 'description' => $mainCourseTitle 
-                    ? "You have completed {$mainCourseCompleted} of {$mainCourseTotal} curriculum modules ({$mainCourseProgress}%). Keep up the great pace and earn your certificate!"
+                    ? ($mainCourseIsCompleted 
+                        ? "You have successfully completed this course ({$mainCourseSessionsDone}/{$mainCourseSessionsTotal} sessions). Congratulations!"
+                        : ($mainCourseSessionsTotal > 0 
+                            ? "You have completed {$mainCourseSessionsDone} of {$mainCourseSessionsTotal} scheduled sessions ({$mainCourseProgress}%). Keep attending live sessions to earn your certificate!" 
+                            : "Enrollment is active ({$mainCourseProgress}%). Live class sessions will appear here as scheduled."))
                     : 'Enroll in an active course to unlock structured learning materials, submit assignments, and earn official certifications.',
-                'metric_label' => 'Overall Progress',
-                'metric_value' => $mainCourseProgress . '%',
+                'metric_label' => 'Sessions Done',
+                'metric_value' => $mainCourseSessionsTotal > 0 ? "{$mainCourseSessionsDone} / {$mainCourseSessionsTotal}" : "{$mainCourseProgress}%",
                 'progress_val' => $mainCourseProgress,
-                'cta_label' => $mainCourseTitle ? 'Continue Course' : 'Browse Courses',
-                'cta_url' => route('filament.student.pages.courses'),
+                'cta_label' => $mainCourseTitle ? 'View Schedule' : 'Browse Courses',
+                'cta_url' => $mainCourseTitle ? route('filament.student.pages.schedule') : route('filament.student.pages.courses'),
                 'css_gradient' => 'linear-gradient(135deg, #0f766e 0%, #0e7490 50%, #1d4ed8 100%)',
                 'avatar' => $userPhoto,
                 'initials' => $userInitials,
@@ -443,15 +453,15 @@ class Overview extends Page
                 'avatar' => $userPhoto,
                 'initials' => $userInitials,
             ],
-            // 4. Quizzes
+            // 4. Quizzes (Accurate Schedule & Done Metrics)
             [
                 'id' => 'quizzes',
-                'badge' => 'Quizzes',
+                'badge' => 'Interactive Quizzes',
                 'badge_color' => 'bg-amber-500/25 text-amber-100 border-amber-400/40',
                 'title' => 'Interactive Quizzes',
-                'description' => "{$quizzesPassedCount} of {$totalQuizzesCount} quizzes passed ({$quizzesPercent}%). Challenge yourself with topic quizzes to earn instant XP and Thinker Coins.",
-                'metric_label' => 'Passed',
-                'metric_value' => "{$quizzesPassedCount} / {$totalQuizzesCount}",
+                'description' => "{$quizzesDoneCount} of {$totalQuizzesCount} scheduled quizzes completed ({$quizzesPercent}%). " . ($quizzesPassedCount > 0 ? "({$quizzesPassedCount} passed). " : "") . "Challenge yourself with topic quizzes to earn instant XP and Thinker Coins.",
+                'metric_label' => 'Quizzes Done',
+                'metric_value' => "{$quizzesDoneCount} / {$totalQuizzesCount}",
                 'progress_val' => $quizzesPercent,
                 'cta_label' => 'Take Quizzes',
                 'cta_url' => route('filament.student.pages.quizzes'),

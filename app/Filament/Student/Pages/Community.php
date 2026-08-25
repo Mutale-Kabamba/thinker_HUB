@@ -174,7 +174,7 @@ class Community extends Page
         $txs = \App\Models\XpTransaction::query()
             ->where('user_id', $user->id)
             ->latest('created_at')
-            ->take(15)
+            ->take(50)
             ->get();
 
         $earnedBadges = $user->badges()
@@ -396,7 +396,7 @@ class Community extends Page
         $recentTransactions = XpTransaction::query()
             ->where('user_id', $target->id)
             ->latest('created_at')
-            ->take(8)
+            ->take(50)
             ->get();
 
         $this->profileUser = [

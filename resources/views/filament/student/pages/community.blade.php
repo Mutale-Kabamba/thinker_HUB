@@ -18,25 +18,25 @@
         </section>
 
         {{-- Tabs --}}
-        <section class="py-2">
+        <section class="py-2 px-1">
             <div class="flex justify-center">
                 <div class="flex gap-1 max-w-md w-full p-1 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm">
-                <button type="button" wire:click="$set('tab','chats')"
-                    class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all {{ $tab === 'chats' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
-                    Chats
-                </button>
-                <button type="button" wire:click="$set('tab','friends')"
-                    class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all {{ $tab === 'friends' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
-                    Friends
-                    @if ($this->pendingRequests->count() > 0)
-                        <span class="bg-rose-600 text-white rounded-full text-[10px] px-1.5 py-0.5 ml-1">{{ $this->pendingRequests->count() }}</span>
-                    @endif
-                </button>
-                <button type="button" wire:click="$set('tab','leaderboard')"
-                    class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 {{ $tab === 'leaderboard' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
-                    <x-heroicon-o-trophy class="w-4 h-4" />
-                    <span>Leaderboard</span>
-                </button>
+                    <button type="button" wire:click="$set('tab','chats')"
+                        class="flex-1 py-2 px-1.5 xs:px-2.5 sm:px-3 rounded-xl text-[11px] xs:text-xs font-bold whitespace-nowrap transition-all flex items-center justify-center {{ $tab === 'chats' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
+                        Chats
+                    </button>
+                    <button type="button" wire:click="$set('tab','friends')"
+                        class="flex-1 py-2 px-1.5 xs:px-2.5 sm:px-3 rounded-xl text-[11px] xs:text-xs font-bold whitespace-nowrap transition-all flex items-center justify-center gap-1 {{ $tab === 'friends' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
+                        <span>Friends</span>
+                        @if ($this->pendingRequests->count() > 0)
+                            <span class="bg-rose-600 text-white rounded-full text-[9px] sm:text-[10px] px-1.5 py-0.5 leading-none shrink-0">{{ $this->pendingRequests->count() }}</span>
+                        @endif
+                    </button>
+                    <button type="button" wire:click="$set('tab','leaderboard')"
+                        class="flex-1 py-2 px-1.5 xs:px-2.5 sm:px-3 rounded-xl text-[11px] xs:text-xs font-bold whitespace-nowrap transition-all inline-flex items-center justify-center gap-1 sm:gap-1.5 {{ $tab === 'leaderboard' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
+                        <x-heroicon-o-trophy class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                        <span>Leaderboard</span>
+                    </button>
                 </div>
             </div>
         </section>
@@ -547,56 +547,134 @@
                     </div>
 
                     {{-- Recent XP Activity History --}}
-                    <h4 style="font-size:0.74rem;font-weight:700;margin:0 0 0.25rem;color:var(--hub-ink);display:inline-flex;align-items:center;gap:0.2rem;">
-                        <x-heroicon-s-clock style="width:0.7rem;height:0.7rem;color:var(--hub-muted);" />
-                        <span>Recent Point Activity</span>
-                    </h4>
-                    @if ($xpBreakdown['transactions']->isEmpty())
-                        <p class="hub-copy" style="color:var(--hub-muted);font-size:0.7rem;margin:0;font-style:italic;">No points accumulated yet. Complete quizzes or lessons to earn XP & Coins!</p>
-                    @else
-                        <div style="display:flex;flex-direction:column;gap:0.25rem;width:100%;box-sizing:border-box;">
-                            @foreach ($xpBreakdown['transactions'] as $tx)
-                                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.35rem;padding:0.32rem 0.45rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.35rem;font-size:0.7rem;box-sizing:border-box;width:100%;max-width:100%;min-width:0;">
-                                    <div style="min-width:0;flex:1;display:flex;align-items:flex-start;gap:0.3rem;">
-                                        @if (str_contains($tx->activity_type ?? $tx->source ?? '', 'quiz'))
-                                            <x-heroicon-s-academic-cap style="width:0.75rem;height:0.75rem;color:#0ea5e9;flex-shrink:0;margin-top:0.1rem;" />
-                                        @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'video'))
-                                            <x-heroicon-s-play-circle style="width:0.75rem;height:0.75rem;color:#8b5cf6;flex-shrink:0;margin-top:0.1rem;" />
-                                        @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'streak'))
-                                            <x-heroicon-s-fire style="width:0.75rem;height:0.75rem;color:#ea580c;flex-shrink:0;margin-top:0.1rem;" />
-                                        @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'badge'))
-                                            <x-heroicon-s-trophy style="width:0.75rem;height:0.75rem;color:#f59e0b;flex-shrink:0;margin-top:0.1rem;" />
-                                        @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'course'))
-                                            <x-heroicon-s-check-badge style="width:0.75rem;height:0.75rem;color:#0f766e;flex-shrink:0;margin-top:0.1rem;" />
-                                        @else
-                                            <x-heroicon-s-bolt style="width:0.75rem;height:0.75rem;color:#eab308;flex-shrink:0;margin-top:0.1rem;" />
-                                        @endif
-                                        <div style="min-width:0;flex:1;">
-                                            <div style="font-weight:600;color:var(--hub-ink);word-break:break-word;overflow-wrap:anywhere;line-height:1.3;font-size:0.72rem;">
-                                                {{ $tx->description ?: ucfirst(str_replace('_', ' ', $tx->source ?: $tx->activity_type ?: 'Point Reward')) }}
+                    @php
+                        $allTxs = $xpBreakdown['transactions'];
+                        $top5Txs = $allTxs->take(5);
+                        $remainingTxs = $allTxs->slice(5);
+                    @endphp
+
+                    <div style="margin-top:0.2rem;width:100%;box-sizing:border-box;" x-data="{ showAllXpHistory: false }">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;">
+                            <h4 style="font-size:0.74rem;font-weight:700;margin:0;color:var(--hub-ink);display:inline-flex;align-items:center;gap:0.2rem;">
+                                <x-heroicon-s-clock style="width:0.7rem;height:0.7rem;color:var(--hub-muted);" />
+                                <span>Recent Point Activity</span>
+                            </h4>
+                            @if ($allTxs->count() > 5)
+                                <span style="font-size:0.62rem;color:var(--hub-muted);">
+                                    Showing <span x-text="showAllXpHistory ? '{{ $allTxs->count() }}' : '5'"></span> of {{ $allTxs->count() }}
+                                </span>
+                            @endif
+                        </div>
+
+                        @if ($allTxs->isEmpty())
+                            <p class="hub-copy" style="color:var(--hub-muted);font-size:0.7rem;margin:0;font-style:italic;">No points accumulated yet. Complete quizzes or lessons to earn XP & Coins!</p>
+                        @else
+                            <div style="display:flex;flex-direction:column;gap:0.25rem;width:100%;box-sizing:border-box;">
+                                {{-- Top 5 Recent Activities --}}
+                                @foreach ($top5Txs as $tx)
+                                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.35rem;padding:0.32rem 0.45rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.35rem;font-size:0.7rem;box-sizing:border-box;width:100%;max-width:100%;min-width:0;">
+                                        <div style="min-width:0;flex:1;display:flex;align-items:flex-start;gap:0.3rem;">
+                                            @if (str_contains($tx->activity_type ?? $tx->source ?? '', 'quiz'))
+                                                <x-heroicon-s-academic-cap style="width:0.75rem;height:0.75rem;color:#0ea5e9;flex-shrink:0;margin-top:0.1rem;" />
+                                            @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'video'))
+                                                <x-heroicon-s-play-circle style="width:0.75rem;height:0.75rem;color:#8b5cf6;flex-shrink:0;margin-top:0.1rem;" />
+                                            @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'streak'))
+                                                <x-heroicon-s-fire style="width:0.75rem;height:0.75rem;color:#ea580c;flex-shrink:0;margin-top:0.1rem;" />
+                                            @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'badge'))
+                                                <x-heroicon-s-trophy style="width:0.75rem;height:0.75rem;color:#f59e0b;flex-shrink:0;margin-top:0.1rem;" />
+                                            @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'course'))
+                                                <x-heroicon-s-check-badge style="width:0.75rem;height:0.75rem;color:#0f766e;flex-shrink:0;margin-top:0.1rem;" />
+                                            @else
+                                                <x-heroicon-s-bolt style="width:0.75rem;height:0.75rem;color:#eab308;flex-shrink:0;margin-top:0.1rem;" />
+                                            @endif
+                                            <div style="min-width:0;flex:1;">
+                                                <div style="font-weight:600;color:var(--hub-ink);word-break:break-word;overflow-wrap:anywhere;line-height:1.3;font-size:0.72rem;">
+                                                    {{ $tx->description ?: ucfirst(str_replace('_', ' ', $tx->source ?: $tx->activity_type ?: 'Point Reward')) }}
+                                                </div>
+                                                <span style="font-size:0.6rem;color:var(--hub-muted);display:block;margin-top:0.08rem;">
+                                                    {{ $tx->created_at ? $tx->created_at->format('M d, Y · H:i') : 'Recently' }}
+                                                </span>
                                             </div>
-                                            <span style="font-size:0.6rem;color:var(--hub-muted);display:block;margin-top:0.08rem;">
-                                                {{ $tx->created_at ? $tx->created_at->format('M d, Y · H:i') : 'Recently' }}
-                                            </span>
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:0.18rem;flex-shrink:0;justify-content:flex-end;margin-top:0.05rem;">
+                                            @if (($tx->amount_xp ?: $tx->points) > 0)
+                                                <span class="hub-chip hub-chip-primary" style="font-size:0.56rem;padding:0.04rem 0.22rem;white-space:nowrap;">
+                                                    +{{ number_format($tx->amount_xp ?: $tx->points) }} XP
+                                                </span>
+                                            @endif
+                                            @if (($tx->amount_coins ?: 0) > 0)
+                                                <span class="hub-chip hub-chip-amber" style="font-size:0.56rem;padding:0.04rem 0.22rem;display:inline-flex;align-items:center;gap:0.08rem;white-space:nowrap;">
+                                                    <x-heroicon-s-circle-stack style="width:0.52rem;height:0.52rem;color:#d97706;" />
+                                                    <span>+{{ number_format($tx->amount_coins) }} TC</span>
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
-                                    <div style="display:flex;align-items:center;gap:0.18rem;flex-shrink:0;justify-content:flex-end;margin-top:0.05rem;">
-                                        @if (($tx->amount_xp ?: $tx->points) > 0)
-                                            <span class="hub-chip hub-chip-primary" style="font-size:0.56rem;padding:0.04rem 0.22rem;white-space:nowrap;">
-                                                +{{ number_format($tx->amount_xp ?: $tx->points) }} XP
-                                            </span>
-                                        @endif
-                                        @if (($tx->amount_coins ?: 0) > 0)
-                                            <span class="hub-chip hub-chip-amber" style="font-size:0.56rem;padding:0.04rem 0.22rem;display:inline-flex;align-items:center;gap:0.08rem;white-space:nowrap;">
-                                                <x-heroicon-s-circle-stack style="width:0.52rem;height:0.52rem;color:#d97706;" />
-                                                <span>+{{ number_format($tx->amount_coins) }} TC</span>
-                                            </span>
-                                        @endif
+                                @endforeach
+
+                                {{-- Collapsible Remaining Activities --}}
+                                @if ($remainingTxs->isNotEmpty())
+                                    <div x-show="showAllXpHistory" x-collapse style="display:flex;flex-direction:column;gap:0.25rem;width:100%;box-sizing:border-box;">
+                                        @foreach ($remainingTxs as $tx)
+                                            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.35rem;padding:0.32rem 0.45rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.35rem;font-size:0.7rem;box-sizing:border-box;width:100%;max-width:100%;min-width:0;">
+                                                <div style="min-width:0;flex:1;display:flex;align-items:flex-start;gap:0.3rem;">
+                                                    @if (str_contains($tx->activity_type ?? $tx->source ?? '', 'quiz'))
+                                                        <x-heroicon-s-academic-cap style="width:0.75rem;height:0.75rem;color:#0ea5e9;flex-shrink:0;margin-top:0.1rem;" />
+                                                    @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'video'))
+                                                        <x-heroicon-s-play-circle style="width:0.75rem;height:0.75rem;color:#8b5cf6;flex-shrink:0;margin-top:0.1rem;" />
+                                                    @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'streak'))
+                                                        <x-heroicon-s-fire style="width:0.75rem;height:0.75rem;color:#ea580c;flex-shrink:0;margin-top:0.1rem;" />
+                                                    @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'badge'))
+                                                        <x-heroicon-s-trophy style="width:0.75rem;height:0.75rem;color:#f59e0b;flex-shrink:0;margin-top:0.1rem;" />
+                                                    @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'course'))
+                                                        <x-heroicon-s-check-badge style="width:0.75rem;height:0.75rem;color:#0f766e;flex-shrink:0;margin-top:0.1rem;" />
+                                                    @else
+                                                        <x-heroicon-s-bolt style="width:0.75rem;height:0.75rem;color:#eab308;flex-shrink:0;margin-top:0.1rem;" />
+                                                    @endif
+                                                    <div style="min-width:0;flex:1;">
+                                                        <div style="font-weight:600;color:var(--hub-ink);word-break:break-word;overflow-wrap:anywhere;line-height:1.3;font-size:0.72rem;">
+                                                            {{ $tx->description ?: ucfirst(str_replace('_', ' ', $tx->source ?: $tx->activity_type ?: 'Point Reward')) }}
+                                                        </div>
+                                                        <span style="font-size:0.6rem;color:var(--hub-muted);display:block;margin-top:0.08rem;">
+                                                            {{ $tx->created_at ? $tx->created_at->format('M d, Y · H:i') : 'Recently' }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div style="display:flex;align-items:center;gap:0.18rem;flex-shrink:0;justify-content:flex-end;margin-top:0.05rem;">
+                                                    @if (($tx->amount_xp ?: $tx->points) > 0)
+                                                        <span class="hub-chip hub-chip-primary" style="font-size:0.56rem;padding:0.04rem 0.22rem;white-space:nowrap;">
+                                                            +{{ number_format($tx->amount_xp ?: $tx->points) }} XP
+                                                        </span>
+                                                    @endif
+                                                    @if (($tx->amount_coins ?: 0) > 0)
+                                                        <span class="hub-chip hub-chip-amber" style="font-size:0.56rem;padding:0.04rem 0.22rem;display:inline-flex;align-items:center;gap:0.08rem;white-space:nowrap;">
+                                                            <x-heroicon-s-circle-stack style="width:0.52rem;height:0.52rem;color:#d97706;" />
+                                                            <span>+{{ number_format($tx->amount_coins) }} TC</span>
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endforeach
                                     </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
+
+                                    {{-- Toggle Button --}}
+                                    <div style="text-align:center;margin-top:0.25rem;">
+                                        <button
+                                            type="button"
+                                            @click="showAllXpHistory = !showAllXpHistory"
+                                            class="hub-chip hub-chip-primary"
+                                            style="cursor:pointer;background:var(--hub-surface);border:1px solid var(--hub-border);font-size:0.66rem;padding:0.2rem 0.65rem;border-radius:0.4rem;display:inline-flex;align-items:center;gap:0.25rem;font-weight:600;color:var(--hub-primary,#0f766e);transition:all 0.15s;"
+                                        >
+                                            <span x-text="showAllXpHistory ? 'Collapse to Recent 5' : 'View More / All ({{ $allTxs->count() }} Activities)'"></span>
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px;flex-shrink:0;transition:transform .2s ease;" :style="showAllXpHistory ? 'transform:rotate(180deg);' : ''">
+                                                <path d="M19 9l-7 7-7-7"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </section>
         @endif
@@ -1414,15 +1492,29 @@
                         </div>
 
                         {{-- Recent XP Activity Section --}}
-                        <div style="display:flex;flex-direction:column;gap:0.45rem;">
-                            <h4 style="margin:0;font-size:0.8rem;font-weight:700;color:var(--hub-ink);display:inline-flex;align-items:center;gap:0.3rem;">
-                                <x-heroicon-s-clock style="width:0.85rem;height:0.85rem;color:var(--hub-muted);" />
-                                <span>{{ 'Recent XP & Point Earnings' }}</span>
-                            </h4>
+                        <div style="display:flex;flex-direction:column;gap:0.45rem;" x-data="{ showAllModalEarnings: false }">
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <h4 style="margin:0;font-size:0.8rem;font-weight:700;color:var(--hub-ink);display:inline-flex;align-items:center;gap:0.3rem;">
+                                    <x-heroicon-s-clock style="width:0.85rem;height:0.85rem;color:var(--hub-muted);" />
+                                    <span>{{ 'Recent XP & Point Earnings' }}</span>
+                                </h4>
+                                @if (!empty($profileUser['recent_transactions']) && count($profileUser['recent_transactions']) > 5)
+                                    <span class="hub-chip hub-chip-gray" style="font-size:0.6rem;padding:0.06rem 0.35rem;">
+                                        Showing <span x-text="showAllModalEarnings ? '{{ count($profileUser['recent_transactions']) }}' : '5'"></span> of {{ count($profileUser['recent_transactions']) }}
+                                    </span>
+                                @endif
+                            </div>
 
                             @if (!empty($profileUser['recent_transactions']))
+                                @php
+                                    $allModalTxs = $profileUser['recent_transactions'];
+                                    $top5ModalTxs = array_slice($allModalTxs, 0, 5);
+                                    $remainingModalTxs = array_slice($allModalTxs, 5);
+                                @endphp
+
                                 <div style="display:flex;flex-direction:column;gap:0.28rem;">
-                                    @foreach ($profileUser['recent_transactions'] as $tx)
+                                    {{-- Top 5 Activities --}}
+                                    @foreach ($top5ModalTxs as $tx)
                                         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.4rem;padding:0.35rem 0.5rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.45rem;font-size:0.74rem;">
                                             <div style="min-width:0;flex:1;display:flex;align-items:flex-start;gap:0.35rem;">
                                                 @if (str_contains($tx['activity_type'] ?? '', 'quiz'))
@@ -1462,6 +1554,67 @@
                                             </div>
                                         </div>
                                     @endforeach
+
+                                    {{-- Collapsible Remaining Activities --}}
+                                    @if (!empty($remainingModalTxs))
+                                        <div x-show="showAllModalEarnings" x-collapse style="display:flex;flex-direction:column;gap:0.28rem;">
+                                            @foreach ($remainingModalTxs as $tx)
+                                                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.4rem;padding:0.35rem 0.5rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.45rem;font-size:0.74rem;">
+                                                    <div style="min-width:0;flex:1;display:flex;align-items:flex-start;gap:0.35rem;">
+                                                        @if (str_contains($tx['activity_type'] ?? '', 'quiz'))
+                                                            <x-heroicon-s-academic-cap style="width:0.85rem;height:0.85rem;color:#0ea5e9;flex-shrink:0;margin-top:0.1rem;" />
+                                                        @elseif (str_contains($tx['activity_type'] ?? '', 'video'))
+                                                            <x-heroicon-s-play-circle style="width:0.85rem;height:0.85rem;color:#8b5cf6;flex-shrink:0;margin-top:0.1rem;" />
+                                                        @elseif (str_contains($tx['activity_type'] ?? '', 'streak'))
+                                                            <x-heroicon-s-fire style="width:0.85rem;height:0.85rem;color:#ea580c;flex-shrink:0;margin-top:0.1rem;" />
+                                                        @elseif (str_contains($tx['activity_type'] ?? '', 'badge'))
+                                                            <x-heroicon-s-trophy style="width:0.85rem;height:0.85rem;color:#f59e0b;flex-shrink:0;margin-top:0.1rem;" />
+                                                        @elseif (str_contains($tx['activity_type'] ?? '', 'course'))
+                                                            <x-heroicon-s-check-badge style="width:0.85rem;height:0.85rem;color:#0f766e;flex-shrink:0;margin-top:0.1rem;" />
+                                                        @else
+                                                            <x-heroicon-s-bolt style="width:0.85rem;height:0.85rem;color:#eab308;flex-shrink:0;margin-top:0.1rem;" />
+                                                        @endif
+                                                        <div style="min-width:0;flex:1;">
+                                                            <div style="font-weight:600;color:var(--hub-ink);word-break:break-word;overflow-wrap:anywhere;line-height:1.35;font-size:0.75rem;">
+                                                                {{ $tx['description'] }}
+                                                            </div>
+                                                            <span style="font-size:0.62rem;color:var(--hub-muted);display:block;margin-top:0.1rem;">
+                                                                {{ $tx['created_at'] }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div style="display:flex;align-items:center;gap:0.25rem;flex-shrink:0;margin-top:0.05rem;">
+                                                        @if ($tx['amount_xp'] > 0)
+                                                            <span class="hub-chip hub-chip-primary" style="font-size:0.62rem;padding:0.06rem 0.3rem;white-space:nowrap;">
+                                                                +{{ number_format($tx['amount_xp']) }} XP
+                                                            </span>
+                                                        @endif
+                                                        @if ($tx['amount_coins'] > 0)
+                                                            <span class="hub-chip hub-chip-amber" style="font-size:0.62rem;padding:0.06rem 0.3rem;display:inline-flex;align-items:center;gap:0.1rem;white-space:nowrap;">
+                                                                <x-heroicon-s-circle-stack style="width:0.6rem;height:0.6rem;color:#d97706;" />
+                                                                <span>+{{ number_format($tx['amount_coins']) }} TC</span>
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+
+                                        {{-- View More / View All Toggle Button --}}
+                                        <div style="text-align:center;margin-top:0.25rem;">
+                                            <button
+                                                type="button"
+                                                @click="showAllModalEarnings = !showAllModalEarnings"
+                                                class="hub-chip hub-chip-primary"
+                                                style="cursor:pointer;background:var(--hub-surface);border:1px solid var(--hub-border);font-size:0.7rem;padding:0.25rem 0.8rem;border-radius:0.45rem;display:inline-flex;align-items:center;gap:0.3rem;font-weight:600;color:var(--hub-primary,#0f766e);transition:all 0.15s;"
+                                            >
+                                                <span x-text="showAllModalEarnings ? 'Collapse to Recent 5' : 'View More / All ({{ count($allModalTxs) }} Activities)'"></span>
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;flex-shrink:0;transition:transform .2s ease;" :style="showAllModalEarnings ? 'transform:rotate(180deg);' : ''">
+                                                    <path d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    @endif
                                 </div>
                             @else
                                 <div style="padding:0.55rem;text-align:center;background:var(--hub-surface);border:1px dashed var(--hub-border);border-radius:0.45rem;">
