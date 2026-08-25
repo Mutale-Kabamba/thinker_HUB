@@ -55,9 +55,15 @@ class Overview extends Page
 
     public int $coins = 0;
 
-    public string $rankName = 'Novice';
-
     public array $todaySchedule = [];
+
+    public ?string $selectedDate = null;
+
+    public ?int $selectedSessionId = null;
+
+    public ?array $selectedSessionDetails = null;
+
+    public bool $showSessionDetailsModal = false;
 
     public function mount(): void
     {
@@ -706,6 +712,7 @@ class Overview extends Page
                 foreach ($daySessions as $s) {
                     $items[] = [
                         'type' => 'Session',
+                        'session_id' => $s->id,
                         'name' => $s->title ?: ($s->course?->title ?? 'Session'),
                         'course' => $s->course?->title ?? 'Unassigned',
                         'status' => ucfirst($s->status),
@@ -730,5 +737,95 @@ class Overview extends Page
         ];
 
         $this->calendarEvents = $events;
+    }
+
+    public function selectDay(?string $date = null): void
+    {
+        if ($this->selectedDate === $date) {
+            $this->selectedDate = null;
+        } else {
+            $this->selectedDate = $date;
+        }
+    }
+
+    public function openSessionDetails(int $sessionId): void
+    {
+        $session = CourseSession::query()
+            ->with(['course', 'instructor'])
+            ->find($sessionId);
+
+        if (! $session) {
+            return;
+        }
+
+        $canAddToCalendar = in_array($session->status, ['scheduled', 'rescheduled'], true) && $session->effectiveEndAt()->isFuture();
+        $effectiveDate = $session->getEffectiveDate();
+
+        $this->selectedSessionId = $sessionId;
+        $this->selectedSessionDetails = [
+            'id' => $session->id,
+            'title' => $session->title ?: ($session->course->title ?? 'Class Session'),
+            'course_title' => $session->course->title ?? '—',
+            'course_code' => $session->course->code ?? '',
+            'type' => $session->type,
+            'type_label' => $session->type === 'one_on_one' ? 'One-On-One' : 'Cohort / Group',
+            'instructor_name' => $session->instructor?->name ?? 'Assigned Instructor',
+            'instructor_email' => $session->instructor?->email,
+            'instructor_whatsapp' => $session->instructor?->whatsapp,
+            'session_date' => $effectiveDate->format('l, F j, Y'),
+            'session_date_raw' => $effectiveDate->format('Y-m-d'),
+            'start_time' => Carbon::parse($session->getEffectiveStartTime())->format('g:i A'),
+            'end_time' => Carbon::parse($session->getEffectiveEndTime())->format('g:i A'),
+            'status' => $session->status,
+            'meeting_link' => $session->meeting_link,
+            'notes' => $session->notes,
+            'is_today' => $effectiveDate->isToday(),
+            'can_add_to_calendar' => $canAddToCalendar,
+            'google_calendar_url' => $canAddToCalendar ? $this->buildGoogleCalendarUrl($session) : null,
+        ];
+        $this->showSessionDetailsModal = true;
+    }
+
+    public function closeSessionDetails(): void
+    {
+        $this->showSessionDetailsModal = false;
+        $this->selectedSessionId = null;
+        $this->selectedSessionDetails = null;
+    }
+
+    protected function buildGoogleCalendarUrl(CourseSession $session): string
+    {
+        $timezone = config('app.timezone', 'UTC');
+
+        try {
+            $startAt = $session->effectiveStartAt()->copy()->utc();
+            $endAt = $session->effectiveEndAt()->copy()->utc();
+        } catch (\Throwable) {
+            $startAt = Carbon::today()->utc();
+            $endAt = $startAt->copy()->addHours(1);
+        }
+
+        if ($endAt->lessThanOrEqualTo($startAt)) {
+            $endAt = $startAt->copy()->addHours(1);
+        }
+
+        $courseTitle = $session->course?->title;
+        $sessionTitle = $session->title ?: ($session->type === 'one_on_one' ? 'One-On-One Session' : 'Group Session');
+        $title = $courseTitle ? trim($courseTitle.' — '.$sessionTitle) : $sessionTitle;
+
+        $details = array_filter([
+            $session->course?->code ? 'Course: '.$session->course->code : null,
+            'Session type: '.($session->type === 'one_on_one' ? 'One-On-One' : 'Group'),
+            $session->instructor?->name ? 'Instructor: '.$session->instructor->name : null,
+            $session->notes ? 'Notes: '.$session->notes : null,
+        ]);
+
+        return 'https://calendar.google.com/calendar/render?'.http_build_query([
+            'action' => 'TEMPLATE',
+            'text' => $title,
+            'dates' => $startAt->format('Ymd\THis\Z').'/'.$endAt->format('Ymd\THis\Z'),
+            'ctz' => $timezone,
+            'details' => implode("\n", $details),
+        ]);
     }
 }

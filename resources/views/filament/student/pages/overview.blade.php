@@ -486,13 +486,19 @@
                 {{-- RIGHT RAIL TOP: STATUS MINI CALENDAR --}}
                 <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-3">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Status</h2>
+                        <div>
+                            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ $calendar['month'] ?? 'Schedule' }}</h2>
+                            @if ($selectedDate)
+                                <p class="text-[10px] text-[#7C3AED] dark:text-purple-400 font-semibold">{{ \Illuminate\Support\Carbon::parse($selectedDate)->format('D, M j') }} selected</p>
+                            @endif
+                        </div>
 
                         <div class="flex items-center gap-1 text-slate-400">
                             <button 
                                 type="button" 
                                 wire:click="navigateCalendar({{ $calendar['prev']['year'] ?? now()->year }}, {{ $calendar['prev']['month'] ?? now()->month }})"
                                 class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 transition-colors"
+                                title="Previous Month"
                             >
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                             </button>
@@ -500,6 +506,7 @@
                                 type="button" 
                                 wire:click="navigateCalendar({{ $calendar['next']['year'] ?? now()->year }}, {{ $calendar['next']['month'] ?? now()->month }})"
                                 class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 transition-colors"
+                                title="Next Month"
                             >
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                             </button>
@@ -519,55 +526,263 @@
                             <div class="h-7"></div>
                         @endfor
                         @foreach (($calendar['days'] ?? []) as $day)
+                            @php
+                                $isSelected = $selectedDate === $day['date'];
+                            @endphp
                             <button
                                 type="button"
-                                @click="selectDay(@js($day['date']))"
-                                class="h-7 w-7 mx-auto rounded-full flex items-center justify-center text-xs transition-all {{ $day['is_today'] ? 'bg-[#7C3AED] text-white font-extrabold shadow-2xs' : ($day['has_due'] ? 'bg-[#7C3AED] text-white font-bold' : ($day['is_past'] ? 'text-slate-300 dark:text-slate-600' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800')) }}"
+                                wire:click="selectDay('{{ $day['date'] }}')"
+                                title="{{ $day['has_due'] ? implode(', ', $day['due_names']) : $day['date'] }}"
+                                class="h-7 w-7 mx-auto rounded-full flex items-center justify-center text-xs transition-all relative
+                                    {{ $isSelected ? 'ring-2 ring-[#7C3AED] ring-offset-1 dark:ring-offset-[#102028] font-black z-10' : '' }}
+                                    {{ $day['is_today'] ? 'bg-[#7C3AED] text-white font-extrabold shadow-2xs' : ($day['has_due'] ? 'bg-purple-100 dark:bg-purple-950/60 text-[#7C3AED] dark:text-purple-300 font-bold hover:bg-purple-200 dark:hover:bg-purple-900/80' : ($day['is_past'] ? 'text-slate-300 dark:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/40' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800')) }}"
                             >
                                 {{ $day['day'] }}
+                                @if ($day['has_due'] && !$day['is_today'])
+                                    <span class="absolute -bottom-0.5 w-1 h-1 rounded-full bg-[#7C3AED] dark:bg-purple-400"></span>
+                                @endif
                             </button>
                         @endforeach
                     </div>
                 </div>
 
-                {{-- RIGHT RAIL BOTTOM: UPCOMING TIMELINE --}}
+                {{-- RIGHT RAIL BOTTOM: UPCOMING / SELECTED DAY TIMELINE --}}
                 <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
-                    <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Upcoming</h2>
-
-                    <div class="space-y-3">
-                        @forelse ($upcoming as $item)
-                            <div class="flex items-center gap-3.5">
-                                {{-- Date Chip (Stacked Day on Top / Month Below) --}}
-                                <div class="w-11 h-12 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-[#233842] flex flex-col items-center justify-center flex-shrink-0 text-center">
-                                    <span class="text-xs font-black text-slate-800 dark:text-slate-100 leading-tight">
-                                        {{ $item['day'] ?? '—' }}
-                                    </span>
-                                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 leading-tight">
-                                        {{ $item['month'] ?? '—' }}
-                                    </span>
-                                </div>
-
-                                {{-- Title & Colored Type Dot --}}
-                                <div class="min-w-0 flex-1">
-                                    <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
-                                        {{ $item['name'] }}
-                                    </h4>
-                                    <div class="flex items-center gap-1.5 mt-0.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
-                                        <span class="w-1.5 h-1.5 rounded-full {{ explode(' ', $item['color'] ?? 'bg-purple-500 text-purple-500')[0] }}"></span>
-                                        <span>{{ $item['type'] ?? 'Task' }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="py-6 text-center text-slate-400">
-                                <p class="text-xs font-medium">No upcoming deadlines or sessions.</p>
-                            </div>
-                        @endforelse
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
+                            @if ($selectedDate)
+                                <span>{{ \Illuminate\Support\Carbon::parse($selectedDate)->format('M j') }} Agenda</span>
+                            @else
+                                <span>Upcoming</span>
+                            @endif
+                        </h2>
+                        @if ($selectedDate)
+                            <button type="button" wire:click="selectDay(null)" class="text-[11px] font-bold text-[#7C3AED] dark:text-purple-400 hover:underline">
+                                Show All &times;
+                            </button>
+                        @else
+                            <a href="{{ route('filament.student.pages.schedule') }}" class="text-[11px] font-bold text-[#7C3AED] dark:text-purple-400 hover:underline">
+                                Full Schedule &rarr;
+                            </a>
+                        @endif
                     </div>
+
+                    @if ($selectedDate)
+                        {{-- Events for Selected Date --}}
+                        @php
+                            $selectedEvents = $calendarEvents[$selectedDate] ?? [];
+                        @endphp
+                        <div class="space-y-3">
+                            @forelse ($selectedEvents as $item)
+                                <div class="p-3 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/70 dark:bg-slate-800/40 space-y-1.5 transition-all hover:border-purple-200 dark:hover:border-purple-800">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold {{ $item['type'] === 'Session' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ($item['type'] === 'Assignment' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300') }}">
+                                            {{ $item['type'] }}
+                                        </span>
+                                        @if (!empty($item['time']))
+                                            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">{{ $item['time'] }}</span>
+                                        @endif
+                                    </div>
+                                    <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100">{{ $item['name'] }}</h4>
+                                    <p class="text-[11px] text-slate-400 dark:text-slate-500">{{ $item['course'] }}</p>
+
+                                    @if ($item['type'] === 'Session' && !empty($item['session_id']))
+                                        <div class="pt-1 flex items-center justify-end">
+                                            <button 
+                                                type="button" 
+                                                wire:click="openSessionDetails({{ $item['session_id'] }})" 
+                                                class="text-xs font-extrabold text-[#7C3AED] dark:text-purple-400 hover:underline inline-flex items-center gap-1"
+                                            >
+                                                <span>View Class Details</span> &rarr;
+                                            </button>
+                                        </div>
+                                    @endif
+                                </div>
+                            @empty
+                                <div class="py-6 text-center text-slate-400">
+                                    <p class="text-xs font-medium">No sessions or tasks on this day.</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    @else
+                        {{-- Upcoming General Timeline --}}
+                        <div class="space-y-3">
+                            @forelse ($upcoming as $item)
+                                <div class="flex items-center gap-3.5">
+                                    {{-- Date Chip (Stacked Day on Top / Month Below) --}}
+                                    <div class="w-11 h-12 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-[#233842] flex flex-col items-center justify-center flex-shrink-0 text-center">
+                                        <span class="text-xs font-black text-slate-800 dark:text-slate-100 leading-tight">
+                                            {{ $item['day'] ?? '—' }}
+                                        </span>
+                                        <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 leading-tight">
+                                            {{ $item['month'] ?? '—' }}
+                                        </span>
+                                    </div>
+
+                                    {{-- Title & Colored Type Dot --}}
+                                    <div class="min-w-0 flex-1">
+                                        <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+                                            {{ $item['name'] }}
+                                        </h4>
+                                        <div class="flex items-center gap-1.5 mt-0.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ explode(' ', $item['color'] ?? 'bg-purple-500 text-purple-500')[0] }}"></span>
+                                            <span>{{ $item['type'] ?? 'Task' }}</span>
+                                        </div>
+                                    </div>
+
+                                    @if (!empty($item['session_id']))
+                                        <button 
+                                            type="button" 
+                                            wire:click="openSessionDetails({{ $item['session_id'] }})"
+                                            class="text-[11px] font-bold text-[#7C3AED] dark:text-purple-400 hover:underline flex-shrink-0"
+                                        >
+                                            Details
+                                        </button>
+                                    @endif
+                                </div>
+                            @empty
+                                <div class="py-6 text-center text-slate-400">
+                                    <p class="text-xs font-medium">No upcoming deadlines or sessions.</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    @endif
                 </div>
 
             </div>
 
         </div>
     </div>
+
+    {{-- CLASS DETAILS POP-UP MODAL ON OVERVIEW --}}
+    @if ($showSessionDetailsModal && $selectedSessionDetails)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+            <div class="bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in duration-150">
+                {{-- Header --}}
+                <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#233842]">
+                    <div>
+                        <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                            @if ($selectedSessionDetails['course_code'])
+                                <span class="px-2 py-0.5 rounded-md bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 text-[10px] font-extrabold border border-purple-200 dark:border-purple-900">
+                                    {{ $selectedSessionDetails['course_code'] }}
+                                </span>
+                            @endif
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold">
+                                {{ $selectedSessionDetails['type_label'] }}
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
+                                {{ ucfirst($selectedSessionDetails['status']) }}
+                            </span>
+                        </div>
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-slate-100">{{ $selectedSessionDetails['title'] }}</h3>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 font-medium">{{ $selectedSessionDetails['course_title'] }}</p>
+                    </div>
+                    <button 
+                        type="button" 
+                        wire:click="closeSessionDetails"
+                        class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        title="Close"
+                    >
+                        &times;
+                    </button>
+                </div>
+
+                {{-- Body details --}}
+                <div class="space-y-3">
+                    {{-- Date & Time --}}
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-[#233842]">
+                        <div class="w-9 h-9 rounded-lg bg-purple-100 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-900 dark:text-slate-100">{{ $selectedSessionDetails['session_date'] }}</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ $selectedSessionDetails['start_time'] }} – {{ $selectedSessionDetails['end_time'] }}</p>
+                        </div>
+                    </div>
+
+                    {{-- Instructor Info --}}
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-[#233842]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-900 dark:text-slate-100">{{ $selectedSessionDetails['instructor_name'] }}</p>
+                                <p class="text-[11px] text-slate-400 dark:text-slate-500">Course Instructor</p>
+                            </div>
+                        </div>
+                        @if ($selectedSessionDetails['instructor_whatsapp'])
+                            <a 
+                                href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $selectedSessionDetails['instructor_whatsapp']) }}" 
+                                target="_blank" 
+                                rel="noopener"
+                                class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold inline-flex items-center gap-1.5 no-underline transition-colors"
+                            >
+                                WhatsApp
+                            </a>
+                        @endif
+                    </div>
+
+                    {{-- Virtual Meeting Link --}}
+                    @if ($selectedSessionDetails['meeting_link'])
+                        <div class="p-3.5 rounded-xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-purple-900 dark:text-purple-200">Virtual Classroom</p>
+                                <p class="text-[11px] text-purple-700/80 dark:text-purple-300/80 truncate">{{ $selectedSessionDetails['meeting_link'] }}</p>
+                            </div>
+                            <a 
+                                href="{{ $selectedSessionDetails['meeting_link'] }}" 
+                                target="_blank" 
+                                rel="noopener"
+                                class="px-4 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                <span>Join Class</span>
+                            </a>
+                        </div>
+                    @endif
+
+                    {{-- Notes --}}
+                    @if ($selectedSessionDetails['notes'])
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-[#233842]">
+                            <p class="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 mb-1">Agenda &amp; Notes</p>
+                            <p class="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-line">{{ $selectedSessionDetails['notes'] }}</p>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Footer --}}
+                <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-[#233842]">
+                    @if ($selectedSessionDetails['google_calendar_url'])
+                        <a 
+                            href="{{ $selectedSessionDetails['google_calendar_url'] }}" 
+                            target="_blank" 
+                            rel="noopener"
+                            class="text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-[#7C3AED] transition-colors inline-flex items-center gap-1 no-underline"
+                        >
+                            Sync to Google Calendar &rarr;
+                        </a>
+                    @else
+                        <div></div>
+                    @endif
+
+                    <div class="flex items-center gap-2">
+                        <a 
+                            href="{{ route('filament.student.pages.schedule') }}"
+                            class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold no-underline transition-colors"
+                        >
+                            Full Schedule
+                        </a>
+                        <button 
+                            type="button" 
+                            wire:click="closeSessionDetails"
+                            class="px-4 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold shadow-sm transition-all"
+                        >
+                            Done
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 </x-filament-panels::page>

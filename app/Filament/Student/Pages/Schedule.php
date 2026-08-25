@@ -226,6 +226,13 @@ class Schedule extends Page
         $this->loadData();
     }
 
+    public function selectDay(string $date): void
+    {
+        $this->currentDate = $date;
+        $this->rangeMode = 'day';
+        $this->loadData();
+    }
+
     public function openSessionDetails(int $sessionId): void
     {
         $session = CourseSession::query()
