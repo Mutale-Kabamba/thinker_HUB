@@ -531,6 +531,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return PublicDiskPath::url($this->profile_photo_path);
     }
 
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        return PublicDiskPath::url($this->profile_photo_path);
+    }
+
     /**
      * Whether this account operates with dual-role privileges (e.g. Student + Instructor).
      */

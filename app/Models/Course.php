@@ -92,6 +92,11 @@ class Course extends Model
         return $this->belongsToMany(User::class, 'enrollments')->withTimestamps();
     }
 
+    public function students(): BelongsToMany
+    {
+        return $this->enrolledUsers();
+    }
+
     public function selectedParticipants(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'course_selected_participants')->withTimestamps();
@@ -110,6 +115,11 @@ class Course extends Model
     public function materials(): HasMany
     {
         return $this->hasMany(LearningMaterial::class);
+    }
+
+    public function learningMaterials(): HasMany
+    {
+        return $this->materials();
     }
 
     public function assessments(): HasMany

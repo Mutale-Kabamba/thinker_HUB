@@ -1,132 +1,136 @@
 <x-filament-panels::page>
-    <div style="display: flex; flex-direction: column; gap: 0.65rem; width: 100%; max-width: 100%;">
-        {{-- Header Bento Banner --}}
-        <div class="bento-card bento-mint" style="padding: 0.85rem 1.15rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
-                <div>
-                    <span class="bento-pill bento-pill-mint" style="font-size: 0.65rem; margin-bottom: 0.25rem;">Course Catalog &amp; Enrollment</span>
-                    <h2 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: inherit; letter-spacing: -0.02em;">
-                        Available Courses
-                    </h2>
-                    <p style="margin: 0.2rem 0 0 0; font-size: 0.76rem; opacity: 0.9;">
-                        Pick up to two active courses to enroll in and manage your curriculum on thinker HUB.
-                    </p>
+    <div class="space-y-6 font-sans">
+        {{-- Header Quyl SaaS Hero Card --}}
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-50 text-[#7C3AED] dark:bg-purple-900/30 dark:text-purple-300 border border-purple-100 dark:border-purple-800">
+                    <span>Course Catalog &amp; Enrollment</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.4rem;">
-                    <span class="bento-pill bento-pill-mint" style="font-size: 0.72rem;">
-                        🎓 Enrolled: {{ $enrolledCount }}/2
-                    </span>
-                </div>
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-800 dark:text-white tracking-tight">
+                    Available Courses
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                    Pick up to two active courses to enroll in and manage your curriculum on thinker HUB.
+                </p>
+            </div>
+            <div class="flex items-center">
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    🎓 Enrolled: {{ $enrolledCount }}/2
+                </span>
             </div>
         </div>
 
-        {{-- Multi-Column Compact Course Bento Grid --}}
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0.65rem;">
+        {{-- Multi-Column Course Grid --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             @forelse ($courses as $course)
-                <article class="bento-card" style="padding: 0.9rem 1rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.75rem;">
-                    <div>
+                <article class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-4 group">
+                    <div class="space-y-3">
                         {{-- Top Code & Status Row --}}
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
-                            <span class="bento-pill bento-pill-ice" style="font-family: monospace; font-weight: 700; font-size: 0.7rem;">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                                 {{ $course['code'] }}
                             </span>
                             
                             @if (! $course['is_active'])
-                                <span class="bento-pill bento-pill-neutral">Inactive</span>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">Inactive</span>
                             @elseif ($course['enrolled'])
-                                <span class="bento-pill bento-pill-mint">✓ Enrolled</span>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">✓ Enrolled</span>
                             @elseif (! $course['is_open_enrollment'])
-                                <span class="bento-pill bento-pill-neutral">🔒 Locked</span>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">🔒 Locked</span>
                             @else
-                                <span class="bento-pill bento-pill-amber">● Open</span>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800">● Open</span>
                             @endif
                         </div>
 
                         {{-- Course Title & Summary --}}
-                        <h3 style="margin: 0.45rem 0 0 0; font-size: 0.95rem; font-weight: 800; color: var(--hub-ink); line-height: 1.3;">
-                            {{ $course['title'] }}
-                        </h3>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-800 dark:text-white line-clamp-1 group-hover:text-[#7C3AED] transition-colors">
+                                {{ $course['title'] }}
+                            </h3>
 
-                        @if ($course['is_ongoing'] && ! empty($course['intake_name']))
-                            <div style="margin-top: 0.25rem;">
-                                <span class="bento-pill bento-pill-ice" style="font-size: 0.68rem; font-weight: 700;">
-                                    📌 Intake: {{ $course['intake_name'] }}
-                                </span>
-                            </div>
-                        @endif
+                            @if ($course['is_ongoing'] && ! empty($course['intake_name']))
+                                <div class="mt-1.5">
+                                    <span class="inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-[#7C3AED] dark:bg-purple-900/30 dark:text-purple-300 border border-purple-100 dark:border-purple-800">
+                                        📌 Intake: {{ $course['intake_name'] }}
+                                    </span>
+                                </div>
+                            @endif
 
-                        <p style="margin: 0.25rem 0 0 0; font-size: 0.75rem; color: var(--hub-muted); line-height: 1.35;">
-                            {{ $course['summary'] }}
-                        </p>
+                            <p class="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
+                                {{ $course['summary'] }}
+                            </p>
+                        </div>
 
                         @if (!empty($course['description']))
-                            <details style="margin-top: 0.45rem;">
-                                <summary style="cursor: pointer; color: #0d9488; font-weight: 700; font-size: 0.72rem;">View details</summary>
-                                <p style="margin: 0.35rem 0 0 0; font-size: 0.72rem; color: var(--hub-muted); line-height: 1.35;">
+                            <details class="text-xs pt-1">
+                                <summary class="cursor-pointer font-bold text-[#7C3AED] hover:underline">View details</summary>
+                                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                                     {{ $course['description'] }}
                                 </p>
                             </details>
                         @endif
                     </div>
 
-                    {{-- Course Stats / Rating Summary Strip --}}
-                    <div style="border-top: 1px solid var(--hub-border); padding-top: 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;">
-                        <span style="font-size: 0.72rem; font-weight: 700; color: #b45309; display: inline-flex; align-items: center; gap: 0.25rem;">
-                            ⭐ {{ $course['avg_rating'] > 0 ? number_format($course['avg_rating'], 1) : 'New' }}
-                            <span style="color: var(--hub-muted); font-weight: 500; font-size: 0.7rem;">
-                                ({{ $course['ratings_count'] }} {{ \Illuminate\Support\Str::plural('review', $course['ratings_count']) }})
+                    <div class="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                        {{-- Course Stats / Rating Summary Strip --}}
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                ⭐ {{ $course['avg_rating'] > 0 ? number_format($course['avg_rating'], 1) : 'New' }}
+                                <span class="text-slate-400 font-medium">
+                                    ({{ $course['ratings_count'] }} {{ \Illuminate\Support\Str::plural('review', $course['ratings_count']) }})
+                                </span>
                             </span>
-                        </span>
 
-                        @if ($course['enrolled'])
-                            <span class="bento-pill bento-pill-mint" style="font-size: 0.65rem;">
-                                Active Student
-                            </span>
-                        @endif
-                    </div>
+                            @if ($course['enrolled'])
+                                <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                                    Active Student
+                                </span>
+                            @endif
+                        </div>
 
-                    {{-- Actions Footer --}}
-                    <div style="border-top: 1px solid var(--hub-border); padding-top: 0.65rem; display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-                        @if (! $course['is_active'])
-                            <button type="button" disabled style="padding: 0.35rem 0.65rem; font-size: 0.72rem; font-weight: 700; border-radius: 0.4rem; border: 1px solid var(--hub-border); background: var(--hub-surface-soft); color: var(--hub-muted); opacity: 0.6; cursor: not-allowed;">
-                                Unavailable
-                            </button>
-                        @elseif ($course['enrolled'])
-                            <div style="display: flex; align-items: center; gap: 0.4rem;">
-                                @if ($course['certificate_claimed'])
-                                    <a href="{{ url('/learn/certificates') }}" class="bento-pill bento-pill-mint" style="text-decoration: none;">
-                                        🎓 View Certificate
-                                    </a>
-                                @elseif ($course['certificate_eligible'])
-                                    <button type="button" wire:click="claimCertificate({{ $course['id'] }})" class="bento-pill bento-pill-mint" style="cursor: pointer; border: none;">
-                                        🎓 Claim Certificate
-                                    </button>
-                                @endif
-                                <button type="button" wire:click="unenroll({{ $course['id'] }})"
-                                        style="padding: 0.32rem 0.65rem; background: #fee2e2; color: #991b1b; font-size: 0.72rem; font-weight: 700; border-radius: 0.4rem; border: 1px solid #fca5a5; cursor: pointer;">
-                                    Unenroll
+                        {{-- Actions Footer --}}
+                        <div class="flex items-center justify-between gap-2 pt-1">
+                            @if (! $course['is_active'])
+                                <button type="button" disabled class="px-4 py-2 text-xs font-bold rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 cursor-not-allowed">
+                                    Unavailable
                                 </button>
-                            </div>
-                        @elseif (! $course['can_enroll'])
-                            <button type="button" disabled style="padding: 0.35rem 0.65rem; font-size: 0.72rem; font-weight: 700; border-radius: 0.4rem; border: 1px solid var(--hub-border); background: var(--hub-surface-soft); color: var(--hub-muted); opacity: 0.6; cursor: not-allowed;">
-                                🔒 Locked
-                            </button>
-                        @elseif ($course['is_payable'])
-                            <a href="{{ $course['checkout_url'] }}"
-                               style="display: inline-flex; align-items: center; text-decoration: none; padding: 0.35rem 0.85rem; background: #0d9488; color: #ffffff; font-size: 0.74rem; font-weight: 700; border-radius: 0.4rem; border: 1px solid #0f766e;">
-                                Enroll &amp; Pay &rarr;
-                            </a>
-                        @else
-                            <button type="button" wire:click="enroll({{ $course['id'] }})"
-                                    style="padding: 0.35rem 0.85rem; background: #0d9488; color: #ffffff; font-size: 0.74rem; font-weight: 700; border-radius: 0.4rem; border: 1px solid #0f766e; cursor: pointer;">
-                                Enroll Free &rarr;
-                            </button>
-                        @endif
+                            @elseif ($course['enrolled'])
+                                <div class="flex items-center gap-2 w-full justify-between">
+                                    @if ($course['certificate_claimed'])
+                                        <a href="{{ url('/learn/certificates') }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                            🎓 View Certificate
+                                        </a>
+                                    @elseif ($course['certificate_eligible'])
+                                        <button type="button" wire:click="claimCertificate({{ $course['id'] }})" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 cursor-pointer">
+                                            🎓 Claim Certificate
+                                        </button>
+                                    @endif
+                                    <button type="button" wire:click="unenroll({{ $course['id'] }})"
+                                            class="px-3.5 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/30 dark:text-rose-300 rounded-full border border-rose-200 dark:border-rose-800 cursor-pointer transition-colors ml-auto">
+                                        Unenroll
+                                    </button>
+                                </div>
+                            @elseif (! $course['can_enroll'])
+                                <button type="button" disabled class="px-4 py-2 text-xs font-bold rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 cursor-not-allowed">
+                                    🔒 Locked
+                                </button>
+                            @elseif ($course['is_payable'])
+                                <a href="{{ $course['checkout_url'] }}"
+                                   class="inline-flex items-center justify-center px-5 py-2 rounded-full text-xs font-bold text-white bg-[#7C3AED] hover:bg-[#6D28D9] shadow-xs transition-colors">
+                                    Enroll &amp; Pay &rarr;
+                                </a>
+                            @else
+                                <button type="button" wire:click="enroll({{ $course['id'] }})"
+                                        class="inline-flex items-center justify-center px-5 py-2 rounded-full text-xs font-bold text-white bg-[#7C3AED] hover:bg-[#6D28D9] shadow-xs transition-colors cursor-pointer">
+                                    Enroll Free &rarr;
+                                </button>
+                            @endif
+                        </div>
                     </div>
                 </article>
             @empty
-                <div class="bento-card" style="grid-column: 1 / -1; padding: 2rem; text-align: center;">
-                    <p style="margin: 0; font-size: 0.85rem; color: var(--hub-muted);">No courses currently available in the catalog.</p>
+                <div class="col-span-full bg-white dark:bg-slate-900 rounded-2xl p-8 text-center border border-slate-100 dark:border-slate-800">
+                    <p class="text-xs text-slate-400">No courses currently available in the catalog.</p>
                 </div>
             @endforelse
         </div>
