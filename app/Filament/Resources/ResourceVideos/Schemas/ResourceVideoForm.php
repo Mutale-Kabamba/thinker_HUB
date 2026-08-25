@@ -72,8 +72,30 @@ class ResourceVideoForm
                     ->label('Course')
                     ->options($resolveCourseOptions)
                     ->searchable()
+                    ->live()
                     ->visible(fn (callable $get): bool => (bool) $get('is_recorded_lesson'))
                     ->required(fn (callable $get): bool => (bool) $get('is_recorded_lesson')),
+
+                Select::make('course_intake_id')
+                    ->label('Target Intake / Class')
+                    ->nullable()
+                    ->searchable()
+                    ->options(function (callable $get): array {
+                        $courseId = $get('course_id');
+                        if (! $courseId) {
+                            return [];
+                        }
+
+                        return \App\Models\CourseIntake::query()
+                            ->where('course_id', $courseId)
+                            ->where('status', '!=', \App\Models\CourseIntake::STATUS_ARCHIVED)
+                            ->orderBy('start_date', 'desc')
+                            ->pluck('name', 'id')
+                            ->toArray();
+                    })
+                    ->placeholder('All Intakes / Entire Course')
+                    ->helperText('Leave empty to share with all cohorts across the course.')
+                    ->visible(fn (callable $get): bool => (bool) $get('is_recorded_lesson')),
 
                 Select::make('target_level')
                     ->label('Target level')

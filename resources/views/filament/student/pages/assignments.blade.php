@@ -45,9 +45,13 @@
                             <td style="padding:0.55rem 0.5rem;text-align:center;font-weight:700;color:{{ $assignment['grade'] !== null ? '#15803d' : 'var(--hub-muted)' }};">{{ $assignment['grade'] !== null ? $assignment['grade'] . '%' : '-' }}</td>
                             <td style="padding:0.55rem 0.75rem;text-align:right;">
                                 <div style="display:flex;gap:0.35rem;justify-content:flex-end;flex-wrap:wrap;">
-                                    @if (!empty($assignment['file_path']))
-                                        <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assignment', 'id' => $assignment['id']])), @js($assignment['name'] . '.' . pathinfo($assignment['file_path'], PATHINFO_EXTENSION)))" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View file">View</button>
-                                        <button type="button" wire:click="downloadFile({{ $assignment['id'] }})" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#6d28d9;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Download file">Download</button>
+                                    @if (!empty($assignment['file_paths']))
+                                        @if (count($assignment['file_paths']) === 1)
+                                            <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assignment', 'id' => $assignment['id'], 'index' => 0])), @js($assignment['name'] . '.' . pathinfo($assignment['file_paths'][0], PATHINFO_EXTENSION)))" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View file">View</button>
+                                            <button type="button" wire:click="downloadFile({{ $assignment['id'] }}, 0)" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#6d28d9;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Download file">Download</button>
+                                        @else
+                                            <button type="button" @click="toggle({{ $assignment['id'] }}, 'details')" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View attached files">{{ count($assignment['file_paths']) }} Files</button>
+                                        @endif
                                     @endif
                                     @if (!empty($assignment['is_graded']))
                                         <button type="button" disabled style="background:var(--hub-surface-soft, rgba(148,163,184,0.12));border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:not-allowed;color:var(--hub-muted);opacity:0.55;font-weight:600;" title="Assignment is graded — submissions locked">Submit</button>
@@ -72,6 +76,27 @@
                                         <div style="padding:0.55rem 0.75rem;background:#fff;border:1px solid var(--hub-border);border-radius:8px;margin-bottom:0.5rem;">
                                             <p style="margin:0;font-size:0.76rem;font-weight:600;color:var(--hub-ink);text-transform:uppercase;letter-spacing:0.03em;">Description</p>
                                             <p style="margin:0.25rem 0 0;font-size:0.82rem;color:var(--hub-muted);white-space:pre-line;">{{ $assignment['description'] }}</p>
+                                        </div>
+                                    @endif
+
+                                    {{-- Assignment Prompt Files --}}
+                                    @if (!empty($assignment['file_paths']))
+                                        <div style="padding:0.55rem 0.75rem;background:#fff;border:1px solid var(--hub-border);border-radius:8px;margin-bottom:0.5rem;">
+                                            <p style="margin:0 0 0.35rem;font-size:0.76rem;font-weight:600;color:var(--hub-ink);text-transform:uppercase;letter-spacing:0.03em;">Assignment Document(s)</p>
+                                            <div style="display:flex;flex-direction:column;gap:0.35rem;">
+                                                @foreach ($assignment['file_paths'] as $fIdx => $fPath)
+                                                    <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:0.25rem 0.4rem;border-radius:6px;background:var(--hub-surface);">
+                                                        <span style="font-size:0.8rem;color:var(--hub-ink);display:flex;align-items:center;gap:0.35rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                                            <x-heroicon-o-document-text style="width:0.95rem;height:0.95rem;color:#0e7490;flex-shrink:0;" />
+                                                            {{ basename($fPath) }}
+                                                        </span>
+                                                        <div style="display:flex;gap:0.3rem;flex-shrink:0;">
+                                                            <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assignment', 'id' => $assignment['id'], 'index' => $fIdx])), @js(basename($fPath)))" style="background:none;border:1px solid var(--hub-border);border-radius:4px;padding:0.15rem 0.4rem;font-size:0.7rem;cursor:pointer;color:#0e7490;font-weight:600;">View</button>
+                                                            <button type="button" wire:click="downloadFile({{ $assignment['id'] }}, {{ $fIdx }})" style="background:none;border:1px solid var(--hub-border);border-radius:4px;padding:0.15rem 0.4rem;font-size:0.7rem;cursor:pointer;color:#6d28d9;font-weight:600;">Download</button>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
                                         </div>
                                     @endif
 
@@ -101,14 +126,24 @@
 
                                     {{-- Submitted Attachments --}}
                                     @if ($assignment['status'] !== 'Not submitted')
-                                        @if (!empty($assignment['submission']['file']) || !empty($assignment['submission']['link']) || !empty($assignment['submission']['video']))
+                                        @php
+                                            $subFiles = !empty($assignment['submission']['files']) ? $assignment['submission']['files'] : (!empty($assignment['submission']['file']) ? [$assignment['submission']['file']] : []);
+                                        @endphp
+                                        @if (!empty($subFiles) || !empty($assignment['submission']['link']) || !empty($assignment['submission']['video']))
                                             <div style="padding:0.55rem 0.75rem;background:#fff;border:1px solid var(--hub-border);border-radius:8px;margin-bottom:0.5rem;">
                                                 <p style="margin:0 0 0.3rem;font-size:0.76rem;font-weight:600;color:var(--hub-ink);text-transform:uppercase;letter-spacing:0.03em;">Your Submission</p>
-                                                @if (!empty($assignment['submission']['file']) && !empty($assignment['submission']['id']))
-                                                    <p style="margin:0.15rem 0;font-size:0.8rem;display:flex;align-items:center;gap:0.35rem;">
-                                                        <x-heroicon-o-document-text style="width:0.95rem;height:0.95rem;color:#0e7490;" />
-                                                        <a href="#" @click.prevent="openViewer(@js(route('file.view', ['type' => 'submission', 'id' => $assignment['submission']['id']])), @js('Submission.' . pathinfo($assignment['submission']['file'], PATHINFO_EXTENSION)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">View uploaded file</a>
-                                                    </p>
+                                                @if (!empty($subFiles) && !empty($assignment['submission']['id']))
+                                                    <div style="display:flex;flex-direction:column;gap:0.25rem;margin-bottom:0.35rem;">
+                                                        @foreach ($subFiles as $sfIdx => $sfPath)
+                                                            <p style="margin:0.1rem 0;font-size:0.8rem;display:flex;align-items:center;gap:0.35rem;">
+                                                                <x-heroicon-o-document-text style="width:0.95rem;height:0.95rem;color:#0e7490;flex-shrink:0;" />
+                                                                <a href="#" @click.prevent="openViewer(@js(route('file.view', ['type' => 'submission', 'id' => $assignment['submission']['id'], 'index' => $sfIdx])), @js(basename($sfPath)))" style="color:#0e7490;text-decoration:underline;cursor:pointer;">
+                                                                    {{ basename($sfPath) }}
+                                                                </a>
+                                                                <button type="button" wire:click="downloadSubmissionFile({{ $assignment['id'] }}, {{ $sfIdx }})" style="background:none;border:none;color:#6d28d9;cursor:pointer;font-size:0.72rem;padding:0 0.2rem;text-decoration:underline;">(Download)</button>
+                                                            </p>
+                                                        @endforeach
+                                                    </div>
                                                 @endif
                                                 @if (!empty($assignment['submission']['link']))
                                                     <p style="margin:0.15rem 0;font-size:0.8rem;display:flex;align-items:center;gap:0.35rem;">
@@ -159,7 +194,10 @@
                                             <textarea wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.text" class="hub-textarea" placeholder="Write your response here..." style="min-height:80px;font-size:0.82rem;"></textarea>
                                             <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.link" class="hub-input" placeholder="Paste a link (optional)" style="font-size:0.82rem;" />
                                             <input type="url" wire:model.defer="submissionDrafts.{{ $assignment['id'] }}.video" class="hub-input" placeholder="Paste a video URL — YouTube, Vimeo, etc. (optional)" style="font-size:0.82rem;" />
-                                            <input type="file" wire:model="submissionDrafts.{{ $assignment['id'] }}.file" class="hub-input" style="font-size:0.82rem;" accept=".pdf,.doc,.docx,.txt,.csv,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif,.pptx,.xlsx" />
+                                            <div>
+                                                <label style="font-size:0.75rem;font-weight:600;color:var(--hub-muted);margin-bottom:0.2rem;display:block;">Attach file(s) (Select 1 or multiple):</label>
+                                                <input type="file" wire:model="submissionDrafts.{{ $assignment['id'] }}.files" multiple class="hub-input" style="font-size:0.82rem;" accept=".pdf,.doc,.docx,.txt,.csv,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif,.pptx,.xlsx,.zip" />
+                                            </div>
                                         </div>
                                         <div style="margin-top:0.6rem;display:flex;gap:0.45rem;flex-wrap:wrap;">
                                             <button type="button" wire:click="submit({{ $assignment['id'] }})" class="hub-btn hub-btn-primary" style="font-size:0.8rem;padding:0.35rem 1rem;">

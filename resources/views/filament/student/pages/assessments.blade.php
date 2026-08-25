@@ -42,9 +42,13 @@
                             <td style="padding:0.55rem 0.75rem;text-align:right;">
                                 <div style="display:flex;gap:0.35rem;justify-content:flex-end;flex-wrap:wrap;">
 
-                                    @if (!empty($assessment['file_path']))
-                                        <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assessment', 'id' => $assessment['id']])), @js($assessment['name'] . '.' . pathinfo($assessment['file_path'], PATHINFO_EXTENSION)))" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View file">View</button>
-                                        <button type="button" wire:click="downloadFile({{ $assessment['id'] }})" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#6d28d9;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Download file">Download</button>
+                                    @if (!empty($assessment['file_paths']))
+                                        @if (count($assessment['file_paths']) === 1)
+                                            <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assessment', 'id' => $assessment['id'], 'index' => 0])), @js($assessment['name'] . '.' . pathinfo($assessment['file_paths'][0], PATHINFO_EXTENSION)))" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View file">View</button>
+                                            <button type="button" wire:click="downloadFile({{ $assessment['id'] }}, 0)" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#6d28d9;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Download file">Download</button>
+                                        @else
+                                            <button type="button" @click="toggle({{ $assessment['id'] }}, 'details')" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View attached files">{{ count($assessment['file_paths']) }} Files</button>
+                                        @endif
                                     @endif
                                     @if (!empty($assessment['is_graded']))
                                         <button type="button" disabled style="background:var(--hub-surface-soft, rgba(148,163,184,0.12));border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:not-allowed;color:var(--hub-muted);opacity:0.55;font-weight:600;" title="Assessment is graded — submissions locked">Submit</button>
@@ -102,9 +106,13 @@
                     {{-- Action buttons --}}
                     <div class="hub-mobile-card-actions">
 
-                        @if (!empty($assessment['file_path']))
-                            <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assessment', 'id' => $assessment['id']])), @js($assessment['name'] . '.' . pathinfo($assessment['file_path'], PATHINFO_EXTENSION)))" class="hub-action-btn" style="color:#0e7490;">View</button>
-                            <button type="button" wire:click="downloadFile({{ $assessment['id'] }})" class="hub-action-btn" style="color:#6d28d9;">Download</button>
+                        @if (!empty($assessment['file_paths']))
+                            @if (count($assessment['file_paths']) === 1)
+                                <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'assessment', 'id' => $assessment['id'], 'index' => 0])), @js($assessment['name'] . '.' . pathinfo($assessment['file_paths'][0], PATHINFO_EXTENSION)))" class="hub-action-btn" style="color:#0e7490;">View</button>
+                                <button type="button" wire:click="downloadFile({{ $assessment['id'] }}, 0)" class="hub-action-btn" style="color:#6d28d9;">Download</button>
+                            @else
+                                <button type="button" @click="toggle({{ $assessment['id'] }}, 'details')" class="hub-action-btn" style="color:#0e7490;">{{ count($assessment['file_paths']) }} Files</button>
+                            @endif
                         @endif
                         @if (!empty($assessment['is_graded']))
                             <button type="button" disabled class="hub-action-btn" style="background:var(--hub-surface-soft, rgba(148,163,184,0.12));color:var(--hub-muted);cursor:not-allowed;opacity:0.55;" title="Assessment is graded — submissions locked">Submit</button>

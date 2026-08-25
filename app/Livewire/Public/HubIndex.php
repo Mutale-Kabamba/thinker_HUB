@@ -46,6 +46,14 @@ class HubIndex extends Component
     public string $regInstagramUrl = '';
     public string $regCompany = '';
     public string $regSpecialty = '';
+    public string $customSpecialty = '';
+
+    // Lookup & Auto-fill from Existing Account
+    public string $lookupEmail = '';
+    public ?int $existingUserId = null;
+    public ?string $existingUserRole = null;
+    public ?string $lookupMessage = null;
+    public string $lookupStatus = ''; // 'success', 'error', 'info'
 
     // Resource Submission form attributes
     public string $submitTitle = '';
@@ -126,6 +134,73 @@ class HubIndex extends Component
         $this->resetSubmitForm();
     }
 
+    public function getSpecialtyOptionsProperty(): array
+    {
+        return match ($this->regRole) {
+            'blogger' => [
+                'Web & Full Stack Development',
+                'Artificial Intelligence & Machine Learning',
+                'Cloud Computing & DevOps',
+                'Cybersecurity & Information Security',
+                'Mobile App Development (iOS / Android / Flutter)',
+                'Data Science & Analytics',
+                'UI/UX & Digital Product Design',
+                'Blockchain & Web3 Technologies',
+                'Tech Career, Mentorship & Freelancing',
+                'Software Architecture & Engineering Practices',
+                'Internet of Things (IoT) & Embedded Systems',
+                'Tech Entrepreneurship & Product Management',
+                'Other / Custom Specialty',
+            ],
+            'researcher' => [
+                'Backend Architecture & API Engineering (Laravel, Python, Node.js, Go)',
+                'Frontend Frameworks & Web Performance (Vue, React, Alpine.js, Tailwind)',
+                'Database Optimization & SQL Query Tuning (MySQL, PostgreSQL, Redis)',
+                'Machine Learning, Deep Learning & LLM Research',
+                'System Design, Scalability & Microservices',
+                'DevOps, CI/CD Pipelines & Containerization (Docker, Kubernetes)',
+                'Applied Cybersecurity, Ethical Hacking & Security Audits',
+                'Algorithms, Data Structures & Performance Optimization',
+                'Clean Code, Refactoring & Software Design Patterns',
+                'Test Automation, QA & Test-Driven Development (TDD)',
+                'Computer Vision & Natural Language Processing (NLP)',
+                'Cloud Architecture & Infrastructure as Code (AWS, GCP, Azure, Terraform)',
+                'Other / Custom Specialty',
+            ],
+            'employer' => [
+                'Full Stack & Web Engineering Hiring',
+                'Data Analytics & Machine Learning Roles',
+                'Cloud Infrastructure & DevOps Opportunities',
+                'UI/UX & Product Design Recruiting',
+                'Cybersecurity & Network Systems Positions',
+                'Mobile Application Engineering Roles',
+                'Tech Internships & Graduate Trainee Programs',
+                'IT Support, Systems & Database Administration',
+                'QA Testing & Automation Engineering',
+                'Technical Project Management & Scrum Leadership',
+                'Remote Freelance & Contract Engineering',
+                'Corporate Partnerships & University Fellowships',
+                'Other / Custom Specialty',
+            ],
+            default => [
+                'Software Development',
+                'Data & AI',
+                'Cloud & DevOps',
+                'Cybersecurity',
+                'Product & Design',
+                'Other / Custom Specialty',
+            ],
+        };
+    }
+
+    public function updatedRegRole(): void
+    {
+        $options = $this->specialtyOptions;
+        if (! in_array($this->regSpecialty, $options, true) && $this->regSpecialty !== 'Other / Custom Specialty') {
+            $this->regSpecialty = $options[0] ?? '';
+        }
+    }
+
     public function openRegisterModal(): void
     {
         $this->regName = '';
@@ -136,33 +211,117 @@ class HubIndex extends Component
         $this->regBio = '';
         $this->regWhatsapp = '';
         $this->regLinkedinUrl = '';
+        $this->regFacebookUrl = '';
         $this->regPortfolioUrl = '';
         $this->regGithubUrl = '';
+        $this->regInstagramUrl = '';
         $this->regCompany = '';
-        $this->regSpecialty = '';
+        $this->regSpecialty = $this->specialtyOptions[0] ?? '';
+        $this->customSpecialty = '';
+
+        $this->lookupEmail = '';
+        $this->existingUserId = null;
+        $this->existingUserRole = null;
+        $this->lookupMessage = null;
+        $this->lookupStatus = '';
+
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->lookupEmail = (string) $user->email;
+            $this->checkAndPullDetails($user->email);
+        }
+
         $this->showRegisterModal = true;
+    }
+
+    public function checkAndPullDetails(?string $emailToLookup = null): void
+    {
+        $email = trim($emailToLookup ?? $this->lookupEmail);
+
+        if ($email === '') {
+            $this->lookupStatus = 'error';
+            $this->lookupMessage = 'Please enter your registered student or instructor email address to check.';
+            return;
+        }
+
+        $user = User::query()->where('email', $email)->first();
+
+        if (! $user) {
+            $this->lookupStatus = 'error';
+            $this->lookupMessage = "No existing account found for \"{$email}\". You can proceed with standard contributor registration below.";
+            $this->existingUserId = null;
+            $this->existingUserRole = null;
+            return;
+        }
+
+        // Pull application details if available to get maximum social and contact data
+        $application = $user->instructorApplication ?? \App\Models\InstructorApplication::query()->where('email', $user->email)->latest()->first();
+
+        // Auto-fill all available profile attributes from existing account & application
+        $this->regName = $user->name ?? ($application?->name ?? '');
+        $this->regEmail = $user->email ?? '';
+        $this->regWhatsapp = $user->whatsapp ?: ($application?->whatsapp ?: ($application?->phone ?: ''));
+        $this->regBio = $user->bio ?: ($application?->bio ?: '');
+        $this->regLinkedinUrl = $user->linkedin_url ?: ($application?->linkedin_url ?: '');
+        $this->regFacebookUrl = $user->facebook_url ?: ($application?->facebook_url ?: '');
+        $this->regPortfolioUrl = $user->portfolio_url ?: ($application?->portfolio_url ?: '');
+        $this->regGithubUrl = $user->github_url ?: '';
+        $this->regInstagramUrl = $user->instagram_url ?: '';
+        $this->regCompany = $user->company ?: ($user->occupation ?: ($application?->occupation ?? ''));
+        
+        $importedSpecialty = trim($user->specialty ?: ($user->proficiency ?: ($application?->proficiency ?: ($user->track ?: ''))));
+        $options = $this->specialtyOptions;
+        if (in_array($importedSpecialty, $options, true)) {
+            $this->regSpecialty = $importedSpecialty;
+            $this->customSpecialty = '';
+        } elseif ($importedSpecialty !== '') {
+            $this->regSpecialty = 'Other / Custom Specialty';
+            $this->customSpecialty = $importedSpecialty;
+        } else {
+            $this->regSpecialty = $options[0] ?? '';
+            $this->customSpecialty = '';
+        }
+
+        $this->existingUserId = $user->id;
+        $this->existingUserRole = ucfirst($user->role);
+        $this->lookupStatus = 'success';
+        $this->lookupMessage = "✓ Verified existing {$this->existingUserRole} profile for {$user->name}! Profile details, social links, and contacts have been loaded. Your current account password will be used.";
     }
 
     public function closeRegisterModal(): void
     {
         $this->showRegisterModal = false;
+        $this->lookupMessage = null;
+        $this->lookupStatus = '';
+        $this->existingUserId = null;
+        $this->existingUserRole = null;
     }
 
     public function registerContributor(): void
     {
-        $this->validate([
+        $validationRules = [
             'regName' => 'required|string|max:255',
-            'regEmail' => 'required|string|email|max:255|unique:users,email',
+            'regEmail' => $this->existingUserId
+                ? 'required|string|email|max:255|unique:users,email,'.$this->existingUserId
+                : 'required|string|email|max:255|unique:users,email',
             'regRole' => 'required|string|in:blogger,researcher,employer',
-            'regPassword' => 'required|string|min:8|same:regPasswordConfirmation',
             'regBio' => 'nullable|string|max:1000',
             'regWhatsapp' => 'nullable|string|max:50',
             'regLinkedinUrl' => 'nullable|url|max:255',
+            'regFacebookUrl' => 'nullable|url|max:255',
             'regPortfolioUrl' => 'nullable|url|max:255',
             'regGithubUrl' => 'nullable|url|max:255',
+            'regInstagramUrl' => 'nullable|url|max:255',
             'regCompany' => 'nullable|string|max:255',
-            'regSpecialty' => 'nullable|string|max:255',
-        ]);
+            'regSpecialty' => 'required|string|max:255',
+            'customSpecialty' => 'nullable|string|max:255',
+        ];
+
+        if (! $this->existingUserId) {
+            $validationRules['regPassword'] = 'required|string|min:8|same:regPasswordConfirmation';
+        }
+
+        $this->validate($validationRules);
 
         $roleTitle = match ($this->regRole) {
             'blogger' => 'Blogger (Short Blogs)',
@@ -171,22 +330,56 @@ class HubIndex extends Component
             default => ucfirst($this->regRole),
         };
 
-        User::create([
-            'name' => $this->regName,
-            'email' => $this->regEmail,
-            'role' => $this->regRole,
-            'is_active' => false, // Pending Admin approval!
-            'password' => Hash::make($this->regPassword),
-            'bio' => $this->regBio ?: null,
-            'whatsapp' => $this->regWhatsapp ?: null,
-            'linkedin_url' => $this->regLinkedinUrl ?: null,
-            'facebook_url' => $this->regFacebookUrl ?: null,
-            'portfolio_url' => $this->regPortfolioUrl ?: null,
-            'github_url' => $this->regGithubUrl ?: null,
-            'instagram_url' => $this->regInstagramUrl ?: null,
-            'company' => $this->regCompany ?: null,
-            'specialty' => $this->regSpecialty ?: null,
-        ]);
+        $resolvedSpecialty = $this->regSpecialty === 'Other / Custom Specialty'
+            ? ($this->customSpecialty ?: 'General Technical Specialty')
+            : $this->regSpecialty;
+
+        if ($this->existingUserId && ($existingUser = User::find($this->existingUserId))) {
+            $updateData = [
+                'name' => $this->regName,
+                'email' => $this->regEmail,
+                'bio' => $this->regBio ?: $existingUser->bio,
+                'whatsapp' => $this->regWhatsapp ?: $existingUser->whatsapp,
+                'linkedin_url' => $this->regLinkedinUrl ?: $existingUser->linkedin_url,
+                'facebook_url' => $this->regFacebookUrl ?: $existingUser->facebook_url,
+                'portfolio_url' => $this->regPortfolioUrl ?: $existingUser->portfolio_url,
+                'github_url' => $this->regGithubUrl ?: $existingUser->github_url,
+                'instagram_url' => $this->regInstagramUrl ?: $existingUser->instagram_url,
+                'company' => $this->regCompany ?: $existingUser->company,
+                'specialty' => $resolvedSpecialty ?: $existingUser->specialty,
+            ];
+
+            if ($this->regPassword) {
+                $updateData['password'] = Hash::make($this->regPassword);
+            }
+
+            // If user is a student, request/switch to contributor role pending approval
+            if ($existingUser->role === 'student') {
+                $updateData['role'] = $this->regRole;
+                $updateData['is_active'] = false; // Pending Admin approval for contributor publishing
+            } elseif (in_array($existingUser->role, ['blogger', 'researcher', 'employer'])) {
+                $updateData['role'] = $this->regRole;
+            }
+
+            $existingUser->update($updateData);
+        } else {
+            User::create([
+                'name' => $this->regName,
+                'email' => $this->regEmail,
+                'role' => $this->regRole,
+                'is_active' => false, // Pending Admin approval!
+                'password' => Hash::make($this->regPassword),
+                'bio' => $this->regBio ?: null,
+                'whatsapp' => $this->regWhatsapp ?: null,
+                'linkedin_url' => $this->regLinkedinUrl ?: null,
+                'facebook_url' => $this->regFacebookUrl ?: null,
+                'portfolio_url' => $this->regPortfolioUrl ?: null,
+                'github_url' => $this->regGithubUrl ?: null,
+                'instagram_url' => $this->regInstagramUrl ?: null,
+                'company' => $this->regCompany ?: null,
+                'specialty' => $resolvedSpecialty ?: null,
+            ]);
+        }
 
         $this->submitNoticeMessage = "Registration received! Your request for an approved {$roleTitle} profile has been submitted to Admin for review. Once approved, your account will be activated and listed on our Knowledge Network directory.";
         $this->closeRegisterModal();

@@ -27,6 +27,7 @@ class CreateAssessment extends BaseCreateRecord
             'publish_at' => $data['publish_at'] ?? null,
             'due_date' => $data['due_date'] ?? null,
             'file_path' => $data['file_path'] ?? null,
+            'file_paths' => $data['file_paths'] ?? null,
             'score' => null,
         ];
 

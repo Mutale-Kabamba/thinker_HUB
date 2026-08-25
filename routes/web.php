@@ -67,6 +67,10 @@ $loadPublicCourses = static function (int $limit = 0) {
             $query->withCount('selectedParticipants');
         }
 
+        if (Schema::hasTable('course_intakes')) {
+            $query->with(['intakes' => fn ($q) => $q->orderBy('start_date')]);
+        }
+
         if ($limit > 0) {
             $query->limit($limit);
         }
@@ -374,6 +378,9 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
     $courseModel = Course::query()->where('is_active', true)->findOrFail($course);
     $courseModel->loadAvg('ratings', 'rating');
     $courseModel->loadCount('ratings');
+    if (Schema::hasTable('course_intakes')) {
+        $courseModel->load(['intakes' => fn ($q) => $q->orderBy('start_date')]);
+    }
     $courseModel->load(['ratings' => function ($q) {
         $q->with('user:id,name,profile_photo_path')->latest()->limit(10);
     }]);
@@ -627,18 +634,22 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('auth')->group(function () {
         Route::get('/materials/{material}/read', \App\Livewire\MaterialReader::class)->name('materials.read');
+        Route::get('/materials/{material}/watch', \App\Livewire\VideoPlayer::class)->name('materials.watch');
         Route::get('/materials/{material}', \App\Livewire\MaterialReader::class)->name('materials.show');
         Route::get('/lessons/{lesson}', \App\Livewire\VideoPlayer::class)->name('lessons.show');
+        Route::get('/videos/{video}', \App\Livewire\VideoPlayer::class)->name('videos.show');
     });
 
     // Serve files from storage without requiring the storage:link symlink.
-    Route::get('/file/view/{type}/{id}', function (string $type, int $id) {
+    Route::get('/file/view/{type}/{id}', function (Request $request, string $type, int $id) {
         $user = Auth::user();
         if (! $user) {
             abort(403);
         }
 
         $disk = Storage::disk('public');
+        $index = $request->query('index');
+        $fileParam = $request->query('file');
 
         if ($type === 'material') {
             $material = ($user->isAdmin() || $user->isInstructor())
@@ -649,26 +660,54 @@ Route::middleware('auth')->group(function () {
             $assignment = ($user->isAdmin() || $user->isInstructor())
                 ? Assignment::query()->findOrFail($id)
                 : Assignment::query()->visibleTo($user)->findOrFail($id);
-            $path = $assignment->file_path;
+            $paths = $assignment->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $assignment->file_path;
+            }
         } elseif ($type === 'assessment') {
             $assessment = ($user->isAdmin() || $user->isInstructor())
                 ? Assessment::query()->findOrFail($id)
                 : Assessment::query()->visibleTo($user)->findOrFail($id);
-            $path = $assessment->file_path;
+            $paths = $assessment->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $assessment->file_path;
+            }
         } elseif ($type === 'submission') {
             $submission = AssignmentSubmission::query()->findOrFail($id);
             $canView = $user->isAdmin()
                 || $user->isInstructor()
                 || $submission->user_id === $user->id;
             abort_unless($canView, 403);
-            $path = $submission->file_path;
+            $paths = $submission->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $submission->file_path;
+            }
         } elseif ($type === 'assessment-submission') {
             $submission = AssessmentSubmission::query()->findOrFail($id);
             $canView = $user->isAdmin()
                 || $user->isInstructor()
                 || $submission->user_id === $user->id;
             abort_unless($canView, 403);
-            $path = $submission->file_path;
+            $paths = $submission->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $submission->file_path;
+            }
         } elseif ($type === 'chat-message') {
             $chatMessage = ChatMessage::query()->findOrFail($id);
 
@@ -679,7 +718,15 @@ Route::middleware('auth')->group(function () {
 
             abort_unless($isRoomMember || $user->isAdmin(), 403);
 
-            $path = $chatMessage->attachment_path;
+            $attachments = $chatMessage->all_attachments;
+            if ($index !== null && isset($attachments[(int) $index])) {
+                $path = $attachments[(int) $index]['path'];
+            } elseif ($fileParam) {
+                $matched = collect($attachments)->firstWhere('path', $fileParam);
+                $path = $matched ? $matched['path'] : ($attachments[0]['path'] ?? $chatMessage->attachment_path);
+            } else {
+                $path = $attachments[0]['path'] ?? $chatMessage->attachment_path;
+            }
         } else {
             abort(404);
         }
@@ -708,13 +755,15 @@ Route::middleware('auth')->group(function () {
 
     // Signed URL route for viewing Office documents via Google Docs Viewer.
     // Generates a temporary signed URL that doesn't require authentication.
-    Route::get('/file/signed/{type}/{id}', function (string $type, int $id) {
+    Route::get('/file/signed/{type}/{id}', function (Request $request, string $type, int $id) {
         $user = Auth::user();
         if (! $user) {
             abort(403);
         }
 
         $disk = Storage::disk('public');
+        $index = $request->query('index');
+        $fileParam = $request->query('file');
 
         if ($type === 'material') {
             $material = ($user->isAdmin() || $user->isInstructor())
@@ -725,26 +774,54 @@ Route::middleware('auth')->group(function () {
             $assignment = ($user->isAdmin() || $user->isInstructor())
                 ? Assignment::query()->findOrFail($id)
                 : Assignment::query()->visibleTo($user)->findOrFail($id);
-            $path = $assignment->file_path;
+            $paths = $assignment->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $assignment->file_path;
+            }
         } elseif ($type === 'assessment') {
             $assessment = ($user->isAdmin() || $user->isInstructor())
                 ? Assessment::query()->findOrFail($id)
                 : Assessment::query()->visibleTo($user)->findOrFail($id);
-            $path = $assessment->file_path;
+            $paths = $assessment->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $assessment->file_path;
+            }
         } elseif ($type === 'submission') {
             $submission = AssignmentSubmission::query()->findOrFail($id);
             $canView = $user->isAdmin()
                 || $user->isInstructor()
                 || $submission->user_id === $user->id;
             abort_unless($canView, 403);
-            $path = $submission->file_path;
+            $paths = $submission->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $submission->file_path;
+            }
         } elseif ($type === 'assessment-submission') {
             $submission = AssessmentSubmission::query()->findOrFail($id);
             $canView = $user->isAdmin()
                 || $user->isInstructor()
                 || $submission->user_id === $user->id;
             abort_unless($canView, 403);
-            $path = $submission->file_path;
+            $paths = $submission->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $submission->file_path;
+            }
         } else {
             abort(404);
         }

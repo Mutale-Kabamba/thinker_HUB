@@ -289,8 +289,12 @@
         min-width: 0;
     }
 
-    /* Mobile: search+notif centered, profile pushed right */
+    /* Mobile: search+notif centered, profile pushed right, hide topbar workspace badge */
     @media (max-width: 899px) {
+        .hub-topbar-badge {
+            display: none !important;
+        }
+
         .hub-top-bar-group {
             flex: 1;
             min-width: 0;
@@ -2477,12 +2481,90 @@
         color: #f1f5f9 !important;
     }
 
-    @media (max-width: 640px) {
-        .hub-topbar-badge span {
-            display: none;
-        }
+    @media (max-width: 899px) {
         .hub-topbar-badge {
-            padding: 0.3rem 0.5rem;
+            display: none !important;
+        }
+    }
+
+    /* =========================================================================
+       SIDEBAR NOTIFICATION BADGES & BRIGHT GLOWING DOTS
+       ========================================================================= */
+    .fi-sidebar-item-badge-ctn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-inline-start: auto !important;
+    }
+
+    .fi-sidebar-item-badge-ctn .fi-badge {
+        font-weight: 800 !important;
+        font-size: 0.72rem !important;
+        line-height: 1 !important;
+        letter-spacing: 0.02em;
+        border-radius: 9999px !important;
+        padding: 0.2rem 0.5rem !important;
+        box-shadow: 0 0 10px rgba(244, 63, 94, 0.45), 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Glowing red/rose notification alert badges (e.g. pending assignments, urgent evaluations) */
+    .fi-sidebar-item-badge-ctn .fi-color-danger,
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="danger"],
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="red"],
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="rose"] {
+        background: linear-gradient(135deg, #f43f5e, #e11d48) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        box-shadow: 0 0 12px rgba(244, 63, 94, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+        animation: hub-sidebar-badge-pulse 2.2s infinite ease-in-out;
+    }
+
+    /* Glowing amber/orange alert badges (e.g. available quizzes, pending items) */
+    .fi-sidebar-item-badge-ctn .fi-color-warning,
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="warning"],
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="amber"],
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="orange"] {
+        background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+    }
+
+    /* Glowing emerald/teal alert badges (e.g. live sessions, schedule today) */
+    .fi-sidebar-item-badge-ctn .fi-color-success,
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="success"],
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="emerald"],
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="teal"] {
+        background: linear-gradient(135deg, #10b981, #059669) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+        animation: hub-sidebar-badge-pulse 2.5s infinite ease-in-out;
+    }
+
+    /* Glowing sky/blue alert badges (e.g. new resources, materials) */
+    .fi-sidebar-item-badge-ctn .fi-color-info,
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="info"],
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="sky"],
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="blue"] {
+        background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        box-shadow: 0 0 10px rgba(14, 165, 233, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+    }
+
+    @keyframes hub-sidebar-badge-pulse {
+        0%, 100% {
+            transform: scale(1);
+            filter: brightness(1);
+        }
+        50% {
+            transform: scale(1.08);
+            filter: brightness(1.18);
         }
     }
 

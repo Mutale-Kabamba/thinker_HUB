@@ -46,6 +46,15 @@
                         <h3 style="margin: 0.45rem 0 0 0; font-size: 0.95rem; font-weight: 800; color: var(--hub-ink); line-height: 1.3;">
                             {{ $course['title'] }}
                         </h3>
+
+                        @if ($course['is_ongoing'] && ! empty($course['intake_name']))
+                            <div style="margin-top: 0.25rem;">
+                                <span class="bento-pill bento-pill-ice" style="font-size: 0.68rem; font-weight: 700;">
+                                    📌 Intake: {{ $course['intake_name'] }}
+                                </span>
+                            </div>
+                        @endif
+
                         <p style="margin: 0.25rem 0 0 0; font-size: 0.75rem; color: var(--hub-muted); line-height: 1.35;">
                             {{ $course['summary'] }}
                         </p>
@@ -100,12 +109,17 @@
                             </div>
                         @elseif (! $course['can_enroll'])
                             <button type="button" disabled style="padding: 0.35rem 0.65rem; font-size: 0.72rem; font-weight: 700; border-radius: 0.4rem; border: 1px solid var(--hub-border); background: var(--hub-surface-soft); color: var(--hub-muted); opacity: 0.6; cursor: not-allowed;">
-                                Locked
+                                🔒 Locked
                             </button>
+                        @elseif ($course['is_payable'])
+                            <a href="{{ $course['checkout_url'] }}"
+                               style="display: inline-flex; align-items: center; text-decoration: none; padding: 0.35rem 0.85rem; background: #0d9488; color: #ffffff; font-size: 0.74rem; font-weight: 700; border-radius: 0.4rem; border: 1px solid #0f766e;">
+                                Enroll &amp; Pay &rarr;
+                            </a>
                         @else
                             <button type="button" wire:click="enroll({{ $course['id'] }})"
                                     style="padding: 0.35rem 0.85rem; background: #0d9488; color: #ffffff; font-size: 0.74rem; font-weight: 700; border-radius: 0.4rem; border: 1px solid #0f766e; cursor: pointer;">
-                                Enroll Now &rarr;
+                                Enroll Free &rarr;
                             </button>
                         @endif
                     </div>

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Quizzes\Schemas;
 
 use App\Models\Course;
+use App\Models\CourseIntake;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
@@ -28,6 +29,28 @@ class QuizForm
                             ->searchable()
                             ->relationship('course', 'title')
                             ->helperText('Select the course this quiz belongs to.')
+                            ->live()
+                            ->columnSpanFull(),
+
+                        Select::make('course_intake_id')
+                            ->label('Target Intake / Class')
+                            ->nullable()
+                            ->searchable()
+                            ->options(function (callable $get): array {
+                                $courseId = $get('course_id');
+                                if (! $courseId) {
+                                    return [];
+                                }
+
+                                return CourseIntake::query()
+                                    ->where('course_id', $courseId)
+                                    ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
+                                    ->orderBy('start_date', 'desc')
+                                    ->pluck('name', 'id')
+                                    ->toArray();
+                            })
+                            ->placeholder('All Intakes / Entire Course')
+                            ->helperText('Leave empty to make quiz available to all cohorts across the course.')
                             ->columnSpanFull(),
 
                         TextInput::make('title')

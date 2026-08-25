@@ -23,7 +23,10 @@
             <textarea wire:model.defer="submissionDrafts.{{ $assessment['id'] }}.text" class="hub-textarea" placeholder="Write your assessment response..." style="min-height:80px;font-size:0.82rem;"></textarea>
             <input type="url" wire:model.defer="submissionDrafts.{{ $assessment['id'] }}.link" class="hub-input" placeholder="Paste a link (optional)" style="font-size:0.82rem;" />
             <input type="url" wire:model.defer="submissionDrafts.{{ $assessment['id'] }}.video" class="hub-input" placeholder="Paste a video URL — YouTube, Vimeo, etc. (optional)" style="font-size:0.82rem;" />
-            <input type="file" wire:model="submissionDrafts.{{ $assessment['id'] }}.file" class="hub-input" style="font-size:0.82rem;" accept=".pdf,.doc,.docx,.txt,.csv,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif,.pptx,.xlsx" />
+            <div>
+                <label style="font-size:0.75rem;font-weight:600;color:var(--hub-muted);margin-bottom:0.2rem;display:block;">Attach file(s) (Select 1 or multiple):</label>
+                <input type="file" wire:model="submissionDrafts.{{ $assessment['id'] }}.files" multiple class="hub-input" style="font-size:0.82rem;" accept=".pdf,.doc,.docx,.txt,.csv,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif,.pptx,.xlsx,.zip" />
+            </div>
         </div>
         <div style="margin-top:0.6rem;display:flex;gap:0.45rem;flex-wrap:wrap;">
             <button type="button" wire:click="submit({{ $assessment['id'] }})" class="hub-btn hub-btn-primary" style="font-size:0.8rem;padding:0.35rem 1rem;">

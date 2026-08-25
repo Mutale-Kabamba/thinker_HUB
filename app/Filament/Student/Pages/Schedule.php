@@ -23,6 +23,36 @@ class Schedule extends Page
 
     protected static ?string $navigationLabel = 'Schedule';
 
+    public static function getNavigationBadge(): ?string
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return null;
+        }
+
+        try {
+            $todayCount = CourseSession::query()
+                ->visibleTo($user)
+                ->whereDate('scheduled_at', Carbon::today())
+                ->whereIn('status', ['scheduled', 'in_progress'])
+                ->count();
+
+            return $todayCount > 0 ? (string) $todayCount : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'success';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Live sessions today';
+    }
+
     protected static ?string $title = 'My Schedule';
 
     protected string $view = 'filament.student.pages.schedule';

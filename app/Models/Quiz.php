@@ -14,6 +14,7 @@ class Quiz extends Model
 
     protected $fillable = [
         'course_id',
+        'course_intake_id',
         'title',
         'description',
         'publish_at',
@@ -90,12 +91,26 @@ class Quiz extends Model
 
         $enrolledCourseIds = $user->courses()->pluck('courses.id');
 
-        return $query->whereIn('course_id', $enrolledCourseIds);
+        return $query->whereIn('course_id', $enrolledCourseIds)
+            ->where(function (Builder $builder) use ($user): void {
+                $builder->whereNull('course_intake_id')
+                    ->orWhereIn('course_intake_id', function ($sub) use ($user) {
+                        $sub->select('course_intake_id')
+                            ->from('enrollments')
+                            ->where('user_id', $user->id)
+                            ->whereNotNull('course_intake_id');
+                    });
+            });
     }
 
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function intake(): BelongsTo
+    {
+        return $this->belongsTo(CourseIntake::class, 'course_intake_id');
     }
 
     public function questions(): HasMany

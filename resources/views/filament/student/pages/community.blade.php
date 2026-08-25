@@ -556,31 +556,31 @@
                     @else
                         <div style="display:flex;flex-direction:column;gap:0.25rem;width:100%;box-sizing:border-box;">
                             @foreach ($xpBreakdown['transactions'] as $tx)
-                                <div style="display:flex;align-items:center;justify-content:space-between;gap:0.3rem;padding:0.28rem 0.4rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.35rem;font-size:0.7rem;box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow:hidden;">
-                                    <div style="min-width:0;flex:1;display:flex;align-items:center;gap:0.25rem;overflow:hidden;">
+                                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.35rem;padding:0.32rem 0.45rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.35rem;font-size:0.7rem;box-sizing:border-box;width:100%;max-width:100%;min-width:0;">
+                                    <div style="min-width:0;flex:1;display:flex;align-items:flex-start;gap:0.3rem;">
                                         @if (str_contains($tx->activity_type ?? $tx->source ?? '', 'quiz'))
-                                            <x-heroicon-s-academic-cap style="width:0.7rem;height:0.7rem;color:#0ea5e9;flex-shrink:0;" />
+                                            <x-heroicon-s-academic-cap style="width:0.75rem;height:0.75rem;color:#0ea5e9;flex-shrink:0;margin-top:0.1rem;" />
                                         @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'video'))
-                                            <x-heroicon-s-play-circle style="width:0.7rem;height:0.7rem;color:#8b5cf6;flex-shrink:0;" />
+                                            <x-heroicon-s-play-circle style="width:0.75rem;height:0.75rem;color:#8b5cf6;flex-shrink:0;margin-top:0.1rem;" />
                                         @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'streak'))
-                                            <x-heroicon-s-fire style="width:0.7rem;height:0.7rem;color:#ea580c;flex-shrink:0;" />
+                                            <x-heroicon-s-fire style="width:0.75rem;height:0.75rem;color:#ea580c;flex-shrink:0;margin-top:0.1rem;" />
                                         @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'badge'))
-                                            <x-heroicon-s-trophy style="width:0.7rem;height:0.7rem;color:#f59e0b;flex-shrink:0;" />
+                                            <x-heroicon-s-trophy style="width:0.75rem;height:0.75rem;color:#f59e0b;flex-shrink:0;margin-top:0.1rem;" />
                                         @elseif (str_contains($tx->activity_type ?? $tx->source ?? '', 'course'))
-                                            <x-heroicon-s-check-badge style="width:0.7rem;height:0.7rem;color:#0f766e;flex-shrink:0;" />
+                                            <x-heroicon-s-check-badge style="width:0.75rem;height:0.75rem;color:#0f766e;flex-shrink:0;margin-top:0.1rem;" />
                                         @else
-                                            <x-heroicon-s-bolt style="width:0.7rem;height:0.7rem;color:#eab308;flex-shrink:0;" />
+                                            <x-heroicon-s-bolt style="width:0.75rem;height:0.75rem;color:#eab308;flex-shrink:0;margin-top:0.1rem;" />
                                         @endif
-                                        <div style="min-width:0;flex:1;overflow:hidden;">
-                                            <div style="font-weight:600;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;font-size:0.72rem;">
+                                        <div style="min-width:0;flex:1;">
+                                            <div style="font-weight:600;color:var(--hub-ink);word-break:break-word;overflow-wrap:anywhere;line-height:1.3;font-size:0.72rem;">
                                                 {{ $tx->description ?: ucfirst(str_replace('_', ' ', $tx->source ?: $tx->activity_type ?: 'Point Reward')) }}
                                             </div>
-                                            <span style="font-size:0.6rem;color:var(--hub-muted);display:block;margin-top:0.02rem;">
+                                            <span style="font-size:0.6rem;color:var(--hub-muted);display:block;margin-top:0.08rem;">
                                                 {{ $tx->created_at ? $tx->created_at->format('M d, Y · H:i') : 'Recently' }}
                                             </span>
                                         </div>
                                     </div>
-                                    <div style="display:flex;align-items:center;gap:0.18rem;flex-shrink:0;justify-content:flex-end;">
+                                    <div style="display:flex;align-items:center;gap:0.18rem;flex-shrink:0;justify-content:flex-end;margin-top:0.05rem;">
                                         @if (($tx->amount_xp ?: $tx->points) > 0)
                                             <span class="hub-chip hub-chip-primary" style="font-size:0.56rem;padding:0.04rem 0.22rem;white-space:nowrap;">
                                                 +{{ number_format($tx->amount_xp ?: $tx->points) }} XP
@@ -992,20 +992,27 @@
                                                 </div>
                                             @endif
 
-                                            {{-- Attachment --}}
-                                            @if ($message->attachment_path)
-                                                @if ($message->attachment_type === 'image')
-                                                    <a href="{{ $message->attachment_url }}" target="_blank" rel="noopener noreferrer" style="display:block;">
-                                                        <img src="{{ $message->attachment_url }}" alt="{{ $message->attachment_name }}"
-                                                            style="max-width:220px;max-height:220px;border-radius:0.45rem;margin-bottom:{{ $message->body ? '0.2rem' : '0' }};display:block;object-fit:cover;">
-                                                    </a>
-                                                @else
-                                                    <a href="{{ $message->attachment_url }}" target="_blank" rel="noopener noreferrer" download="{{ $message->attachment_name }}"
-                                                        style="display:flex;align-items:center;gap:0.35rem;padding:0.3rem 0.5rem;border-radius:0.45rem;text-decoration:none;margin-bottom:{{ $message->body ? '0.2rem' : '0' }};{{ $mine ? 'background:rgba(255,255,255,.2);color:#fff;' : 'background:var(--hub-card);color:var(--hub-ink);border:1px solid var(--hub-border);' }}">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                                        <span style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{{ $message->attachment_name }}</span>
-                                                    </a>
-                                                @endif
+                                            {{-- Attachments --}}
+                                            @php
+                                                $allAtts = $message->all_attachments;
+                                            @endphp
+                                            @if (!empty($allAtts))
+                                                <div style="display:flex;flex-direction:column;gap:0.3rem;margin-bottom:{{ $message->body ? '0.3rem' : '0' }};">
+                                                    @foreach ($allAtts as $att)
+                                                        @if ($att['type'] === 'image')
+                                                            <a href="{{ $att['url'] }}" target="_blank" rel="noopener noreferrer" style="display:block;">
+                                                                <img src="{{ $att['url'] }}" alt="{{ $att['name'] }}"
+                                                                    style="max-width:220px;max-height:220px;border-radius:0.45rem;display:block;object-fit:cover;">
+                                                            </a>
+                                                        @else
+                                                            <a href="{{ $att['url'] }}" target="_blank" rel="noopener noreferrer" download="{{ $att['name'] }}"
+                                                                style="display:flex;align-items:center;gap:0.35rem;padding:0.3rem 0.5rem;border-radius:0.45rem;text-decoration:none;{{ $mine ? 'background:rgba(255,255,255,.2);color:#fff;' : 'background:var(--hub-card);color:var(--hub-ink);border:1px solid var(--hub-border);' }}">
+                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                                                <span style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{{ $att['name'] }}</span>
+                                                            </a>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
                                             @endif
 
                                             {{-- Body Text --}}
@@ -1179,34 +1186,47 @@
                                 </div>
                             @endif
 
-                            {{-- Selected attachment preview --}}
-                            @if ($attachment)
-                                <div style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.55rem;background:var(--hub-surface);border-radius:0.45rem;">
-                                    @if (method_exists($attachment, 'temporaryUrl') && str_starts_with($attachment->getMimeType() ?? '', 'image/'))
-                                        <img src="{{ $attachment->temporaryUrl() }}" alt="" style="width:38px;height:38px;object-fit:cover;border-radius:0.3rem;">
-                                    @else
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--hub-muted);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                    @endif
-                                    <span style="flex:1;font-size:0.76rem;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $attachment->getClientOriginalName() }}</span>
-                                    <button type="button" wire:click="$set('attachment', null)" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:1.1rem;line-height:1;">&times;</button>
+                            {{-- Selected attachment(s) preview --}}
+                            @php
+                                $previewFiles = !empty($attachments) ? $attachments : ($attachment ? [$attachment] : []);
+                            @endphp
+                            @if (!empty($previewFiles))
+                                <div style="display:flex;flex-wrap:wrap;gap:0.35rem;padding:0.35rem 0.55rem;background:var(--hub-surface);border-radius:0.45rem;">
+                                    @foreach ($previewFiles as $pIdx => $pFile)
+                                        <div style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.2rem 0.45rem;background:var(--hub-card);border:1px solid var(--hub-border);border-radius:0.35rem;max-width:100%;">
+                                            @if (method_exists($pFile, 'temporaryUrl') && str_starts_with($pFile->getMimeType() ?? '', 'image/'))
+                                                <img src="{{ $pFile->temporaryUrl() }}" alt="" style="width:24px;height:24px;object-fit:cover;border-radius:0.2rem;flex-shrink:0;">
+                                            @else
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--hub-muted);flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                            @endif
+                                            <span style="font-size:0.72rem;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">{{ $pFile->getClientOriginalName() }}</span>
+                                            <button type="button" wire:click="removeAttachment({{ $pIdx }})" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:1rem;line-height:1;padding:0 0.15rem;">&times;</button>
+                                        </div>
+                                    @endforeach
                                 </div>
                             @endif
 
+                            @error('attachments.*')
+                                <span style="color:#dc2626;font-size:0.72rem;">{{ $message }}</span>
+                            @enderror
+                            @error('attachments')
+                                <span style="color:#dc2626;font-size:0.72rem;">{{ $message }}</span>
+                            @enderror
                             @error('attachment')
                                 <span style="color:#dc2626;font-size:0.72rem;">{{ $message }}</span>
                             @enderror
 
-                            <div wire:loading wire:target="attachment" style="font-size:0.72rem;color:var(--hub-muted);">Uploading…</div>
+                            <div wire:loading wire:target="attachments,attachment" style="font-size:0.72rem;color:var(--hub-muted);">Uploading attachments…</div>
 
                             <div class="community-composer-wrap">
-                                <label class="community-attach-btn" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;border:1px solid color-mix(in oklab, var(--hub-border) 70%, #475569 30%);border-radius:999px;color:var(--hub-muted);background:color-mix(in oklab, var(--hub-card) 82%, #111827 18%);flex-shrink:0;" title="Attach a file">
+                                <label class="community-attach-btn" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;border:1px solid color-mix(in oklab, var(--hub-border) 70%, #475569 30%);border-radius:999px;color:var(--hub-muted);background:color-mix(in oklab, var(--hub-card) 82%, #111827 18%);flex-shrink:0;" title="Attach file(s)">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                                    <input type="file" wire:model="attachment" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip" style="display:none;">
+                                    <input type="file" wire:model="attachments" multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip" style="display:none;">
                                 </label>
                                 <input type="text" wire:model="messageBody" placeholder="Type a message…" autocomplete="off"
                                     class="community-message-input"
                                     style="flex:1 1 auto;min-width:0;font-size:14px;padding:0.45rem 0.5rem;border:0;outline:0;background:transparent;box-shadow:none;color:var(--hub-ink);-webkit-appearance:none;appearance:none;">
-                                <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachment"
+                                <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachments,attachment"
                                     class="community-send-btn" title="Send message">
                                     <span>Send</span>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg); margin-top:-1px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -1403,38 +1423,38 @@
                             @if (!empty($profileUser['recent_transactions']))
                                 <div style="display:flex;flex-direction:column;gap:0.28rem;">
                                     @foreach ($profileUser['recent_transactions'] as $tx)
-                                        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.4rem;padding:0.32rem 0.5rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.45rem;font-size:0.74rem;">
-                                            <div style="min-width:0;flex:1;display:flex;align-items:center;gap:0.35rem;">
+                                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.4rem;padding:0.35rem 0.5rem;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:0.45rem;font-size:0.74rem;">
+                                            <div style="min-width:0;flex:1;display:flex;align-items:flex-start;gap:0.35rem;">
                                                 @if (str_contains($tx['activity_type'] ?? '', 'quiz'))
-                                                    <x-heroicon-s-academic-cap style="width:0.85rem;height:0.85rem;color:#0ea5e9;flex-shrink:0;" />
+                                                    <x-heroicon-s-academic-cap style="width:0.85rem;height:0.85rem;color:#0ea5e9;flex-shrink:0;margin-top:0.1rem;" />
                                                 @elseif (str_contains($tx['activity_type'] ?? '', 'video'))
-                                                    <x-heroicon-s-play-circle style="width:0.85rem;height:0.85rem;color:#8b5cf6;flex-shrink:0;" />
+                                                    <x-heroicon-s-play-circle style="width:0.85rem;height:0.85rem;color:#8b5cf6;flex-shrink:0;margin-top:0.1rem;" />
                                                 @elseif (str_contains($tx['activity_type'] ?? '', 'streak'))
-                                                    <x-heroicon-s-fire style="width:0.85rem;height:0.85rem;color:#ea580c;flex-shrink:0;" />
+                                                    <x-heroicon-s-fire style="width:0.85rem;height:0.85rem;color:#ea580c;flex-shrink:0;margin-top:0.1rem;" />
                                                 @elseif (str_contains($tx['activity_type'] ?? '', 'badge'))
-                                                    <x-heroicon-s-trophy style="width:0.85rem;height:0.85rem;color:#f59e0b;flex-shrink:0;" />
+                                                    <x-heroicon-s-trophy style="width:0.85rem;height:0.85rem;color:#f59e0b;flex-shrink:0;margin-top:0.1rem;" />
                                                 @elseif (str_contains($tx['activity_type'] ?? '', 'course'))
-                                                    <x-heroicon-s-check-badge style="width:0.85rem;height:0.85rem;color:#0f766e;flex-shrink:0;" />
+                                                    <x-heroicon-s-check-badge style="width:0.85rem;height:0.85rem;color:#0f766e;flex-shrink:0;margin-top:0.1rem;" />
                                                 @else
-                                                    <x-heroicon-s-bolt style="width:0.85rem;height:0.85rem;color:#eab308;flex-shrink:0;" />
+                                                    <x-heroicon-s-bolt style="width:0.85rem;height:0.85rem;color:#eab308;flex-shrink:0;margin-top:0.1rem;" />
                                                 @endif
                                                 <div style="min-width:0;flex:1;">
-                                                    <div style="font-weight:600;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;">
+                                                    <div style="font-weight:600;color:var(--hub-ink);word-break:break-word;overflow-wrap:anywhere;line-height:1.35;font-size:0.75rem;">
                                                         {{ $tx['description'] }}
                                                     </div>
-                                                    <span style="font-size:0.62rem;color:var(--hub-muted);">
+                                                    <span style="font-size:0.62rem;color:var(--hub-muted);display:block;margin-top:0.1rem;">
                                                         {{ $tx['created_at'] }}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div style="display:flex;align-items:center;gap:0.25rem;flex-shrink:0;">
+                                            <div style="display:flex;align-items:center;gap:0.25rem;flex-shrink:0;margin-top:0.05rem;">
                                                 @if ($tx['amount_xp'] > 0)
-                                                    <span class="hub-chip hub-chip-primary" style="font-size:0.62rem;padding:0.06rem 0.3rem;">
+                                                    <span class="hub-chip hub-chip-primary" style="font-size:0.62rem;padding:0.06rem 0.3rem;white-space:nowrap;">
                                                         +{{ number_format($tx['amount_xp']) }} XP
                                                     </span>
                                                 @endif
                                                 @if ($tx['amount_coins'] > 0)
-                                                    <span class="hub-chip hub-chip-amber" style="font-size:0.62rem;padding:0.06rem 0.3rem;display:inline-flex;align-items:center;gap:0.1rem;">
+                                                    <span class="hub-chip hub-chip-amber" style="font-size:0.62rem;padding:0.06rem 0.3rem;display:inline-flex;align-items:center;gap:0.1rem;white-space:nowrap;">
                                                         <x-heroicon-s-circle-stack style="width:0.6rem;height:0.6rem;color:#d97706;" />
                                                         <span>+{{ number_format($tx['amount_coins']) }} TC</span>
                                                     </span>

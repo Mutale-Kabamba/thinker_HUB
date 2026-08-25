@@ -24,6 +24,15 @@ class CourseForm
                     ->required(),
                 TextInput::make('code')
                     ->required(),
+                Select::make('offering_mode')
+                    ->label('Course Offering Structure')
+                    ->options([
+                        'once_off' => 'Once-off (Single Instance / Self-Paced)',
+                        'ongoing' => 'Ongoing (Intakes / Classes / Cohorts)',
+                    ])
+                    ->default('once_off')
+                    ->helperText('Ongoing courses feature scheduled Intakes/Classes with start/end dates, next intake tracking, and cohort archiving.')
+                    ->required(),
                 TextInput::make('course_by')
                     ->label('Course By')
                     ->placeholder('think.er HUB / Organization / Individual')
@@ -219,6 +228,7 @@ class CourseForm
      */
     public static function prepareDataForFill(array $data): array
     {
+        $data['offering_mode'] = $data['offering_mode'] ?? 'once_off';
         $data['fees'] = self::parseFeesState($data['fees'] ?? null);
         $data['level_progression'] = self::parseLevelProgressionState($data['level_progression'] ?? null);
 
@@ -231,6 +241,7 @@ class CourseForm
      */
     public static function prepareDataForSave(array $data): array
     {
+        $data['offering_mode'] = $data['offering_mode'] ?? 'once_off';
         $courseBy = trim((string) ($data['course_by'] ?? ''));
         $data['course_by'] = $courseBy !== '' ? $courseBy : null;
         $data['fees'] = self::serializeFeesState($data['fees'] ?? null);

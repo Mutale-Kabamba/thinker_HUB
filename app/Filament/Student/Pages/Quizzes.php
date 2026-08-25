@@ -14,6 +14,63 @@ class Quizzes extends Page
 
     protected static ?int $navigationSort = 2;
 
+    public static function getNavigationBadge(): ?string
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return null;
+        }
+
+        try {
+            if ($user->isAdmin()) {
+                $enrolledCourseIds = \App\Models\Course::query()->pluck('id')->all();
+            } elseif ($user->isInstructor()) {
+                $enrolledCourseIds = \App\Models\Course::query()
+                    ->where('course_by', (string) $user->id)
+                    ->orWhere('course_by', (string) $user->name)
+                    ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $user->id))
+                    ->pluck('id')
+                    ->merge($user->courses()->pluck('courses.id'))
+                    ->unique()
+                    ->all();
+            } else {
+                $enrolledCourseIds = $user->courses()->pluck('courses.id')->all();
+            }
+
+            if (empty($enrolledCourseIds)) {
+                return null;
+            }
+
+            $attemptedQuizIds = QuizAttempt::query()
+                ->where('user_id', $user->id)
+                ->pluck('quiz_id')
+                ->unique();
+
+            $pendingCount = Quiz::query()
+                ->whereIn('course_id', $enrolledCourseIds)
+                ->where(function ($query) {
+                    $query->where('is_active', true)
+                        ->orWhereNotNull('publish_at');
+                })
+                ->whereNotIn('id', $attemptedQuizIds)
+                ->count();
+
+            return $pendingCount > 0 ? (string) $pendingCount : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'warning';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Available quizzes';
+    }
+
     protected string $view = 'filament.student.pages.quizzes';
 
     public array $quizzes = [];

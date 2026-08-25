@@ -21,7 +21,7 @@ class ReviewList extends Component
 
     public ?int $filterRating = null;
 
-    public int $perPage = 6;
+    public int $perPage = 15;
 
     public function mount(?string $targetType = null, ?int $targetId = null, ?string $targetTitle = null): void
     {

@@ -82,7 +82,7 @@ class Courses extends Page
             return;
         }
 
-        if (Schema::hasColumn('courses', 'is_open_enrollment') && $course->is_open_enrollment === false) {
+        if ($course->is_open_enrollment === false) {
             $isSelectedParticipant = $course->selectedParticipants()
                 ->where('users.id', $user->id)
                 ->exists();
@@ -97,9 +97,19 @@ class Courses extends Page
             }
         }
 
+        if ($course->isPayable($user->track)) {
+            $this->redirect(route('checkout.show', [$course->id, 'track' => $user->track ?: 'Beginner']));
+
+            return;
+        }
+
+        $activeIntakeId = $course->activeIntake?->id;
+
         Enrollment::firstOrCreate([
             'user_id' => $user->id,
             'course_id' => $course->id,
+        ], [
+            'course_intake_id' => $activeIntakeId,
         ]);
 
         Notification::make()
@@ -320,16 +330,23 @@ class Courses extends Page
             ->pluck('course_id')
             ->all();
 
+        $myEnrollments = Enrollment::query()
+            ->where('user_id', $user->id)
+            ->with('intake')
+            ->get()
+            ->keyBy('course_id');
+
         $this->courses = Course::query()
             ->with([
                 'selectedParticipants:id',
+                'intakes' => fn ($q) => $q->orderBy('start_date'),
                 'ratings' => fn ($query) => $query
                     ->with('user:id,name')
                     ->latest(),
             ])
             ->orderBy('title')
             ->get()
-            ->map(function (Course $course) use ($enrolledCourseIds, $certifiedCourseIds, $user): array {
+            ->map(function (Course $course) use ($enrolledCourseIds, $certifiedCourseIds, $myEnrollments, $user): array {
                 $selectedParticipantIds = $course->selectedParticipants
                     ->pluck('id')
                     ->map(fn ($id): int => (int) $id)
@@ -348,28 +365,43 @@ class Courses extends Page
 
                 $isOpenEnrollment = $course->is_open_enrollment !== false;
                 $isEnrolled = in_array($course->id, $enrolledCourseIds, true);
+                $enrollment = $myEnrollments->get($course->id);
 
                 $eligibility = $isEnrolled
                     ? app(CertificateService::class)->eligibility($user, $course)
                     : null;
 
+                $activeIntake = $course->activeIntake;
+
+                $canEnroll = $course->is_active && (
+                    $isOpenEnrollment || in_array((int) $user->id, $selectedParticipantIds, true)
+                );
+
+                $isPayable = $course->isPayable($user->track);
+
                 return [
                     'id' => $course->id,
                     'title' => $course->title,
                     'code' => $course->code,
+                    'offering_mode' => $course->offering_mode ?? 'once_off',
+                    'is_ongoing' => $course->isOngoing(),
+                    'intake_name' => $enrollment?->intake?->name ?? ($activeIntake?->name ?? null),
+                    'active_intake_dates' => $activeIntake?->formattedDateRange(),
+                    'next_intake_date' => $activeIntake?->formattedNextIntake(),
                     'summary' => Str::limit($course->description ?: 'No summary available.', 90),
                     'description' => $course->description ?: 'No full description available.',
                     'is_active' => $course->is_active,
                     'is_open_enrollment' => $isOpenEnrollment,
+                    'is_payable' => $isPayable,
+                    'fee_amount' => $course->getNumericFeeForLevel($user->track),
+                    'checkout_url' => route('checkout.show', [$course->id, 'track' => $user->track ?: 'Beginner']),
                     'enrolled' => $isEnrolled,
                     'certificate_eligible' => $eligibility['eligible'] ?? false,
                     'certificate_lock_reason' => ($eligibility && ! $eligibility['eligible'])
                         ? implode(' and ', $eligibility['reasons'])
                         : null,
                     'certificate_claimed' => in_array($course->id, $certifiedCourseIds, true),
-                    'can_enroll' => $course->is_active && (
-                        $isOpenEnrollment || in_array((int) $user->id, $selectedParticipantIds, true)
-                    ),
+                    'can_enroll' => $canEnroll,
                     'avg_rating' => $avgRating,
                     'ratings_count' => $ratingsCount,
                     'reviews' => $ratings

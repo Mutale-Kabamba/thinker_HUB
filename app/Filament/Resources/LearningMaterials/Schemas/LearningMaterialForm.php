@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LearningMaterials\Schemas;
 
 use App\Models\Course;
+use App\Models\CourseIntake;
 use App\Models\LearningMaterial;
 use App\Models\User;
 use Filament\Forms\Components\FileUpload;
@@ -51,6 +52,26 @@ class LearningMaterialForm
                     ->searchable()
                     ->options(fn (): array => Course::query()->where('is_active', true)->orderBy('title')->pluck('title', 'id')->toArray())
                     ->live(),
+
+                Select::make('course_intake_id')
+                    ->label('Target Intake / Class')
+                    ->nullable()
+                    ->searchable()
+                    ->options(function (callable $get): array {
+                        $courseId = $get('course_id');
+                        if (! $courseId) {
+                            return [];
+                        }
+
+                        return CourseIntake::query()
+                            ->where('course_id', $courseId)
+                            ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
+                            ->orderBy('start_date', 'desc')
+                            ->pluck('name', 'id')
+                            ->toArray();
+                    })
+                    ->placeholder('All Intakes / Entire Course')
+                    ->helperText('Leave empty to share with all cohorts across the course.'),
 
                 Select::make('scope')
                     ->label('Scope')

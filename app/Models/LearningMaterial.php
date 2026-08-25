@@ -47,6 +47,7 @@ class LearningMaterial extends Model
 
     protected $fillable = [
         'course_id',
+        'course_intake_id',
         'title',
         'category',
         'description',
@@ -78,6 +79,11 @@ class LearningMaterial extends Model
         return $this->belongsTo(Course::class);
     }
 
+    public function intake(): BelongsTo
+    {
+        return $this->belongsTo(CourseIntake::class, 'course_intake_id');
+    }
+
     public function comments(): MorphMany
     {
         return $this->morphMany(ResourceComment::class, 'commentable');
@@ -104,6 +110,15 @@ class LearningMaterial extends Model
                 ->orWhere(function (Builder $q) use ($user): void {
                     $q->where('scope', 'personal')->where('target_user_id', $user->id);
                 });
-        })->whereIn('course_id', $enrolledCourseIds);
+        })->whereIn('course_id', $enrolledCourseIds)
+        ->where(function (Builder $builder) use ($user): void {
+            $builder->whereNull('course_intake_id')
+                ->orWhereIn('course_intake_id', function ($sub) use ($user) {
+                    $sub->select('course_intake_id')
+                        ->from('enrollments')
+                        ->where('user_id', $user->id)
+                        ->whereNotNull('course_intake_id');
+                });
+        });
     }
 }

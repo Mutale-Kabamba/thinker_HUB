@@ -18,6 +18,35 @@ class Materials extends Page
 
     protected static ?int $navigationSort = 2;
 
+    public static function getNavigationBadge(): ?string
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return null;
+        }
+
+        try {
+            $newCount = LearningMaterial::query()
+                ->visibleTo($user)
+                ->where('created_at', '>=', now()->subDays(3))
+                ->count();
+
+            return $newCount > 0 ? '●' : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'primary';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'New learning materials available';
+    }
+
     protected string $view = 'filament.student.pages.materials';
 
     public array $materials = [];

@@ -6,15 +6,42 @@
 
     <div class="grid gap-4 md:grid-cols-2">
         <section class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-            <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Timeline</h3>
-            <p class="mt-2 font-medium text-gray-800">{{ $record->timeline ?: 'Not specified yet.' }}</p>
+            <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Offering Structure</h3>
+            <p class="mt-2 font-medium text-gray-800">
+                @if ($record->isOngoing())
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 border border-blue-200">
+                        Ongoing (Intakes / Classes)
+                    </span>
+                    @if ($record->activeIntake)
+                        <span class="block mt-1.5 text-xs text-emerald-700 font-semibold">
+                            Active: {{ $record->activeIntake->name }} ({{ $record->activeIntake->formattedDateRange() ?? 'In Session' }})
+                        </span>
+                        @if ($record->activeIntake->next_intake_start_date)
+                            <span class="block text-xs text-gray-500">
+                                Next Intake: {{ $record->activeIntake->formattedNextIntake() }}
+                            </span>
+                        @endif
+                    @else
+                        <span class="block mt-1.5 text-xs text-amber-600">No active intake set</span>
+                    @endif
+                @else
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-700 border border-gray-200">
+                        Once-off / Self-Paced
+                    </span>
+                @endif
+            </p>
         </section>
 
         <section class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-            <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Key Outcome</h3>
-            <p class="mt-2 leading-relaxed text-gray-700">{{ $record->key_outcome ?: 'No key outcome added yet.' }}</p>
+            <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Timeline</h3>
+            <p class="mt-2 font-medium text-gray-800">{{ $record->timeline ?: 'Not specified yet.' }}</p>
         </section>
     </div>
+
+    <section class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+        <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Key Outcome</h3>
+        <p class="mt-2 leading-relaxed text-gray-700">{{ $record->key_outcome ?: 'No key outcome added yet.' }}</p>
+    </section>
 
     <section class="space-y-3">
         @forelse ($feeSections as $section)

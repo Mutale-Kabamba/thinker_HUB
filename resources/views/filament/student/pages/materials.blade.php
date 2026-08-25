@@ -105,7 +105,7 @@
                                         <a href="{{ $material['link_url'] }}" target="_blank" rel="noopener" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0d9488;font-weight:600;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='#f0fdfa'" onmouseout="this.style.background='none'" title="Open link">Open Link</a>
                                     @endif
                                     @if (!empty($material['video_url']))
-                                        <a href="{{ $material['video_url'] }}" target="_blank" rel="noopener" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#7c3aed;font-weight:600;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Watch video">Watch</a>
+                                        <a href="{{ route('materials.watch', $material['id']) }}" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#7c3aed;font-weight:600;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Watch video and earn points">Watch &amp; Earn</a>
                                     @endif
                                     @if (!empty($material['description']))
                                         <button type="button" @click="toggle({{ $material['id'] }})" :style="expanded === {{ $material['id'] }} ? 'background:#475569;color:#fff;border-color:#475569;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#475569;font-weight:600;transition:all 0.15s;" title="View details">Details</button>
@@ -197,7 +197,7 @@
                             <a href="{{ $material['link_url'] }}" target="_blank" rel="noopener" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#0d9488;font-weight:600;text-decoration:none;">Open Link</a>
                         @endif
                         @if (!empty($material['video_url']))
-                            <a href="{{ $material['video_url'] }}" target="_blank" rel="noopener" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#7c3aed;font-weight:600;text-decoration:none;">Watch</a>
+                            <a href="{{ route('materials.watch', $material['id']) }}" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#7c3aed;font-weight:600;text-decoration:none;" title="Watch video and earn points">Watch &amp; Earn</a>
                         @endif
                         @if (!empty($material['description']))
                             <button type="button" @click="toggle({{ $material['id'] }})" :style="expanded === {{ $material['id'] }} ? 'background:#475569;color:#fff;border-color:#475569;' : ''" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#475569;font-weight:600;">Details</button>

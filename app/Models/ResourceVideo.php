@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,6 +44,7 @@ class ResourceVideo extends Model
         'youtube_url',
         'is_recorded_lesson',
         'course_id',
+        'course_intake_id',
         'target_level',
         'category',
         'channel_name',
@@ -62,6 +64,39 @@ class ResourceVideo extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function intake(): BelongsTo
+    {
+        return $this->belongsTo(CourseIntake::class, 'course_intake_id');
+    }
+
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        $enrolledCourseIds = $user->courses()->pluck('courses.id');
+
+        return $query->where(function (Builder $q) use ($user, $enrolledCourseIds): void {
+            $q->where('is_recorded_lesson', false)
+                ->orWhere(function (Builder $lessonQ) use ($user, $enrolledCourseIds): void {
+                    $lessonQ->whereIn('course_id', $enrolledCourseIds)
+                        ->where(function (Builder $lvl) use ($user): void {
+                            $lvl->whereNull('target_level')->orWhere('target_level', $user->track);
+                        })
+                        ->where(function (Builder $intakeQ) use ($user): void {
+                            $intakeQ->whereNull('course_intake_id')
+                                ->orWhereIn('course_intake_id', function ($sub) use ($user) {
+                                    $sub->select('course_intake_id')
+                                        ->from('enrollments')
+                                        ->where('user_id', $user->id)
+                                        ->whereNotNull('course_intake_id');
+                                });
+                        });
+                });
+        });
     }
 
     /**

@@ -831,6 +831,69 @@
 
                 <form wire:submit.prevent="registerContributor" class="p-6 sm:p-10 space-y-6 max-h-[80vh] overflow-y-auto">
                     
+                    {{-- 🌟 1. CHECK & PULL EXISTING STUDENT / INSTRUCTOR DETAILS --}}
+                    <div class="rounded-2xl border border-teal-200/90 bg-gradient-to-br from-teal-50/70 via-emerald-50/40 to-slate-50 p-5 sm:p-6 shadow-xs">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-teal-100/90">
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 rounded-xl bg-[#0a2d27] text-yellow-400 flex items-center justify-center text-sm shadow-xs shrink-0">
+                                    <i class="fa-solid fa-id-card-clip"></i>
+                                </span>
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-900">
+                                        Already an Instructor or Student?
+                                    </h4>
+                                    <p class="text-xs text-slate-500 mt-0.5">
+                                        Pull your profile, contact details, and social links automatically.
+                                    </p>
+                                </div>
+                            </div>
+                            @if ($existingUserRole)
+                                <span class="inline-flex items-center gap-1.5 self-start sm:self-auto text-xs font-bold text-emerald-800 bg-emerald-100/90 px-3 py-1 rounded-full border border-emerald-300 shadow-2xs">
+                                    <i class="fa-solid fa-circle-check text-emerald-600"></i> {{ $existingUserRole }} Account Linked
+                                </span>
+                            @endif
+                        </div>
+
+                        <div class="mt-4 space-y-3">
+                            <div class="flex flex-col sm:flex-row gap-2.5">
+                                <div class="relative flex-1">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-envelope text-sm"></i>
+                                    </div>
+                                    <input
+                                        type="email"
+                                        wire:model="lookupEmail"
+                                        wire:keydown.enter.prevent="checkAndPullDetails"
+                                        placeholder="Enter your registered email address (e.g. thinker.net01@gmail.com)..."
+                                        class="w-full rounded-xl bg-white border border-teal-200/90 pl-11 pr-4 py-2.5 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none transition-all shadow-2xs"
+                                    >
+                                </div>
+                                <button
+                                    type="button"
+                                    wire:click="checkAndPullDetails"
+                                    class="px-5 py-2.5 rounded-xl bg-[#0a2d27] hover:bg-[#11443c] text-white text-xs sm:text-sm font-bold shadow-xs transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-98"
+                                >
+                                    <span wire:loading.remove wire:target="checkAndPullDetails" class="inline-flex items-center gap-1.5">
+                                        <i class="fa-solid fa-magnifying-glass text-xs"></i> Check &amp; Pull Details
+                                    </span>
+                                    <span wire:loading wire:target="checkAndPullDetails" class="inline-flex items-center gap-1.5">
+                                        <i class="fa-solid fa-spinner fa-spin text-xs"></i> Checking...
+                                    </span>
+                                </button>
+                            </div>
+
+                            {{-- Status / Feedback Alert Banner --}}
+                            @if ($lookupMessage)
+                                <div class="p-3.5 rounded-xl text-xs font-medium flex items-start gap-2.5 {{ $lookupStatus === 'success' ? 'bg-emerald-50 text-emerald-900 border border-emerald-300 shadow-2xs' : 'bg-rose-50 text-rose-900 border border-rose-200 shadow-2xs' }}">
+                                    <div class="w-5 h-5 rounded-full {{ $lookupStatus === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600' }} flex items-center justify-center shrink-0 mt-0.5 text-xs">
+                                        <i class="fa-solid {{ $lookupStatus === 'success' ? 'fa-check' : 'fa-exclamation' }}"></i>
+                                    </div>
+                                    <span class="leading-relaxed flex-1">{{ $lookupMessage }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
                     {{-- Personal Information --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
@@ -888,13 +951,36 @@
                         @endif
 
                         <div class="{{ $regRole === 'employer' ? '' : 'sm:col-span-2' }}">
-                            <label class="block text-xs font-bold text-slate-700 mb-2">Technical Specialty / Track</label>
-                            <input
-                                type="text"
-                                wire:model="regSpecialty"
-                                placeholder="e.g. Full Stack, AI/ML, Cloud Architecture"
-                                class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                            <label class="block text-xs font-bold text-slate-700 mb-2">
+                                Technical Specialty <span class="text-rose-500">*</span>
+                            </label>
+                            <select
+                                wire:model.live="regSpecialty"
+                                class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-semibold text-slate-900 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200 cursor-pointer"
+                                required
                             >
+                                <option value="">-- Select Technical Specialty --</option>
+                                @foreach ($this->specialtyOptions as $option)
+                                    <option value="{{ $option }}">{{ $option }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                                Suggested specialties tailored dynamically for {{ match($regRole) { 'blogger' => 'Bloggers', 'researcher' => 'Researchers', 'employer' => 'Employers', default => 'Contributors' } }}.
+                            </p>
+                            @error('regSpecialty') <span class="text-xs text-rose-600 mt-1.5 block">{{ $message }}</span> @enderror
+
+                            @if ($regSpecialty === 'Other / Custom Specialty')
+                                <div class="mt-2.5">
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Specify Your Custom Technical Specialty</label>
+                                    <input
+                                        type="text"
+                                        wire:model="customSpecialty"
+                                        placeholder="e.g. Distributed Systems, Bio-Informatics, Robotics, FinTech"
+                                        class="w-full rounded-xl bg-white border border-teal-300 px-4 py-2.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none transition-all"
+                                        required
+                                    >
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -961,31 +1047,56 @@
                         </div>
                     </div>
 
-                    {{-- Security --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-2">Password <span class="text-rose-500">*</span></label>
-                            <input
-                                type="password"
-                                wire:model="regPassword"
-                                placeholder="••••••••"
-                                class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
-                                required
-                            >
-                            @error('regPassword') <span class="text-xs text-rose-600 mt-1.5 block">{{ $message }}</span> @enderror
-                        </div>
+                    {{-- Security / Password Section --}}
+                    @if (! $existingUserId)
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-2">
+                                    Password <span class="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    wire:model="regPassword"
+                                    placeholder="••••••••"
+                                    class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                                    required
+                                >
+                                @error('regPassword') <span class="text-xs text-rose-600 mt-1.5 block">{{ $message }}</span> @enderror
+                            </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-2">Confirm Password <span class="text-rose-500">*</span></label>
-                            <input
-                                type="password"
-                                wire:model="regPasswordConfirmation"
-                                placeholder="••••••••"
-                                class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
-                                required
-                            >
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-2">
+                                    Confirm Password <span class="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    wire:model="regPasswordConfirmation"
+                                    placeholder="••••••••"
+                                    class="w-full rounded-xl bg-slate-50/90 border border-slate-200/90 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all duration-200"
+                                    required
+                                >
+                            </div>
                         </div>
-                    </div>
+                    @else
+                        <div class="rounded-2xl border border-teal-200/90 bg-gradient-to-br from-teal-50/80 via-emerald-50/50 to-slate-50 p-5 shadow-xs">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-teal-100/80">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-8 h-8 rounded-lg bg-[#0a2d27] text-yellow-400 flex items-center justify-center text-xs shadow-2xs shrink-0">
+                                        <i class="fa-solid fa-arrows-rotate"></i>
+                                    </span>
+                                    <h5 class="text-xs sm:text-sm font-bold text-slate-900">
+                                        Single Sign-On &amp; Role Switching
+                                    </h5>
+                                </div>
+                                <span class="inline-flex items-center gap-1.5 self-start sm:self-auto text-[11px] font-bold text-emerald-800 bg-emerald-100/90 px-2.5 py-0.5 rounded-full border border-emerald-300 shadow-2xs">
+                                    <i class="fa-solid fa-lock text-[10px] text-emerald-600"></i> Same Password Used
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-600 mt-2.5 leading-relaxed">
+                                Your existing Thinker HUB password will be used for this profile. Once approved by Admin, you can switch smoothly between your roles in the portal without logging in separately.
+                            </p>
+                        </div>
+                    @endif
 
                     {{-- Actions --}}
                     <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">

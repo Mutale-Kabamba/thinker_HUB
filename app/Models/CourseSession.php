@@ -14,6 +14,7 @@ class CourseSession extends Model
 
     protected $fillable = [
         'course_id',
+        'course_intake_id',
         'instructor_id',
         'type',
         'student_id',
@@ -39,6 +40,11 @@ class CourseSession extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function intake(): BelongsTo
+    {
+        return $this->belongsTo(CourseIntake::class, 'course_intake_id');
     }
 
     public function instructor(): BelongsTo
@@ -135,5 +141,37 @@ class CourseSession extends Model
                 return $date->copy()->endOfDay();
             }
         }
+    }
+
+    public function scopeVisibleTo(\Illuminate\Database\Eloquent\Builder $query, User $user): \Illuminate\Database\Eloquent\Builder
+    {
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        if ($user->role === 'instructor') {
+            return $query->where('instructor_id', $user->id);
+        }
+
+        $enrolledCourseIds = $user->courses()->pluck('courses.id');
+
+        return $query->whereIn('course_id', $enrolledCourseIds)
+            ->where(function (\Illuminate\Database\Eloquent\Builder $q) use ($user): void {
+                $q->where(function (\Illuminate\Database\Eloquent\Builder $oneQ) use ($user): void {
+                    $oneQ->where('type', 'one_on_one')
+                        ->where('student_id', $user->id);
+                })->orWhere(function (\Illuminate\Database\Eloquent\Builder $grpQ) use ($user): void {
+                    $grpQ->where('type', 'group')
+                        ->where(function (\Illuminate\Database\Eloquent\Builder $intakeQ) use ($user): void {
+                            $intakeQ->whereNull('course_intake_id')
+                                ->orWhereIn('course_intake_id', function ($sub) use ($user) {
+                                    $sub->select('course_intake_id')
+                                        ->from('enrollments')
+                                        ->where('user_id', $user->id)
+                                        ->whereNotNull('course_intake_id');
+                                });
+                        });
+                });
+            });
     }
 }

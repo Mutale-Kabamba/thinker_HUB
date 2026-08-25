@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
 class Course extends Model
@@ -14,9 +15,14 @@ class Course extends Model
     use HasFactory;
     use HasReviews;
 
+    protected $attributes = [
+        'offering_mode' => 'once_off',
+    ];
+
     protected $fillable = [
         'title',
         'code',
+        'offering_mode',
         'course_by',
         'image_path',
         'description',
@@ -119,6 +125,69 @@ class Course extends Model
     public function sessions(): HasMany
     {
         return $this->hasMany(CourseSession::class);
+    }
+
+    public function intakes(): HasMany
+    {
+        return $this->hasMany(CourseIntake::class);
+    }
+
+    public function activeIntake(): HasOne
+    {
+        return $this->hasOne(CourseIntake::class)
+            ->where(function ($query) {
+                $query->where('is_active', true)
+                    ->orWhere('status', CourseIntake::STATUS_ACTIVE);
+            })
+            ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
+            ->latest('start_date');
+    }
+
+    public function upcomingIntakes(): HasMany
+    {
+        return $this->hasMany(CourseIntake::class)
+            ->where('status', CourseIntake::STATUS_UPCOMING)
+            ->where('is_active', false)
+            ->orderBy('start_date');
+    }
+
+    public function archivedIntakes(): HasMany
+    {
+        return $this->hasMany(CourseIntake::class)
+            ->where(function ($query) {
+                $query->where('status', CourseIntake::STATUS_ARCHIVED)
+                    ->orWhereNotNull('archived_at');
+            })
+            ->latest('archived_at');
+    }
+
+    public function isOngoing(): bool
+    {
+        return ($this->offering_mode ?? 'once_off') === 'ongoing';
+    }
+
+    public function isOnceOff(): bool
+    {
+        return ! $this->isOngoing();
+    }
+
+    public function getActiveOrNextIntake(): ?CourseIntake
+    {
+        if (! $this->relationLoaded('intakes')) {
+            $active = $this->activeIntake;
+            if ($active) {
+                return $active;
+            }
+
+            return $this->upcomingIntakes()->first();
+        }
+
+        $active = $this->intakes->first(fn (CourseIntake $i) => $i->is_active || $i->status === CourseIntake::STATUS_ACTIVE);
+        if ($active && ! $active->isArchived()) {
+            return $active;
+        }
+
+        return $this->intakes->where('status', CourseIntake::STATUS_UPCOMING)->sortBy('start_date')->first();
     }
 
     public function quizzes(): HasMany
@@ -232,6 +301,11 @@ class Course extends Model
         }
 
         return $defaultFee;
+    }
+
+    public function isPayable(?string $level = null): bool
+    {
+        return $this->getNumericFeeForLevel($level) > 0 || $this->getNumericFee() > 0;
     }
 
     public function getLevelFees(): array
