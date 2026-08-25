@@ -79,6 +79,11 @@ class AssignmentSubmissionsTable
                 TextColumn::make('grade')
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('view_status')
+                    ->label('Read')
+                    ->badge()
+                    ->getStateUsing(fn ($record): string => $record->viewed_at !== null || in_array($record->status, ['Graded', 'Checked']) ? 'Viewed' : 'New')
+                    ->color(fn (string $state): string => $state === 'New' ? 'warning' : 'gray'),
                 TextColumn::make('submitted_at')
                     ->dateTime()
                     ->sortable(),
@@ -88,6 +93,21 @@ class AssignmentSubmissionsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('view_status')
+                    ->label('Read Status')
+                    ->options([
+                        'unviewed' => 'New / Unviewed',
+                        'viewed' => 'Viewed',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (($data['value'] ?? null) === 'unviewed') {
+                            return $query->whereNull('viewed_at')->whereNotIn('status', ['Graded', 'Checked']);
+                        }
+                        if (($data['value'] ?? null) === 'viewed') {
+                            return $query->where(fn (Builder $q) => $q->whereNotNull('viewed_at')->orWhereIn('status', ['Graded', 'Checked']));
+                        }
+                        return $query;
+                    }),
                 SelectFilter::make('status')
                     ->options([
                         'Submitted' => 'Submitted',
@@ -109,16 +129,34 @@ class AssignmentSubmissionsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                \Filament\Actions\Action::make('markViewed')
+                    ->label('Mark Viewed')
+                    ->icon('heroicon-o-eye')
+                    ->color('gray')
+                    ->visible(fn ($record): bool => $record->viewed_at === null && ! in_array($record->status, ['Graded', 'Checked']))
+                    ->action(function ($record): void {
+                        $record->markAsViewed();
+                        \Filament\Notifications\Notification::make()->title('Marked as viewed.')->success()->send();
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    BulkAction::make('markViewed')
+                        ->label('Mark as Viewed')
+                        ->icon('heroicon-o-eye')
+                        ->action(fn (Collection $records) => $records->each(fn ($record) => $record->markAsViewed()))
+                        ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markGraded')
                         ->label('Mark Graded')
-                        ->action(fn (Collection $records) => $records->each->update(['status' => 'Graded']))
+                        ->action(fn (Collection $records) => $records->each(function ($record) {
+                            $record->update(['status' => 'Graded', 'viewed_at' => $record->viewed_at ?? now()]);
+                        }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markChecked')
                         ->label('Mark Checked')
-                        ->action(fn (Collection $records) => $records->each->update(['status' => 'Checked']))
+                        ->action(fn (Collection $records) => $records->each(function ($record) {
+                            $record->update(['status' => 'Checked', 'viewed_at' => $record->viewed_at ?? now()]);
+                        }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markGradedAndNotify')
                         ->label('Mark Graded + Notify')
@@ -134,7 +172,7 @@ class AssignmentSubmissionsTable
                             $customMessage = trim((string) ($data['message'] ?? ''));
 
                             $records->each(function ($record) use ($customMessage): void {
-                                $record->update(['status' => 'Graded']);
+                                $record->update(['status' => 'Graded', 'viewed_at' => $record->viewed_at ?? now()]);
 
                                 if ($record->user) {
                                     try {
@@ -153,11 +191,15 @@ class AssignmentSubmissionsTable
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markReviewed')
                         ->label('Mark Reviewed')
-                        ->action(fn (Collection $records) => $records->each->update(['status' => 'Reviewed']))
+                        ->action(fn (Collection $records) => $records->each(function ($record) {
+                            $record->update(['status' => 'Reviewed', 'viewed_at' => $record->viewed_at ?? now()]);
+                        }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markReturned')
                         ->label('Mark Returned')
-                        ->action(fn (Collection $records) => $records->each->update(['status' => 'Returned']))
+                        ->action(fn (Collection $records) => $records->each(function ($record) {
+                            $record->update(['status' => 'Returned', 'viewed_at' => $record->viewed_at ?? now()]);
+                        }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markReviewedAndNotify')
                         ->label('Mark Reviewed + Notify')
@@ -173,7 +215,7 @@ class AssignmentSubmissionsTable
                             $customMessage = trim((string) ($data['message'] ?? ''));
 
                             $records->each(function ($record) use ($customMessage): void {
-                                $record->update(['status' => 'Reviewed']);
+                                $record->update(['status' => 'Reviewed', 'viewed_at' => $record->viewed_at ?? now()]);
 
                                 if ($record->user) {
                                     try {
@@ -204,7 +246,7 @@ class AssignmentSubmissionsTable
                             $customMessage = trim((string) ($data['message'] ?? ''));
 
                             $records->each(function ($record) use ($customMessage): void {
-                                $record->update(['status' => 'Returned']);
+                                $record->update(['status' => 'Returned', 'viewed_at' => $record->viewed_at ?? now()]);
 
                                 if ($record->user) {
                                     try {

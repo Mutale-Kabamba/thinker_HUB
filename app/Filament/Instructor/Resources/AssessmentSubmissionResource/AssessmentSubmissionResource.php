@@ -50,9 +50,7 @@ class AssessmentSubmissionResource extends Resource
 
         try {
             $count = static::getEloquentQuery()
-                ->where(function ($q) {
-                    $q->whereNull('score')->orWhere('score', '-');
-                })
+                ->whereNull('viewed_at')
                 ->whereNotIn('status', ['Graded', 'Checked'])
                 ->count();
 
@@ -69,7 +67,7 @@ class AssessmentSubmissionResource extends Resource
 
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return 'Ungraded assessment submissions';
+        return 'Unviewed assessment submissions';
     }
 
     public static function canCreate(): bool
@@ -194,6 +192,11 @@ class AssessmentSubmissionResource extends Resource
                 TextColumn::make('score')
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('view_status')
+                    ->label('Read')
+                    ->badge()
+                    ->getStateUsing(fn ($record): string => $record->viewed_at !== null || in_array($record->status, ['Graded', 'Checked']) ? 'Viewed' : 'New')
+                    ->color(fn (string $state): string => $state === 'New' ? 'warning' : 'gray'),
                 TextColumn::make('is_retake')
                     ->label('Attempt')
                     ->badge()
@@ -211,6 +214,21 @@ class AssessmentSubmissionResource extends Resource
                 )
             )
             ->filters([
+                SelectFilter::make('view_status')
+                    ->label('Read Status')
+                    ->options([
+                        'unviewed' => 'New / Unviewed',
+                        'viewed' => 'Viewed',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (($data['value'] ?? null) === 'unviewed') {
+                            return $query->whereNull('viewed_at')->whereNotIn('status', ['Graded', 'Checked']);
+                        }
+                        if (($data['value'] ?? null) === 'viewed') {
+                            return $query->where(fn (Builder $q) => $q->whereNotNull('viewed_at')->orWhereIn('status', ['Graded', 'Checked']));
+                        }
+                        return $query;
+                    }),
                 SelectFilter::make('status')
                     ->options([
                         'Submitted' => 'Submitted',
@@ -222,6 +240,15 @@ class AssessmentSubmissionResource extends Resource
             ])
             ->recordActions([
                 EditAction::make(),
+                \Filament\Actions\Action::make('markViewed')
+                    ->label('Mark Viewed')
+                    ->icon('heroicon-o-eye')
+                    ->color('gray')
+                    ->visible(fn ($record): bool => $record->viewed_at === null && ! in_array($record->status, ['Graded', 'Checked']))
+                    ->action(function ($record): void {
+                        $record->markAsViewed();
+                        \Filament\Notifications\Notification::make()->title('Marked as viewed.')->success()->send();
+                    }),
                 \Filament\Actions\Action::make('grantRetake')
                     ->label('Grant 2nd Try')
                     ->icon('heroicon-o-arrow-path')
@@ -247,9 +274,16 @@ class AssessmentSubmissionResource extends Resource
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    BulkAction::make('markViewed')
+                        ->label('Mark as Viewed')
+                        ->icon('heroicon-o-eye')
+                        ->action(fn (Collection $records) => $records->each(fn ($record) => $record->markAsViewed()))
+                        ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markGraded')
                         ->label('Mark Graded')
-                        ->action(fn (Collection $records) => $records->each->update(['status' => 'Graded']))
+                        ->action(fn (Collection $records) => $records->each(function ($record) {
+                            $record->update(['status' => 'Graded', 'viewed_at' => $record->viewed_at ?? now()]);
+                        }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markGradedAndNotify')
                         ->label('Mark Graded + Notify')
@@ -262,7 +296,7 @@ class AssessmentSubmissionResource extends Resource
                         ->action(function (Collection $records, array $data): void {
                             $msg = trim((string) ($data['message'] ?? ''));
                             $records->each(function ($record) use ($msg): void {
-                                $record->update(['status' => 'Graded']);
+                                $record->update(['status' => 'Graded', 'viewed_at' => $record->viewed_at ?? now()]);
                                 try {
                                     $record->user?->notify(new SubmissionGradedNotification(
                                         'assessment',
@@ -278,11 +312,15 @@ class AssessmentSubmissionResource extends Resource
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markChecked')
                         ->label('Mark Checked')
-                        ->action(fn (Collection $records) => $records->each->update(['status' => 'Checked']))
+                        ->action(fn (Collection $records) => $records->each(function ($record) {
+                            $record->update(['status' => 'Checked', 'viewed_at' => $record->viewed_at ?? now()]);
+                        }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markReturned')
                         ->label('Mark Returned')
-                        ->action(fn (Collection $records) => $records->each->update(['status' => 'Returned']))
+                        ->action(fn (Collection $records) => $records->each(function ($record) {
+                            $record->update(['status' => 'Returned', 'viewed_at' => $record->viewed_at ?? now()]);
+                        }))
                         ->deselectRecordsAfterCompletion(),
                 ]),
             ]);

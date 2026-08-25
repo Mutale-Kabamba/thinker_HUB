@@ -153,6 +153,7 @@ class Assignments extends Page
                 'video_url' => $video,
                 'status' => 'Submitted',
                 'submitted_at' => Carbon::now(),
+                'viewed_at' => null,
                 'is_retake' => $isRetake,
                 'retake_allowed' => false,
             ],

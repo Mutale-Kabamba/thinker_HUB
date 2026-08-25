@@ -10,6 +10,15 @@ class EditAssignmentSubmission extends BaseEditRecord
 {
     protected static string $resource = AssignmentSubmissionResource::class;
 
+    public function mount(int | string $record): void
+    {
+        parent::mount($record);
+
+        if ($this->record && $this->record->viewed_at === null) {
+            $this->record->markAsViewed();
+        }
+    }
+
     protected function afterSave(): void
     {
         $submission = $this->record;

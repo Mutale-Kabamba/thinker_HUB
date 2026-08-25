@@ -22,6 +22,7 @@ class AssessmentSubmission extends Model
         'score',
         'feedback',
         'submitted_at',
+        'viewed_at',
         'is_retake',
         'retake_allowed',
         'retake_granted_at',
@@ -34,6 +35,7 @@ class AssessmentSubmission extends Model
         return [
             'file_paths' => 'array',
             'submitted_at' => 'datetime',
+            'viewed_at' => 'datetime',
             'is_retake' => 'boolean',
             'retake_allowed' => 'boolean',
             'retake_granted_at' => 'datetime',
@@ -125,5 +127,17 @@ class AssessmentSubmission extends Model
             'retake_granted_at' => null,
             'retake_granted_by' => null,
         ]);
+    }
+
+    public function isViewed(): bool
+    {
+        return $this->viewed_at !== null;
+    }
+
+    public function markAsViewed(): void
+    {
+        if ($this->viewed_at === null) {
+            $this->updateQuietly(['viewed_at' => now()]);
+        }
     }
 }
