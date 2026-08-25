@@ -13,6 +13,7 @@ class Enrollment extends Model
     protected $fillable = [
         'user_id',
         'course_id',
+        'course_intake_id',
         'completed_at',
         'completed_by_user_id',
     ];
@@ -29,6 +30,11 @@ class Enrollment extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function intake(): BelongsTo
+    {
+        return $this->belongsTo(CourseIntake::class, 'course_intake_id');
     }
 
     public function completedBy(): BelongsTo

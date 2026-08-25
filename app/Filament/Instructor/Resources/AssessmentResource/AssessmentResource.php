@@ -60,6 +60,26 @@ class AssessmentResource extends Resource
                     ->options(fn (): array => static::instructorCourseOptions())
                     ->live(),
 
+                Select::make('course_intake_id')
+                    ->label('Target Intake / Class')
+                    ->nullable()
+                    ->searchable()
+                    ->options(function (callable $get): array {
+                        $courseId = $get('course_id');
+                        if (! $courseId) {
+                            return [];
+                        }
+
+                        return \App\Models\CourseIntake::query()
+                            ->where('course_id', $courseId)
+                            ->where('status', '!=', \App\Models\CourseIntake::STATUS_ARCHIVED)
+                            ->orderBy('start_date', 'desc')
+                            ->pluck('name', 'id')
+                            ->toArray();
+                    })
+                    ->placeholder('All Intakes / Entire Course')
+                    ->helperText('Leave empty to send to all cohorts across the course.'),
+
                 Select::make('target_level')
                     ->label('Target Track / Level')
                     ->required()
@@ -94,12 +114,15 @@ class AssessmentResource extends Resource
                         return $options + $students;
                     })
                     ->default('all')
+                    ->dehydrateStateUsing(fn (mixed $state): mixed => $state === 'all' ? null : $state)
                     ->helperText('Choose All Students to send to all students in the selected course and level.'),
 
-                FileUpload::make('file_path')
-                    ->label('File Upload')
+                FileUpload::make('file_paths')
+                    ->label('Assessment Document(s)')
                     ->disk('public')
                     ->directory('assessments')
+                    ->multiple()
+                    ->reorderable()
                     ->maxSize(10240)
                     ->acceptedFileTypes([
                         'application/pdf',
@@ -111,9 +134,10 @@ class AssessmentResource extends Resource
                         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                         'text/plain',
                         'text/csv',
+                        'image/*',
+                        'application/zip',
                     ])
-                    ->required(fn (string $operation): bool => $operation === 'create')
-                    ->dehydrated(fn (?string $state): bool => filled($state))
+                    ->helperText('Attach one or more assessment files, question papers, or briefs.')
                     ->columnSpanFull(),
 
                 DatePicker::make('date_given')

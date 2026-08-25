@@ -74,7 +74,7 @@
         </div>
     </div>
 
-    {{-- Reviews List Feed --}}
+    {{-- Reviews Sliding Carousel Feed --}}
     @if ($reviews->isEmpty())
         <div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-700 bg-white dark:bg-slate-900">
             <div class="w-12 h-12 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto mb-3">
@@ -94,85 +94,193 @@
             @endauth
         </div>
     @else
-        <div class="grid gap-4 sm:grid-cols-2">
-            @foreach ($reviews as $review)
-                <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 flex flex-col justify-between">
-                    <div>
-                        {{-- Review Top: Stars + Verified Badge + Date --}}
-                        <div class="flex items-center justify-between gap-2 flex-wrap">
-                            @if ($review->rating)
-                                <x-rating-stars :rating="$review->rating" size="sm" :showText="false" />
-                            @else
-                                <span class="inline-flex items-center gap-1 rounded-md bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 px-2 py-0.5 text-[10px] font-bold">
-                                    <i class="fa-regular fa-comment-dots"></i> Written Review
-                                </span>
-                            @endif
+        <div class="space-y-4"
+             x-data="{
+                 canScrollLeft: false,
+                 canScrollRight: true,
+                 scrollPosition: 0,
+                 maxScroll: 1,
+                 updateScrollState() {
+                     const el = this.$refs.reviewCarousel;
+                     if (!el) return;
+                     this.canScrollLeft = el.scrollLeft > 15;
+                     this.canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 15);
+                     this.scrollPosition = el.scrollLeft;
+                     this.maxScroll = Math.max(el.scrollWidth - el.clientWidth, 1);
+                 },
+                 slideNext() {
+                     const el = this.$refs.reviewCarousel;
+                     if (!el) return;
+                     const card = el.querySelector('article');
+                     const scrollAmount = card ? (card.offsetWidth + 20) : 380;
+                     el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                 },
+                 slidePrev() {
+                     const el = this.$refs.reviewCarousel;
+                     if (!el) return;
+                     const card = el.querySelector('article');
+                     const scrollAmount = card ? (card.offsetWidth + 20) : 380;
+                     el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                 }
+             }"
+             x-init="$nextTick(() => updateScrollState()); setTimeout(() => updateScrollState(), 200);"
+             @resize.window.debounce.100ms="updateScrollState()">
+            
+            {{-- Carousel Navigation Header --}}
+            <div class="flex items-center justify-between gap-3 px-1">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Verified Testimonials ({{ $reviews->total() }})
+                    </span>
+                    <span class="hidden sm:inline text-xs text-slate-400 font-medium">
+                        • Slide or swipe to explore
+                    </span>
+                </div>
 
-                            <div class="flex items-center gap-2">
-                                @if ($review->is_verified)
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                        </svg>
-                                        Verified Learner
+                {{-- Slider Arrow Buttons --}}
+                <div class="flex items-center gap-2">
+                    <button type="button"
+                            @click="slidePrev()"
+                            :disabled="!canScrollLeft"
+                            :class="!canScrollLeft ? 'opacity-40 cursor-not-allowed text-slate-400 bg-slate-100 dark:bg-slate-800' : 'text-slate-800 dark:text-white bg-white dark:bg-slate-800 hover:bg-teal-50 hover:text-teal-600 dark:hover:bg-teal-950/50 dark:hover:text-teal-300 shadow-sm hover:shadow border-slate-200 dark:border-slate-700'"
+                            class="inline-flex items-center justify-center w-9 h-9 rounded-full border transition-all duration-200"
+                            aria-label="Previous Reviews">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+
+                    <button type="button"
+                            @click="slideNext()"
+                            :disabled="!canScrollRight"
+                            :class="!canScrollRight ? 'opacity-40 cursor-not-allowed text-slate-400 bg-slate-100 dark:bg-slate-800' : 'text-slate-800 dark:text-white bg-white dark:bg-slate-800 hover:bg-teal-50 hover:text-teal-600 dark:hover:bg-teal-950/50 dark:hover:text-teal-300 shadow-sm hover:shadow border-slate-200 dark:border-slate-700'"
+                            class="inline-flex items-center justify-center w-9 h-9 rounded-full border transition-all duration-200"
+                            aria-label="Next Reviews">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Sliding Carousel Track --}}
+            <div x-ref="reviewCarousel"
+                 @scroll.debounce.40ms="updateScrollState()"
+                 class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1.5 snap-x snap-mandatory scroll-smooth focus:outline-none"
+                 style="scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;">
+                
+                @foreach ($reviews as $review)
+                    <article class="w-[86vw] max-w-[340px] sm:w-[360px] md:w-[410px] flex-shrink-0 snap-start rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-teal-300/80 dark:hover:border-teal-500/40 dark:border-slate-800 dark:bg-slate-900 flex flex-col justify-between select-none relative group">
+                        
+                        {{-- Top Accent Glow Line on Hover --}}
+                        <div class="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-teal-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
+
+                        <div>
+                            {{-- Review Top: Stars + Verified Badge + Date --}}
+                            <div class="flex items-center justify-between gap-2 flex-wrap mb-3.5">
+                                @if ($review->rating)
+                                    <div class="flex items-center gap-1.5">
+                                        <x-rating-stars :rating="$review->rating" size="sm" :showText="false" />
+                                        <span class="text-xs font-black text-slate-800 dark:text-slate-200">
+                                            {{ number_format($review->rating, 1) }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <span class="inline-flex items-center gap-1 rounded-md bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 px-2 py-0.5 text-[10px] font-bold">
+                                        <i class="fa-regular fa-comment-dots"></i> Written Review
                                     </span>
                                 @endif
-                                <span class="text-[11px] text-slate-400">
-                                    {{ $review->created_at->diffForHumans() }}
-                                </span>
+
+                                <div class="flex items-center gap-2">
+                                    @if ($review->is_verified)
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                                            <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                            </svg>
+                                            Verified
+                                        </span>
+                                    @endif
+                                    <span class="text-[11px] font-medium text-slate-400">
+                                        {{ $review->created_at->diffForHumans() }}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
 
-                        {{-- Headline / Title --}}
-                        @if ($review->title)
-                            <h4 class="mt-3 text-sm font-extrabold text-slate-900 dark:text-white">
-                                {{ $review->title }}
-                            </h4>
-                        @endif
+                            {{-- Headline / Title --}}
+                            @if ($review->title)
+                                <h4 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white line-clamp-1 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                                    {{ $review->title }}
+                                </h4>
+                            @endif
 
-                        {{-- Comment --}}
-                        @if ($review->comment)
-                            <p class="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300 whitespace-pre-line">
-                                {{ $review->comment }}
-                            </p>
-                        @endif
-                    </div>
-
-                    {{-- Review Author Footer --}}
-                    <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
-                        <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
-                            @if ($review->is_anonymous)
-                                A
-                            @else
-                                {{ strtoupper(substr($review->user?->name ?? 'Student', 0, 1)) }}
+                            {{-- Comment Body with Quote Style --}}
+                            @if ($review->comment)
+                                <p class="mt-2 text-xs sm:text-[13px] leading-relaxed text-slate-600 dark:text-slate-300 line-clamp-4 whitespace-pre-line">
+                                    “{{ $review->comment }}”
+                                </p>
                             @endif
                         </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-                                @if ($review->is_anonymous)
-                                    Anonymous Student
-                                @else
-                                    {{ $review->user?->name ?? 'Thinker Learner' }}
-                                @endif
-                            </p>
-                            <p class="text-[10px] text-slate-400">
-                                @if ($review->is_anonymous)
-                                    Verified Thinker HUB Member
-                                @else
-                                    {{ $review->user?->track ? $review->user->track . ' Track' : 'Thinker HUB Learner' }}
-                                @endif
-                            </p>
-                        </div>
-                    </div>
-                </article>
-            @endforeach
-        </div>
 
-        {{-- Pagination --}}
-        @if ($reviews->hasPages())
-            <div class="pt-4">
-                {{ $reviews->links() }}
+                        {{-- Review Author Footer --}}
+                        <div class="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-600 to-emerald-500 text-white flex items-center justify-center font-black text-xs uppercase shadow-sm flex-shrink-0">
+                                    @if ($review->is_anonymous)
+                                        A
+                                    @else
+                                        {{ strtoupper(substr($review->user?->name ?? 'S', 0, 1)) }}
+                                    @endif
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-extrabold text-slate-800 dark:text-slate-200 truncate">
+                                        @if ($review->is_anonymous)
+                                            Anonymous Student
+                                        @else
+                                            {{ $review->user?->name ?? 'Thinker Learner' }}
+                                        @endif
+                                    </p>
+                                    <p class="text-[10px] text-slate-400 truncate">
+                                        @if ($review->is_anonymous)
+                                            Verified Thinker HUB Member
+                                        @else
+                                            {{ $review->user?->track ? $review->user->track . ' Track' : 'Thinker HUB Learner' }}
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+
+                            @if ($review->reviewable)
+                                <span class="hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 truncate max-w-[110px]">
+                                    {{ $review->reviewable->title ?? $review->reviewable->name ?? 'Course' }}
+                                </span>
+                            @endif
+                        </div>
+                    </article>
+                @endforeach
             </div>
-        @endif
+
+            {{-- Slider Progress Indicator --}}
+            <div class="flex items-center justify-between px-1 text-xs text-slate-400">
+                <span class="sm:hidden font-medium">
+                    ← Swipe horizontally to see more reviews →
+                </span>
+                <span class="hidden sm:inline font-medium">
+                    Showing {{ $reviews->count() }} of {{ $reviews->total() }} reviews in carousel
+                </span>
+
+                <div class="w-24 sm:w-36 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full transition-all duration-150"
+                         :style="`width: ${Math.min(100, Math.max(15, (scrollPosition / maxScroll) * 100))}%;`"></div>
+                </div>
+            </div>
+
+            {{-- Pagination If Multiple Pages --}}
+            @if ($reviews->hasPages())
+                <div class="pt-3">
+                    {{ $reviews->links() }}
+                </div>
+            @endif
+        </div>
     @endif
 </div>

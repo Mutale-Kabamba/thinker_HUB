@@ -38,7 +38,7 @@ class CourseResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            \App\Filament\Resources\Courses\RelationManagers\IntakesRelationManager::class,
         ];
     }
 

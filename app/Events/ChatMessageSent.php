@@ -38,6 +38,7 @@ class ChatMessageSent implements ShouldBroadcast
             'attachment_url' => $this->message->attachment_url,
             'attachment_name' => $this->message->attachment_name,
             'attachment_type' => $this->message->attachment_type,
+            'attachments' => $this->message->all_attachments,
             'created_at' => $this->message->created_at?->toIso8601String(),
         ];
     }

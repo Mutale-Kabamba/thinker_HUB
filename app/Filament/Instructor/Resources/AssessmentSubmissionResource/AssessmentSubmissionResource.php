@@ -41,6 +41,37 @@ class AssessmentSubmissionResource extends Resource
 
     protected static ?int $navigationSort = 9;
 
+    public static function getNavigationBadge(): ?string
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return null;
+        }
+
+        try {
+            $count = static::getEloquentQuery()
+                ->where(function ($q) {
+                    $q->whereNull('score')->orWhere('score', '-');
+                })
+                ->whereNotIn('status', ['Graded', 'Checked'])
+                ->count();
+
+            return $count > 0 ? (string) $count : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'warning';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Ungraded assessment submissions';
+    }
+
     public static function canCreate(): bool
     {
         return false;
@@ -85,10 +116,21 @@ class AssessmentSubmissionResource extends Resource
                             ->icon(Heroicon::OutlinedPaperClip)
                             ->schema([
                                 Placeholder::make('submission_file')
-                                    ->label('Uploaded File')
-                                    ->content(fn ($record): HtmlString => $record?->file_path
-                                        ? new HtmlString('<a href="' . e(route('file.view', ['type' => 'assessment-submission', 'id' => $record->id])) . '" target="_blank" style="color:#0e7490;text-decoration:underline;display:inline-flex;align-items:center;gap:0.3rem;"><svg style="width:1rem;height:1rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ' . e(basename($record->file_path)) . '</a>')
-                                        : new HtmlString('<span style="color:#9ca3af;">No file uploaded</span>')),
+                                    ->label('Uploaded File(s)')
+                                    ->content(function ($record): HtmlString {
+                                        $paths = $record?->all_file_paths ?? [];
+                                        if (empty($paths)) {
+                                            return new HtmlString('<span style="color:#9ca3af;">No file uploaded</span>');
+                                        }
+
+                                        $html = '<div style="display:flex;flex-direction:column;gap:0.4rem;">';
+                                        foreach ($paths as $idx => $filePath) {
+                                            $html .= '<a href="' . e(route('file.view', ['type' => 'assessment-submission', 'id' => $record->id, 'index' => $idx])) . '" target="_blank" style="color:#0e7490;text-decoration:underline;display:inline-flex;align-items:center;gap:0.3rem;"><svg style="width:1rem;height:1rem;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ' . e(basename($filePath)) . '</a>';
+                                        }
+                                        $html .= '</div>';
+
+                                        return new HtmlString($html);
+                                    }),
                                 Placeholder::make('submission_link')
                                     ->label('Link')
                                     ->content(fn ($record): HtmlString => $record?->link

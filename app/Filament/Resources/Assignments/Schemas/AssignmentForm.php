@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Assignments\Schemas;
 
 use App\Models\Course;
+use App\Models\CourseIntake;
 use App\Models\User;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
@@ -33,6 +34,26 @@ class AssignmentForm
                     ->searchable()
                     ->options(fn (): array => Course::query()->where('is_active', true)->orderBy('title')->pluck('title', 'id')->toArray())
                     ->live(),
+
+                Select::make('course_intake_id')
+                    ->label('Target Intake / Class')
+                    ->nullable()
+                    ->searchable()
+                    ->options(function (callable $get): array {
+                        $courseId = $get('course_id');
+                        if (! $courseId) {
+                            return [];
+                        }
+
+                        return CourseIntake::query()
+                            ->where('course_id', $courseId)
+                            ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
+                            ->orderBy('start_date', 'desc')
+                            ->pluck('name', 'id')
+                            ->toArray();
+                    })
+                    ->placeholder('All Intakes / Entire Course')
+                    ->helperText('Leave empty to send to all cohorts across the course.'),
 
                 Select::make('target_level')
                     ->label('Target Track / Level')
@@ -76,10 +97,12 @@ class AssignmentForm
                     ->dehydrateStateUsing(fn (mixed $state): mixed => $state === 'all' ? null : $state)
                     ->helperText('Choose All Students to send to all students in the selected course and level.'),
 
-                FileUpload::make('file_path')
-                    ->label('File Upload')
+                FileUpload::make('file_paths')
+                    ->label('Assignment Document(s)')
                     ->disk('public')
                     ->directory('assignments')
+                    ->multiple()
+                    ->reorderable()
                     ->maxSize(10240)
                     ->acceptedFileTypes([
                         'application/pdf',
@@ -91,9 +114,10 @@ class AssignmentForm
                         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                         'text/plain',
                         'text/csv',
+                        'image/*',
+                        'application/zip',
                     ])
-                    ->required(fn (string $operation): bool => $operation === 'create')
-                    ->dehydrated(fn (?string $state): bool => filled($state))
+                    ->helperText('Attach one or more assignment files, briefs, or resources.')
                     ->columnSpanFull(),
 
                 DatePicker::make('date_given')

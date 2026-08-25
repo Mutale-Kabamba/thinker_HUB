@@ -67,6 +67,28 @@ class QuizResource extends Resource
                                     ->toArray()
                             )
                             ->helperText('Only your assigned courses are shown.')
+                            ->live()
+                            ->columnSpanFull(),
+
+                        Select::make('course_intake_id')
+                            ->label('Target Intake / Class')
+                            ->nullable()
+                            ->searchable()
+                            ->options(function (callable $get): array {
+                                $courseId = $get('course_id');
+                                if (! $courseId) {
+                                    return [];
+                                }
+
+                                return \App\Models\CourseIntake::query()
+                                    ->where('course_id', $courseId)
+                                    ->where('status', '!=', \App\Models\CourseIntake::STATUS_ARCHIVED)
+                                    ->orderBy('start_date', 'desc')
+                                    ->pluck('name', 'id')
+                                    ->toArray();
+                            })
+                            ->placeholder('All Intakes / Entire Course')
+                            ->helperText('Leave empty to make quiz available to all cohorts across the course.')
                             ->columnSpanFull(),
 
                         TextInput::make('title')

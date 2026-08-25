@@ -448,6 +448,65 @@
                         </div>
                     @endif
 
+                    @if ($course->isOngoing())
+                        <div class="space-y-4 rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/60 to-white p-6 shadow-sm">
+                            <div class="flex items-center justify-between gap-3 flex-wrap">
+                                <div>
+                                    <span class="text-xs font-bold uppercase tracking-wider text-teal-700">Course Schedule &amp; Intakes</span>
+                                    <h2 class="text-xl font-black text-slate-900 mt-0.5">Cohort &amp; Class Intakes</h2>
+                                </div>
+                                <span class="rounded-full bg-teal-100/80 px-3 py-1 text-xs font-bold text-teal-900 border border-teal-200">
+                                    <i class="fa-solid fa-arrows-rotate mr-1 text-teal-600"></i> Ongoing Course
+                                </span>
+                            </div>
+
+                            @php
+                                $activeIntake = $course->activeIntake;
+                                $upcomingIntakes = $course->upcomingIntakes;
+                            @endphp
+
+                            @if ($activeIntake)
+                                <div class="rounded-xl border border-teal-200 bg-white p-4 shadow-sm">
+                                    <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <h3 class="text-base font-bold text-slate-900">{{ $activeIntake->name }}</h3>
+                                        </div>
+                                        <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                                            Current Active Intake
+                                        </span>
+                                    </div>
+                                    <div class="grid gap-3 sm:grid-cols-2 text-xs text-slate-600 mt-3 pt-3 border-t border-slate-100">
+                                        <div>
+                                            <span class="font-semibold text-slate-700 block">Intake Duration:</span>
+                                            <span class="font-medium text-slate-900">{{ $activeIntake->formattedDateRange() ?? 'Ongoing / In Session' }}</span>
+                                        </div>
+                                        @if ($activeIntake->next_intake_start_date)
+                                            <div>
+                                                <span class="font-semibold text-slate-700 block">Next Intake Starts:</span>
+                                                <span class="font-bold text-teal-700">{{ $activeIntake->formattedNextIntake() }}</span>
+                                            </div>
+                                        @endif
+                                        @if ($activeIntake->registration_deadline)
+                                            <div>
+                                                <span class="font-semibold text-slate-700 block">Registration Deadline:</span>
+                                                <span class="text-slate-800">{{ $activeIntake->registration_deadline->format('M j, Y') }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @elseif ($upcomingIntakes->isNotEmpty())
+                                @php $next = $upcomingIntakes->first(); @endphp
+                                <div class="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+                                    <h3 class="text-sm font-bold text-amber-900">Next Upcoming Intake: {{ $next->name }}</h3>
+                                    <p class="text-xs text-amber-700 mt-1">Starting on: <strong>{{ $next->start_date ? $next->start_date->format('M j, Y') : 'TBA' }}</strong></p>
+                                </div>
+                            @else
+                                <p class="text-xs text-slate-500 italic">New intake schedule will be announced soon.</p>
+                            @endif
+                        </div>
+                    @endif
+
                     @if (filled($course->key_outcome))
                         <div class="space-y-3">
                             <h3 class="text-lg font-bold text-slate-900">Key Outcome</h3>
@@ -505,6 +564,23 @@
                             <dt class="font-semibold text-slate-500">Code</dt>
                             <dd class="mt-0.5 font-bold text-slate-900">{{ $course->code }}</dd>
                         </div>
+                        <div class="border-t border-slate-100 pt-3">
+                            <dt class="font-semibold text-slate-500">Structure</dt>
+                            <dd class="mt-0.5 font-bold text-slate-900">
+                                @if ($course->isOngoing())
+                                    <span class="text-teal-700">Ongoing (Intakes)</span>
+                                @else
+                                    <span class="text-slate-700">Once-off / Flexible</span>
+                                @endif
+                            </dd>
+                        </div>
+                        @if ($course->isOngoing() && $course->activeIntake)
+                            <div class="border-t border-slate-100 pt-3">
+                                <dt class="font-semibold text-slate-500">Active Intake</dt>
+                                <dd class="mt-0.5 font-bold text-slate-900">{{ $course->activeIntake->name }}</dd>
+                                <dd class="text-xs text-slate-500">{{ $course->activeIntake->formattedDateRange() }}</dd>
+                            </div>
+                        @endif
                         <div class="border-t border-slate-100 pt-3">
                             <dt class="font-semibold text-slate-500">Timeline</dt>
                             <dd class="mt-0.5 font-bold text-slate-900">{{ $course->timeline ?: 'Self paced' }}</dd>

@@ -302,12 +302,22 @@
             border-color: rgba(45, 212, 191, 0.3);
         }
 
-        /* Review List Cards */
-        .hub-review-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        /* Review Sliding Carousel */
+        .hub-review-carousel {
+            display: flex;
             gap: 1rem;
-            margin-top: 1rem;
+            overflow-x: auto;
+            padding-bottom: 0.75rem;
+            padding-top: 0.25rem;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .hub-review-carousel::-webkit-scrollbar {
+            display: none;
         }
 
         .hub-review-item {
@@ -319,6 +329,10 @@
             flex-direction: column;
             justify-content: space-between;
             gap: 0.85rem;
+            min-width: 300px;
+            max-width: 360px;
+            flex-shrink: 0;
+            scroll-snap-align: start;
         }
 
         .dark .hub-review-item,
@@ -566,18 +580,65 @@
 
     {{-- My Submitted Reviews Section --}}
     @if ($myReviews->isNotEmpty())
-        <div class="hub-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <div class="hub-card"
+             x-data="{
+                 canScrollLeft: false,
+                 canScrollRight: true,
+                 updateScrollState() {
+                     const el = this.$refs.myReviewsCarousel;
+                     if (!el) return;
+                     this.canScrollLeft = el.scrollLeft > 10;
+                     this.canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 10);
+                 },
+                 slideNext() {
+                     const el = this.$refs.myReviewsCarousel;
+                     if (!el) return;
+                     el.scrollBy({ left: 340, behavior: 'smooth' });
+                 },
+                 slidePrev() {
+                     const el = this.$refs.myReviewsCarousel;
+                     if (!el) return;
+                     el.scrollBy({ left: -340, behavior: 'smooth' });
+                 }
+             }"
+             x-init="$nextTick(() => updateScrollState()); setTimeout(() => updateScrollState(), 200);"
+             @resize.window="updateScrollState()">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem;">
                 <div>
                     <h3 class="hub-title" style="font-size: 1.15rem;">Your Submitted Reviews</h3>
-                    <p class="hub-copy">All ratings and feedback submitted from your account.</p>
+                    <p class="hub-copy">All ratings and feedback submitted from your account • Slide to view</p>
                 </div>
-                <span class="hub-chip hub-chip-teal">
-                    {{ $myReviews->count() }} Total
-                </span>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="hub-chip hub-chip-teal">
+                        {{ $myReviews->count() }} Total
+                    </span>
+
+                    <button type="button"
+                            @click="slidePrev()"
+                            :disabled="!canScrollLeft"
+                            :style="!canScrollLeft ? 'opacity: 0.4; cursor: not-allowed;' : 'cursor: pointer;'"
+                            class="hub-btn-muted"
+                            style="width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.75rem;"
+                            aria-label="Previous">
+                        ‹
+                    </button>
+
+                    <button type="button"
+                            @click="slideNext()"
+                            :disabled="!canScrollRight"
+                            :style="!canScrollRight ? 'opacity: 0.4; cursor: not-allowed;' : 'cursor: pointer;'"
+                            class="hub-btn-muted"
+                            style="width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.75rem;"
+                            aria-label="Next">
+                        ›
+                    </button>
+                </div>
             </div>
 
-            <div class="hub-review-grid">
+            <div x-ref="myReviewsCarousel"
+                 @scroll.debounce.40ms="updateScrollState()"
+                 class="hub-review-carousel">
                 @foreach ($myReviews as $myRev)
                     <div class="hub-review-item">
                         <div>

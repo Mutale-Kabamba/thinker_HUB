@@ -54,6 +54,16 @@ class Community extends Page
 
     public $attachment = null;
 
+    public array $attachments = [];
+
+    public function removeAttachment(int $index): void
+    {
+        if (is_array($this->attachments) && isset($this->attachments[$index])) {
+            unset($this->attachments[$index]);
+            $this->attachments = array_values($this->attachments);
+        }
+    }
+
     public function mount(): void
     {
         $this->ensureCourseRooms();
@@ -720,8 +730,15 @@ class Community extends Page
             return;
         }
 
+        $uploadedFiles = [];
+        if (! empty($this->attachments) && is_array($this->attachments)) {
+            $uploadedFiles = $this->attachments;
+        } elseif ($this->attachment) {
+            $uploadedFiles = [$this->attachment];
+        }
+
         // Nothing to send.
-        if ($body === '' && ! $this->attachment) {
+        if ($body === '' && empty($uploadedFiles)) {
             return;
         }
 
@@ -729,40 +746,40 @@ class Community extends Page
             $body = mb_substr($body, 0, 2000);
         }
 
-        $attachmentPath = null;
-        $attachmentName = null;
-        $attachmentType = null;
+        $attachmentsData = [];
+        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
-        if ($this->attachment) {
-            $this->validate([
-                'attachment' => [
-                    'file',
-                    'max:10240', // 10 MB
-                    'mimes:jpg,jpeg,png,gif,webp,svg,pdf,doc,docx,ppt,pptx,xls,xlsx,txt,csv,zip',
-                ],
-            ]);
+        foreach ($uploadedFiles as $file) {
+            if (is_object($file) && method_exists($file, 'getClientOriginalName')) {
+                $name = $file->getClientOriginalName();
+                $ext = strtolower($file->getClientOriginalExtension());
+                $type = in_array($ext, $imageExtensions, true) ? 'image' : 'file';
+                $path = $file->store('chat-attachments', 'public');
 
-            $attachmentName = $this->attachment->getClientOriginalName();
-            $attachmentPath = $this->attachment->store('chat-attachments', 'public');
-
-            $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
-            $ext = strtolower($this->attachment->getClientOriginalExtension());
-            $attachmentType = in_array($ext, $imageExtensions, true) ? 'image' : 'file';
+                $attachmentsData[] = [
+                    'path' => $path,
+                    'name' => $name,
+                    'type' => $type,
+                ];
+            }
         }
+
+        $first = $attachmentsData[0] ?? null;
 
         $message = ChatMessage::create([
             'chat_room_id' => $this->activeRoom->id,
             'user_id' => $user->id,
             'reply_to_id' => $this->replyingToMessageId,
             'body' => $body !== '' ? $body : null,
-            'attachment_path' => $attachmentPath,
-            'attachment_name' => $attachmentName,
-            'attachment_type' => $attachmentType,
+            'attachments' => ! empty($attachmentsData) ? $attachmentsData : null,
+            'attachment_path' => $first['path'] ?? null,
+            'attachment_name' => $first['name'] ?? null,
+            'attachment_type' => $first['type'] ?? null,
         ]);
 
         $this->messageBody = '';
         $this->replyingToMessageId = null;
-        $this->reset('attachment');
+        $this->reset('attachment', 'attachments');
 
         if (class_exists(ChatMessageSent::class)) {
             try {

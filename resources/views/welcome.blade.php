@@ -267,13 +267,30 @@
                                     >
                                         {{ $displayTitle }}
                                     </h3>
+                                    @if ($course->isOngoing())
+                                        @php $activeIntake = $course->activeIntake; @endphp
+                                        <div class="mt-2">
+                                            @if ($activeIntake)
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-0.5 text-[10px] font-semibold text-teal-700 border border-teal-200">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Intake: {{ $activeIntake->name }}
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 border border-slate-200">
+                                                    Ongoing (Intakes)
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="mt-3 space-y-1 text-xs text-slate-600">
                                     <p><span class="font-semibold text-slate-800">Course By:</span> {{ $course->course_owner_label }}</p>
                                     <p><span class="font-semibold text-slate-800">Instructor:</span> {{ $course->instructor_label }}</p>
+                                    @if ($course->isOngoing() && $course->activeIntake && $course->activeIntake->next_intake_start_date)
+                                        <p><span class="font-semibold text-teal-800">Next Intake:</span> {{ $course->activeIntake->formattedNextIntake() }}</p>
+                                    @endif
                                 </div>
                                 <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
-                                    <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ $course->timeline ?: 'Self paced' }}</span>
+                                    <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ ($course->isOngoing() && $course->activeIntake ? $course->activeIntake->formattedDateRange() : null) ?: ($course->timeline ?: 'Self paced') }}</span>
                                     <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $studentsCount }} Students</span>
                                 </div>
                                 <div class="mt-4 flex items-center justify-between gap-3">

@@ -87,6 +87,13 @@ class CourseResource extends Resource
         return \App\Filament\Resources\Courses\Schemas\CourseForm::configure($schema);
     }
 
+    public static function getRelations(): array
+    {
+        return [
+            \App\Filament\Resources\Courses\RelationManagers\IntakesRelationManager::class,
+        ];
+    }
+
     public static function getPages(): array
     {
         return [

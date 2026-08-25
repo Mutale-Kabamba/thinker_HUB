@@ -2,46 +2,95 @@
 
 namespace App\Livewire;
 
+use App\Models\CourseGamificationRule;
+use App\Models\LearningMaterial;
 use App\Models\Lesson;
+use App\Models\ResourceVideo;
 use App\Models\XpTransaction;
 use App\Services\GamificationService;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class VideoPlayer extends Component
 {
-    public Lesson $lesson;
+    public ?Lesson $lesson = null;
 
-    public bool $pointsEarned = false;
+    public ?LearningMaterial $material = null;
+
+    public ?ResourceVideo $video = null;
+
+    public string $title = '';
+
+    public ?string $courseTitle = null;
 
     public ?string $youtubeId = null;
 
-    public function mount(Lesson $lesson): void
+    public ?string $fileUrl = null;
+
+    public bool $pointsEarned = false;
+
+    public int $initialDuration = 0;
+
+    public int $baseXp = 10;
+
+    public int $baseCoins = 3;
+
+    public function mount($lesson = null, $material = null, $video = null): void
     {
-        $this->lesson = $lesson;
-        $this->youtubeId = $lesson->youtube_id;
+        if ($lesson instanceof Lesson || (is_numeric($lesson) && $lesson > 0)) {
+            $this->lesson = $lesson instanceof Lesson ? $lesson : Lesson::query()->findOrFail($lesson);
+            $this->title = $this->lesson->title;
+            $this->courseTitle = $this->lesson->course?->title;
+            $this->youtubeId = $this->lesson->youtube_id;
+            $this->initialDuration = (int) ($this->lesson->duration_seconds ?? 0);
+        } elseif ($material instanceof LearningMaterial || (is_numeric($material) && $material > 0)) {
+            $this->material = $material instanceof LearningMaterial ? $material : LearningMaterial::query()->findOrFail($material);
+            $this->title = $this->material->title;
+            $this->courseTitle = $this->material->course?->title;
+            $this->youtubeId = Lesson::extractYoutubeId($this->material->video_url);
+            $this->fileUrl = $this->material->file_path ? route('file.view', ['type' => 'material', 'id' => $this->material->id], false) : null;
+        } elseif ($video instanceof ResourceVideo || (is_numeric($video) && $video > 0)) {
+            $this->video = $video instanceof ResourceVideo ? $video : ResourceVideo::query()->findOrFail($video);
+            $this->title = $this->video->title;
+            $this->courseTitle = $this->video->course?->title;
+            $this->youtubeId = $this->video->youtube_id;
+            $this->fileUrl = $this->video->playableLocalVideo()?->url();
+        }
+
+        $subject = $this->getSubjectModel();
+        $course = $subject?->course ?? null;
+        $rule = CourseGamificationRule::getRuleForCourse($course, 'video_completed');
+        $this->baseXp = $rule['enabled'] ? $rule['xp'] : 10;
+        $this->baseCoins = $rule['enabled'] ? $rule['coins'] : 3;
 
         $user = Auth::user();
-        if ($user) {
+        if ($user && $subject) {
             $this->pointsEarned = XpTransaction::query()
                 ->where('user_id', $user->id)
-                ->where(function ($query) {
-                    $query->where(function ($q) {
-                        $q->where('subject_type', Lesson::class)
-                            ->where('subject_id', $this->lesson->id);
-                    })->orWhere(function ($q) {
-                        $q->where('source', 'lesson_video_completed')
-                            ->where('source_id', (string) $this->lesson->id);
+                ->where(function ($query) use ($subject) {
+                    $query->where(function ($q) use ($subject) {
+                        $q->where('subject_type', get_class($subject))
+                            ->where('subject_id', $subject->getKey());
+                    })->orWhere(function ($q) use ($subject) {
+                        $q->whereIn('source', ['lesson_video_completed', 'video_watched'])
+                            ->where('source_id', (string) $subject->getKey());
                     });
                 })
                 ->exists();
         }
     }
 
+    public function getSubjectModel(): ?Model
+    {
+        return $this->lesson ?? $this->material ?? $this->video;
+    }
+
     /**
-     * Handle client video watch progress claim and award points if 85% threshold is met.
+     * Handle client video watch progress claim and award points if 80%+ threshold is met.
      *
      * @param  array{actualSecondsWatched?: float|int, duration?: float|int, currentTime?: float|int}  $payload
      * @param  GamificationService  $gamificationService
@@ -60,12 +109,20 @@ class VideoPlayer extends Component
         if ($this->pointsEarned) {
             return [
                 'status' => 'already_claimed',
-                'message' => 'Points have already been claimed for this video lesson.',
+                'message' => 'Points have already been claimed for this video.',
+            ];
+        }
+
+        $subject = $this->getSubjectModel();
+        if (! $subject) {
+            return [
+                'status' => 'not_found',
+                'message' => 'Video resource not found.',
             ];
         }
 
         $actualSecondsWatched = (float) ($payload['actualSecondsWatched'] ?? 0);
-        $totalDuration = (float) ($payload['duration'] ?? $this->lesson->duration_seconds ?? 0);
+        $totalDuration = (float) ($payload['duration'] ?? $this->initialDuration ?: 0);
         $currentTime = (float) ($payload['currentTime'] ?? 0);
 
         // Server-Side Anti-Scrubbing Safeguard:
@@ -78,7 +135,7 @@ class VideoPlayer extends Component
 
         $watchRatio = $actualSecondsWatched / $totalDuration;
 
-        // Verify that student actively watched at least 80% (threshold rule)
+        // Verify that student actively watched at least 80%
         if ($watchRatio < 0.80) {
             return [
                 'status' => 'threshold_not_met',
@@ -95,18 +152,18 @@ class VideoPlayer extends Component
             ];
         }
 
-        $course = $this->lesson?->course;
-        $rule = \App\Models\CourseGamificationRule::getRuleForCourse($course, 'video_completed');
+        $course = $subject->course ?? null;
+        $rule = CourseGamificationRule::getRuleForCourse($course, 'video_completed');
         $baseXp = $rule['enabled'] ? $rule['xp'] : 10;
-        $baseCoins = $rule['enabled'] ? $rule['coins'] : 5;
+        $baseCoins = $rule['enabled'] ? $rule['coins'] : 3;
 
         $awarded = $gamificationService->awardPoints(
             user: $user,
             activityType: 'lesson_video_completed',
-            subject: $this->lesson,
+            subject: $subject,
             baseXp: $baseXp,
             baseCoins: $baseCoins,
-            description: "Completed video lesson: {$this->lesson->title}"
+            description: "Completed video lesson: {$this->title}"
         );
 
         if ($awarded) {
@@ -121,18 +178,18 @@ class VideoPlayer extends Component
             try {
                 Notification::make()
                     ->title('Points Claimed!')
-                    ->body("You earned +{$baseXp} XP and +{$baseCoins} Thinker Coins for completing this video lesson.")
+                    ->body("You earned +{$baseXp} XP and +{$baseCoins} Thinker Coins for completing this video.")
                     ->success()
                     ->send();
             } catch (\Throwable) {
-                // Ignore if not in Filament context
+                // Ignore if outside Filament context
             }
 
             return [
                 'status' => 'success',
-                'xp' => 10,
-                'coins' => 5,
-                'message' => 'Congratulations! +10 XP and +5 TC awarded.',
+                'xp' => $baseXp,
+                'coins' => $baseCoins,
+                'message' => "Congratulations! +{$baseXp} XP and +{$baseCoins} TC awarded.",
             ];
         }
 
@@ -144,6 +201,7 @@ class VideoPlayer extends Component
         ];
     }
 
+    #[Layout('layouts.guest')]
     public function render(): View
     {
         return view('livewire.video-player');

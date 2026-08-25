@@ -15,6 +15,7 @@ class AssessmentSubmission extends Model
         'user_id',
         'content',
         'file_path',
+        'file_paths',
         'link',
         'video_url',
         'status',
@@ -31,6 +32,7 @@ class AssessmentSubmission extends Model
     protected function casts(): array
     {
         return [
+            'file_paths' => 'array',
             'submitted_at' => 'datetime',
             'is_retake' => 'boolean',
             'retake_allowed' => 'boolean',
@@ -41,6 +43,16 @@ class AssessmentSubmission extends Model
     protected static function booted(): void
     {
         static::saving(function (AssessmentSubmission $submission) {
+            $paths = $submission->file_paths;
+            if (is_array($paths) && ! empty($paths)) {
+                $first = reset($paths);
+                if ($first && is_string($first)) {
+                    $submission->file_path = $first;
+                }
+            } elseif ($submission->file_path && empty($submission->file_paths)) {
+                $submission->file_paths = [$submission->file_path];
+            }
+
             if ($submission->is_retake && $submission->score !== null && is_numeric($submission->score)) {
                 $numScore = (float) $submission->score;
                 if ($numScore >= 50) {
@@ -49,6 +61,30 @@ class AssessmentSubmission extends Model
                 }
             }
         });
+    }
+
+    public function getFilePathsAttribute($value): array
+    {
+        if ($value !== null) {
+            $decoded = is_string($value) ? json_decode($value, true) : $value;
+            if (is_array($decoded) && ! empty($decoded)) {
+                return array_values(array_filter($decoded, fn ($p) => filled($p)));
+            }
+        }
+
+        if (filled($this->file_path)) {
+            return [$this->file_path];
+        }
+
+        return [];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getAllFilePathsAttribute(): array
+    {
+        return $this->file_paths;
     }
 
     public function assessment(): BelongsTo

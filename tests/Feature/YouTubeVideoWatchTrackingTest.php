@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Student\Pages\LearningResources;
 use App\Livewire\VideoPlayer;
 use App\Models\Course;
+use App\Models\LearningMaterial;
 use App\Models\Lesson;
+use App\Models\ResourceVideo;
 use App\Models\User;
 use App\Models\XpTransaction;
-use App\Services\GamificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -36,11 +38,11 @@ class YouTubeVideoWatchTrackingTest extends TestCase
         $this->actingAs($student);
 
         Livewire::test(VideoPlayer::class, ['lesson' => $lesson])
-            ->assertSet('lesson.id', $lesson->id)
+            ->assertSet('title', 'Introduction to Laravel & Livewire')
             ->assertSet('youtubeId', 'dQw4w9WgXcQ')
             ->assertSet('pointsEarned', false)
             ->assertSee('Introduction to Laravel &amp; Livewire', false)
-            ->assertSee('Watch 85% for +10 XP / +5 TC', false);
+            ->assertSee('Watch 85% for +10 XP / +3 TC', false);
     }
 
     public function test_student_earns_points_when_watching_at_least_85_percent_of_video(): void
@@ -200,7 +202,7 @@ class YouTubeVideoWatchTrackingTest extends TestCase
         XpTransaction::create([
             'user_id' => $student->id,
             'amount_xp' => 10,
-            'amount_coins' => 5,
+            'amount_coins' => 3,
             'activity_type' => 'lesson_video_completed',
             'subject_type' => Lesson::class,
             'subject_id' => $lesson->id,
@@ -214,6 +216,105 @@ class YouTubeVideoWatchTrackingTest extends TestCase
 
         Livewire::test(VideoPlayer::class, ['lesson' => $lesson])
             ->assertSet('pointsEarned', true)
-            ->assertSee('Points Claimed (+10 XP / +5 TC)', false);
+            ->assertSee('Points Claimed (+10 XP / +3 TC)', false);
+    }
+
+    public function test_learning_resources_page_awards_points_when_watching_general_video(): void
+    {
+        $student = User::factory()->create([
+            'role' => 'student',
+            'lifetime_xp' => 0,
+            'spendable_coins' => 0,
+        ]);
+
+        $video = ResourceVideo::create([
+            'title' => 'Full-Stack Modern Architecture',
+            'category' => 'Web Development',
+            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'is_published' => true,
+            'is_recorded_lesson' => false,
+        ]);
+
+        $this->actingAs($student);
+
+        $component = Livewire::test(LearningResources::class);
+        $component->call('openGeneralVideo', $video->id)
+            ->assertSet('showPlayer', true)
+            ->assertSet('activeVideoId', $video->id)
+            ->assertSet('activePointsEarned', false)
+            ->call('awardVideoCompletionPoints', [
+                'actualSecondsWatched' => 180,
+                'duration' => 200,
+                'currentTime' => 185,
+            ])
+            ->assertSet('activePointsEarned', true)
+            ->assertDispatched('points-awarded');
+
+        $student->refresh();
+        $this->assertEquals(10, $student->lifetime_xp);
+        $this->assertEquals(3, $student->spendable_coins);
+
+        $this->assertDatabaseHas('xp_transactions', [
+            'user_id' => $student->id,
+            'activity_type' => 'lesson_video_completed',
+            'subject_type' => ResourceVideo::class,
+            'subject_id' => $video->id,
+            'amount_xp' => 10,
+            'amount_coins' => 3,
+        ]);
+    }
+
+    public function test_learning_resources_page_awards_points_when_watching_recorded_lesson_material(): void
+    {
+        $student = User::factory()->create([
+            'role' => 'student',
+            'lifetime_xp' => 0,
+            'spendable_coins' => 0,
+        ]);
+
+        $course = Course::create([
+            'title' => 'Cloud Computing',
+            'code' => 'CC101',
+            'is_active' => true,
+        ]);
+
+        $student->courses()->attach($course->id);
+
+        $material = LearningMaterial::create([
+            'course_id' => $course->id,
+            'title' => 'Docker & Microservices Deep Dive',
+            'category' => 'Study Material',
+            'material_type' => 'Video',
+            'scope' => 'all',
+            'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ]);
+
+        $this->actingAs($student);
+
+        $component = Livewire::test(LearningResources::class);
+        $component->call('openLesson', $material->id)
+            ->assertSet('showPlayer', true)
+            ->assertSet('activeVideoId', $material->id)
+            ->assertSet('activePointsEarned', false)
+            ->call('awardVideoCompletionPoints', [
+                'actualSecondsWatched' => 300,
+                'duration' => 320,
+                'currentTime' => 310,
+            ])
+            ->assertSet('activePointsEarned', true)
+            ->assertDispatched('points-awarded');
+
+        $student->refresh();
+        $this->assertEquals(10, $student->lifetime_xp);
+        $this->assertEquals(3, $student->spendable_coins);
+
+        $this->assertDatabaseHas('xp_transactions', [
+            'user_id' => $student->id,
+            'activity_type' => 'lesson_video_completed',
+            'subject_type' => LearningMaterial::class,
+            'subject_id' => $material->id,
+            'amount_xp' => 10,
+            'amount_coins' => 3,
+        ]);
     }
 }

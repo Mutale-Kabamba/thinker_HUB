@@ -307,4 +307,136 @@ class HubIndexTest extends TestCase
             ->test(HubIndex::class)
             ->assertSet('showRegisterModal', true);
     }
+
+    public function test_check_and_pull_details_imports_student_profile(): void
+    {
+        $student = User::factory()->create([
+            'name' => 'Michael Student',
+            'email' => 'michael@student.com',
+            'role' => 'student',
+            'whatsapp' => '+260971234567',
+            'bio' => 'Passionate tech learner',
+            'linkedin_url' => 'https://linkedin.com/in/michael',
+            'facebook_url' => 'https://facebook.com/michael',
+            'portfolio_url' => 'https://michael.dev',
+            'github_url' => 'https://github.com/michael',
+            'instagram_url' => 'https://instagram.com/michael',
+            'specialty' => 'Web & Full Stack Development',
+        ]);
+
+        Livewire::test(HubIndex::class)
+            ->call('openRegisterModal')
+            ->set('lookupEmail', 'michael@student.com')
+            ->call('checkAndPullDetails')
+            ->assertSet('regName', 'Michael Student')
+            ->assertSet('regEmail', 'michael@student.com')
+            ->assertSet('regWhatsapp', '+260971234567')
+            ->assertSet('regBio', 'Passionate tech learner')
+            ->assertSet('regLinkedinUrl', 'https://linkedin.com/in/michael')
+            ->assertSet('regFacebookUrl', 'https://facebook.com/michael')
+            ->assertSet('regPortfolioUrl', 'https://michael.dev')
+            ->assertSet('regGithubUrl', 'https://github.com/michael')
+            ->assertSet('regInstagramUrl', 'https://instagram.com/michael')
+            ->assertSet('regSpecialty', 'Web & Full Stack Development')
+            ->assertSet('existingUserId', $student->id)
+            ->assertSet('lookupStatus', 'success')
+            ->assertSee('Verified existing Student profile for Michael Student')
+            ->assertSee('Your existing Thinker HUB password will be used for this profile')
+            ->set('regRole', 'researcher')
+            ->call('registerContributor');
+
+        $student->refresh();
+        $this->assertEquals('researcher', $student->role);
+        $this->assertFalse($student->is_active);
+    }
+
+    public function test_check_and_pull_details_handles_non_existent_email(): void
+    {
+        Livewire::test(HubIndex::class)
+            ->call('openRegisterModal')
+            ->set('lookupEmail', 'unknown@random.com')
+            ->call('checkAndPullDetails')
+            ->assertSet('lookupStatus', 'error')
+            ->assertSet('existingUserId', null)
+            ->assertSee('No existing account found');
+    }
+
+    public function test_check_and_pull_details_imports_instructor_application_social_links(): void
+    {
+        $instructor = User::factory()->create([
+            'name' => 'Dr. Jane Instructor',
+            'email' => 'jane@instructor.com',
+            'role' => 'instructor',
+            'whatsapp' => null,
+            'bio' => null,
+            'linkedin_url' => null,
+            'facebook_url' => null,
+            'portfolio_url' => null,
+        ]);
+
+        \App\Models\InstructorApplication::create([
+            'user_id' => $instructor->id,
+            'name' => 'Dr. Jane Instructor',
+            'email' => 'jane@instructor.com',
+            'phone' => '+260955112233',
+            'whatsapp' => '+260955112233',
+            'bio' => 'Senior Machine Learning Researcher and Educator',
+            'linkedin_url' => 'https://linkedin.com/in/drjane',
+            'facebook_url' => 'https://facebook.com/drjane',
+            'portfolio_url' => 'https://drjane.ai',
+            'proficiency' => 'Artificial Intelligence & Machine Learning',
+            'qualifications' => 'PhD in Computer Science',
+            'experience' => '10+ years teaching AI',
+            'cv_path' => 'cvs/jane.pdf',
+            'status' => 'approved',
+        ]);
+
+        Livewire::test(HubIndex::class)
+            ->call('openRegisterModal')
+            ->set('lookupEmail', 'jane@instructor.com')
+            ->call('checkAndPullDetails')
+            ->assertSet('regName', 'Dr. Jane Instructor')
+            ->assertSet('regEmail', 'jane@instructor.com')
+            ->assertSet('regWhatsapp', '+260955112233')
+            ->assertSet('regBio', 'Senior Machine Learning Researcher and Educator')
+            ->assertSet('regLinkedinUrl', 'https://linkedin.com/in/drjane')
+            ->assertSet('regFacebookUrl', 'https://facebook.com/drjane')
+            ->assertSet('regPortfolioUrl', 'https://drjane.ai')
+            ->assertSet('regSpecialty', 'Artificial Intelligence & Machine Learning')
+            ->assertSet('existingUserId', $instructor->id)
+            ->assertSee('Your existing Thinker HUB password will be used for this profile');
+    }
+
+    public function test_dynamic_technical_specialty_options_for_roles(): void
+    {
+        $component = Livewire::test(HubIndex::class)
+            ->call('openRegisterModal')
+            ->set('regRole', 'blogger');
+
+        $bloggerOptions = $component->get('specialtyOptions');
+        $this->assertContains('Web & Full Stack Development', $bloggerOptions);
+        $this->assertContains('Artificial Intelligence & Machine Learning', $bloggerOptions);
+
+        $component->set('regRole', 'researcher');
+        $researcherOptions = $component->get('specialtyOptions');
+        $this->assertContains('Backend Architecture & API Engineering (Laravel, Python, Node.js, Go)', $researcherOptions);
+
+        $component->set('regRole', 'employer');
+        $employerOptions = $component->get('specialtyOptions');
+        $this->assertContains('Tech Internships & Graduate Trainee Programs', $employerOptions);
+
+        // Test custom specialty input
+        $component->set('regName', 'Custom Pro')
+            ->set('regEmail', 'custom@pro.com')
+            ->set('regRole', 'blogger')
+            ->set('regSpecialty', 'Other / Custom Specialty')
+            ->set('customSpecialty', 'Quantum Computing Architecture')
+            ->set('regPassword', 'password1234')
+            ->set('regPasswordConfirmation', 'password1234')
+            ->call('registerContributor');
+
+        $user = User::where('email', 'custom@pro.com')->first();
+        $this->assertNotNull($user);
+        $this->assertEquals('Quantum Computing Architecture', $user->specialty);
+    }
 }

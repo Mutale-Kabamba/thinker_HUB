@@ -25,6 +25,49 @@ class Assessments extends Page
 
     protected static ?int $navigationSort = 3;
 
+    public static function getNavigationBadge(): ?string
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return null;
+        }
+
+        try {
+            $submittedIds = AssessmentSubmission::query()
+                ->where('user_id', $user->id)
+                ->where(function ($q) {
+                    $q->whereNull('retake_allowed')
+                        ->orWhere('retake_allowed', false);
+                })
+                ->where(function ($q) {
+                    $q->where(function ($sq) {
+                        $sq->whereNotNull('score')->where('score', '!=', '-');
+                    })->orWhereIn('status', ['Graded', 'Checked', 'Submitted', 'Pending']);
+                })
+                ->pluck('assessment_id');
+
+            $pendingCount = Assessment::query()
+                ->visibleTo($user)
+                ->released()
+                ->whereNotIn('id', $submittedIds)
+                ->count();
+
+            return $pendingCount > 0 ? (string) $pendingCount : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'danger';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Pending assessments';
+    }
+
     protected string $view = 'filament.student.pages.assessments';
 
     public array $assessments = [];
@@ -66,18 +109,34 @@ class Assessments extends Page
         $content = trim((string) ($draft['text'] ?? ''));
         $link = isset($draft['link']) ? trim((string) $draft['link']) : null;
         $video = isset($draft['video']) ? trim((string) $draft['video']) : null;
-        $filePath = $existing?->file_path ?? null;
+
+        $filePaths = [];
+        if (isset($draft['files']) && is_array($draft['files'])) {
+            foreach ($draft['files'] as $file) {
+                if (is_object($file) && method_exists($file, 'store')) {
+                    $filePaths[] = $file->store('submissions', 'public');
+                } elseif (is_string($file) && filled($file)) {
+                    $filePaths[] = PublicDiskPath::normalize($file);
+                }
+            }
+        }
 
         if (isset($draft['file']) && $draft['file']) {
             $file = $draft['file'];
             if (is_object($file) && method_exists($file, 'store')) {
-                $filePath = $file->store('submissions', 'public');
+                $filePaths[] = $file->store('submissions', 'public');
             } elseif (is_string($file) && filled($file)) {
-                $filePath = PublicDiskPath::normalize($file);
+                $filePaths[] = PublicDiskPath::normalize($file);
             }
         }
 
-        $filePath = PublicDiskPath::normalize($filePath);
+        $filePaths = array_values(array_unique(array_filter($filePaths)));
+
+        if (empty($filePaths) && $existing) {
+            $filePaths = $existing->all_file_paths;
+        }
+
+        $primaryFilePath = ! empty($filePaths) ? $filePaths[0] : null;
         $isRetake = $canResubmit || (bool) $existing?->is_retake;
 
         AssessmentSubmission::query()->updateOrCreate(
@@ -87,7 +146,8 @@ class Assessments extends Page
             ],
             [
                 'content' => $content,
-                'file_path' => $filePath,
+                'file_path' => $primaryFilePath,
+                'file_paths' => ! empty($filePaths) ? $filePaths : null,
                 'link' => $link,
                 'video_url' => $video,
                 'status' => 'Submitted',
@@ -131,7 +191,7 @@ class Assessments extends Page
         $this->refreshAssessments();
     }
 
-    public function downloadFile(int $assessmentId): ?StreamedResponse
+    public function downloadFile(int $assessmentId, ?int $fileIndex = null): ?StreamedResponse
     {
         $user = auth()->user();
 
@@ -141,13 +201,22 @@ class Assessments extends Page
 
         $assessment = Assessment::query()->visibleTo($user)->released()->whereKey($assessmentId)->first();
 
-        if (! $assessment || empty($assessment->file_path)) {
+        if (! $assessment) {
+            Notification::make()->title('Assessment not found.')->danger()->send();
+
+            return null;
+        }
+
+        $paths = $assessment->all_file_paths;
+        $rawPath = $fileIndex !== null && isset($paths[$fileIndex]) ? $paths[$fileIndex] : ($paths[0] ?? $assessment->file_path);
+
+        if (! $rawPath) {
             Notification::make()->title('File not available.')->danger()->send();
 
             return null;
         }
 
-        $path = PublicDiskPath::normalize($assessment->file_path);
+        $path = PublicDiskPath::normalize($rawPath);
         $disk = Storage::disk('public');
 
         if (! $path || ! $disk->exists($path)) {
@@ -160,6 +229,46 @@ class Assessments extends Page
         $downloadName = Str::slug($assessment->name ?: 'assessment') . '.' . $extension;
 
         return $disk->download($path, $downloadName);
+    }
+
+    public function downloadSubmissionFile(int $assessmentId, ?int $fileIndex = null): ?StreamedResponse
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        $submission = AssessmentSubmission::query()
+            ->where('assessment_id', $assessmentId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $submission) {
+            Notification::make()->title('Submission not found.')->danger()->send();
+
+            return null;
+        }
+
+        $paths = $submission->all_file_paths;
+        $rawPath = $fileIndex !== null && isset($paths[$fileIndex]) ? $paths[$fileIndex] : ($paths[0] ?? $submission->file_path);
+
+        if (! $rawPath) {
+            Notification::make()->title('Submission file not found.')->danger()->send();
+
+            return null;
+        }
+
+        $path = PublicDiskPath::normalize($rawPath);
+        $disk = Storage::disk('public');
+
+        if (! $path || ! $disk->exists($path)) {
+            Notification::make()->title('Submission attachment is missing from storage.')->danger()->send();
+
+            return null;
+        }
+
+        return $disk->download($path, Str::afterLast($path, '/'));
     }
 
     protected function refreshAssessments(): void
@@ -190,6 +299,7 @@ class Assessments extends Page
                     'description' => $item->description ?? '',
                     'course' => $item->course?->title ?? 'Unassigned course',
                     'file_path' => $item->file_path,
+                    'file_paths' => $item->all_file_paths,
                     'score' => $score,
                     'due_date' => $item->due_date?->format('Y-m-d') ?? '-',
                     'updated_at' => $item->updated_at?->format('Y-m-d') ?? '-',
@@ -201,6 +311,7 @@ class Assessments extends Page
                         'id' => $sub?->id,
                         'text' => $sub?->content ?? '',
                         'file' => $sub?->file_path ?? null,
+                        'files' => $sub?->all_file_paths ?? [],
                         'link' => $sub?->link ?? null,
                         'video' => $sub?->video_url ?? null,
                     ],

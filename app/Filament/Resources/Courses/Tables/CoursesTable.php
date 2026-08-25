@@ -28,6 +28,16 @@ class CoursesTable
                     ->searchable(),
                 TextColumn::make('code')
                     ->searchable(),
+                TextColumn::make('offering_mode')
+                    ->label('Structure')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => ($state ?? 'once_off') === 'ongoing' ? 'Ongoing (Intakes)' : 'Once-off')
+                    ->color(fn (?string $state): string => ($state ?? 'once_off') === 'ongoing' ? 'info' : 'gray'),
+                TextColumn::make('activeIntake.name')
+                    ->label('Active Intake')
+                    ->placeholder('None active')
+                    ->badge()
+                    ->color('success'),
                 TextColumn::make('is_open_enrollment')
                     ->label('Enrollment')
                     ->badge()
@@ -45,6 +55,12 @@ class CoursesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('offering_mode')
+                    ->label('Course Structure')
+                    ->options([
+                        'once_off' => 'Once-off / Self-Paced',
+                        'ongoing' => 'Ongoing / Intakes',
+                    ]),
                 SelectFilter::make('is_open_enrollment')
                     ->label('Enrollment Mode')
                     ->options([

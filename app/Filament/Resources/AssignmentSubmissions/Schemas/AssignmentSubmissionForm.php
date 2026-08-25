@@ -57,16 +57,25 @@ class AssignmentSubmissionForm
                             ->description('Files and links submitted by the student')
                             ->schema([
                                 Placeholder::make('submission_file')
-                                    ->label('Uploaded File')
-                                    ->content(fn ($record): HtmlString => $record?->file_path
-                                        ? new HtmlString(
-                                            '<div style="display:flex;align-items:center;gap:0.4rem;">'
-                                            . '<svg style="width:1.2rem;height:1.2rem;color:#0e7490;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
-                                            . '<a href="' . e(route('file.view', ['type' => 'submission', 'id' => $record->id])) . '" target="_blank" style="color:#0e7490;text-decoration:underline;font-weight:500;">'
-                                            . e(basename($record->file_path))
-                                            . '</a></div>'
-                                        )
-                                        : new HtmlString('<span style="color:#9ca3af;">No file uploaded</span>')),
+                                    ->label('Uploaded File(s)')
+                                    ->content(function ($record): HtmlString {
+                                        $paths = $record?->all_file_paths ?? [];
+                                        if (empty($paths)) {
+                                            return new HtmlString('<span style="color:#9ca3af;">No file uploaded</span>');
+                                        }
+
+                                        $html = '<div style="display:flex;flex-direction:column;gap:0.4rem;">';
+                                        foreach ($paths as $idx => $filePath) {
+                                            $html .= '<div style="display:flex;align-items:center;gap:0.4rem;">'
+                                                . '<svg style="width:1.2rem;height:1.2rem;color:#0e7490;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+                                                . '<a href="' . e(route('file.view', ['type' => 'submission', 'id' => $record->id, 'index' => $idx])) . '" target="_blank" style="color:#0e7490;text-decoration:underline;font-weight:500;">'
+                                                . e(basename($filePath))
+                                                . '</a></div>';
+                                        }
+                                        $html .= '</div>';
+
+                                        return new HtmlString($html);
+                                    }),
                                 Placeholder::make('submission_link')
                                     ->label('Link')
                                     ->content(fn ($record): HtmlString => $record?->link

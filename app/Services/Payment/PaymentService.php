@@ -45,10 +45,20 @@ class PaymentService
                 $customerName = $student->name;
 
                 // Resolve Course Enrollment for existing user
-                $enrollment = Enrollment::firstOrCreate([
-                    'user_id' => $student->id,
-                    'course_id' => $course->id,
-                ]);
+                $activeIntakeId = $course->activeIntake?->id;
+                $enrollment = Enrollment::firstOrCreate(
+                    [
+                        'user_id' => $student->id,
+                        'course_id' => $course->id,
+                    ],
+                    [
+                        'course_intake_id' => $activeIntakeId,
+                    ]
+                );
+
+                if ($activeIntakeId && ! $enrollment->course_intake_id) {
+                    $enrollment->update(['course_intake_id' => $activeIntakeId]);
+                }
                 $enrollmentId = $enrollment->id;
             } else {
                 // DO NOT create user or enrollment in database yet
@@ -200,10 +210,20 @@ class PaymentService
 
         // 2. Resolve Enrollment
         if ($student && $course) {
-            $enrollment = Enrollment::firstOrCreate([
-                'user_id' => $student->id,
-                'course_id' => $course->id,
-            ]);
+            $activeIntakeId = $course->activeIntake?->id;
+            $enrollment = Enrollment::firstOrCreate(
+                [
+                    'user_id' => $student->id,
+                    'course_id' => $course->id,
+                ],
+                [
+                    'course_intake_id' => $activeIntakeId,
+                ]
+            );
+
+            if ($activeIntakeId && ! $enrollment->course_intake_id) {
+                $enrollment->update(['course_intake_id' => $activeIntakeId]);
+            }
             $payment->enrollment_id = $enrollment->id;
         }
 
