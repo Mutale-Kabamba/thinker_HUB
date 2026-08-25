@@ -652,6 +652,14 @@ Route::middleware('auth')->group(function () {
                 ? LearningMaterial::query()->findOrFail($id)
                 : LearningMaterial::query()->visibleTo($user)->findOrFail($id);
             $path = $material->file_path;
+
+            if ($user->role === 'student' || $user->isStudent()) {
+                try {
+                    app(\App\Services\GamificationService::class)->awardMaterialView($user, $material);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
         } elseif ($type === 'assignment') {
             $assignment = ($user->isAdmin() || $user->isInstructor())
                 ? Assignment::query()->findOrFail($id)
@@ -766,6 +774,14 @@ Route::middleware('auth')->group(function () {
                 ? LearningMaterial::query()->findOrFail($id)
                 : LearningMaterial::query()->visibleTo($user)->findOrFail($id);
             $path = $material->file_path;
+
+            if ($user->role === 'student' || $user->isStudent()) {
+                try {
+                    app(\App\Services\GamificationService::class)->awardMaterialView($user, $material);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
         } elseif ($type === 'assignment') {
             $assignment = ($user->isAdmin() || $user->isInstructor())
                 ? Assignment::query()->findOrFail($id)

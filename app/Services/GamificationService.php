@@ -860,32 +860,67 @@ class GamificationService
     }
 
     /**
-     * Award learning material review / download XP & TC with a daily cap.
+     * Award learning material review / download / view XP & TC with a daily cap,
+     * and always record the view for student completion tracking.
      */
     public function awardMaterialView(User $user, LearningMaterial $material): void
     {
+        if ($user->role !== 'student' && ! $user->isStudent()) {
+            return;
+        }
+
         $course = $material->course;
         $rule = CourseGamificationRule::getRuleForCourse($course, 'material_read');
 
-        if (! $rule['enabled'] || ($rule['xp'] <= 0 && $rule['coins'] <= 0)) {
+        $baseXp = ($rule['enabled'] && isset($rule['xp']) && $rule['xp'] > 0) ? (int) $rule['xp'] : self::XP_MATERIAL_VIEW;
+        $baseCoins = ($rule['enabled'] && isset($rule['coins']) && $rule['coins'] > 0) ? (int) $rule['coins'] : self::COINS_MATERIAL_VIEW;
+
+        $alreadyRecorded = XpTransaction::query()
+            ->where('user_id', $user->id)
+            ->where(function ($q) use ($material) {
+                $q->where(fn ($sub) => $sub->whereIn('activity_type', ['material_viewed', 'material_view', 'material_read'])->where('source_id', (string) $material->id))
+                  ->orWhere(fn ($sub) => $sub->whereIn('source', ['material_viewed', 'material_view', 'material_read'])->where('source_id', (string) $material->id))
+                  ->orWhere(fn ($sub) => $sub->where('subject_type', LearningMaterial::class)->where('subject_id', $material->id));
+            })
+            ->exists();
+
+        if ($alreadyRecorded) {
             return;
         }
 
         $todayCount = XpTransaction::query()
             ->where('user_id', $user->id)
-            ->where(fn ($q) => $q->where('activity_type', 'material_viewed')->orWhere('source', 'material_viewed'))
+            ->where(fn ($q) => $q->whereIn('activity_type', ['material_viewed', 'material_view', 'material_read'])->orWhereIn('source', ['material_viewed', 'material_view', 'material_read']))
             ->whereDate('created_at', now()->toDateString())
+            ->where('amount_xp', '>', 0)
             ->count();
 
-        if ($todayCount < 4) {
+        $xp = $todayCount < 4 ? $baseXp : 0;
+        $coins = $todayCount < 4 ? $baseCoins : 0;
+
+        if ($xp > 0 || $coins > 0) {
             $this->awardPoints(
                 $user,
                 'material_viewed',
                 $material,
-                $rule['xp'],
-                $rule['coins'],
+                $xp,
+                $coins,
                 'Reviewed material: '.$material->title
             );
+        } else {
+            // Record view tracking row even if daily point cap is reached
+            XpTransaction::create([
+                'user_id' => $user->id,
+                'amount_xp' => 0,
+                'amount_coins' => 0,
+                'activity_type' => 'material_viewed',
+                'subject_type' => get_class($material),
+                'subject_id' => $material->id,
+                'points' => 0,
+                'source' => 'material_viewed',
+                'source_id' => (string) $material->id,
+                'description' => 'Reviewed material: '.$material->title,
+            ]);
         }
 
         $this->evaluateStreak($user);
