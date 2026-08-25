@@ -503,35 +503,144 @@
         min-width: 0;
     }
 
-    /* Mobile: search+notif centered, profile pushed right, hide topbar workspace badge */
-    @media (max-width: 899px) {
+    /* Mobile: hamburger left, search bar full width, profile/notifications right (logo hidden) */
+    @media (max-width: 1023px) {
+        .fi-topbar {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 0.45rem !important;
+            padding: 0.35rem 0.6rem !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 40 !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        .fi-topbar-open-sidebar-btn,
+        .fi-topbar-close-sidebar-btn {
+            order: 1 !important;
+            align-items: center;
+            justify-content: center;
+            width: 2.2rem !important;
+            height: 2.2rem !important;
+            border-radius: 999px !important;
+            background: var(--hub-surface-soft, #f1f5f9) !important;
+            color: var(--hub-ink, #0f172a) !important;
+            border: 1px solid var(--hub-border, #e2e8f0) !important;
+            z-index: 50 !important;
+            flex-shrink: 0 !important;
+        }
+
+        .fi-topbar-open-sidebar-btn:not([style*="display: none"]),
+        .fi-topbar-close-sidebar-btn:not([style*="display: none"]) {
+            display: inline-flex !important;
+        }
+
+        .fi-topbar-open-sidebar-btn[style*="display: none"],
+        .fi-topbar-close-sidebar-btn[style*="display: none"] {
+            display: none !important;
+        }
+
+        .dark .fi-topbar-open-sidebar-btn,
+        .dark .fi-topbar-close-sidebar-btn {
+            background: var(--hub-surface-soft, #162c36) !important;
+            color: var(--hub-ink, #f1f5f9) !important;
+            border-color: var(--hub-border, #233842) !important;
+        }
+
+        /* Hide brand logo completely on mobile topbar for full-width search experience */
+        .fi-topbar-start,
+        .fi-topbar .fi-logo,
+        .fi-topbar-brand,
+        .fi-topbar-logo {
+            display: none !important;
+        }
+
         .hub-topbar-badge {
             display: none !important;
         }
 
         .hub-top-bar-group {
-            flex: 1;
-            min-width: 0;
-            gap: 0.25rem;
-            padding: 0 0.25rem;
+            order: 2 !important;
+            flex: 1 1 auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            gap: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .hub-top-search-form {
+            flex: 1 1 auto !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            margin: 0 !important;
         }
 
         .hub-top-search {
-            width: 100%;
-            font-size: 0.72rem;
-            padding: 0.32rem 0.55rem;
+            width: 100% !important;
+            font-size: 0.78rem !important;
+            padding: 0.4rem 0.8rem !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
         }
 
-        /* Reorder: push profile (fi-topbar-end) to the far right */
+        /* Reorder: push profile & notifications (fi-topbar-end) to the far right */
         .fi-topbar > .fi-topbar-end {
-            order: 99;
-            margin-inline-start: 0;
-            flex-shrink: 0;
+            order: 3 !important;
+            margin-inline-start: 0 !important;
+            flex-shrink: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.35rem !important;
+        }
+
+        /* Sidebar off-canvas overlay & z-index */
+        .fi-sidebar-close-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 9990 !important;
+            cursor: pointer !important;
+            background-color: rgba(15, 23, 42, 0.6) !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+            transition: opacity 0.25s ease !important;
+        }
+
+        .fi-sidebar,
+        .fi-main-sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            width: min(290px, 85vw) !important;
+            max-width: min(290px, 85vw) !important;
+            z-index: 9995 !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2) !important;
+            transform: translateX(-100%) !important;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            overflow: hidden !important;
+        }
+
+        .fi-sidebar.fi-sidebar-open,
+        .fi-main-sidebar.fi-sidebar-open {
+            transform: translateX(0) !important;
+        }
+
+        .fi-sidebar-nav {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            scrollbar-width: thin;
         }
     }
 
     /* Desktop: centre the group in the topbar */
-    @media (min-width: 900px) {
+    @media (min-width: 1024px) {
         .fi-topbar {
             position: relative;
         }
@@ -2178,16 +2287,25 @@
         }
     }
 
+    /* Responsive visibility utilities */
+    .hub-desktop-only {
+        display: block !important;
+    }
+    .hub-mobile-only {
+        display: none !important;
+    }
+
     /* Mobile card for replacing tables on small screens */
     .hub-mobile-card {
         border: 1px solid var(--hub-border);
-        border-radius: 10px;
-        padding: 0.7rem 0.85rem;
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
         background: var(--hub-card);
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.65rem;
         box-sizing: border-box;
         max-width: 100%;
         overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
     .hub-mobile-card-row {
@@ -2200,7 +2318,7 @@
     .hub-mobile-card-meta {
         display: flex;
         gap: 0.75rem;
-        margin-top: 0.4rem;
+        margin-top: 0.5rem;
         font-size: 0.78rem;
         flex-wrap: wrap;
     }
@@ -2208,23 +2326,30 @@
     .hub-mobile-card-actions {
         display: flex;
         gap: 0.35rem;
-        margin-top: 0.5rem;
+        margin-top: 0.65rem;
         flex-wrap: wrap;
     }
 
     .hub-action-btn {
         background: none;
         border: 1px solid var(--hub-border);
-        border-radius: 6px;
-        padding: 0.3rem 0.65rem;
+        border-radius: 999px;
+        padding: 0.35rem 0.75rem;
         font-size: 0.75rem;
         cursor: pointer;
-        font-weight: 600;
+        font-weight: 700;
+        transition: all 0.15s ease;
     }
 
     .hub-span-2 { grid-column: span 2; }
 
     @media (max-width: 768px) {
+        .hub-desktop-only {
+            display: none !important;
+        }
+        .hub-mobile-only {
+            display: block !important;
+        }
         .hub-span-2 { grid-column: span 1 !important; }
 
         /* ---- Quiz Centre listing ---- */
@@ -2940,4 +3065,64 @@
         z-index: 99999 !important;
     }
 </style>
+
+<script>
+    (() => {
+        const closeMobileSidebar = () => {
+            if (window.innerWidth < 1024) {
+                try {
+                    localStorage.setItem('isOpen', 'false');
+                    localStorage.setItem('_x_isOpen', 'false');
+                } catch (e) {}
+
+                if (window.Alpine && window.Alpine.store('sidebar')) {
+                    const store = window.Alpine.store('sidebar');
+                    store.isOpen = false;
+                    store.close();
+                }
+
+                document.querySelectorAll('.fi-sidebar, .fi-main-sidebar').forEach(el => {
+                    el.classList.remove('fi-sidebar-open');
+                });
+            }
+        };
+
+        // Ensure sidebar starts closed on mobile
+        document.addEventListener('alpine:init', () => {
+            if (window.innerWidth < 1024 && window.Alpine && window.Alpine.store('sidebar')) {
+                window.Alpine.store('sidebar').isOpen = false;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.innerWidth < 1024) {
+                closeMobileSidebar();
+            }
+        });
+
+        document.addEventListener('livewire:navigated', () => {
+            if (window.innerWidth < 1024) {
+                closeMobileSidebar();
+            }
+        });
+
+        // Close sidebar on mobile when tapping close button, overlay, or actual navigation link
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 1024) {
+                const target = e.target;
+                
+                // Explicit close triggers
+                const isCloseTrigger = target.closest('.hub-sidebar-mobile-close, .fi-sidebar-close-overlay, .fi-topbar-close-sidebar-btn');
+                
+                // Actual links (not accordion/collapse group headers)
+                const isNavLink = target.closest('.fi-sidebar-nav a, a.fi-sidebar-item-btn, .fi-sidebar-item-has-url > .fi-sidebar-item-btn');
+
+                if (isCloseTrigger || isNavLink) {
+                    closeMobileSidebar();
+                }
+            }
+        });
+    })();
+</script>
+
 @vite(['resources/css/app.css', 'resources/js/app.js'])

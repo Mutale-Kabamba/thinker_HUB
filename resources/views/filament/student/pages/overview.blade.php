@@ -47,7 +47,7 @@
             {{-- Left Wide Hero Announcement Banner (~70% / 8 cols on LG) --}}
             <div class="lg:col-span-8 flex flex-col justify-between space-y-2.5">
                 <div 
-                    class="relative overflow-hidden rounded-2xl shadow-sm min-h-[220px] grid" 
+                    class="relative overflow-hidden rounded-2xl shadow-sm h-[300px] sm:h-[230px] md:h-[220px] min-h-[300px] sm:min-h-[230px] md:min-h-[220px] max-h-[300px] sm:max-h-[230px] md:max-h-[220px] grid" 
                     style="grid-template-areas: 'slide';"
                     x-on:mouseenter="pause()"
                     x-on:mouseleave="resume()"
@@ -56,38 +56,38 @@
                         <div
                             x-show="currentSlide === {{ $idx }}"
                             x-cloak
-                            x-transition:enter="transition-opacity duration-700 ease-in-out"
+                            x-transition:enter="transition-opacity duration-500 ease-in-out"
                             x-transition:enter-start="opacity-0"
                             x-transition:enter-end="opacity-100"
-                            x-transition:leave="transition-opacity duration-700 ease-in-out"
+                            x-transition:leave="transition-opacity duration-500 ease-in-out"
                             x-transition:leave-start="opacity-100"
                             x-transition:leave-end="opacity-0"
                             style="background: {{ $banner['css_gradient'] }} !important; color: #ffffff !important; grid-area: slide;"
-                            class="w-full relative overflow-hidden rounded-2xl text-white p-6 sm:p-7 border border-white/15 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6 min-h-[220px]"
+                            class="w-full h-full relative overflow-hidden rounded-2xl text-white p-3.5 sm:p-5 md:p-6 border border-white/15 shadow-md flex flex-col-reverse sm:flex-row items-center justify-between sm:justify-between gap-2.5 sm:gap-5 box-border"
                         >
-                            {{-- Text Content & Action --}}
-                            <div class="relative z-10 max-w-lg space-y-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border backdrop-blur-xs {{ $banner['badge_color'] }}">
+                            {{-- Text Content & Action (Center aligned) --}}
+                            <div class="relative z-10 max-w-lg space-y-1.5 sm:space-y-2.5 flex flex-col items-center sm:items-start text-center sm:text-left flex-1 min-w-0 justify-center">
+                                <div class="flex items-center justify-center sm:justify-start gap-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold border backdrop-blur-xs {{ $banner['badge_color'] }}">
                                         {{ $banner['badge'] }}
                                     </span>
-                                    <span class="text-[11px] font-bold text-white/80">
+                                    <span class="text-[10px] sm:text-[11px] font-bold text-white/80">
                                         {{ $idx + 1 }} of {{ count($heroBanners) }}
                                     </span>
                                 </div>
 
-                                <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug">
+                                <h1 class="text-sm sm:text-xl md:text-2xl font-black text-white tracking-tight leading-snug line-clamp-1 sm:line-clamp-2">
                                     {{ $banner['title'] }}
                                 </h1>
 
-                                <p class="text-xs sm:text-sm text-white/90 leading-relaxed font-normal">
+                                <p class="text-[11px] sm:text-xs md:text-sm text-white/90 leading-relaxed font-normal line-clamp-2">
                                     {{ $banner['description'] }}
                                 </p>
 
-                                <div class="pt-1 flex items-center gap-3">
+                                <div class="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3">
                                     <a 
                                         href="{{ $banner['cta_url'] }}" 
-                                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-extrabold text-slate-800 bg-white hover:bg-slate-50 shadow-sm hover:shadow-md transition-all duration-150 transform hover:-translate-y-0.5"
+                                        class="inline-flex items-center gap-1.5 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs font-extrabold text-slate-800 bg-white hover:bg-slate-50 shadow-sm hover:shadow-md transition-all duration-150 transform hover:-translate-y-0.5"
                                     >
                                         <span>{{ $banner['cta_label'] }}</span>
                                         <svg class="w-3.5 h-3.5 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -95,16 +95,16 @@
                                         </svg>
                                     </a>
 
-                                    <div class="hidden sm:flex items-center gap-1.5 text-xs font-extrabold text-white/90 bg-black/20 backdrop-blur-xs px-3 py-2 rounded-full border border-white/10">
+                                    <div class="flex items-center gap-1.5 text-[11px] sm:text-xs font-extrabold text-white/90 bg-black/20 backdrop-blur-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/10">
                                         <span class="text-white/70">{{ $banner['metric_label'] }}:</span>
                                         <span>{{ $banner['metric_value'] }}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Student Circular Profile Picture Card / Avatar --}}
-                            <div class="relative flex-shrink-0 flex items-center justify-center md:justify-end">
-                                <div class="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-1 bg-white/20 backdrop-blur-md border-2 border-white/40 shadow-xl flex items-center justify-center">
+                            {{-- Student Circular Profile Picture Card / Avatar (Center Aligned) --}}
+                            <div class="relative flex-shrink-0 flex items-center justify-center">
+                                <div class="relative w-16 h-16 sm:w-22 sm:h-22 md:w-26 md:h-26 rounded-full p-1 bg-white/20 backdrop-blur-md border-2 border-white/40 shadow-xl flex items-center justify-center">
                                     @if (!empty($banner['avatar']))
                                         <img 
                                             src="{{ $banner['avatar'] }}" 
@@ -118,11 +118,6 @@
                                             class="w-full h-full object-cover rounded-full shadow-inner border border-white/50"
                                         />
                                     @endif
-
-                                    {{-- Student Name Tag Overlay --}}
-                                    <div class="absolute -bottom-2 bg-slate-950/80 backdrop-blur-md rounded-full py-0.5 px-3 text-center text-[10px] font-bold text-white border border-white/25 truncate max-w-[120px] shadow-sm">
-                                        {{ auth()->user()->name }}
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -212,69 +207,6 @@
             
             {{-- LEFT WIDE COLUMN (70% / 8 cols on LG) --}}
             <div class="lg:col-span-8 space-y-5">
-
-                {{-- TOP RESUME ACTIVE COURSE FLOATING BANNER --}}
-                @if ($activeCourse)
-                    <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-4 sm:p-5 border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="flex items-center gap-3.5 min-w-0">
-                            {{-- Gradient Icon / Thumbnail --}}
-                            <div 
-                                class="w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center shadow-xs"
-                                style="background: {{ $activeCourse['gradient'] ?? 'linear-gradient(135deg, #7C3AED, #4F46E5)' }};"
-                            >
-                                <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                </svg>
-                            </div>
-
-                            {{-- Title & Progress Bar --}}
-                            <div class="min-w-0 space-y-1.5">
-                                <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 truncate">
-                                    {{ $activeCourse['title'] }}
-                                </h3>
-
-                                <div class="flex items-center gap-3">
-                                    {{-- Thin Progress Bar --}}
-                                    <div class="w-32 sm:w-44 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                        <div 
-                                            class="h-full rounded-full transition-all duration-300"
-                                            style="width: {{ $activeCourse['progress'] }}%; background-color: {{ $activeCourse['bar_color'] ?? '#7C3AED' }};"
-                                        ></div>
-                                    </div>
-
-                                    {{-- Quick Counter Badges --}}
-                                    <div class="hidden sm:flex items-center gap-2.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
-                                        <span class="flex items-center gap-1" title="Learning Materials">
-                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                                            {{ $activeCourse['lessons_count'] }}
-                                        </span>
-                                        <span class="flex items-center gap-1" title="Assignments">
-                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                            {{ $activeCourse['assignments_count'] }}
-                                        </span>
-                                        <span class="flex items-center gap-1" title="Assessments">
-                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            {{ $activeCourse['tests_count'] }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Resume CTA Button --}}
-                        <div class="flex items-center justify-end">
-                            <a 
-                                href="{{ route('filament.student.pages.courses') }}" 
-                                class="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-bold text-[#7C3AED] dark:text-purple-300 border border-[#7C3AED]/40 dark:border-purple-400/40 hover:bg-[#7C3AED]/10 transition-all shadow-xs"
-                            >
-                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z"/>
-                                </svg>
-                                <span>Resume</span>
-                            </a>
-                        </div>
-                    </div>
-                @endif
 
                 {{-- STATUS SECTION: 3 PASTEL KPI CARDS (MATERIALS, ASSIGNMENTS, ASSESSMENTS) --}}
                 <div class="space-y-3">
@@ -420,8 +352,8 @@
                         </div>
                     </div>
 
-                    {{-- Courses Table --}}
-                    <div class="overflow-x-auto">
+                    {{-- Desktop Courses Table --}}
+                    <div class="overflow-x-auto hidden md:block">
                         <table class="w-full text-left text-xs">
                             <thead class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-[#233842]">
                                 <tr>
@@ -488,6 +420,59 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    {{-- Mobile Course Cards --}}
+                    <div class="md:hidden space-y-3 pt-1">
+                        @forelse ($enrolledCourses as $idx => $course)
+                            <div 
+                                x-show="activeTab === 'active' ? @js($course['progress'] < 100) : @js($course['progress'] >= 100)"
+                                class="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-100 dark:border-[#233842] space-y-2.5"
+                            >
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div 
+                                            class="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-2xs"
+                                            style="background: {{ $course['gradient'] }};"
+                                        >
+                                            {{ substr($course['title'], 0, 1) }}
+                                        </div>
+                                        <a href="{{ route('filament.student.pages.courses') }}" class="font-bold text-xs text-slate-800 dark:text-slate-100 truncate hover:text-[#7C3AED]">
+                                            {{ $course['title'] }}
+                                        </a>
+                                    </div>
+                                    <span class="text-xs font-black text-[#7C3AED] dark:text-purple-400 flex-shrink-0">
+                                        {{ $course['progress'] }}%
+                                    </span>
+                                </div>
+
+                                <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                    <div 
+                                        class="h-full rounded-full transition-all duration-300"
+                                        style="width: {{ $course['progress'] }}%; background-color: {{ $course['bar_color'] }};"
+                                    ></div>
+                                </div>
+
+                                <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800/60">
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                        {{ $course['lessons_count'] }} Materials
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                        {{ $course['assignments_count'] }} Tasks
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        {{ $course['tests_count'] }} Tests
+                                    </span>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-6 text-center text-slate-400 text-xs">
+                                No courses enrolled yet.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
 

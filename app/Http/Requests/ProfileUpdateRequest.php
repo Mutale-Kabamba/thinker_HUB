@@ -40,6 +40,7 @@ class ProfileUpdateRequest extends FormRequest
             'github_url' => ['nullable', 'url', 'max:255'],
             'instagram_url' => ['nullable', 'url', 'max:255'],
             'bio' => ['nullable', 'string', 'max:2000'],
+            'default_portal' => ['nullable', 'string', 'in:admin,instructor,student,contributor'],
         ];
     }
 }

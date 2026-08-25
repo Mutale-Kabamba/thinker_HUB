@@ -16,7 +16,7 @@
         </div>
 
         {{-- Desktop Table Card --}}
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden hidden md:block">
+        <div class="hub-quiz-listing edtech-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden hidden md:block">
             <table class="w-full text-left text-xs">
                 <thead>
                     <tr class="bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-semibold text-[11px] uppercase tracking-wider">
@@ -110,7 +110,7 @@
                         default => 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200',
                     };
                 @endphp
-                <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm space-y-3">
+                <div class="hub-mobile-card edtech-card bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm space-y-3">
                     <div class="flex items-start justify-between gap-2">
                         <div>
                             <h3 class="text-sm font-bold text-slate-800 dark:text-white">{{ $quiz['title'] }}</h3>

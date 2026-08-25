@@ -59,12 +59,17 @@ class AdminPanelProvider extends PanelProvider
                     ->label('Instructor Workspace')
                     ->icon('heroicon-o-academic-cap')
                     ->url('/teach')
-                    ->visible(fn (): bool => (bool) (auth()->user()?->isInstructor() || auth()->user()?->isAdmin())),
+                    ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToInstructor())),
                 MenuItem::make()
                     ->label('Student Workspace')
                     ->icon('heroicon-o-book-open')
                     ->url('/learn')
-                    ->visible(fn (): bool => (bool) (auth()->user()?->isStudent() || auth()->user()?->isAdmin())),
+                    ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToStudent())),
+                MenuItem::make()
+                    ->label('Contributor Desk')
+                    ->icon('heroicon-o-sparkles')
+                    ->url('/contribute')
+                    ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToContributor())),
                 MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')
