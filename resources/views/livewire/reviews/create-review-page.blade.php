@@ -111,35 +111,35 @@
         }
 
         .hub-target-btn:hover {
-            border-color: #0d9488;
-            background: #f0fdfa;
+            border-color: #7C3AED;
+            background: #f5f3ff;
         }
 
         .dark .hub-target-btn:hover,
         .fi-theme-dark .hub-target-btn:hover {
-            border-color: #14b8a6;
-            background: #132e2a;
+            border-color: #a855f7;
+            background: #2e1065;
         }
 
         .hub-target-btn.active {
-            border-color: #0d9488;
-            background: #f0fdfa;
-            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+            border-color: #7C3AED;
+            background: #f5f3ff;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
         }
 
         .dark .hub-target-btn.active,
         .fi-theme-dark .hub-target-btn.active {
-            border-color: #2dd4bf;
-            background: #132e2a;
-            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+            border-color: #c084fc;
+            background: #2e1065;
+            box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
         }
 
         .hub-target-icon {
             width: 2.5rem;
             height: 2.5rem;
-            border-radius: 0.65rem;
-            background: rgba(13, 148, 136, 0.12);
-            color: #0d9488;
+            border-radius: 0.85rem;
+            background: rgba(124, 58, 237, 0.12);
+            color: #7C3AED;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -149,8 +149,8 @@
 
         .dark .hub-target-icon,
         .fi-theme-dark .hub-target-icon {
-            background: rgba(45, 212, 191, 0.15);
-            color: #2dd4bf;
+            background: rgba(192, 132, 252, 0.15);
+            color: #c084fc;
         }
 
         /* Form Inputs */
@@ -171,27 +171,49 @@
 
         .hub-input-field {
             width: 100%;
-            border-radius: 0.65rem;
+            border-radius: 0.75rem;
             border: 1px solid #cbd5e1;
             background: #ffffff;
             padding: 0.65rem 0.85rem;
             font-size: 0.875rem;
             color: #0f172a;
             box-sizing: border-box;
-            outline: none;
-            transition: all 0.2s;
+            transition: border 0.15s ease;
         }
 
         .dark .hub-input-field,
         .fi-theme-dark .hub-input-field {
             background: #1e293b;
-            border-color: #475569;
-            color: #ffffff;
+            border-color: #334155;
+            color: #f8fafc;
         }
 
         .hub-input-field:focus {
-            border-color: #0d9488;
-            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.2);
+            outline: none;
+            border-color: #7C3AED;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+        }
+
+        .hub-submit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 800;
+            background: #7C3AED;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 14px -2px rgba(124, 58, 237, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .hub-submit-btn:hover {
+            background: #6D28D9;
+            transform: translateY(-1px);
         }
 
         /* Star Rating */

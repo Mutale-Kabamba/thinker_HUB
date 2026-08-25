@@ -145,7 +145,7 @@
 
                 {{-- Timer Bar --}}
                 @if ($quiz['time_limit'])
-                    <div class="hub-quiz-timer-bar" style="position:sticky;top:0;z-index:50;background:white;padding:0.5rem 1rem;border-bottom:1px solid var(--hub-border);display:flex;justify-content:space-between;align-items:center;border-radius:12px;margin-bottom:0.5rem;">
+                    <div class="hub-quiz-timer-bar" style="position:sticky;top:0;z-index:50;background:var(--hub-surface);padding:0.5rem 1rem;border:1px solid var(--hub-border);display:flex;justify-content:space-between;align-items:center;border-radius:12px;margin-bottom:0.5rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
                         <span style="font-size:0.8rem;font-weight:600;color:var(--hub-ink);">Question <span x-text="currentQuestion + 1"></span> of {{ count($questions) }}</span>
                         <span style="font-size:0.85rem;font-weight:700;padding:0.25rem 0.75rem;border-radius:20px;" :style="timeRemaining <= 60 ? 'background:#fef2f2;color:#dc2626;' : 'background:#f0fdf4;color:#15803d;'" x-text="formatTime(timeRemaining)"></span>
                     </div>
@@ -170,19 +170,19 @@
                         @if ($question['type'] === 'multiple_choice')
                             <div style="display:flex;flex-direction:column;gap:0.5rem;">
                                 @foreach ($question['options'] as $option)
-                                    <label class="hub-quiz-option" style="display:flex;align-items:center;gap:0.6rem;padding:0.65rem 0.85rem;border:2px solid var(--hub-border);border-radius:10px;cursor:pointer;transition:all 0.15s;font-size:0.88rem;" :style="$wire.answers[{{ $question['id'] }}] == '{{ $option['id'] }}' ? 'border-color:var(--hub-primary);background:#f0fdfa;' : ''" onmouseover="if(!this.querySelector('input').checked)this.style.borderColor='#94a3b8'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--hub-border)'">
+                                    <label class="hub-quiz-option" style="display:flex;align-items:center;gap:0.6rem;padding:0.65rem 0.85rem;border:2px solid var(--hub-border);border-radius:10px;cursor:pointer;transition:all 0.15s;font-size:0.88rem;background:var(--hub-surface);" :style="$wire.answers[{{ $question['id'] }}] == '{{ $option['id'] }}' ? 'border-color:var(--hub-primary);' : ''" onmouseover="if(!this.querySelector('input').checked)this.style.borderColor='#94a3b8'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--hub-border)'">
                                         <input type="radio" name="question_{{ $question['id'] }}" value="{{ $option['id'] }}" wire:model="answers.{{ $question['id'] }}" style="accent-color:var(--hub-primary);width:18px;height:18px;flex-shrink:0;">
                                         <span style="color:var(--hub-ink);">{{ $option['text'] }}</span>
                                     </label>
                                 @endforeach
                             </div>
                         @elseif ($question['type'] === 'theory')
-                            <textarea wire:model="answers.{{ $question['id'] }}" rows="6" placeholder="Write your answer here..." style="width:100%;padding:0.75rem;border:2px solid var(--hub-border);border-radius:10px;font-size:0.88rem;resize:vertical;font-family:inherit;color:var(--hub-ink);transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--hub-primary)'" onblur="this.style.borderColor='var(--hub-border)'"></textarea>
+                            <textarea wire:model="answers.{{ $question['id'] }}" rows="6" placeholder="Write your answer here..." style="width:100%;padding:0.75rem;border:2px solid var(--hub-border);border-radius:10px;font-size:0.88rem;resize:vertical;font-family:inherit;color:var(--hub-ink);background:var(--hub-surface);transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--hub-primary)'" onblur="this.style.borderColor='var(--hub-border)'"></textarea>
                         @elseif ($question['type'] === 'practical')
                             <div style="margin-bottom:0.5rem;padding:0.5rem 0.75rem;background:#ede9fe;border-radius:8px;font-size:0.8rem;color:#5b21b6;">
                                 <strong>Practical Task:</strong> Write your code or solution below.
                             </div>
-                            <textarea wire:model="answers.{{ $question['id'] }}" rows="10" placeholder="Write your code or solution here..." style="width:100%;padding:0.75rem;border:2px solid var(--hub-border);border-radius:10px;font-size:0.85rem;resize:vertical;font-family:'Courier New',monospace;color:var(--hub-ink);background:#fafafa;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--hub-primary)'" onblur="this.style.borderColor='var(--hub-border)'"></textarea>
+                            <textarea wire:model="answers.{{ $question['id'] }}" rows="10" placeholder="Write your code or solution here..." style="width:100%;padding:0.75rem;border:2px solid var(--hub-border);border-radius:10px;font-size:0.85rem;resize:vertical;font-family:'Courier New',monospace;color:var(--hub-ink);background:var(--hub-surface);transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--hub-primary)'" onblur="this.style.borderColor='var(--hub-border)'"></textarea>
                         @endif
 
                         {{-- Navigation --}}

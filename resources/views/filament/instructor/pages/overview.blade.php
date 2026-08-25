@@ -1,151 +1,301 @@
 <x-filament-panels::page>
-    <div class="hub-shell">
-        <section class="hub-card" style="padding:0.85rem 1.15rem; border-left: 4px solid #059669;">
-            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem;">
-                <span class="hub-chip" style="background:#ecfdf5; color:#047857; border-color:#a7f3d0; font-size:0.7rem; font-weight:700; text-transform:uppercase;">
-                    <i class="fa-solid fa-chalkboard-user"></i> Instructor Workspace
-                </span>
-                <span style="font-size:0.75rem; color:var(--hub-muted);">
-                    {{ count($courses) }} Active {{ count($courses) === 1 ? 'Course' : 'Courses' }}
-                </span>
+    <div class="space-y-6">
+        {{-- 1. Top Contextual Header --}}
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                        Welcome, {{ auth()->user()?->first_name ?: 'Instructor' }}! 👨‍🏫
+                    </h1>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+                        Instructor Workspace
+                    </span>
+                </div>
+                <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    You have <strong class="text-slate-900 dark:text-white">{{ count($courses) }} active {{ count($courses) === 1 ? 'class' : 'classes' }}</strong> and <strong class="text-rose-600 dark:text-rose-400">{{ $pendingSubmissionsCount }} submission{{ $pendingSubmissionsCount === 1 ? '' : 's' }}</strong> waiting for review.
+                </p>
             </div>
-            <h2 class="hub-title" style="font-size:1.2rem; margin-bottom: 0.2rem;">Welcome, {{ auth()->user()?->name }}</h2>
-            <p class="hub-copy" style="margin:0;">Manage your assigned courses, evaluate student submissions, and coordinate teaching sessions.</p>
-        </section>
 
-        {{-- Stats --}}
-        <div class="hub-grid hub-stats-grid">
-            <section class="hub-card">
-                <p class="hub-eyebrow">My Courses</p>
-                <p class="hub-metric">{{ count($courses) < 10 ? count($courses) : '10+' }}</p>
-                <p class="hub-copy">Assigned courses</p>
-            </section>
-            <section class="hub-card">
-                <p class="hub-eyebrow">Total Students</p>
-                <p class="hub-metric">{{ $totalStudents < 10 ? $totalStudents : '10+' }}</p>
-                <p class="hub-copy">Across all courses</p>
-            </section>
-            <section class="hub-card">
-                <p class="hub-eyebrow">Assessments</p>
-                <p class="hub-metric">{{ $totalAssessments < 10 ? $totalAssessments : '10+' }}</p>
-                <p class="hub-copy">In my courses</p>
-            </section>
-            <section class="hub-card">
-                <p class="hub-eyebrow">Upcoming Sessions</p>
-                <p class="hub-metric">{{ $upcomingSessionCount < 10 ? $upcomingSessionCount : '10+' }}</p>
-                <p class="hub-copy">Scheduled</p>
-            </section>
+            <div class="flex items-center gap-2">
+                <a 
+                    href="{{ \App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl() }}" 
+                    class="inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/60 dark:text-teal-300 transition-colors"
+                >
+                    Review Submissions &rarr;
+                </a>
+                <a 
+                    href="{{ route('filament.instructor.pages.schedule') }}" 
+                    class="inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-xs transition-colors"
+                >
+                    Schedule Class &rarr;
+                </a>
+            </div>
         </div>
 
-        {{-- Session Calendar --}}
-        <section class="hub-card" style="padding:1rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.4rem;">
-                <div>
-                    <h3 class="hub-title" style="font-size:1rem;">Session Calendar</h3>
-                    <p class="hub-copy" style="margin-top:0.1rem;">{{ $upcomingSessionCount }} upcoming session{{ $upcomingSessionCount !== 1 ? 's' : '' }}</p>
-                </div>
-                <a href="{{ route('filament.instructor.pages.schedule') }}" class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;text-decoration:none;white-space:nowrap;">View Full Schedule →</a>
-            </div>
+        {{-- 2. Four KPI Metric StatCards with Sparklines --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <x-edtech.stat-card
+                title="Total Classes"
+                :value="count($courses)"
+                delta="+100%"
+                deltaType="positive"
+                subtitle="Assigned courses"
+                color="teal"
+                :sparkline="[10, 20, 30, 45, 50, 65, 80]"
+            />
 
-            <div style="display:flex;align-items:center;justify-content:center;margin-bottom:0.5rem;gap:0.5rem;word-break:normal;">
-                <button wire:click="previousMonth" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--hub-muted);padding:0.15rem;line-height:1;flex-shrink:0;">&#8249;</button>
-                <span style="font-weight:700;font-size:0.88rem;color:var(--hub-ink);text-align:center;white-space:nowrap;flex-shrink:0;">
-                    {{ \Carbon\Carbon::createFromDate($calendarYear, $calendarMonth, 1)->format('F Y') }}
-                </span>
-                <button wire:click="nextMonth" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--hub-muted);padding:0.15rem;line-height:1;flex-shrink:0;">&#8250;</button>
-            </div>
+            <x-edtech.stat-card
+                title="Total Students"
+                :value="$totalStudents"
+                delta="+25%"
+                deltaType="positive"
+                subtitle="Across active cohorts"
+                color="sky"
+                :sparkline="[15, 28, 40, 52, 68, 85, 95]"
+            />
 
-            <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-                <table class="hub-calendar-table" style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:320px;">
-                    <thead>
-                        <tr>
-                            @foreach (['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $day)
-                                <th style="padding:0.35rem 0.15rem;font-size:0.68rem;font-weight:700;color:var(--hub-muted);text-align:center;border-bottom:1px solid var(--hub-border);">{{ $day }}</th>
-                            @endforeach
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($calendarWeeks as $week)
-                            <tr>
-                                @foreach ($week as $dayCell)
-                                    <td style="
-                                        vertical-align:top;
-                                        padding:0.25rem;
-                                        height:4.5rem;
-                                        border:1px solid var(--hub-border);
-                                        {{ ! $dayCell['in_month'] ? 'opacity:0.3;' : '' }}
-                                        {{ $dayCell['is_today'] ? 'background:var(--hub-primary-soft);' : '' }}
-                                    ">
-                                        <div class="hub-calendar-day-num" style="font-size:0.68rem;font-weight:{{ $dayCell['is_today'] ? '800' : '600' }};color:{{ $dayCell['is_today'] ? 'var(--hub-primary)' : 'var(--hub-ink)' }};margin-bottom:0.15rem;">
-                                            {{ $dayCell['date'] }}
-                                        </div>
-                                        @foreach ($dayCell['sessions'] as $calSession)
-                                            <div class="hub-calendar-session" style="
-                                                margin-bottom:0.1rem;
-                                                padding:0.1rem 0.2rem;
-                                                border-radius:3px;
-                                                font-size:0.55rem;
-                                                line-height:1.25;
-                                                overflow:hidden;
-                                                white-space:nowrap;
-                                                text-overflow:ellipsis;
-                                                cursor:default;
-                                                background:{{ match($calSession['status']) {
-                                                    'completed' => '#dcfce7',
-                                                    'rescheduled' => '#fef3c7',
-                                                    'cancelled' => '#fee2e2',
-                                                    default => '#e0f2fe',
-                                                } }};
-                                                color:{{ match($calSession['status']) {
-                                                    'completed' => '#166534',
-                                                    'rescheduled' => '#92400e',
-                                                    'cancelled' => '#991b1b',
-                                                    default => '#0c4a6e',
-                                                } }};
-                                            " title="{{ $calSession['title'] }} ({{ $calSession['start_time'] }}) — {{ ucfirst($calSession['status']) }}{{ $calSession['student_name'] ? ' — '.$calSession['student_name'] : '' }}">
-                                                <span style="font-weight:700;">{{ $calSession['start_time'] }}</span>
-                                                {{ $calSession['course_code'] ?: $calSession['title'] }}
-                                            </div>
-                                        @endforeach
-                                    </td>
-                                @endforeach
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+            <x-edtech.stat-card
+                title="Pending Reviews"
+                :value="$pendingSubmissionsCount"
+                :delta="$pendingSubmissionsCount > 0 ? 'Needs Attention' : 'All Checked'"
+                :deltaType="$pendingSubmissionsCount > 0 ? 'negative' : 'positive'"
+                subtitle="Submissions queued"
+                color="rose"
+                :href="\App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl()"
+                :sparkline="[35, 25, 40, 20, 30, 15, 10]"
+            />
 
-            <div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin-top:0.5rem;font-size:0.6rem;color:var(--hub-muted);">
-                <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#e0f2fe;margin-right:2px;"></span> Scheduled</span>
-                <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#dcfce7;margin-right:2px;"></span> Completed</span>
-                <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#fef3c7;margin-right:2px;"></span> Rescheduled</span>
-                <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#fee2e2;margin-right:2px;"></span> Cancelled</span>
-            </div>
-        </section>
+            <x-edtech.stat-card
+                title="Upcoming Sessions"
+                :value="$upcomingSessionCount"
+                delta="This Week"
+                deltaType="neutral"
+                subtitle="Scheduled live classes"
+                color="indigo"
+                :href="route('filament.instructor.pages.schedule')"
+                :sparkline="[5, 15, 25, 40, 60, 75, 90]"
+            />
+        </div>
 
-        {{-- Courses --}}
-        <section class="hub-card" style="padding:1rem;">
-            <h3 class="hub-title" style="margin-bottom:0.75rem;">My Courses</h3>
-            @if (count($courses) > 0)
-                <div class="hub-grid hub-grid-2">
-                    @foreach ($courses as $course)
-                        <div class="hub-card" style="border-left:4px solid {{ $course['is_active'] ? 'var(--hub-primary)' : '#94a3b8' }};">
-                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                                <div>
-                                    <p style="font-weight:700;color:var(--hub-ink);font-size:0.9rem;">{{ $course['title'] }}</p>
-                                    <p style="font-size:0.75rem;color:var(--hub-muted);">{{ $course['code'] }}</p>
-                                </div>
-                                <span class="hub-chip {{ $course['is_active'] ? 'hub-chip-green' : 'hub-chip-gray' }}" style="font-size:0.65rem;">{{ $course['is_active'] ? 'Active' : 'Inactive' }}</span>
-                            </div>
-                            <div style="margin-top:0.5rem;display:flex;gap:1rem;">
-                                <span style="font-size:0.78rem;color:var(--hub-muted);"><strong>{{ $course['students'] }}</strong> students enrolled</span>
-                            </div>
+        {{-- 3. Core 2-Column Dashboard Grid Area --}}
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {{-- LEFT COLUMN: 8 Columns (Classrooms & Cohort Management Table) --}}
+            <div class="lg:col-span-8 space-y-6">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 flex-wrap">
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
+                                My Classrooms & Cohorts
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                Manage students, active intakes, and deliverables for your assigned classes.
+                            </p>
                         </div>
-                    @endforeach
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                            <thead class="bg-slate-50/75 dark:bg-slate-800/50 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-100 dark:border-slate-800">
+                                <tr>
+                                    <th class="py-3 px-4">Course / Classroom</th>
+                                    <th class="py-3 px-4">Current Intake</th>
+                                    <th class="py-3 px-4">Enrolled Students</th>
+                                    <th class="py-3 px-4">Category</th>
+                                    <th class="py-3 px-4">Status</th>
+                                    <th class="py-3 px-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                                @forelse ($courses as $course)
+                                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                                        <td class="py-3.5 px-4">
+                                            <div class="font-bold text-slate-900 dark:text-white text-sm">
+                                                {{ $course['title'] }}
+                                            </div>
+                                            <div class="text-[11px] text-slate-400 font-mono mt-0.5">
+                                                {{ $course['code'] }}
+                                            </div>
+                                        </td>
+                                        <td class="py-3.5 px-4">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300">
+                                                {{ $course['intake'] }}
+                                            </span>
+                                        </td>
+                                        <td class="py-3.5 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <x-edtech.avatar-group :users="$course['student_list']" size="sm" :limit="3" />
+                                                <span class="text-xs text-slate-500 font-bold">({{ $course['students'] }})</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3.5 px-4">
+                                            <span class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                                {{ $course['category'] }}
+                                            </span>
+                                        </td>
+                                        <td class="py-3.5 px-4 whitespace-nowrap">
+                                            @if ($course['is_active'])
+                                                <x-edtech.badge-pill variant="mint" size="sm" :dot="true">Active Class</x-edtech.badge-pill>
+                                            @else
+                                                <x-edtech.badge-pill variant="slate" size="sm">Archived</x-edtech.badge-pill>
+                                            @endif
+                                        </td>
+                                        <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                                            <div class="inline-flex items-center gap-1.5">
+                                                <a 
+                                                    href="{{ \App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl() }}" 
+                                                    class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/60 dark:text-teal-300 transition-colors"
+                                                >
+                                                    Grade &rarr;
+                                                </a>
+                                                <a 
+                                                    href="{{ route('filament.instructor.pages.schedule') }}" 
+                                                    class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 transition-colors"
+                                                >
+                                                    Schedule
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="py-8 text-center text-slate-400">
+                                            No active courses assigned yet. Contact administrator to assign courses.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            @else
-                <p class="hub-copy" style="text-align:center;padding:1rem 0;">No courses assigned yet. Contact admin to be assigned to courses.</p>
-            @endif
-        </section>
+
+                {{-- Submissions Quick Review Queue Card --}}
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
+                                Submission Queue
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                Student assignments and assessments ready for scoring and feedback.
+                            </p>
+                        </div>
+                        <a href="{{ \App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl() }}" class="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline">
+                            Open Review Desk &rarr;
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <a href="{{ \App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl() }}" class="flex items-center justify-between p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 hover:border-teal-400 transition-all group">
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-teal-600 transition-colors">
+                                    Assignment Submissions
+                                </span>
+                                <p class="text-xs text-slate-500 mt-0.5">Filter by course or submission status</p>
+                            </div>
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-teal-100 text-teal-800 font-bold text-xs">
+                                &rarr;
+                            </span>
+                        </a>
+
+                        <a href="{{ \App\Filament\Instructor\Resources\AssessmentSubmissionResource\AssessmentSubmissionResource::getUrl() }}" class="flex items-center justify-between p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 hover:border-teal-400 transition-all group">
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-teal-600 transition-colors">
+                                    Assessment Evaluations
+                                </span>
+                                <p class="text-xs text-slate-500 mt-0.5">Grade test papers and project deliverables</p>
+                            </div>
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-teal-100 text-teal-800 font-bold text-xs">
+                                &rarr;
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {{-- RIGHT COLUMN: 4 Columns (Session Calendar & Live Schedule Rail) --}}
+            <div class="lg:col-span-4 space-y-6">
+                {{-- Calendar Card --}}
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            {{ \Carbon\Carbon::createFromDate($calendarYear, $calendarMonth, 1)->format('F Y') }}
+                        </h3>
+                        <div class="flex items-center gap-1">
+                            <button type="button" wire:click="previousMonth" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <button type="button" wire:click="nextMonth" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Day headers --}}
+                    <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        @foreach (['Su','Mo','Tu','We','Th','Fr','Sa'] as $dow)
+                            <div>{{ $dow }}</div>
+                        @endforeach
+                    </div>
+
+                    {{-- Month Days Grid --}}
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold">
+                        @foreach ($calendarWeeks as $week)
+                            @foreach ($week as $dayCell)
+                                <div
+                                    class="h-8 w-8 mx-auto rounded-full flex flex-col items-center justify-center relative transition-all {{ $dayCell['is_today'] ? 'bg-teal-600 text-white font-extrabold shadow-xs' : ($dayCell['in_month'] ? 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800' : 'text-slate-300 dark:text-slate-600 opacity-40') }}"
+                                    title="{{ count($dayCell['sessions']) > 0 ? count($dayCell['sessions']) . ' session(s)' : '' }}"
+                                >
+                                    <span>{{ $dayCell['date'] }}</span>
+                                    @if (count($dayCell['sessions']) > 0 && !$dayCell['is_today'])
+                                        <span class="w-1 h-1 rounded-full bg-teal-500 absolute bottom-1"></span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Live Sessions Timetable --}}
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            Upcoming Live Classes
+                        </h3>
+                        <a href="{{ route('filament.instructor.pages.schedule') }}" class="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline">
+                            Timetable &rarr;
+                        </a>
+                    </div>
+
+                    <div class="space-y-3">
+                        @forelse ($upcomingSessions as $session)
+                            <div class="p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-2">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold {{ $session['is_today'] ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300' : 'bg-slate-200/70 text-slate-700 dark:bg-slate-700 dark:text-slate-300' }}">
+                                        {{ $session['is_today'] ? 'Today • ' . $session['time'] : $session['date'] . ' • ' . $session['time'] }}
+                                    </span>
+                                    <span class="text-[11px] font-semibold text-teal-600 capitalize">
+                                        {{ $session['type'] === 'one_on_one' ? '1-on-1' : 'Group Class' }}
+                                    </span>
+                                </div>
+
+                                <div class="text-xs font-bold text-slate-900 dark:text-white line-clamp-1">
+                                    {{ $session['title'] }}
+                                </div>
+                                <div class="text-[11px] text-slate-500 flex items-center justify-between">
+                                    <span>{{ $session['course'] }}</span>
+                                    @if ($session['student_name'])
+                                        <span class="font-medium text-slate-600 dark:text-slate-400">Student: {{ $session['student_name'] }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-6 text-center text-xs text-slate-400">
+                                No upcoming classes scheduled.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </x-filament-panels::page>

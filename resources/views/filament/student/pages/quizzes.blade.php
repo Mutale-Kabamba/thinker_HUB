@@ -1,87 +1,87 @@
 <x-filament-panels::page>
-    <div style="display: flex; flex-direction: column; gap: 0.65rem; width: 100%; max-width: 100%;">
-        {{-- Header Bento Banner --}}
-        <div class="bento-card bento-ice" style="padding: 0.85rem 1.15rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
-                <div>
-                    <span class="bento-pill bento-pill-ice" style="font-size: 0.65rem; margin-bottom: 0.25rem;">Knowledge Verification</span>
-                    <h2 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: inherit; letter-spacing: -0.02em;">
-                        Quiz Centre
-                    </h2>
-                    <p style="margin: 0.2rem 0 0 0; font-size: 0.76rem; opacity: 0.9;">
-                        Test your knowledge, reinforce core course topics, and unlock achievement XP.
-                    </p>
-                </div>
+    <div class="space-y-5 font-sans">
+        {{-- Header Quyl Hero Banner --}}
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-purple-50 text-[#7C3AED] dark:bg-purple-900/30 dark:text-purple-300 border border-purple-100 dark:border-purple-800">
+                    Knowledge Verification
+                </span>
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-800 dark:text-white tracking-tight">
+                    Quiz Centre
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                    Test your knowledge, reinforce core course topics, and unlock achievement XP.
+                </p>
             </div>
         </div>
 
-        {{-- Desktop Table Bento --}}
-        <div class="bento-card hub-desktop-only" style="padding: 0; overflow: hidden;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+        {{-- Desktop Table Card --}}
+        <div class="hub-quiz-listing edtech-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden hidden md:block">
+            <table class="w-full text-left text-xs">
                 <thead>
-                    <tr style="background: var(--hub-surface-soft); border-bottom: 1px solid var(--hub-border); text-align: left;">
-                        <th style="padding: 0.55rem 0.75rem; font-weight: 700; color: var(--hub-muted); font-size: 0.7rem; text-transform: uppercase;">Quiz</th>
-                        <th style="padding: 0.55rem 0.6rem; font-weight: 700; color: var(--hub-muted); font-size: 0.7rem; text-transform: uppercase; text-align: center;">Questions</th>
-                        <th style="padding: 0.55rem 0.6rem; font-weight: 700; color: var(--hub-muted); font-size: 0.7rem; text-transform: uppercase; text-align: center;">Time Limit</th>
-                        <th style="padding: 0.55rem 0.6rem; font-weight: 700; color: var(--hub-muted); font-size: 0.7rem; text-transform: uppercase; text-align: center;">Status</th>
-                        <th style="padding: 0.55rem 0.6rem; font-weight: 700; color: var(--hub-muted); font-size: 0.7rem; text-transform: uppercase; text-align: center;">Score</th>
-                        <th style="padding: 0.55rem 0.75rem; font-weight: 700; color: var(--hub-muted); font-size: 0.7rem; text-transform: uppercase; text-align: right;">Action</th>
+                    <tr class="bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-semibold text-[11px] uppercase tracking-wider">
+                        <th class="py-3 px-4">Quiz</th>
+                        <th class="py-3 px-3 text-center">Questions</th>
+                        <th class="py-3 px-3 text-center">Time Limit</th>
+                        <th class="py-3 px-3 text-center">Status</th>
+                        <th class="py-3 px-3 text-center">Score</th>
+                        <th class="py-3 px-4 text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                     @forelse ($quizzes as $quiz)
                         @php
                             $statusPill = match ($quiz['status']) {
-                                'completed' => ($quiz['passed'] ? 'bento-pill-mint' : 'bento-pill-coral'),
-                                'retake_allowed' => 'bento-pill-ice',
-                                'in_progress' => 'bento-pill-ice',
-                                'scheduled' => 'bento-pill-neutral',
-                                default => 'bento-pill-amber',
+                                'completed' => ($quiz['passed'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200' : 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 border-rose-200'),
+                                'retake_allowed' => 'bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300 border-sky-200',
+                                'in_progress' => 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200',
+                                'scheduled' => 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200',
+                                default => 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200',
                             };
                         @endphp
-                        <tr style="border-bottom: 1px solid var(--hub-border);">
-                            <td style="padding: 0.55rem 0.75rem;">
-                                <p style="margin: 0; font-weight: 700; color: var(--hub-ink);">{{ $quiz['title'] }}</p>
-                                <p style="margin: 0.15rem 0 0; font-size: 0.72rem; color: var(--hub-muted);">{{ $quiz['course'] }}</p>
+                        <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="py-3.5 px-4">
+                                <p class="font-bold text-slate-800 dark:text-slate-100">{{ $quiz['title'] }}</p>
+                                <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{{ $quiz['course'] }}</p>
                             </td>
-                            <td style="padding: 0.55rem 0.6rem; text-align: center; color: var(--hub-muted);">
+                            <td class="py-3.5 px-3 text-center text-slate-500 dark:text-slate-400">
                                 {{ $quiz['question_count'] }}
                             </td>
-                            <td style="padding: 0.55rem 0.6rem; text-align: center; color: var(--hub-muted);">
+                            <td class="py-3.5 px-3 text-center text-slate-500 dark:text-slate-400">
                                 {{ $quiz['time_limit'] ? $quiz['time_limit'] . 'm' : 'No limit' }}
                             </td>
-                            <td style="padding: 0.55rem 0.6rem; text-align: center;">
-                                <span class="bento-pill {{ $statusPill }}" style="font-size: 0.68rem;">
+                            <td class="py-3.5 px-3 text-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $statusPill }}">
                                     {{ $quiz['status_label'] }}
                                 </span>
                             </td>
-                            <td style="padding: 0.55rem 0.6rem; text-align: center; font-weight: 800; color: {{ $quiz['score'] !== null ? ($quiz['passed'] ? '#059669' : '#dc2626') : 'var(--hub-muted)' }};">
+                            <td class="py-3.5 px-3 text-center font-extrabold {{ $quiz['score'] !== null ? ($quiz['passed'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400') : 'text-slate-400' }}">
                                 {{ $quiz['score'] !== null ? $quiz['score'] . '%' : '-' }}
                                 @if(!empty($quiz['is_retake']))
-                                    <span style="font-size: 0.6rem; color: #0d9488; display: block;">2nd Try</span>
+                                    <span class="text-[10px] text-purple-600 dark:text-purple-400 block font-normal">2nd Try</span>
                                 @endif
                             </td>
-                            <td style="padding: 0.55rem 0.75rem; text-align: right;">
+                            <td class="py-3.5 px-4 text-right">
                                 @if ($quiz['status'] === 'retake_allowed')
                                     <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}"
-                                       style="padding: 0.25rem 0.6rem; background: #0284c7; color: #ffffff; font-size: 0.72rem; font-weight: 700; border-radius: 0.35rem; text-decoration: none; border: 1px solid #0369a1; display: inline-flex; align-items: center; gap: 0.25rem;">
+                                       class="inline-flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-xs transition-colors">
                                         Retake (2nd Try)
                                     </a>
                                 @elseif ($quiz['status'] === 'completed')
                                     <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}"
-                                       style="padding: 0.25rem 0.6rem; background: var(--hub-surface-soft); color: var(--hub-ink); font-size: 0.72rem; font-weight: 700; border-radius: 0.35rem; text-decoration: none; border: 1px solid var(--hub-border);">
+                                       class="inline-flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 transition-colors">
                                         View Results
                                     </a>
                                 @elseif ($quiz['status'] === 'in_progress')
                                     <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}"
-                                       style="padding: 0.25rem 0.6rem; background: #0d9488; color: #ffffff; font-size: 0.72rem; font-weight: 700; border-radius: 0.35rem; text-decoration: none; border: 1px solid #0f766e;">
+                                       class="inline-flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-bold text-white bg-[#7C3AED] hover:bg-[#6D28D9] shadow-xs transition-colors">
                                         Continue
                                     </a>
                                 @elseif ($quiz['status'] === 'scheduled')
-                                    <span class="bento-pill bento-pill-neutral" style="font-size: 0.68rem;">Upcoming</span>
+                                    <span class="px-3 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800">Upcoming</span>
                                 @else
                                     <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}"
-                                       style="padding: 0.25rem 0.65rem; background: #0d9488; color: #ffffff; font-size: 0.72rem; font-weight: 700; border-radius: 0.35rem; text-decoration: none; border: 1px solid #0f766e;">
+                                       class="inline-flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-bold text-white bg-[#7C3AED] hover:bg-[#6D28D9] shadow-xs transition-colors">
                                         Take Quiz &rarr;
                                     </a>
                                 @endif
@@ -89,7 +89,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="padding: 1.5rem; text-align: center; color: var(--hub-muted);">
+                            <td colspan="6" class="py-8 text-center text-slate-400">
                                 No quizzes available. Enroll in a course to see quizzes.
                             </td>
                         </tr>
@@ -98,75 +98,77 @@
             </table>
         </div>
 
-        {{-- Mobile Cards Bento --}}
-        <div class="hub-mobile-only hub-quiz-listing" style="display: flex; flex-direction: column; gap: 0.5rem;">
+        {{-- Mobile Cards --}}
+        <div class="md:hidden space-y-3">
             @forelse ($quizzes as $quiz)
                 @php
                     $statusPill = match ($quiz['status']) {
-                        'completed' => ($quiz['passed'] ? 'bento-pill-mint' : 'bento-pill-coral'),
-                        'retake_allowed' => 'bento-pill-ice',
-                        'in_progress' => 'bento-pill-ice',
-                        'scheduled' => 'bento-pill-neutral',
-                        default => 'bento-pill-amber',
+                        'completed' => ($quiz['passed'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200' : 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 border-rose-200'),
+                        'retake_allowed' => 'bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300 border-sky-200',
+                        'in_progress' => 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200',
+                        'scheduled' => 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200',
+                        default => 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200',
                     };
                 @endphp
-                <div class="bento-card hub-mobile-card" style="padding: 0.75rem 0.85rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.4rem;">
+                <div class="hub-mobile-card edtech-card bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm space-y-3">
+                    <div class="flex items-start justify-between gap-2">
                         <div>
-                            <h3 style="margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--hub-ink);">{{ $quiz['title'] }}</h3>
-                            <p style="margin: 0.1rem 0 0; font-size: 0.7rem; color: var(--hub-muted);">{{ $quiz['course'] }}</p>
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-white">{{ $quiz['title'] }}</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">{{ $quiz['course'] }}</p>
                         </div>
-                        <span class="bento-pill {{ $statusPill }}" style="font-size: 0.65rem;">{{ $quiz['status_label'] }}</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $statusPill }} flex-shrink-0">
+                            {{ $quiz['status_label'] }}
+                        </span>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.3rem; margin-top: 0.45rem; background: var(--hub-surface-soft); border: 1px solid var(--hub-border); border-radius: 0.4rem; padding: 0.3rem; text-align: center;">
+                    <div class="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 text-center text-xs">
                         <div>
-                            <span style="font-size: 0.62rem; color: var(--hub-muted); display: block;">Questions</span>
-                            <span style="font-size: 0.76rem; font-weight: 700; color: var(--hub-ink);">{{ $quiz['question_count'] }}</span>
+                            <span class="text-[10px] text-slate-400 block font-semibold">Questions</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200">{{ $quiz['question_count'] }}</span>
                         </div>
-                        <div style="border-left: 1px solid var(--hub-border); border-right: 1px solid var(--hub-border);">
-                            <span style="font-size: 0.62rem; color: var(--hub-muted); display: block;">Time</span>
-                            <span style="font-size: 0.76rem; font-weight: 700; color: var(--hub-ink);">{{ $quiz['time_limit'] ? $quiz['time_limit'] . 'm' : 'None' }}</span>
+                        <div class="border-x border-slate-200 dark:border-slate-700">
+                            <span class="text-[10px] text-slate-400 block font-semibold">Time</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200">{{ $quiz['time_limit'] ? $quiz['time_limit'] . 'm' : 'None' }}</span>
                         </div>
                         <div>
-                            <span style="font-size: 0.62rem; color: var(--hub-muted); display: block;">Score</span>
-                            <span style="font-size: 0.76rem; font-weight: 700; color: {{ $quiz['score'] !== null ? ($quiz['passed'] ? '#059669' : '#dc2626') : 'var(--hub-muted)' }};">
+                            <span class="text-[10px] text-slate-400 block font-semibold">Score</span>
+                            <span class="font-bold {{ $quiz['score'] !== null ? ($quiz['passed'] ? 'text-emerald-600' : 'text-rose-600') : 'text-slate-400' }}">
                                 {{ $quiz['score'] !== null ? $quiz['score'] . '%' : '-' }}
                             </span>
                         </div>
                     </div>
 
-                    <div style="margin-top: 0.5rem;">
+                    <div>
                         @if ($quiz['status'] === 'retake_allowed')
                             <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}"
-                               style="width: 100%; box-sizing: border-box; background: #0284c7; color: #ffffff; border: 1px solid #0369a1; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 0.74rem; font-weight: 700; padding: 0.4rem; border-radius: 0.4rem;">
+                               class="w-full flex items-center justify-center py-2 rounded-full text-xs font-bold text-white bg-sky-600 shadow-xs">
                                 Retake Quiz (2nd Try)
                             </a>
                         @elseif ($quiz['status'] === 'completed')
                             <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}"
-                               style="width: 100%; box-sizing: border-box; background: var(--hub-surface-soft); color: var(--hub-ink); border: 1px solid var(--hub-border); text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 0.74rem; font-weight: 700; padding: 0.4rem; border-radius: 0.4rem;">
+                               class="w-full flex items-center justify-center py-2 rounded-full text-xs font-bold text-slate-700 bg-slate-100 dark:bg-slate-800 dark:text-slate-300">
                                 View Results
                             </a>
                         @elseif ($quiz['status'] === 'in_progress')
                             <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}"
-                               style="width: 100%; box-sizing: border-box; background: #0d9488; color: #ffffff; border: 1px solid #0f766e; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 0.74rem; font-weight: 700; padding: 0.4rem; border-radius: 0.4rem;">
+                               class="w-full flex items-center justify-center py-2 rounded-full text-xs font-bold text-white bg-[#7C3AED] shadow-xs">
                                 Continue Quiz
                             </a>
                         @elseif ($quiz['status'] === 'scheduled')
-                            <div style="width: 100%; box-sizing: border-box; background: var(--hub-surface-soft); color: var(--hub-muted); border: 1px solid var(--hub-border); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; padding: 0.4rem; border-radius: 0.4rem;">
+                            <div class="w-full flex items-center justify-center py-2 rounded-full text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-800">
                                 Upcoming Quiz
                             </div>
                         @else
                             <a href="{{ route('filament.student.pages.take-quiz', ['quiz' => $quiz['id']]) }}"
-                               style="width: 100%; box-sizing: border-box; background: #0d9488; color: #ffffff; border: 1px solid #0f766e; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 0.74rem; font-weight: 700; padding: 0.4rem; border-radius: 0.4rem;">
+                               class="w-full flex items-center justify-center py-2 rounded-full text-xs font-bold text-white bg-[#7C3AED] shadow-xs">
                                 Take Quiz &rarr;
                             </a>
                         @endif
                     </div>
                 </div>
             @empty
-                <div class="bento-card" style="padding: 1.5rem; text-align: center;">
-                    <p style="margin: 0; font-size: 0.8rem; color: var(--hub-muted);">No quizzes available.</p>
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 text-center border border-slate-100 dark:border-slate-800">
+                    <p class="text-xs text-slate-400">No quizzes available.</p>
                 </div>
             @endforelse
         </div>

@@ -75,11 +75,24 @@
 @endphp
 
 @if ($position === 'sidebar')
-    <div class="hub-sidebar-badge-container">
-        <div class="hub-sidebar-badge" style="background: {{ $roleInfo['bg'] }}; color: {{ $roleInfo['color'] }}; border: 1px solid {{ $roleInfo['border'] }};">
+    <div class="hub-sidebar-badge-container flex items-center justify-between gap-2" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:0.25rem 0.5rem;">
+        <div class="hub-sidebar-badge flex-1 text-center" style="flex:1;background: {{ $roleInfo['bg'] }}; color: {{ $roleInfo['color'] }}; border: 1px solid {{ $roleInfo['border'] }};">
             <i class="fa-solid {{ $roleInfo['icon'] }}"></i>
             <span>{{ $roleInfo['label'] }}</span>
         </div>
+        <button 
+            type="button"
+            x-data="{}"
+            x-on:click="$store.sidebar.isOpen = false; $store.sidebar.close(); document.querySelectorAll('.fi-sidebar, .fi-main-sidebar').forEach(el => el.classList.remove('fi-sidebar-open'))"
+            class="hub-sidebar-mobile-close lg:hidden"
+            style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border-radius:999px;background:var(--hub-surface-soft, #f1f5f9);color:var(--hub-muted, #64748b);border:1px solid var(--hub-border, #e2e8f0);cursor:pointer;flex-shrink:0;"
+            aria-label="Close navigation"
+            title="Close navigation"
+        >
+            <svg style="width:1rem;height:1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
     </div>
 @else
     <div class="hub-topbar-badge" style="background: {{ $roleInfo['bg'] }}; color: {{ $roleInfo['color'] }}; border: 1px solid {{ $roleInfo['border'] }};">

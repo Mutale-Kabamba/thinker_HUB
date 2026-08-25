@@ -1,28 +1,43 @@
 <x-filament-widgets::widget>
-    <x-filament::section>
-        <x-slot name="heading">Overview</x-slot>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <x-edtech.stat-card
+            title="Registered Students"
+            :value="$registeredStudents"
+            delta="+100%"
+            deltaType="positive"
+            subtitle="Active learner accounts"
+            color="teal"
+            :sparkline="[20, 35, 50, 65, 80, 95]"
+        />
 
-        <div class="hub-grid hub-stats-grid">
-            <section class="hub-card">
-                <p class="hub-eyebrow">Registered Students</p>
-                <p class="hub-metric">{{ $registeredStudents < 10 ? $registeredStudents : '10+' }}</p>
-                <p class="hub-copy">Active learner accounts</p>
-            </section>
-            <section class="hub-card">
-                <p class="hub-eyebrow">Assigned Assessments</p>
-                <p class="hub-metric">{{ $assignedAssessments < 10 ? $assignedAssessments : '10+' }}</p>
-                <p class="hub-copy">Assessment records in system</p>
-            </section>
-            <section class="hub-card">
-                <p class="hub-eyebrow">Published Assignments</p>
-                <p class="hub-metric">{{ $publishedAssignments < 10 ? $publishedAssignments : '10+' }}</p>
-                <p class="hub-copy">Assignment items published</p>
-            </section>
-            <section class="hub-card">
-                <p class="hub-eyebrow">Materials</p>
-                <p class="hub-metric">{{ $materials < 10 ? $materials : '10+' }}</p>
-                <p class="hub-copy">Learning resources uploaded</p>
-            </section>
-        </div>
-    </x-filament::section>
+        <x-edtech.stat-card
+            title="Assigned Assessments"
+            :value="$assignedAssessments"
+            delta="Evaluations"
+            deltaType="neutral"
+            subtitle="Assessment records"
+            color="sky"
+            :sparkline="[15, 25, 40, 55, 70, 85]"
+        />
+
+        <x-edtech.stat-card
+            title="Published Assignments"
+            :value="$publishedAssignments"
+            delta="Deliverables"
+            deltaType="neutral"
+            subtitle="Assignment items"
+            color="indigo"
+            :sparkline="[30, 45, 40, 60, 75, 90]"
+        />
+
+        <x-edtech.stat-card
+            title="Learning Materials"
+            :value="$materials"
+            delta="Resources"
+            deltaType="neutral"
+            subtitle="Course guides & notes"
+            color="amber"
+            :sparkline="[10, 20, 35, 45, 60, 75]"
+        />
+    </div>
 </x-filament-widgets::widget>
