@@ -4,7 +4,7 @@ namespace App\Notifications;
 
 use App\Models\LearningMaterial;
 use App\Notifications\Concerns\ResolvesMailPersonalization;
-use Filament\Actions\Action;
+use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -48,8 +48,7 @@ class MaterialPublishedNotification extends Notification implements ShouldQueue
             ->actions([
                 Action::make('view')
                     ->label('View materials')
-                    ->url('/learn/materials')
-                    ->markAsRead(),
+                    ->url('/learn/materials'),
             ])
             ->getDatabaseMessage();
     }

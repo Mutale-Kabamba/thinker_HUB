@@ -9,6 +9,7 @@ use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Carbon;
 
 class SessionRescheduledNotification extends Notification
 {
@@ -32,7 +33,7 @@ class SessionRescheduledNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Session Rescheduled: '.$this->courseName)
+            ->subject('Session Moved: '.$this->courseName)
             ->markdown('emails.session-rescheduled', [
                 'session' => $this->session,
                 'courseName' => $this->courseName,
@@ -44,15 +45,17 @@ class SessionRescheduledNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
+        $dateFormatted = $this->session->getEffectiveDate()->format('D, M j');
+        $startTime = $this->session->getEffectiveStartTime();
+        $timeFormatted = filled($startTime) ? Carbon::parse($startTime)->format('g:i A') : '';
+
         return FilamentNotification::make()
-            ->title('Session rescheduled')
-            ->body($this->courseName.': moved to '.$this->session->rescheduled_date->format('D, M j')
-                .' at '.$this->session->rescheduled_start_time)
+            ->title('Session schedule updated')
+            ->body($this->courseName.': moved to '.$dateFormatted.($timeFormatted ? ' at '.$timeFormatted : ''))
             ->actions([
                 Action::make('view')
                     ->label('View schedule')
-                    ->url('/learn/schedule')
-                    ->markAsRead(),
+                    ->url('/learn/schedule'),
             ])
             ->getDatabaseMessage();
     }

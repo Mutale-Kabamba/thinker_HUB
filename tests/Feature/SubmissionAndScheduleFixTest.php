@@ -339,7 +339,50 @@ class SubmissionAndScheduleFixTest extends TestCase
             ->assertHasNoErrors();
 
         $session->refresh();
-        $this->assertSame('rescheduled', $session->status);
-        $this->assertSame(now()->addDays(3)->toDateString(), $session->rescheduled_date->toDateString());
+        $this->assertSame('scheduled', $session->status);
+        $this->assertSame(now()->addDays(3)->toDateString(), $session->session_date->toDateString());
+        $this->assertSame('15:00:00', $session->start_time);
+    }
+
+    public function test_session_rescheduled_notification_database_and_mail_rendering(): void
+    {
+        $student = User::factory()->create([
+            'role' => 'student',
+            'email' => 'student@example.com',
+            'is_active' => true,
+        ]);
+        $course = Course::create([
+            'title' => 'Graphic Design',
+            'code' => 'DSGN101',
+            'is_active' => true,
+        ]);
+        $session = CourseSession::create([
+            'course_id' => $course->id,
+            'student_id' => $student->id,
+            'type' => 'one_on_one',
+            'title' => 'Portfolio Review',
+            'session_date' => now()->addDays(5)->toDateString(),
+            'start_time' => '10:00:00',
+            'end_time' => '11:00:00',
+            'status' => 'scheduled',
+        ]);
+
+        $notification = new \App\Notifications\SessionRescheduledNotification($session, 'Graphic Design');
+
+        // Test database array formatting (must not throw Call to undefined method markAsRead)
+        $dbData = $notification->toArray($student);
+        $this->assertIsArray($dbData);
+        $this->assertSame('Session schedule updated', $dbData['title']);
+
+        // Test mail rendering
+        $mail = $notification->toMail($student);
+        $this->assertSame('Session Moved: Graphic Design', $mail->subject);
+
+        // Student can be notified without throwing 500 error
+        $student->notify($notification);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $student->id,
+            'type' => \App\Notifications\SessionRescheduledNotification::class,
+        ]);
     }
 }

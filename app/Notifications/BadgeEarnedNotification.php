@@ -21,13 +21,12 @@ class BadgeEarnedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return FilamentNotification::make()
-            ->title('Badge earned: '.$this->badge->name)
-            ->body(($this->badge->icon ? $this->badge->icon.' ' : '').$this->badge->description)
+            ->title('New Badge Earned!')
+            ->body('You earned the '.$this->badge->name.' badge.')
             ->actions([
                 Action::make('view')
-                    ->label('View leaderboard')
-                    ->url('/learn/community?tab=leaderboard')
-                    ->markAsRead(),
+                    ->label('View badges')
+                    ->url('/learn/overview'),
             ])
             ->getDatabaseMessage();
     }

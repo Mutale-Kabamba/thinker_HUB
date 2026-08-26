@@ -362,7 +362,10 @@ class Schedule extends Page
         }
 
         $session->update([
-            'status' => 'rescheduled',
+            'session_date' => $this->rescheduleDate,
+            'start_time' => $this->rescheduleStartTime,
+            'end_time' => $this->rescheduleEndTime,
+            'status' => 'scheduled',
             'rescheduled_date' => $this->rescheduleDate,
             'rescheduled_start_time' => $this->rescheduleStartTime,
             'rescheduled_end_time' => $this->rescheduleEndTime,
@@ -372,7 +375,7 @@ class Schedule extends Page
         $this->notifyStudentsAboutReschedule($session);
 
         $this->rescheduleSessionId = null;
-        Notification::make()->title('Session rescheduled. Students notified.')->success()->send();
+        Notification::make()->title('Session moved to new date. Students notified.')->success()->send();
         $this->loadSessions();
     }
 
@@ -486,7 +489,10 @@ class Schedule extends Page
         }
 
         $session->update([
-            'status' => 'rescheduled',
+            'session_date' => $this->decisionDate,
+            'start_time' => $this->decisionStartTime,
+            'end_time' => $this->decisionEndTime,
+            'status' => 'scheduled',
             'rescheduled_date' => $this->decisionDate,
             'rescheduled_start_time' => $this->decisionStartTime,
             'rescheduled_end_time' => $this->decisionEndTime,
@@ -502,7 +508,7 @@ class Schedule extends Page
 
         $this->updateStudentRequestDecision($this->decisionSessionId, $this->decisionStudentId, 'accepted');
 
-        Notification::make()->title('Reschedule request accepted and students notified.')->success()->send();
+        Notification::make()->title('Reschedule request accepted. Session moved to new date.')->success()->send();
 
         $this->closeDecisionWizard();
         $this->loadSessions();
@@ -902,21 +908,25 @@ class Schedule extends Page
 
     protected function notifyStudentsAboutReschedule(CourseSession $session): void
     {
-        $courseName = $session->course?->title ?? 'Course';
+        try {
+            $courseName = $session->course?->title ?? 'Course';
 
-        if ($session->isOneOnOne() && $session->student_id) {
-            $student = User::find($session->student_id);
-            $student?->notify(new SessionRescheduledNotification($session, $courseName));
+            if ($session->isOneOnOne() && $session->student_id) {
+                $student = User::find($session->student_id);
+                $student?->notify(new SessionRescheduledNotification($session, $courseName));
 
-            return;
-        }
+                return;
+            }
 
-        $students = User::query()
-            ->whereHas('enrollments', fn ($q) => $q->where('course_id', $session->course_id))
-            ->get();
+            $students = User::query()
+                ->whereHas('enrollments', fn ($q) => $q->where('course_id', $session->course_id))
+                ->get();
 
-        foreach ($students as $student) {
-            $student->notify(new SessionRescheduledNotification($session, $courseName));
+            foreach ($students as $student) {
+                $student->notify(new SessionRescheduledNotification($session, $courseName));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Reschedule student notification error: ' . $e->getMessage());
         }
     }
 

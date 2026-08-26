@@ -15,7 +15,10 @@ class QuizPublishedNotification extends Notification implements ShouldQueue
 {
     use Queueable, ResolvesMailPersonalization;
 
-    public function __construct(private readonly Quiz $quiz) {}
+    public function __construct(
+        private readonly Quiz $quiz,
+        private readonly string $courseName,
+    ) {}
 
     public function via(object $notifiable): array
     {
@@ -31,31 +34,25 @@ class QuizPublishedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('New Quiz Available: '.$this->quiz->title)
-            ->greeting('Hello '.$this->resolveRecipientName($notifiable).'!')
-            ->line('A new quiz has been published for your course: **'.$this->quiz->title.'**.')
-            ->when($this->quiz->time_limit_minutes, fn ($mail) => $mail->line('Time Limit: '.$this->quiz->time_limit_minutes.' minutes.'))
-            ->line('Pass percentage requirement: '.$this->quiz->pass_percentage.'%.')
-            ->action('Take Quiz', url('/learn/quizzes'))
-            ->salutation("Best regards,\n".$this->resolveSignerName());
+            ->subject('New Quiz Published: '.$this->quiz->title)
+            ->markdown('emails.quiz-published', [
+                'quiz' => $this->quiz,
+                'courseName' => $this->courseName,
+                'notifiable' => $notifiable,
+                'recipientName' => $this->resolveRecipientName($notifiable),
+                'signerName' => $this->resolveSignerName(),
+            ]);
     }
 
     public function toArray(object $notifiable): array
     {
-        $body = $this->quiz->title;
-
-        if ($this->quiz->course) {
-            $body .= ' ('.$this->quiz->course->title.')';
-        }
-
         return FilamentNotification::make()
             ->title('New quiz available')
-            ->body($body)
+            ->body($this->quiz->title.' is now available for '.$this->courseName)
             ->actions([
                 Action::make('view')
-                    ->label('View quizzes')
-                    ->url('/learn/quizzes')
-                    ->markAsRead(),
+                    ->label('Take quiz')
+                    ->url('/learn/quizzes'),
             ])
             ->getDatabaseMessage();
     }

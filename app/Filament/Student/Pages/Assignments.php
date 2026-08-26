@@ -112,9 +112,18 @@ class Assignments extends Page
         $video = isset($draft['video']) ? trim((string) $draft['video']) : null;
         
         $filePaths = [];
+        $rawFirst = explode(' ', trim((string) ($user->name ?? 'Student')))[0] ?? 'Student';
+        $studentFirst = Str::slug($rawFirst, '_');
+        $assignmentSlug = Str::slug((string) ($assignment->name ?? 'Assignment'), '_');
+
         if (isset($draft['files']) && is_array($draft['files'])) {
-            foreach ($draft['files'] as $file) {
-                if (is_object($file) && method_exists($file, 'store')) {
+            foreach ($draft['files'] as $index => $file) {
+                if (is_object($file) && method_exists($file, 'storeAs')) {
+                    $ext = method_exists($file, 'getClientOriginalExtension') ? $file->getClientOriginalExtension() : ($file->extension() ?? 'pdf');
+                    $suffix = $index > 0 ? "_{$index}" : '';
+                    $filename = "{$studentFirst}_{$assignmentSlug}{$suffix}_" . time() . '_' . Str::random(4) . ".{$ext}";
+                    $filePaths[] = $file->storeAs('submissions', $filename, 'public');
+                } elseif (is_object($file) && method_exists($file, 'store')) {
                     $filePaths[] = $file->store('submissions', 'public');
                 } elseif (is_string($file) && filled($file)) {
                     $filePaths[] = PublicDiskPath::normalize($file);
@@ -124,7 +133,11 @@ class Assignments extends Page
 
         if (isset($draft['file']) && $draft['file']) {
             $file = $draft['file'];
-            if (is_object($file) && method_exists($file, 'store')) {
+            if (is_object($file) && method_exists($file, 'storeAs')) {
+                $ext = method_exists($file, 'getClientOriginalExtension') ? $file->getClientOriginalExtension() : ($file->extension() ?? 'pdf');
+                $filename = "{$studentFirst}_{$assignmentSlug}_" . time() . '_' . Str::random(4) . ".{$ext}";
+                $filePaths[] = $file->storeAs('submissions', $filename, 'public');
+            } elseif (is_object($file) && method_exists($file, 'store')) {
                 $filePaths[] = $file->store('submissions', 'public');
             } elseif (is_string($file) && filled($file)) {
                 $filePaths[] = PublicDiskPath::normalize($file);
@@ -276,7 +289,14 @@ class Assignments extends Page
             return null;
         }
 
-        return Storage::disk('public')->download($path, Str::afterLast($path, '/'));
+        $rawFirst = explode(' ', trim((string) ($user->name ?? 'Student')))[0] ?? 'Student';
+        $studentFirst = Str::slug($rawFirst, '_');
+        $assignmentSlug = Str::slug((string) ($submission->assignment?->name ?? 'Assignment'), '_');
+        $ext = pathinfo($path, PATHINFO_EXTENSION) ?: 'pdf';
+        $suffix = $fileIndex !== null && count($paths) > 1 ? '_' . ($fileIndex + 1) : '';
+        $downloadName = "{$studentFirst}_{$assignmentSlug}{$suffix}.{$ext}";
+
+        return Storage::disk('public')->download($path, $downloadName);
     }
 
     protected function refreshAssignments(): void

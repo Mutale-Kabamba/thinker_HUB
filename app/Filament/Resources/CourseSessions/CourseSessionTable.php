@@ -100,26 +100,16 @@ class CourseSessionTable
                     ])
                     ->action(function (CourseSession $record, array $data): void {
                         $record->update([
-                            'status' => 'rescheduled',
+                            'session_date' => $data['rescheduled_date'],
+                            'start_time' => $data['rescheduled_start_time'],
+                            'end_time' => $data['rescheduled_end_time'] ?? null,
+                            'status' => 'scheduled',
                             'rescheduled_date' => $data['rescheduled_date'],
                             'rescheduled_start_time' => $data['rescheduled_start_time'],
                             'rescheduled_end_time' => $data['rescheduled_end_time'] ?? null,
                         ]);
 
-                        $record->refresh();
-                        $courseName = $record->course->title ?? 'Course';
-
-                        if ($record->isOneOnOne() && $record->student_id) {
-                            $student = User::find($record->student_id);
-                            $student?->notify(new SessionRescheduledNotification($record, $courseName));
-                        } else {
-                            $students = User::query()
-                                ->whereHas('enrollments', fn ($q) => $q->where('course_id', $record->course_id))
-                                ->get();
-                            foreach ($students as $student) {
-                                $student->notify(new SessionRescheduledNotification($record, $courseName));
-                            }
-                        }
+                        self::notifyStudentsAboutReschedule($record);
                     }),
 
                 Action::make('reviewRescheduleRequest')
@@ -220,7 +210,10 @@ class CourseSessionTable
                         }
 
                         $record->update([
-                            'status' => 'rescheduled',
+                            'session_date' => $data['rescheduled_date'],
+                            'start_time' => $data['rescheduled_start_time'],
+                            'end_time' => $data['rescheduled_end_time'] ?? null,
+                            'status' => 'scheduled',
                             'rescheduled_date' => $data['rescheduled_date'],
                             'rescheduled_start_time' => $data['rescheduled_start_time'],
                             'rescheduled_end_time' => $data['rescheduled_end_time'] ?? null,
@@ -272,22 +265,26 @@ class CourseSessionTable
 
     protected static function notifyStudentsAboutReschedule(CourseSession $record): void
     {
-        $record->refresh();
-        $courseName = $record->course->title ?? 'Course';
+        try {
+            $record->refresh();
+            $courseName = $record->course->title ?? 'Course';
 
-        if ($record->isOneOnOne() && $record->student_id) {
-            $student = User::find($record->student_id);
-            $student?->notify(new SessionRescheduledNotification($record, $courseName));
+            if ($record->isOneOnOne() && $record->student_id) {
+                $student = User::find($record->student_id);
+                $student?->notify(new SessionRescheduledNotification($record, $courseName));
 
-            return;
-        }
+                return;
+            }
 
-        $students = User::query()
-            ->whereHas('enrollments', fn ($q) => $q->where('course_id', $record->course_id))
-            ->get();
+            $students = User::query()
+                ->whereHas('enrollments', fn ($q) => $q->where('course_id', $record->course_id))
+                ->get();
 
-        foreach ($students as $student) {
-            $student->notify(new SessionRescheduledNotification($record, $courseName));
+            foreach ($students as $student) {
+                $student->notify(new SessionRescheduledNotification($record, $courseName));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('CourseSessionTable reschedule notification error: ' . $e->getMessage());
         }
     }
 
