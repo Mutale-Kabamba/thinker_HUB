@@ -136,7 +136,8 @@
                                             @if ($hasMultipleOptions)
                                                 <button
                                                     type="button"
-                                                    @click="window.openCourseOptionModal(@js($courseModalData))"
+                                                    onclick="window.openCourseOptionModal(@js($courseModalData))"
+                                                    @click.prevent="window.openCourseOptionModal(@js($courseModalData))"
                                                     class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm cursor-pointer"
                                                 >
                                                     Enroll &amp; Pay

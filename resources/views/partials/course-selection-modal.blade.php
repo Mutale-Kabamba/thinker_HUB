@@ -3,22 +3,26 @@
     Included on: courses.blade.php, course.blade.php, filament student courses
     Triggered with JS: window.openCourseOptionModal({ id, title, code, checkoutUrl, options: [...] })
 --}}
+<style>
+    [x-cloak] { display: none !important; }
+</style>
 
 <div
     id="course-option-modal"
-    class="fixed inset-0 z-[150] hidden items-center justify-center p-4 sm:p-6 overflow-y-auto"
+    class="fixed inset-0 z-[10002] flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
     role="dialog"
     aria-modal="true"
     aria-labelledby="course-opt-title"
     x-data="courseOptionModalHandler()"
     x-cloak
+    style="display: none;"
     x-show="isOpen"
     @open-course-option-modal.window="openModal($event.detail)"
     @keydown.escape.window="closeModal()"
 >
     {{-- Backdrop with blur --}}
     <div
-        class="fixed inset-0 bg-[#0a2d27]/70 backdrop-blur-sm transition-opacity duration-300"
+        class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity duration-300"
         x-show="isOpen"
         x-transition:enter="ease-out duration-300"
         x-transition:enter-start="opacity-0"
@@ -31,7 +35,8 @@
 
     {{-- Modal Sheet --}}
     <div
-        class="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-teal-100 transition-all duration-300 z-10 my-8"
+        @click.stop
+        class="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-teal-100 transition-all duration-300 z-10 my-auto"
         x-show="isOpen"
         x-transition:enter="ease-out duration-300"
         x-transition:enter-start="opacity-0 translate-y-6 scale-95"
@@ -72,7 +77,7 @@
                 <button
                     type="button"
                     @click="activeFilter = 'all'"
-                    class="px-3 py-1 text-xs font-bold rounded-lg transition"
+                    class="px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer"
                     :class="activeFilter === 'all' ? 'bg-white text-[#0a2d27] shadow-xs' : 'text-slate-500 hover:text-slate-800'"
                 >
                     All (<span x-text="options.length"></span>)
@@ -81,7 +86,7 @@
                     <button
                         type="button"
                         @click="activeFilter = mode"
-                        class="px-3 py-1 text-xs font-bold rounded-lg transition capitalize"
+                        class="px-3 py-1 text-xs font-bold rounded-lg transition capitalize cursor-pointer"
                         :class="activeFilter === mode ? 'bg-white text-[#0a2d27] shadow-xs' : 'text-slate-500 hover:text-slate-800'"
                         x-text="mode === 'one_on_one' ? '1:1 Private' : 'Group Class'"
                     >
@@ -191,11 +196,13 @@ function courseOptionModalHandler() {
         activeFilter: 'all',
 
         get availableModes() {
+            if (!this.options || !Array.isArray(this.options)) return [];
             const modes = new Set(this.options.map(o => o.category || o.mode || 'group'));
             return Array.from(modes);
         },
 
         get filteredOptions() {
+            if (!this.options || !Array.isArray(this.options)) return [];
             if (this.activeFilter === 'all') {
                 return this.options;
             }
@@ -203,10 +210,20 @@ function courseOptionModalHandler() {
         },
 
         openModal(data) {
-            this.courseId = data.id;
+            if (!data) return;
+            if (typeof data === 'string') {
+                try {
+                    data = JSON.parse(data);
+                } catch (e) {
+                    console.error('Invalid course modal data JSON:', e);
+                    return;
+                }
+            }
+
+            this.courseId = data.id || null;
             this.courseTitle = data.title || 'Course Enrollment';
             this.courseCode = data.code || '';
-            this.checkoutBaseUrl = data.checkoutUrl || ('/courses/' + data.id + '/checkout');
+            this.checkoutBaseUrl = data.checkoutUrl || (this.courseId ? `/courses/${this.courseId}/checkout` : '/courses');
             this.options = Array.isArray(data.options) ? data.options : [];
             this.activeFilter = 'all';
 
@@ -217,10 +234,10 @@ function courseOptionModalHandler() {
 
                 let match = null;
                 if (defaultMode) {
-                    match = this.options.find(o => (o.category || o.mode) === defaultMode && o.level.toLowerCase() === defaultTrack);
+                    match = this.options.find(o => (o.category || o.mode) === defaultMode && String(o.level).toLowerCase() === defaultTrack);
                 }
                 if (!match) {
-                    match = this.options.find(o => o.level.toLowerCase() === defaultTrack);
+                    match = this.options.find(o => String(o.level).toLowerCase() === defaultTrack);
                 }
                 this.selectedOption = match || this.options[0];
             } else {
@@ -243,19 +260,30 @@ function courseOptionModalHandler() {
         proceedToCheckout() {
             if (!this.selectedOption) return;
 
-            const targetUrl = new URL(this.checkoutBaseUrl, window.location.origin);
-            targetUrl.searchParams.set('track', this.selectedOption.level);
-            targetUrl.searchParams.set('mode', this.selectedOption.category || this.selectedOption.mode || 'group');
+            const level = this.selectedOption.level || 'Beginner';
+            const mode = this.selectedOption.category || this.selectedOption.mode || 'group';
 
-            window.location.href = targetUrl.toString();
+            try {
+                const targetUrl = new URL(this.checkoutBaseUrl, window.location.origin);
+                targetUrl.searchParams.set('track', level);
+                targetUrl.searchParams.set('mode', mode);
+                window.location.href = targetUrl.toString();
+            } catch (err) {
+                const sep = this.checkoutBaseUrl.includes('?') ? '&' : '?';
+                window.location.href = `${this.checkoutBaseUrl}${sep}track=${encodeURIComponent(level)}&mode=${encodeURIComponent(mode)}`;
+            }
         }
     };
 }
 
 // Global JavaScript trigger helper
 window.openCourseOptionModal = function(courseData) {
-    window.dispatchEvent(new CustomEvent('open-course-option-modal', {
-        detail: courseData
-    }));
+    try {
+        window.dispatchEvent(new CustomEvent('open-course-option-modal', {
+            detail: courseData
+        }));
+    } catch (err) {
+        console.error('Failed to dispatch open-course-option-modal event:', err);
+    }
 };
 </script>
