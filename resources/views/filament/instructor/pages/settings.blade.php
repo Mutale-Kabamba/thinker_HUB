@@ -5,50 +5,110 @@
         $latestNotifications = $canReadNotifications ? auth()->user()->notifications->take(5) : collect();
     @endphp
 
-    <div class="hub-shell">
-        <div class="hub-grid hub-grid-2">
-            {{-- Profile Settings --}}
-            <section class="hub-card">
-                <p class="hub-eyebrow">Account</p>
-                <h2 class="hub-title">Profile Settings</h2>
-                <p class="hub-copy">Update your name, email, and profile image.</p>
+    <div class="space-y-6 font-sans">
+        {{-- Header Card --}}
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800">
+                Account & Preferences
+            </span>
+            <h1 class="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
+                Instructor Settings
+            </h1>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">
+                Manage your public teaching profile, workspace preferences, notification feeds, and login security.
+            </p>
+        </div>
 
-                <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="hub-stack" style="margin-top:0.8rem;">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {{-- Profile Settings --}}
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+                        Personal Profile
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        Update your name, primary email address, and avatar photo.
+                    </p>
+                </div>
+
+                <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="space-y-4">
                     @csrf
                     @method('PATCH')
 
-                    <div>
-                        <label for="instr_name" class="hub-eyebrow">Name</label>
-                        <input id="instr_name" name="name" type="text" value="{{ old('name', $user->name) }}" class="hub-input" required>
+                    <div class="space-y-1.5">
+                        <label for="instr_name" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Full Name <span class="text-rose-500">*</span>
+                        </label>
+                        <input 
+                            id="instr_name" 
+                            name="name" 
+                            type="text" 
+                            value="{{ old('name', $user->name) }}" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            required
+                        />
                         @error('name')
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div>
-                        <label for="instr_email" class="hub-eyebrow">Email</label>
-                        <input id="instr_email" name="email" type="email" value="{{ old('email', $user->email) }}" class="hub-input" required>
+                    <div class="space-y-1.5">
+                        <label for="instr_email" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Email Address <span class="text-rose-500">*</span>
+                        </label>
+                        <input 
+                            id="instr_email" 
+                            name="email" 
+                            type="email" 
+                            value="{{ old('email', $user->email) }}" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            required
+                        />
                         @error('email')
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div>
-                        <label for="instr_photo" class="hub-eyebrow">Profile Picture</label>
-                        @if ($user->profile_photo_path)
-                            <img src="{{ $user->getFilamentAvatarUrl() }}" alt="Profile photo" style="margin:0.45rem 0;height:4.2rem;width:4.2rem;border-radius:999px;object-fit:cover;border:1px solid var(--hub-border);" onerror="this.style.display='none'">
-                        @endif
-                        <input id="instr_photo" name="profile_photo" type="file" accept="image/*" class="hub-input">
+                    <div class="space-y-2">
+                        <label for="instr_photo" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Profile Picture
+                        </label>
+                        <div class="flex items-center gap-4">
+                            @if ($user->profile_photo_path)
+                                <img 
+                                    src="{{ $user->getFilamentAvatarUrl() }}" 
+                                    alt="Profile photo" 
+                                    class="w-14 h-14 rounded-full object-cover border-2 border-teal-500 shadow-sm"
+                                />
+                            @else
+                                <div class="w-14 h-14 rounded-full bg-teal-800 text-white font-black text-lg flex items-center justify-center shadow-sm">
+                                    {{ Str::upper(substr($user->name, 0, 2)) }}
+                                </div>
+                            @endif
+                            <input 
+                                id="instr_photo" 
+                                name="profile_photo" 
+                                type="file" 
+                                accept="image/*" 
+                                class="text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 transition"
+                            />
+                        </div>
                         @error('profile_photo')
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     @if (count($user->getAvailablePortals()) > 1)
-                        <div>
-                            <label for="default_portal" class="hub-eyebrow">Default Account / Workspace</label>
-                            <p class="hub-copy" style="margin-bottom:0.4rem;font-size:0.8rem;">Select which portal opens automatically when you sign in.</p>
-                            <select id="default_portal" name="default_portal" class="hub-input" style="background:var(--color-surface, #fff);color:inherit;">
+                        <div class="space-y-1.5 pt-2">
+                            <label for="default_portal" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                                Default Account / Workspace
+                            </label>
+                            <p class="text-[11px] text-slate-400">Select which portal opens automatically when you sign in.</p>
+                            <select 
+                                id="default_portal" 
+                                name="default_portal" 
+                                class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                            >
                                 @foreach ($user->getAvailablePortals() as $portalKey => $portalData)
                                     <option value="{{ $portalKey }}" {{ old('default_portal', $user->default_portal ?? '') === $portalKey ? 'selected' : '' }}>
                                         {{ $portalData['label'] }} ({{ $portalData['path'] }})
@@ -56,171 +116,238 @@
                                 @endforeach
                             </select>
                             @error('default_portal')
-                                <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                                <p class="text-xs font-semibold text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
                     @endif
 
-                    <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
-                        <button type="submit" class="hub-btn hub-btn-primary">Save Profile</button>
+                    <div class="pt-2 flex items-center gap-3">
+                        <button 
+                            type="submit" 
+                            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition"
+                        >
+                            Save Profile
+                        </button>
                         @if (session('status') === 'profile-updated')
-                            <span class="hub-chip hub-chip-green">Profile updated</span>
+                            <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                <x-heroicon-s-check-circle class="w-4 h-4" />
+                                Profile updated
+                            </span>
                         @endif
                     </div>
                 </form>
-            </section>
+            </div>
 
-            {{-- Instructor Details --}}
-            <section class="hub-card">
-                <p class="hub-eyebrow">Instructor</p>
-                <h2 class="hub-title">Professional Details</h2>
-                <p class="hub-copy">This information appears on your public instructor profile.</p>
+            {{-- Professional Details --}}
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+                        Teaching Credentials & Bio
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        Information visible to students across courses and webinars.
+                    </p>
+                </div>
 
-                <form method="POST" action="{{ route('profile.update') }}" class="hub-stack" style="margin-top:0.8rem;">
+                <form method="POST" action="{{ route('profile.update') }}" class="space-y-3.5">
                     @csrf
                     @method('PATCH')
 
-                    <div>
-                        <label for="instr_proficiency" class="hub-eyebrow">Proficiency / Expertise</label>
-                        <input id="instr_proficiency" name="proficiency" type="text" value="{{ old('proficiency', $user->proficiency) }}" class="hub-input" placeholder="e.g. Data Science, Web Development">
+                    <div class="space-y-1">
+                        <label for="instr_proficiency" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Expertise & Topics
+                        </label>
+                        <input 
+                            id="instr_proficiency" 
+                            name="proficiency" 
+                            type="text" 
+                            value="{{ old('proficiency', $user->proficiency) }}" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            placeholder="e.g. Data Science, Machine Learning, Full-Stack"
+                        />
                         @error('proficiency')
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div>
-                        <label for="instr_occupation" class="hub-eyebrow">Occupation</label>
-                        <input id="instr_occupation" name="occupation" type="text" value="{{ old('occupation', $user->occupation) }}" class="hub-input" placeholder="e.g. Senior Software Engineer">
+                    <div class="space-y-1">
+                        <label for="instr_occupation" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Occupation / Title
+                        </label>
+                        <input 
+                            id="instr_occupation" 
+                            name="occupation" 
+                            type="text" 
+                            value="{{ old('occupation', $user->occupation) }}" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            placeholder="e.g. Senior Software Architect"
+                        />
                         @error('occupation')
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div>
-                        <label for="instr_bio" class="hub-eyebrow">About / Bio</label>
-                        <textarea id="instr_bio" name="bio" rows="5" class="hub-input" placeholder="Write a brief description about yourself, your background, and teaching experience...">{{ old('bio', $user->bio) }}</textarea>
+                    <div class="space-y-1">
+                        <label for="instr_bio" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Instructor Bio
+                        </label>
+                        <textarea 
+                            id="instr_bio" 
+                            name="bio" 
+                            rows="3" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            placeholder="Write a brief description about your teaching style, experience, and background..."
+                        >{{ old('bio', $user->bio) }}</textarea>
                         @error('bio')
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div>
-                        <label for="instr_whatsapp" class="hub-eyebrow">WhatsApp Number</label>
-                        <input id="instr_whatsapp" name="whatsapp" type="text" value="{{ old('whatsapp', $user->whatsapp) }}" class="hub-input" placeholder="+260 97 xxxxxxx">
-                        @error('whatsapp')
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
-                        @enderror
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label for="instr_whatsapp" class="block text-xs font-bold text-slate-700 dark:text-slate-200">WhatsApp</label>
+                            <input id="instr_whatsapp" name="whatsapp" type="text" value="{{ old('whatsapp', $user->whatsapp) }}" class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2" placeholder="+260 97 xxxxxxx" />
+                        </div>
+                        <div class="space-y-1">
+                            <label for="instr_linkedin" class="block text-xs font-bold text-slate-700 dark:text-slate-200">LinkedIn</label>
+                            <input id="instr_linkedin" name="linkedin_url" type="url" value="{{ old('linkedin_url', $user->linkedin_url) }}" class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2" placeholder="https://linkedin.com/in/..." />
+                        </div>
                     </div>
 
-                    <div>
-                        <label for="instr_linkedin" class="hub-eyebrow">LinkedIn URL</label>
-                        <input id="instr_linkedin" name="linkedin_url" type="url" value="{{ old('linkedin_url', $user->linkedin_url) }}" class="hub-input" placeholder="https://linkedin.com/in/yourprofile">
-                        @error('linkedin_url')
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="instr_facebook" class="hub-eyebrow">Facebook URL</label>
-                        <input id="instr_facebook" name="facebook_url" type="url" value="{{ old('facebook_url', $user->facebook_url) }}" class="hub-input" placeholder="https://facebook.com/yourprofile">
-                        @error('facebook_url')
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="instr_github" class="hub-eyebrow">GitHub URL</label>
-                        <input id="instr_github" name="github_url" type="url" value="{{ old('github_url', $user->github_url) }}" class="hub-input" placeholder="https://github.com/yourusername">
-                        @error('github_url')
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="instr_instagram" class="hub-eyebrow">Instagram URL</label>
-                        <input id="instr_instagram" name="instagram_url" type="url" value="{{ old('instagram_url', $user->instagram_url) }}" class="hub-input" placeholder="https://instagram.com/yourusername">
-                        @error('instagram_url')
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
-                        <button type="submit" class="hub-btn hub-btn-primary">Save Details</button>
+                    <div class="pt-2 flex items-center gap-3">
+                        <button 
+                            type="submit" 
+                            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition"
+                        >
+                            Save Details
+                        </button>
                         @if (session('status') === 'profile-updated')
-                            <span class="hub-chip hub-chip-green">Details saved</span>
+                            <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                <x-heroicon-s-check-circle class="w-4 h-4" />
+                                Details saved
+                            </span>
                         @endif
                     </div>
                 </form>
-            </section>
+            </div>
         </div>
 
-        <div class="hub-grid hub-grid-2">
-            {{-- Notifications --}}
-            <section class="hub-card">
-                <p class="hub-eyebrow">Alerts</p>
-                <h2 class="hub-title">Recent Notifications</h2>
-                <div class="hub-stack" style="margin-top:0.65rem;">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {{-- Notifications List --}}
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+                            Recent Alerts & Notifications
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">
+                            Activity logs and system broadcasts.
+                        </p>
+                    </div>
+                    <span class="text-xs font-bold text-slate-400">{{ count($latestNotifications) }} alerts</span>
+                </div>
+
+                <div class="space-y-2">
                     @forelse ($latestNotifications as $note)
-                        <div x-data="{ cleared: false }" x-show="!cleared" x-transition.opacity
-                             @click="fetch('/notifications/{{ $note->id }}/clear', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }); cleared = true;"
-                             style="border:1px solid var(--hub-border);border-radius:10px;padding:0.65rem;cursor:pointer;transition:all 0.15s;"
-                             class="hover:opacity-80" title="Click to clear notification">
-                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                                <div style="font-size:0.82rem;font-weight:500;">
-                                    {{ $note->data['message'] ?? ($note->data['title'] ?? 'Notification') }}
-                                </div>
-                                <span style="font-size:0.7rem;opacity:0.6;white-space:nowrap;">{{ $note->created_at?->diffForHumans() }}</span>
-                            </div>
+                        <div 
+                            x-data="{ cleared: false }" 
+                            x-show="!cleared" 
+                            x-transition.opacity
+                            @click="fetch('/notifications/{{ $note->id }}/clear', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }); cleared = true;"
+                            class="p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 hover:bg-teal-50/50 dark:hover:bg-slate-800 transition cursor-pointer flex items-center justify-between gap-3"
+                            title="Click to mark as read"
+                        >
+                            <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                                {{ $note->data['message'] ?? ($note->data['title'] ?? 'Notification') }}
+                            </p>
+                            <span class="text-[10px] text-slate-400 flex-shrink-0">
+                                {{ $note->created_at?->diffForHumans() }}
+                            </span>
                         </div>
                     @empty
-                        <p class="hub-copy">{{ $canReadNotifications ? 'No notifications yet.' : 'Notifications are unavailable until migrations are applied.' }}</p>
+                        <div class="py-6 text-center text-slate-400 text-xs font-medium">
+                            No notifications yet.
+                        </div>
                     @endforelse
                 </div>
-            </section>
-        </div>
+            </div>
 
-        <div class="hub-grid hub-grid-2">
-            @include('partials.passkey-manager')
+            {{-- Update Password Card --}}
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+                        Security & Password
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        Ensure your account uses a strong, secure passphrase.
+                    </p>
+                </div>
 
-            {{-- Password --}}
-            <section class="hub-card">
-                <p class="hub-eyebrow">Security</p>
-                <h2 class="hub-title">Update Password</h2>
-                <p class="hub-copy">Use a strong password you do not use on another platform.</p>
-
-                <form method="POST" action="{{ route('password.update') }}" class="hub-stack" style="margin-top:0.8rem;">
+                <form method="POST" action="{{ route('password.update') }}" class="space-y-3.5">
                     @csrf
                     @method('PUT')
 
-                    <div>
-                        <label for="instr_current_password" class="hub-eyebrow">Current Password</label>
-                        <input id="instr_current_password" name="current_password" type="password" class="hub-input" autocomplete="current-password">
+                    <div class="space-y-1">
+                        <label for="instr_current_password" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Current Password
+                        </label>
+                        <input 
+                            id="instr_current_password" 
+                            name="current_password" 
+                            type="password" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            autocomplete="current-password"
+                        />
                         @if ($errors->updatePassword->has('current_password'))
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $errors->updatePassword->first('current_password') }}</p>
+                            <p class="text-xs font-semibold text-rose-600">{{ $errors->updatePassword->first('current_password') }}</p>
                         @endif
                     </div>
 
-                    <div>
-                        <label for="instr_new_password" class="hub-eyebrow">New Password</label>
-                        <input id="instr_new_password" name="password" type="password" class="hub-input" autocomplete="new-password">
+                    <div class="space-y-1">
+                        <label for="instr_new_password" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            New Password
+                        </label>
+                        <input 
+                            id="instr_new_password" 
+                            name="password" 
+                            type="password" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            autocomplete="new-password"
+                        />
                         @if ($errors->updatePassword->has('password'))
-                            <p class="hub-copy" style="color:var(--hub-danger);">{{ $errors->updatePassword->first('password') }}</p>
+                            <p class="text-xs font-semibold text-rose-600">{{ $errors->updatePassword->first('password') }}</p>
                         @endif
                     </div>
 
-                    <div>
-                        <label for="instr_new_password_confirm" class="hub-eyebrow">Confirm Password</label>
-                        <input id="instr_new_password_confirm" name="password_confirmation" type="password" class="hub-input" autocomplete="new-password">
+                    <div class="space-y-1">
+                        <label for="instr_new_password_confirm" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Confirm Password
+                        </label>
+                        <input 
+                            id="instr_new_password_confirm" 
+                            name="password_confirmation" 
+                            type="password" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            autocomplete="new-password"
+                        />
                     </div>
 
-                    <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
-                        <button type="submit" class="hub-btn hub-btn-primary">Update Password</button>
+                    <div class="pt-2 flex items-center gap-3">
+                        <button 
+                            type="submit" 
+                            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition"
+                        >
+                            Update Password
+                        </button>
                         @if (session('status') === 'password-updated')
-                            <span class="hub-chip hub-chip-green">Password updated</span>
+                            <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                <x-heroicon-s-check-circle class="w-4 h-4" />
+                                Password updated
+                            </span>
                         @endif
                     </div>
                 </form>
-            </section>
+            </div>
         </div>
     </div>
 </x-filament-panels::page>
