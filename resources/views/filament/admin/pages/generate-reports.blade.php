@@ -79,7 +79,7 @@
                         <select wire:model.live="selectedStudentId" class="w-full text-xs font-semibold rounded-xl border border-slate-200 dark:border-[#233842] bg-white dark:bg-[#0b151a] text-slate-800 dark:text-slate-100 px-3.5 py-2.5 focus:ring-2 focus:ring-[#7C3AED]">
                             <option value="">-- Choose a Student --</option>
                             @foreach ($this->students as $st)
-                                <option value="{{ $st->id }}">{{ $st->name }} ({{ $st->email }})</option>
+                                <option value="{{ $st->id }}">{{ $st->name }}</option>
                             @endforeach
                         </select>
                     </div>
