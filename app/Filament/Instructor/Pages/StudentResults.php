@@ -313,6 +313,60 @@ class StudentResults extends Page
         }
     }
 
+    public function removeStudentFromCourse(int $studentId, int $courseId): void
+    {
+        $scopedCourseIds = static::instructorCourseIds();
+        if (! in_array($courseId, $scopedCourseIds, true)) {
+            Notification::make()
+                ->title('Unauthorized')
+                ->body('You do not have permission to modify enrollments for this course.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $student = User::query()->find($studentId);
+        $course = Course::query()->find($courseId);
+        $enrollment = Enrollment::query()
+            ->where('user_id', $studentId)
+            ->where('course_id', $courseId)
+            ->first();
+
+        if (! $enrollment) {
+            Notification::make()
+                ->title('Enrollment not found')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        // Clean up certificate & gamification if completed
+        if ($enrollment->completed_at) {
+            Certificate::query()
+                ->where('user_id', $studentId)
+                ->where('course_id', $courseId)
+                ->delete();
+
+            if ($student && $course) {
+                try {
+                    app(GamificationService::class)->revokeCourseCompleted($student, $course);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+        }
+
+        $enrollment->delete();
+
+        Notification::make()
+            ->title('Student Removed from Course')
+            ->body(($student?->name ?? 'Student') . " has been unenrolled from '" . ($course?->title ?? 'the course') . "'.")
+            ->success()
+            ->send();
+    }
+
     public function openAwardModal(int $studentId): void
     {
         $student = User::query()->find($studentId);

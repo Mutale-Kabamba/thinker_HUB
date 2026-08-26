@@ -834,6 +834,17 @@
                                                                     Mark Complete &amp; Issue Certificate
                                                                 </button>
                                                             @endif
+
+                                                            <button type="button"
+                                                                    wire:click="removeStudentFromCourse({{ $row['id'] }}, {{ $c['id'] }})"
+                                                                    wire:confirm="Are you sure you want to remove {{ $row['name'] }} from '{{ $c['title'] }}'? This will unenrol the student from the course."
+                                                                    style="font-size: 0.65rem; padding: 0.2rem 0.45rem; background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem; transition: all 0.15s ease;"
+                                                                    onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'"
+                                                                    onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'"
+                                                                    title="Remove student from this course">
+                                                                <x-heroicon-o-trash style="width: 0.75rem; height: 0.75rem;" />
+                                                                Remove
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 @endforeach
