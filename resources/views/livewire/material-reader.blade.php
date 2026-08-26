@@ -195,6 +195,7 @@
             isTabActive: true,
             timer: null,
             pdfDoc: null,
+            blobUrl: null,
             currentPage: 1,
             totalPages: 0,
             scale: 1.25,
@@ -202,6 +203,7 @@
             loadingStatus: 'Initializing PDF engine...',
             errorMessage: '',
             rewardMessage: '',
+            pageObserver: null,
 
             init() {
                 if (!this.pdfUrl) {
@@ -277,8 +279,21 @@
             },
 
             loadPdfEngine() {
+                const startRender = () => {
+                    if (typeof window.pdfjsLib !== 'undefined') {
+                        try {
+                            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                        } catch (e) {
+                            // Ignore worker setting error
+                        }
+                        this.renderPdf();
+                    } else {
+                        this.renderFallbackEmbed('PDF.js library could not be loaded.');
+                    }
+                };
+
                 if (typeof window.pdfjsLib !== 'undefined') {
-                    this.renderPdf();
+                    startRender();
                     return;
                 }
 
@@ -287,10 +302,10 @@
                     attempts++;
                     if (typeof window.pdfjsLib !== 'undefined') {
                         clearInterval(checkPdfjs);
-                        this.renderPdf();
-                    } else if (attempts > 50) {
+                        startRender();
+                    } else if (attempts > 40) {
                         clearInterval(checkPdfjs);
-                        this.renderFallbackEmbed('PDF engine loading timed out. Switched to native browser viewer.');
+                        this.renderFallbackEmbed('PDF engine loading timed out.');
                     }
                 }, 100);
             },
@@ -299,19 +314,9 @@
                 try {
                     this.loadingStatus = 'Fetching PDF document...';
 
-                    // Configure worker with cross-origin blob fallback
-                    try {
-                        const workerBlob = new Blob(
-                            [`importScripts('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js');`],
-                            { type: 'application/javascript' }
-                        );
-                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
-                    } catch (workerErr) {
-                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                    }
-
-                    // Fetch as ArrayBuffer to bypass CORS/Range/Session cookie transport issues
+                    // Fetch file with same-origin credentials
                     const response = await fetch(this.pdfUrl, {
+                        credentials: 'same-origin',
                         headers: {
                             'Accept': 'application/pdf,application/octet-stream,*/*',
                             'X-Requested-With': 'XMLHttpRequest'
@@ -324,12 +329,17 @@
 
                     const arrayBuffer = await response.arrayBuffer();
 
+                    // Generate local object Blob URL for fallback/download
+                    try {
+                        const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+                        this.blobUrl = URL.createObjectURL(blob);
+                    } catch (e) {}
+
                     this.loadingStatus = 'Rendering PDF pages...';
                     const loadingTask = window.pdfjsLib.getDocument({
                         data: new Uint8Array(arrayBuffer),
                         cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
-                        cMapPacked: true,
-                        isEvalSupported: false
+                        cMapPacked: true
                     });
 
                     this.pdfDoc = await loadingTask.promise;
@@ -338,45 +348,61 @@
                     this.errorMessage = '';
 
                     const container = this.$refs.pdfContainer;
+                    if (!container) return;
                     container.innerHTML = '';
 
-                    // Calculate fit-to-screen scale on mobile
+                    // Calculate initial fit-to-screen scale
                     const containerWidth = Math.min(container.clientWidth || 800, window.innerWidth - 32);
                     const firstPage = await this.pdfDoc.getPage(1);
                     const unscaledViewport = firstPage.getViewport({ scale: 1.0 });
-                    if (containerWidth < unscaledViewport.width * 1.2) {
-                        this.scale = Math.max(0.6, (containerWidth / unscaledViewport.width) * 0.96);
+                    if (containerWidth < unscaledViewport.width * 1.25) {
+                        this.scale = Math.max(0.6, (containerWidth / unscaledViewport.width) * 0.95);
                     }
 
-                    // Render each page sequentially
+                    // Render all pages sequentially
                     for (let pageNum = 1; pageNum <= this.totalPages; pageNum++) {
                         await this.renderPage(pageNum);
                     }
+
+                    this.setupPageObserver();
                 } catch (error) {
-                    console.warn('PDF.js canvas rendering error, switching to native browser embed:', error);
-                    this.renderFallbackEmbed();
+                    console.warn('PDF.js rendering failed, switching to native embed:', error);
+                    await this.renderFallbackEmbed();
                 }
             },
 
-            renderFallbackEmbed(customMessage = null) {
+            async renderFallbackEmbed(customMessage = null) {
                 this.isLoading = false;
                 this.errorMessage = '';
                 const container = this.$refs.pdfContainer;
                 if (!container) return;
 
+                let targetUrl = this.blobUrl;
+                if (!targetUrl) {
+                    try {
+                        const resp = await fetch(this.pdfUrl, { credentials: 'same-origin' });
+                        if (resp.ok) {
+                            const blob = await resp.blob();
+                            this.blobUrl = URL.createObjectURL(blob);
+                            targetUrl = this.blobUrl;
+                        }
+                    } catch (e) {
+                        targetUrl = this.pdfUrl;
+                    }
+                }
+                targetUrl = targetUrl || this.pdfUrl;
+
                 container.innerHTML = `
                     <div class="w-full flex flex-col items-center space-y-4">
-                        <div class="w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-900 min-h-[75vh]">
-                            <object data="${this.pdfUrl}" type="application/pdf" class="w-full h-[75vh] block rounded-2xl">
-                                <iframe src="${this.pdfUrl}" class="w-full h-[75vh] border-0 rounded-2xl">
-                                    <div class="p-8 text-center text-slate-400">
-                                        <p class="mb-4">Your browser does not support inline PDF viewing.</p>
-                                        <a href="${this.pdfUrl}" download class="px-4 py-2 rounded-xl bg-teal-600 text-white font-bold">
-                                            Download Document
-                                        </a>
-                                    </div>
-                                </iframe>
-                            </object>
+                        <div class="w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-900 min-h-[78vh]">
+                            <iframe src="${targetUrl}#toolbar=1" class="w-full h-[78vh] border-0 rounded-2xl bg-white" title="Document Viewer">
+                                <div class="p-8 text-center text-slate-400">
+                                    <p class="mb-4">Your browser does not support inline PDF viewing.</p>
+                                    <a href="${targetUrl}" download class="px-4 py-2 rounded-xl bg-teal-600 text-white font-bold">
+                                        Download Document
+                                    </a>
+                                </div>
+                            </iframe>
                         </div>
                     </div>
                 `;
@@ -385,37 +411,66 @@
             async renderPage(pageNum) {
                 if (!this.pdfDoc) return;
 
-                const page = await this.pdfDoc.getPage(pageNum);
-                const viewport = page.getViewport({ scale: this.scale });
+                try {
+                    const page = await this.pdfDoc.getPage(pageNum);
+                    const outputScale = window.devicePixelRatio || 1;
 
-                // Page Wrapper with shadow and page label
-                const pageWrapper = document.createElement('div');
-                pageWrapper.className = 'relative bg-white rounded-xl shadow-2xl overflow-hidden mb-6 border border-slate-800';
-                pageWrapper.id = 'pdf-page-' + pageNum;
+                    // Compute standard viewport for CSS size and scaled viewport for canvas pixels
+                    const viewport = page.getViewport({ scale: this.scale });
+                    const scaledViewport = page.getViewport({ scale: this.scale * outputScale });
 
-                const canvas = document.createElement('canvas');
-                canvas.className = 'w-full h-auto block';
-                const context = canvas.getContext('2d');
+                    // Page Wrapper
+                    const pageWrapper = document.createElement('div');
+                    pageWrapper.className = 'relative bg-white rounded-xl shadow-2xl overflow-hidden mb-6 border border-slate-800 flex justify-center pdf-page-container';
+                    pageWrapper.id = 'pdf-page-' + pageNum;
+                    pageWrapper.setAttribute('data-page-number', pageNum);
 
-                // Retina Display scaling (crisp text)
-                const outputScale = window.devicePixelRatio || 1;
-                canvas.width = Math.floor(viewport.width * outputScale);
-                canvas.height = Math.floor(viewport.height * outputScale);
-                canvas.style.width = Math.floor(viewport.width) + 'px';
-                canvas.style.maxHeight = 'none';
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'block';
+                    const context = canvas.getContext('2d');
 
-                const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+                    canvas.width = Math.floor(scaledViewport.width);
+                    canvas.height = Math.floor(scaledViewport.height);
+                    canvas.style.width = Math.floor(viewport.width) + 'px';
+                    canvas.style.height = Math.floor(viewport.height) + 'px';
+                    canvas.style.maxWidth = '100%';
 
-                const renderContext = {
-                    canvasContext: context,
-                    transform: transform,
-                    viewport: viewport
-                };
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: scaledViewport
+                    };
 
-                pageWrapper.appendChild(canvas);
-                this.$refs.pdfContainer.appendChild(pageWrapper);
+                    pageWrapper.appendChild(canvas);
+                    this.$refs.pdfContainer.appendChild(pageWrapper);
 
-                await page.render(renderContext).promise;
+                    await page.render(renderContext).promise;
+                } catch (err) {
+                    console.error(`Failed to render page ${pageNum}:`, err);
+                }
+            },
+
+            setupPageObserver() {
+                if (this.pageObserver) {
+                    this.pageObserver.disconnect();
+                }
+
+                this.pageObserver = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            const pageNum = parseInt(entry.target.getAttribute('data-page-number'));
+                            if (pageNum) {
+                                this.currentPage = pageNum;
+                            }
+                        }
+                    });
+                }, {
+                    root: null,
+                    threshold: 0.4
+                });
+
+                document.querySelectorAll('.pdf-page-container').forEach((el) => {
+                    this.pageObserver.observe(el);
+                });
             },
 
             async zoomIn() {
@@ -433,7 +488,7 @@
                 if (this.pdfDoc) {
                     const firstPage = await this.pdfDoc.getPage(1);
                     const unscaled = firstPage.getViewport({ scale: 1.0 });
-                    this.scale = (containerWidth / unscaled.width) * 0.96;
+                    this.scale = Math.max(0.6, (containerWidth / unscaled.width) * 0.95);
                     await this.reRenderAllPages();
                 }
             },
@@ -441,10 +496,12 @@
             async reRenderAllPages() {
                 if (!this.pdfDoc) return;
                 const container = this.$refs.pdfContainer;
+                if (!container) return;
                 container.innerHTML = '';
                 for (let pageNum = 1; pageNum <= this.totalPages; pageNum++) {
                     await this.renderPage(pageNum);
                 }
+                this.setupPageObserver();
             },
 
             formatTime(seconds) {

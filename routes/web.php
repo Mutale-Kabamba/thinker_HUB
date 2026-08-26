@@ -754,7 +754,10 @@ Route::middleware('auth')->group(function () {
             );
         }
 
-        return $disk->response($path);
+        return $disk->response($path, basename($path), [
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Content-Security-Policy' => "frame-ancestors 'self'",
+        ]);
     })->name('file.view');
 
     // Signed URL route for viewing Office documents via Google Docs Viewer.
