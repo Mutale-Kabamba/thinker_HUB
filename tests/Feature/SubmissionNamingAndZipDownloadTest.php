@@ -246,4 +246,84 @@ class SubmissionNamingAndZipDownloadTest extends TestCase
         $this->assertContains('emma_figma_prototype_1.pdf', $entryNames);
         $this->assertContains('emma_figma_prototype_2.png', $entryNames);
     }
+
+    public function test_submission_zip_service_creates_text_summary_file_when_physical_file_is_missing(): void
+    {
+        $student = User::factory()->create(['name' => 'Frank Castle', 'role' => 'student']);
+        $course = Course::create(['title' => 'Cyber Security', 'code' => 'SEC101', 'is_active' => true]);
+        $assignment = Assignment::create([
+            'course_id' => $course->id,
+            'name' => 'Threat Model',
+            'target_level' => 'Beginner',
+            'date_given' => now()->toDateString(),
+            'due_date' => now()->addDays(7)->toDateString(),
+        ]);
+
+        $submission = AssignmentSubmission::create([
+            'assignment_id' => $assignment->id,
+            'user_id' => $student->id,
+            'file_path' => 'submissions/non_existent_file.pdf',
+            'content' => 'My security analysis summary',
+            'status' => 'Submitted',
+            'submitted_at' => now(),
+        ]);
+
+        $service = app(SubmissionZipService::class);
+        $response = $service->downloadAssignmentsZip(collect([$submission]));
+
+        $this->assertNotNull($response);
+
+        ob_start();
+        $response->sendContent();
+        $zipContent = ob_get_clean();
+
+        $this->assertNotEmpty($zipContent);
+
+        $tempZip = tempnam(sys_get_temp_dir(), 'test_zip_fallback');
+        file_put_contents($tempZip, $zipContent);
+
+        $zip = new ZipArchive();
+        $opened = $zip->open($tempZip);
+        $this->assertTrue($opened);
+
+        $entryNames = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $entryNames[] = $zip->getNameIndex($i);
+        }
+        $zip->close();
+        @unlink($tempZip);
+
+        $this->assertContains('frank_threat_model_submission_details.txt', $entryNames);
+    }
+
+    public function test_single_submission_download(): void
+    {
+        Storage::fake('public');
+        $student = User::factory()->create(['name' => 'Grace Hopper', 'role' => 'student']);
+        $course = Course::create(['title' => 'Compiler Design', 'code' => 'CS301', 'is_active' => true]);
+        $assignment = Assignment::create([
+            'course_id' => $course->id,
+            'name' => 'Lexer Parser',
+            'target_level' => 'Beginner',
+            'date_given' => now()->toDateString(),
+            'due_date' => now()->addDays(7)->toDateString(),
+        ]);
+
+        $filePath = 'submissions/grace_lexer.pdf';
+        Storage::disk('public')->put($filePath, 'Grace Lexer Content');
+
+        $submission = AssignmentSubmission::create([
+            'assignment_id' => $assignment->id,
+            'user_id' => $student->id,
+            'file_path' => $filePath,
+            'status' => 'Submitted',
+            'submitted_at' => now(),
+        ]);
+
+        $service = app(SubmissionZipService::class);
+        $response = $service->downloadSingleAssignmentSubmission($submission);
+
+        $this->assertNotNull($response);
+    }
 }
+

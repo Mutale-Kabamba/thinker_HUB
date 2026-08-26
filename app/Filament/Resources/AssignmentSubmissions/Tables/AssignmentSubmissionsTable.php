@@ -129,6 +129,15 @@ class AssignmentSubmissionsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                \Filament\Actions\Action::make('download')
+                    ->label('Download')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('primary')
+                    ->action(function ($record) {
+                        $service = app(\App\Services\SubmissionZipService::class);
+
+                        return $service->downloadSingleAssignmentSubmission($record);
+                    }),
                 \Filament\Actions\Action::make('markViewed')
                     ->label('Mark Viewed')
                     ->icon('heroicon-o-eye')

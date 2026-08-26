@@ -497,6 +497,30 @@
                                 </div>
                             </div>
                         @endforeach
+
+                        @if (!empty($attendanceRecords))
+                            <div class="pt-3 border-t border-slate-100 dark:border-[#233842] space-y-1.5">
+                                <h4 class="text-[11px] font-bold text-slate-500 uppercase">Recent Attendance Log</h4>
+                                <div class="space-y-1 max-h-40 overflow-y-auto pr-1">
+                                    @foreach ($attendanceRecords as $rec)
+                                        <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-[#233842] text-xs">
+                                            <div class="truncate mr-2">
+                                                <span class="font-bold text-slate-800 dark:text-slate-200">{{ $rec['session_title'] }}</span>
+                                                <span class="text-[10px] text-slate-400 block">{{ $rec['course_title'] }} &bull; {{ $rec['session_date'] }}</span>
+                                            </div>
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold capitalize flex-shrink-0 {{ match($rec['status'] ?? 'present') {
+                                                'present' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300',
+                                                'late' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300',
+                                                'apology' => 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300',
+                                                default => 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                                            } }}">
+                                                {{ ucfirst($rec['status'] ?? 'present') }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endif
