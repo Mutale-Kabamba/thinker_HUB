@@ -7,6 +7,7 @@ use App\Models\AssignmentSubmission;
 use App\Models\Attendance;
 use App\Models\ChatMessage;
 use App\Models\Course;
+use App\Models\CourseSession;
 use App\Models\Enrollment;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
@@ -68,61 +69,29 @@ class Analytics extends Page
     }
 
     /**
-     * % of enrolled students who completed each course, using the same rule
-     * as User::hasCompletedCourse(): a passed attempt for every active quiz
-     * (courses without active quizzes count as complete on enrollment).
+     * Measure course completion by sessions done against all scheduled sessions.
      */
     protected function loadCompletion(Collection $courses, array $courseIds): void
     {
-        $enrolledCounts = Enrollment::query()
+        $sessionStats = CourseSession::query()
             ->whereIn('course_id', $courseIds)
-            ->selectRaw('course_id, count(distinct user_id) as aggregate')
+            ->where('status', '!=', 'cancelled')
+            ->selectRaw('course_id, count(*) as total_count, sum(case when status = "completed" then 1 else 0 end) as completed_count')
             ->groupBy('course_id')
-            ->pluck('aggregate', 'course_id');
+            ->get()
+            ->keyBy('course_id');
 
-        $activeQuizCounts = Quiz::query()
-            ->whereIn('course_id', $courseIds)
-            ->where('is_active', true)
-            ->selectRaw('course_id, count(*) as aggregate')
-            ->groupBy('course_id')
-            ->pluck('aggregate', 'course_id');
-
-        $quizCourseMap = Quiz::query()
-            ->whereIn('course_id', $courseIds)
-            ->where('is_active', true)
-            ->pluck('course_id', 'id');
-
-        // One query: every distinct (student, quiz) pass in scope, grouped in PHP.
-        $passes = QuizAttempt::query()
-            ->whereIn('quiz_id', $quizCourseMap->keys())
-            ->where('passed', true)
-            ->distinct()
-            ->get(['user_id', 'quiz_id']);
-
-        $passCounts = []; // [course_id][user_id] => passed quiz count
-        foreach ($passes as $pass) {
-            $passCourseId = $quizCourseMap[$pass->quiz_id] ?? null;
-
-            if ($passCourseId) {
-                $passCounts[$passCourseId][$pass->user_id] = ($passCounts[$passCourseId][$pass->user_id] ?? 0) + 1;
-            }
-        }
-
-        $this->completionRows = $courses->map(function (Course $course) use ($enrolledCounts, $activeQuizCounts, $passCounts): array {
-            $enrolled = (int) ($enrolledCounts[$course->id] ?? 0);
-            $quizCount = (int) ($activeQuizCounts[$course->id] ?? 0);
-
-            $completed = $quizCount === 0
-                ? $enrolled
-                : collect($passCounts[$course->id] ?? [])->filter(fn (int $count): bool => $count >= $quizCount)->count();
+        $this->completionRows = $courses->map(function (Course $course) use ($sessionStats): array {
+            $stat = $sessionStats->get($course->id);
+            $total = (int) ($stat->total_count ?? 0);
+            $completed = (int) ($stat->completed_count ?? 0);
 
             return [
                 'course' => $course->title,
                 'code' => $course->code,
-                'enrolled' => $enrolled,
-                'completed' => $completed,
-                'active_quizzes' => $quizCount,
-                'percentage' => $enrolled > 0 ? (int) round(($completed / $enrolled) * 100) : 0,
+                'total_sessions' => $total,
+                'completed_sessions' => $completed,
+                'percentage' => $total > 0 ? (int) round(($completed / $total) * 100) : 0,
             ];
         })->all();
     }
