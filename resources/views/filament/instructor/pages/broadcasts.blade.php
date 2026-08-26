@@ -1,7 +1,7 @@
 <x-filament-panels::page>
     <div class="space-y-6 font-sans">
         {{-- Header Card --}}
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="space-y-1">
                 <div class="flex items-center gap-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800">
@@ -18,23 +18,23 @@
         </div>
 
         {{-- Compose Broadcast Card --}}
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden p-6 space-y-5">
-            <div class="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm overflow-hidden p-6 space-y-5">
+            <div class="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-[#233842]">
                 <div class="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold">
                     <x-heroicon-o-megaphone class="w-5 h-5" />
                 </div>
                 <div>
-                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+                    <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
                         Compose Broadcast
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                    </h2>
+                    <p class="text-xs text-slate-400 dark:text-slate-500">
                         Delivered simultaneously via email and student workspace alerts.
                     </p>
                 </div>
             </div>
 
             @if (count($courseOptions) === 0)
-                <div class="py-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 text-xs font-semibold">
+                <div class="py-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-dashed border-slate-200 dark:border-[#233842] text-slate-400 text-xs font-semibold">
                     You have no active courses assigned to broadcast to.
                 </div>
             @else
@@ -47,7 +47,7 @@
                         <select 
                             id="broadcast-course" 
                             wire:model.live="courseId" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
                         >
                             <option value="">Select a course…</option>
                             @foreach ($courseOptions as $option)
@@ -88,7 +88,7 @@
                             wire:model="subject" 
                             maxlength="255" 
                             placeholder="e.g. Project Phase 2 Guidelines & Live Q&A Session"
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
                         />
                     </div>
 
@@ -102,7 +102,7 @@
                             wire:model="message" 
                             rows="6" 
                             placeholder="Write your announcement to the class… Students will receive this formatted in their email inbox and in-app dashboard."
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-3 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-3 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
                         ></textarea>
                     </div>
 
@@ -135,7 +135,7 @@
                                 </button>
                             </div>
                         @else
-                            <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-5 text-center bg-slate-50/50 dark:bg-slate-800/30 hover:border-teal-500 transition cursor-pointer relative">
+                            <div class="border-2 border-dashed border-slate-200 dark:border-[#233842] rounded-xl p-5 text-center bg-slate-50/50 dark:bg-slate-800/30 hover:border-teal-500 transition cursor-pointer relative">
                                 <input
                                     type="file"
                                     wire:model="attachment"
@@ -170,7 +170,7 @@
                             wire:confirm="Send this broadcast to all enrolled students in the selected course?"
                             wire:loading.attr="disabled"
                             wire:target="send,attachment"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition disabled:opacity-50"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition disabled:opacity-50 transform hover:-translate-y-0.5"
                         >
                             <span wire:loading.remove wire:target="send" class="inline-flex items-center gap-2">
                                 <x-heroicon-m-paper-airplane class="w-4 h-4" />
@@ -186,17 +186,17 @@
             @endif
         </div>
 
-        {{-- Broadcast History Feed --}}
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden p-6 space-y-4">
-            <div class="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+        {{-- Broadcast History Feed Card --}}
+        <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm overflow-hidden p-6 space-y-4">
+            <div class="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-[#233842]">
                 <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold">
                     <x-heroicon-o-clock class="w-5 h-5" />
                 </div>
                 <div>
-                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+                    <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
                         Broadcast History
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                    </h2>
+                    <p class="text-xs text-slate-400 dark:text-slate-500">
                         Past cohort communications and delivery logs.
                     </p>
                 </div>
@@ -209,7 +209,7 @@
             @else
                 <div class="space-y-3">
                     @foreach ($history as $item)
-                        <div x-data="{ expanded: false }" class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/60 bg-slate-50/50 dark:bg-slate-800/40 space-y-3">
+                        <div x-data="{ expanded: false }" class="p-4 rounded-xl border border-slate-200/80 dark:border-[#233842] bg-slate-50/50 dark:bg-slate-800/40 space-y-3">
                             <div class="flex items-start justify-between gap-4 flex-wrap">
                                 <div class="min-w-0 flex-1 space-y-1">
                                     <div class="flex items-center gap-2 flex-wrap">
@@ -251,12 +251,12 @@
                                 </div>
                             </div>
 
-                            <div x-show="expanded" x-cloak class="mt-2 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-300 space-y-3 leading-relaxed whitespace-pre-line bg-white dark:bg-slate-900/60 p-3 rounded-lg">
+                            <div x-show="expanded" x-cloak class="mt-2 pt-3 border-t border-slate-200/60 dark:border-[#233842] text-xs text-slate-700 dark:text-slate-300 space-y-3 leading-relaxed whitespace-pre-line bg-white dark:bg-slate-900/60 p-3 rounded-lg">
                                 <div>
                                     {{ $item['body'] }}
                                 </div>
                                 @if (!empty($item['attachment_path']))
-                                    <div class="pt-2 border-t border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                    <div class="pt-2 border-t border-dashed border-slate-200 dark:border-[#233842] flex items-center justify-between">
                                         <span class="text-[11px] font-bold text-slate-500">
                                             Attachment: {{ $item['attachment_name'] }} ({{ $item['attachment_size'] }})
                                         </span>

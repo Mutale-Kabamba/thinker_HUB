@@ -7,7 +7,7 @@
 
     <div class="space-y-6 font-sans">
         {{-- Header Card --}}
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800">
                 Account & Preferences
             </span>
@@ -20,13 +20,13 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {{-- Profile Settings --}}
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
-                <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+            {{-- Profile Settings Card --}}
+            <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
+                <div class="border-b border-slate-100 dark:border-[#233842] pb-3">
+                    <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
                         Personal Profile
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                    </h2>
+                    <p class="text-xs text-slate-400 dark:text-slate-500">
                         Update your name, primary email address, and avatar photo.
                     </p>
                 </div>
@@ -44,7 +44,7 @@
                             name="name" 
                             type="text" 
                             value="{{ old('name', $user->name) }}" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             required
                         />
                         @error('name')
@@ -61,7 +61,7 @@
                             name="email" 
                             type="email" 
                             value="{{ old('email', $user->email) }}" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             required
                         />
                         @error('email')
@@ -107,7 +107,7 @@
                             <select 
                                 id="default_portal" 
                                 name="default_portal" 
-                                class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                                class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
                             >
                                 @foreach ($user->getAvailablePortals() as $portalKey => $portalData)
                                     <option value="{{ $portalKey }}" {{ old('default_portal', $user->default_portal ?? '') === $portalKey ? 'selected' : '' }}>
@@ -124,7 +124,7 @@
                     <div class="pt-2 flex items-center gap-3">
                         <button 
                             type="submit" 
-                            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition"
+                            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition transform hover:-translate-y-0.5"
                         >
                             Save Profile
                         </button>
@@ -138,13 +138,13 @@
                 </form>
             </div>
 
-            {{-- Professional Details --}}
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
-                <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+            {{-- Professional Details Card --}}
+            <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
+                <div class="border-b border-slate-100 dark:border-[#233842] pb-3">
+                    <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
                         Teaching Credentials & Bio
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                    </h2>
+                    <p class="text-xs text-slate-400 dark:text-slate-500">
                         Information visible to students across courses and webinars.
                     </p>
                 </div>
@@ -162,7 +162,7 @@
                             name="proficiency" 
                             type="text" 
                             value="{{ old('proficiency', $user->proficiency) }}" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             placeholder="e.g. Data Science, Machine Learning, Full-Stack"
                         />
                         @error('proficiency')
@@ -179,7 +179,7 @@
                             name="occupation" 
                             type="text" 
                             value="{{ old('occupation', $user->occupation) }}" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             placeholder="e.g. Senior Software Architect"
                         />
                         @error('occupation')
@@ -195,7 +195,7 @@
                             id="instr_bio" 
                             name="bio" 
                             rows="3" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             placeholder="Write a brief description about your teaching style, experience, and background..."
                         >{{ old('bio', $user->bio) }}</textarea>
                         @error('bio')
@@ -206,18 +206,18 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="space-y-1">
                             <label for="instr_whatsapp" class="block text-xs font-bold text-slate-700 dark:text-slate-200">WhatsApp</label>
-                            <input id="instr_whatsapp" name="whatsapp" type="text" value="{{ old('whatsapp', $user->whatsapp) }}" class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2" placeholder="+260 97 xxxxxxx" />
+                            <input id="instr_whatsapp" name="whatsapp" type="text" value="{{ old('whatsapp', $user->whatsapp) }}" class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2" placeholder="+260 97 xxxxxxx" />
                         </div>
                         <div class="space-y-1">
                             <label for="instr_linkedin" class="block text-xs font-bold text-slate-700 dark:text-slate-200">LinkedIn</label>
-                            <input id="instr_linkedin" name="linkedin_url" type="url" value="{{ old('linkedin_url', $user->linkedin_url) }}" class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2" placeholder="https://linkedin.com/in/..." />
+                            <input id="instr_linkedin" name="linkedin_url" type="url" value="{{ old('linkedin_url', $user->linkedin_url) }}" class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2" placeholder="https://linkedin.com/in/..." />
                         </div>
                     </div>
 
                     <div class="pt-2 flex items-center gap-3">
                         <button 
                             type="submit" 
-                            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition"
+                            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition transform hover:-translate-y-0.5"
                         >
                             Save Details
                         </button>
@@ -233,14 +233,14 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {{-- Notifications List --}}
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
-                <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+            {{-- Notifications List Card --}}
+            <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
+                <div class="border-b border-slate-100 dark:border-[#233842] pb-3 flex items-center justify-between">
                     <div>
-                        <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+                        <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
                             Recent Alerts & Notifications
-                        </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">
+                        </h2>
+                        <p class="text-xs text-slate-400 dark:text-slate-500">
                             Activity logs and system broadcasts.
                         </p>
                     </div>
@@ -254,7 +254,7 @@
                             x-show="!cleared" 
                             x-transition.opacity
                             @click="fetch('/notifications/{{ $note->id }}/clear', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }); cleared = true;"
-                            class="p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 hover:bg-teal-50/50 dark:hover:bg-slate-800 transition cursor-pointer flex items-center justify-between gap-3"
+                            class="p-3 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/70 dark:bg-slate-800/40 hover:bg-teal-50/50 dark:hover:bg-slate-800 transition cursor-pointer flex items-center justify-between gap-3"
                             title="Click to mark as read"
                         >
                             <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
@@ -272,13 +272,13 @@
                 </div>
             </div>
 
-            {{-- Update Password Card --}}
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
-                <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+            {{-- Update Password Security Card --}}
+            <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
+                <div class="border-b border-slate-100 dark:border-[#233842] pb-3">
+                    <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
                         Security & Password
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                    </h2>
+                    <p class="text-xs text-slate-400 dark:text-slate-500">
                         Ensure your account uses a strong, secure passphrase.
                     </p>
                 </div>
@@ -295,7 +295,7 @@
                             id="instr_current_password" 
                             name="current_password" 
                             type="password" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             autocomplete="current-password"
                         />
                         @if ($errors->updatePassword->has('current_password'))
@@ -311,7 +311,7 @@
                             id="instr_new_password" 
                             name="password" 
                             type="password" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             autocomplete="new-password"
                         />
                         @if ($errors->updatePassword->has('password'))
@@ -327,7 +327,7 @@
                             id="instr_new_password_confirm" 
                             name="password_confirmation" 
                             type="password" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             autocomplete="new-password"
                         />
                     </div>
@@ -335,7 +335,7 @@
                     <div class="pt-2 flex items-center gap-3">
                         <button 
                             type="submit" 
-                            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition"
+                            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition transform hover:-translate-y-0.5"
                         >
                             Update Password
                         </button>
