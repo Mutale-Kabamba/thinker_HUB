@@ -1,32 +1,54 @@
 <x-filament-panels::page>
-    <div class="hub-shell">
-        <section class="hub-card" style="padding:0.75rem 1rem;">
-            <p class="hub-eyebrow">Communications</p>
-            <h2 class="hub-title" style="font-size:1.1rem;">Cohort Broadcasts</h2>
-            <p class="hub-copy" style="margin-top:0.2rem;">Send an email announcement and in-app dashboard notification to all students enrolled in your course.</p>
-        </section>
+    <div class="space-y-6 font-sans">
+        {{-- Header Card --}}
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800">
+                        Communications Center
+                    </span>
+                </div>
+                <h1 class="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                    Cohort Broadcasts & Announcements
+                </h1>
+                <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    Send email announcements and in-app dashboard notifications directly to all students enrolled in your course.
+                </p>
+            </div>
+        </div>
 
-        {{-- ===== COMPOSE ===== --}}
-        <section class="hub-card" style="padding:1.25rem;">
-            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
-                <div style="width:34px;height:34px;border-radius:8px;background:rgba(13,148,136,0.1);display:flex;align-items:center;justify-content:center;">
-                    <x-heroicon-o-megaphone style="width:1.2rem;height:1.2rem;color:var(--hub-primary);" />
+        {{-- Compose Broadcast Card --}}
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden p-6 space-y-5">
+            <div class="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div class="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold">
+                    <x-heroicon-o-megaphone class="w-5 h-5" />
                 </div>
                 <div>
-                    <h3 class="hub-title" style="font-size:1rem;margin:0;">Compose Broadcast</h3>
-                    <p style="font-size:0.75rem;color:var(--hub-muted);margin:0;">Deliver instantly via email and student portal notifications</p>
+                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+                        Compose Broadcast
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        Delivered simultaneously via email and student workspace alerts.
+                    </p>
                 </div>
             </div>
 
             @if (count($courseOptions) === 0)
-                <div style="padding:1.25rem;background:#f8fafc;border:1px dashed var(--hub-border);border-radius:10px;text-align:center;">
-                    <p class="hub-copy" style="color:var(--hub-muted);margin:0;">You have no active courses assigned to broadcast to.</p>
+                <div class="py-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 text-xs font-semibold">
+                    You have no active courses assigned to broadcast to.
                 </div>
             @else
-                <div style="display:flex;flex-direction:column;gap:0.9rem;max-width:680px;">
-                    <div>
-                        <label for="broadcast-course" style="display:block;font-size:0.78rem;font-weight:700;color:var(--hub-ink);margin-bottom:0.35rem;">Target Course <span style="color:#ef4444;">*</span></label>
-                        <select id="broadcast-course" wire:model.live="courseId" class="hub-input" style="width:100%;font-size:0.88rem;padding:0.5rem 0.65rem;border-radius:8px;">
+                <div class="space-y-4 max-w-3xl">
+                    {{-- Target Course Selection --}}
+                    <div class="space-y-1.5">
+                        <label for="broadcast-course" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Target Course <span class="text-rose-500">*</span>
+                        </label>
+                        <select 
+                            id="broadcast-course" 
+                            wire:model.live="courseId" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                        >
                             <option value="">Select a course…</option>
                             @foreach ($courseOptions as $option)
                                 <option value="{{ $option['id'] }}">{{ $option['label'] }}</option>
@@ -34,15 +56,15 @@
                         </select>
 
                         @if ($courseId)
-                            <div style="margin-top:0.4rem;font-size:0.76rem;display:flex;align-items:center;gap:0.35rem;">
+                            <div class="pt-1 text-xs">
                                 @if ($this->enrolledCount > 0)
-                                    <span style="color:#0f766e;font-weight:600;display:inline-flex;align-items:center;gap:0.3rem;">
-                                        <x-heroicon-s-user-group style="width:1rem;height:1rem;" />
+                                    <span class="inline-flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
+                                        <x-heroicon-s-user-group class="w-4 h-4" />
                                         {{ $this->enrolledCount }} enrolled student{{ $this->enrolledCount === 1 ? '' : 's' }} will receive this broadcast
                                     </span>
                                 @else
-                                    <span style="color:#d97706;font-weight:600;display:inline-flex;align-items:center;gap:0.3rem;">
-                                        <x-heroicon-s-exclamation-triangle style="width:1rem;height:1rem;" />
+                                    <span class="inline-flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
+                                        <x-heroicon-s-exclamation-triangle class="w-4 h-4" />
                                         No enrolled students with email found in this course.
                                     </span>
                                 @endif
@@ -50,174 +72,201 @@
                         @endif
                     </div>
 
-                    <div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
-                            <label for="broadcast-subject" style="font-size:0.78rem;font-weight:700;color:var(--hub-ink);">Subject <span style="color:#ef4444;">*</span></label>
-                            <span style="font-size:0.72rem;color:var(--hub-muted);">{{ mb_strlen($subject) }}/255</span>
+                    {{-- Subject --}}
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label for="broadcast-subject" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                                Subject <span class="text-rose-500">*</span>
+                            </label>
+                            <span class="text-[11px] font-semibold text-slate-400">
+                                {{ mb_strlen($subject) }}/255
+                            </span>
                         </div>
-                        <input id="broadcast-subject" type="text" wire:model="subject" maxlength="255" class="hub-input" style="width:100%;font-size:0.88rem;padding:0.5rem 0.65rem;border-radius:8px;" placeholder="e.g. Project Phase 2 Guidelines & Live Q&A Session">
+                        <input 
+                            id="broadcast-subject" 
+                            type="text" 
+                            wire:model="subject" 
+                            maxlength="255" 
+                            placeholder="e.g. Project Phase 2 Guidelines & Live Q&A Session"
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                        />
                     </div>
 
-                    <div>
-                        <label for="broadcast-message" style="display:block;font-size:0.78rem;font-weight:700;color:var(--hub-ink);margin-bottom:0.35rem;">Announcement Message <span style="color:#ef4444;">*</span></label>
-                        <textarea id="broadcast-message" wire:model="message" rows="7" class="hub-input" style="width:100%;font-size:0.88rem;padding:0.6rem 0.65rem;resize:vertical;border-radius:8px;" placeholder="Write your announcement to the class… Students will receive this formatted in their email inbox and in-app dashboard."></textarea>
+                    {{-- Message Body --}}
+                    <div class="space-y-1.5">
+                        <label for="broadcast-message" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Announcement Message <span class="text-rose-500">*</span>
+                        </label>
+                        <textarea 
+                            id="broadcast-message" 
+                            wire:model="message" 
+                            rows="6" 
+                            placeholder="Write your announcement to the class… Students will receive this formatted in their email inbox and in-app dashboard."
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-3 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                        ></textarea>
                     </div>
 
-                    {{-- Media Attachment Upload --}}
-                    <div>
-                        <label style="display:block;font-size:0.78rem;font-weight:700;color:var(--hub-ink);margin-bottom:0.35rem;">
-                            Media Attachment <span style="font-weight:400;color:var(--hub-muted);">(Optional &middot; PDF, Image, Video, Zip, Docs &middot; Max 25MB)</span>
+                    {{-- Attachment --}}
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Media Attachment <span class="font-normal text-slate-400">(Optional &bull; PDF, Image, Video, Zip, Docs &bull; Max 25MB)</span>
                         </label>
 
                         @if ($attachment)
-                            <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;padding:0.65rem 0.85rem;background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;">
-                                <div style="display:flex;align-items:center;gap:0.5rem;min-width:0;">
-                                    <span style="font-size:1.2rem;">📎</span>
-                                    <div style="min-width:0;">
-                                        <p style="margin:0;font-size:0.84rem;font-weight:700;color:#0f766e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="text-lg">📎</span>
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-extrabold text-teal-900 dark:text-teal-200 truncate">
                                             {{ $attachment->getClientOriginalName() }}
                                         </p>
-                                        <p style="margin:0;font-size:0.72rem;color:#115e59;">
-                                            {{ round($attachment->getSize() / 1024, 1) }} KB &middot; Ready to send
+                                        <p class="text-[10px] text-teal-600 dark:text-teal-400">
+                                            {{ round($attachment->getSize() / 1024, 1) }} KB &bull; Ready to send
                                         </p>
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     wire:click="removeAttachment"
-                                    style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:0.78rem;font-weight:700;display:inline-flex;align-items:center;gap:0.25rem;"
+                                    class="inline-flex items-center gap-1 text-xs font-bold text-rose-600 hover:text-rose-700"
                                 >
-                                    <x-heroicon-s-x-circle style="width:1.1rem;height:1.1rem;" />
-                                    Remove
+                                    <x-heroicon-s-x-circle class="w-4 h-4" />
+                                    <span>Remove</span>
                                 </button>
                             </div>
                         @else
-                            <div
-                                style="border:2px dashed var(--hub-border);border-radius:8px;padding:1rem;text-align:center;background:#fafafa;cursor:pointer;position:relative;"
-                                ondragover="event.preventDefault();this.style.borderColor='var(--hub-primary)'"
-                                ondragleave="this.style.borderColor='var(--hub-border)'"
-                            >
+                            <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-5 text-center bg-slate-50/50 dark:bg-slate-800/30 hover:border-teal-500 transition cursor-pointer relative">
                                 <input
                                     type="file"
                                     wire:model="attachment"
                                     id="broadcast-attachment-input"
-                                    style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;"
-                                >
-                                <div wire:loading.remove wire:target="attachment">
-                                    <x-heroicon-o-paper-clip style="width:1.5rem;height:1.5rem;color:var(--hub-muted);margin:0 auto 0.25rem;" />
-                                    <p style="margin:0;font-size:0.82rem;font-weight:600;color:var(--hub-ink);">
+                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                                <div wire:loading.remove wire:target="attachment" class="space-y-1">
+                                    <x-heroicon-o-paper-clip class="w-6 h-6 mx-auto text-slate-400" />
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">
                                         Click or drag file to attach media
                                     </p>
-                                    <p style="margin:0.15rem 0 0;font-size:0.72rem;color:var(--hub-muted);">
+                                    <p class="text-[11px] text-slate-400">
                                         Images, PDFs, Slides, Videos, or Archives up to 25MB
                                     </p>
                                 </div>
-                                <div wire:loading wire:target="attachment" style="font-size:0.82rem;color:var(--hub-primary);font-weight:600;">
-                                    <x-heroicon-m-arrow-path style="width:1.2rem;height:1.2rem;display:inline-block;" class="animate-spin" />
-                                    Uploading attachment…
+                                <div wire:loading wire:target="attachment" class="text-xs font-bold text-teal-600 dark:text-teal-400 flex items-center justify-center gap-2">
+                                    <x-heroicon-m-arrow-path class="w-4 h-4 animate-spin" />
+                                    <span>Uploading attachment…</span>
                                 </div>
                             </div>
                         @endif
                         @error('attachment')
-                            <p style="margin:0.3rem 0 0;font-size:0.75rem;color:#dc2626;">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.25rem;">
+                    {{-- Submit Button --}}
+                    <div class="pt-2">
                         <button
                             type="button"
                             wire:click="send"
                             wire:confirm="Send this broadcast to all enrolled students in the selected course?"
                             wire:loading.attr="disabled"
                             wire:target="send,attachment"
-                            class="hub-btn hub-btn-primary"
-                            style="font-size:0.88rem;padding:0.55rem 1.4rem;display:inline-flex;align-items:center;gap:0.4rem;"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition disabled:opacity-50"
                         >
-                            <span wire:loading.remove wire:target="send" style="display:inline-flex;align-items:center;gap:0.35rem;">
-                                <x-heroicon-m-paper-airplane style="width:1rem;height:1rem;" />
-                                Send Broadcast Now
+                            <span wire:loading.remove wire:target="send" class="inline-flex items-center gap-2">
+                                <x-heroicon-m-paper-airplane class="w-4 h-4" />
+                                <span>Send Broadcast Now</span>
                             </span>
-                            <span wire:loading wire:target="send" style="display:inline-flex;align-items:center;gap:0.35rem;">
-                                <x-heroicon-m-arrow-path style="width:1rem;height:1rem;" class="animate-spin" />
-                                Sending to Students…
+                            <span wire:loading wire:target="send" class="inline-flex items-center gap-2">
+                                <x-heroicon-m-arrow-path class="w-4 h-4 animate-spin" />
+                                <span>Sending to Students…</span>
                             </span>
                         </button>
                     </div>
                 </div>
             @endif
-        </section>
+        </div>
 
-        {{-- ===== HISTORY ===== --}}
-        <section class="hub-card" style="padding:1.25rem;">
-            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.9rem;">
-                <div style="width:34px;height:34px;border-radius:8px;background:rgba(15,23,42,0.06);display:flex;align-items:center;justify-content:center;">
-                    <x-heroicon-o-clock style="width:1.2rem;height:1.2rem;color:var(--hub-ink);" />
+        {{-- Broadcast History Feed --}}
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden p-6 space-y-4">
+            <div class="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold">
+                    <x-heroicon-o-clock class="w-5 h-5" />
                 </div>
                 <div>
-                    <h3 class="hub-title" style="font-size:1rem;margin:0;">Broadcast History</h3>
-                    <p style="font-size:0.75rem;color:var(--hub-muted);margin:0;">Past cohort communications and delivery logs</p>
+                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+                        Broadcast History
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        Past cohort communications and delivery logs.
+                    </p>
                 </div>
             </div>
 
             @if (count($history) === 0)
-                <div style="padding:1.25rem;background:#f8fafc;border:1px dashed var(--hub-border);border-radius:10px;text-align:center;">
-                    <p class="hub-copy" style="color:var(--hub-muted);margin:0;">No broadcasts sent yet.</p>
+                <div class="py-8 text-center text-slate-400 dark:text-slate-500 text-xs font-semibold">
+                    No broadcasts sent yet.
                 </div>
             @else
-                <div class="hub-stack" style="gap:0.75rem;">
+                <div class="space-y-3">
                     @foreach ($history as $item)
-                        <div x-data="{ expanded: false }" style="border:1px solid var(--hub-border);border-radius:10px;padding:0.75rem 0.9rem;background:#ffffff;transition:all 0.15s;">
-                            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem;flex-wrap:wrap;">
-                                <div style="min-width:0;flex:1;">
-                                    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
-                                        <p style="margin:0;font-weight:700;font-size:0.9rem;color:var(--hub-ink);">{{ $item['subject'] }}</p>
-                                        <span class="hub-chip" style="font-size:0.68rem;background:#f1f5f9;color:#475569;">{{ $item['course'] }}</span>
+                        <div x-data="{ expanded: false }" class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/60 bg-slate-50/50 dark:bg-slate-800/40 space-y-3">
+                            <div class="flex items-start justify-between gap-4 flex-wrap">
+                                <div class="min-w-0 flex-1 space-y-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h4 class="font-extrabold text-xs text-slate-900 dark:text-white">
+                                            {{ $item['subject'] }}
+                                        </h4>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                                            {{ $item['course'] }}
+                                        </span>
                                         @if (!empty($item['attachment_name']))
-                                            <span class="hub-chip" style="font-size:0.68rem;background:#ecfdf5;color:#047857;display:inline-flex;align-items:center;gap:0.2rem;">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                                                 📎 {{ $item['attachment_name'] }} ({{ $item['attachment_size'] }})
                                             </span>
                                         @endif
                                     </div>
-                                    <p style="margin:0.25rem 0 0;font-size:0.74rem;color:var(--hub-muted);">
+                                    <p class="text-[11px] text-slate-400">
                                         Sent: {{ $item['sent_at'] }}
                                     </p>
                                 </div>
-                                <div style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;">
-                                    <span class="hub-chip hub-chip-green" style="font-size:0.72rem;display:inline-flex;align-items:center;gap:0.25rem;">
-                                        <x-heroicon-s-check-circle style="width:0.85rem;height:0.85rem;" />
-                                        {{ $item['recipients_count'] }} recipient{{ $item['recipients_count'] === 1 ? '' : 's' }}
+
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                                        <x-heroicon-s-check-circle class="w-3.5 h-3.5" />
+                                        {{ $item['recipients_count'] }} {{ Str::plural('recipient', $item['recipients_count']) }}
                                     </span>
                                     @if ($item['failed_count'] > 0)
-                                        <span class="hub-chip hub-chip-danger" style="font-size:0.72rem;">
+                                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
                                             {{ $item['failed_count'] }} failed
                                         </span>
                                     @endif
                                     <button
                                         type="button"
                                         @click="expanded = !expanded"
-                                        style="background:none;border:none;cursor:pointer;color:var(--hub-primary);font-size:0.75rem;font-weight:600;padding:0.2rem 0.4rem;"
+                                        class="text-xs font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 px-2 py-1"
                                     >
                                         <span x-show="!expanded">View Details ↓</span>
                                         <span x-show="expanded">Hide ↑</span>
                                     </button>
                                 </div>
                             </div>
-                            <div x-show="expanded" x-cloak style="margin-top:0.65rem;padding-top:0.65rem;border-top:1px solid var(--hub-border);font-size:0.82rem;color:#334155;line-height:1.6;white-space:pre-line;background:#f8fafc;padding:0.6rem 0.8rem;border-radius:6px;">
-                                <div style="margin-bottom:0.4rem;">
+
+                            <div x-show="expanded" x-cloak class="mt-2 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-300 space-y-3 leading-relaxed whitespace-pre-line bg-white dark:bg-slate-900/60 p-3 rounded-lg">
+                                <div>
                                     {{ $item['body'] }}
                                 </div>
                                 @if (!empty($item['attachment_path']))
-                                    <div style="margin-top:0.6rem;padding-top:0.5rem;border-top:1px dashed #cbd5e1;display:flex;align-items:center;justify-content:space-between;">
-                                        <span style="font-size:0.75rem;color:#64748b;font-weight:600;">
+                                    <div class="pt-2 border-t border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                        <span class="text-[11px] font-bold text-slate-500">
                                             Attachment: {{ $item['attachment_name'] }} ({{ $item['attachment_size'] }})
                                         </span>
                                         <a
                                             href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($item['attachment_path']) }}"
                                             target="_blank"
-                                            class="hub-chip hub-chip-primary"
-                                            style="font-size:0.72rem;text-decoration:none;"
+                                            class="inline-flex items-center gap-1 text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline"
                                         >
-                                            View / Download Attachment &nearr;
+                                            <span>Download Attachment</span>
+                                            <x-heroicon-m-arrow-top-right-on-square class="w-3.5 h-3.5" />
                                         </a>
                                     </div>
                                 @endif
@@ -226,6 +275,6 @@
                     @endforeach
                 </div>
             @endif
-        </section>
+        </div>
     </div>
 </x-filament-panels::page>

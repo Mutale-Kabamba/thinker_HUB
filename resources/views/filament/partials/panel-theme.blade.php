@@ -2955,6 +2955,24 @@
         transition: all 0.15s ease !important;
     }
 
+    .fi-panel-instructor .fi-sidebar-item-active > .fi-sidebar-item-btn,
+    .fi-panel-instructor .fi-sidebar-item-active .fi-sidebar-item-btn {
+        background: linear-gradient(135deg, #0d9488, #0f766e) !important;
+        color: #ffffff !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 14px -2px rgba(13, 148, 136, 0.35) !important;
+    }
+    .fi-panel-instructor .fi-sidebar-item-active .fi-sidebar-item-btn svg,
+    .fi-panel-instructor .fi-sidebar-item-active .fi-sidebar-item-btn .fi-sidebar-item-label,
+    .fi-panel-instructor .fi-sidebar-item-active .fi-sidebar-item-btn span {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+    }
+    .fi-panel-instructor .fi-sidebar-item-btn {
+        border-radius: 12px !important;
+        transition: all 0.15s ease !important;
+    }
+
     /* Brand Logo Light / Dark Mode Toggle Fix */
     .fi-logo-dark {
         display: none !important;
