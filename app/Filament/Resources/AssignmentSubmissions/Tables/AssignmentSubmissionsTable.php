@@ -44,6 +44,16 @@ class AssignmentSubmissionsTable
                             return 'No due date';
                         }
 
+                        $submissionTime = $record->submitted_at ?? $record->created_at;
+
+                        if ($submissionTime) {
+                            if ($submissionTime->lte($dueDate->copy()->endOfDay())) {
+                                return 'On Time: '.$dueDate->format('Y-m-d');
+                            }
+
+                            return 'Late: '.$dueDate->format('Y-m-d');
+                        }
+
                         if ($dueDate->isPast()) {
                             return 'Overdue: '.$dueDate->format('Y-m-d');
                         }
@@ -51,7 +61,11 @@ class AssignmentSubmissionsTable
                         return 'Upcoming: '.$dueDate->format('Y-m-d');
                     })
                     ->color(function (string $state): string {
-                        if (str_starts_with($state, 'Overdue')) {
+                        if (str_starts_with($state, 'On Time')) {
+                            return 'success';
+                        }
+
+                        if (str_starts_with($state, 'Late') || str_starts_with($state, 'Overdue')) {
                             return 'danger';
                         }
 

@@ -106,9 +106,18 @@
     /* ==========================================================================
        GLOBAL PREMIUM BUTTON DESIGN SYSTEM (ALL PANELS)
        ========================================================================== */
-    .fi-btn,
-    button.fi-btn,
-    a.fi-btn,
+    [hidden],
+    .hidden,
+    .fi-hidden,
+    [x-cloak],
+    [style*="display: none"],
+    [style*="display:none"] {
+        display: none !important;
+    }
+
+    .fi-btn:not([hidden]):not(.hidden),
+    button.fi-btn:not([hidden]):not(.hidden),
+    a.fi-btn:not([hidden]):not(.hidden),
     .hub-btn,
     .hub-btn-primary,
     .fi-ac-btn-action,
@@ -118,10 +127,10 @@
     .fi-modal-footer-actions .fi-btn,
     .fi-modal-window footer .fi-btn,
     .fi-ta-actions .fi-btn {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 0.45rem !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
         font-family: inherit !important;
         font-weight: 700 !important;
         font-size: 0.8125rem !important;
@@ -130,11 +139,11 @@
         padding: 0.5rem 1.2rem !important;
         cursor: pointer !important;
         text-decoration: none !important;
-        border: 1px solid transparent !important;
-        transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        user-select: none !important;
-        white-space: nowrap !important;
-        letter-spacing: 0.01em !important;
+        border: 1px solid transparent;
+        transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        user-select: none;
+        white-space: nowrap;
+        letter-spacing: 0.01em;
     }
 
     .fi-btn:disabled,
@@ -358,11 +367,8 @@
     button.fi-icon-btn,
     a.fi-icon-btn {
         border-radius: 9999px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 0.45rem !important;
-        transition: all 0.18s ease !important;
+        padding: 0.45rem;
+        transition: all 0.18s ease;
     }
 
     .fi-icon-btn:hover,

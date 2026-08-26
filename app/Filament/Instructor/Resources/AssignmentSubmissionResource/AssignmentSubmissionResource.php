@@ -197,11 +197,19 @@ class AssignmentSubmissionResource extends Resource
                         if (! $dueDate) {
                             return 'No due date';
                         }
+
+                        $submissionTime = $record->submitted_at ?? $record->created_at;
+                        if ($submissionTime) {
+                            return $submissionTime->lte($dueDate->copy()->endOfDay())
+                                ? 'On Time: ' . $dueDate->format('Y-m-d')
+                                : 'Late: ' . $dueDate->format('Y-m-d');
+                        }
+
                         return $dueDate->isPast()
                             ? 'Overdue: ' . $dueDate->format('Y-m-d')
                             : 'Upcoming: ' . $dueDate->format('Y-m-d');
                     })
-                    ->color(fn (string $state): string => str_starts_with($state, 'Overdue') ? 'danger' : (str_starts_with($state, 'Upcoming') ? 'warning' : 'gray')),
+                    ->color(fn (string $state): string => str_starts_with($state, 'On Time') ? 'success' : (str_starts_with($state, 'Late') || str_starts_with($state, 'Overdue') ? 'danger' : (str_starts_with($state, 'Upcoming') ? 'warning' : 'gray'))),
                 TextColumn::make('grade')
                     ->numeric()
                     ->sortable(),
