@@ -74,7 +74,8 @@ class PaymentService
 
             // 2. Compute Fee
             $track = $validated['track'] ?? null;
-            $feeAmount = $course->getNumericFeeForLevel($track);
+            $mode = $validated['mode'] ?? null;
+            $feeAmount = $course->getNumericFeeForOption($track, $mode);
             if ($feeAmount <= 0) {
                 $feeAmount = $course->getNumericFee();
             }
@@ -105,6 +106,7 @@ class PaymentService
                     'user_agent' => $request->userAgent(),
                     'gateway' => 'Lenco by BroadPay',
                     'track' => $validated['track'],
+                    'mode' => $validated['mode'] ?? 'group',
                     'initiated_at' => now()->toIso8601String(),
                     'guest_data' => $guestData,
                 ],

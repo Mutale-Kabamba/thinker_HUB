@@ -232,9 +232,9 @@
                 <div>
                     <p class="text-xs font-semibold text-teal-600 uppercase tracking-widest mb-1">Course Enrollment</p>
                     <h1 class="text-lg font-black text-[#0a2d27] leading-tight">{{ $course->title }}</h1>
-                    <p class="text-xs text-slate-400 mt-0.5">{{ $course->code }} &bull; Level: <span class="font-semibold text-slate-600" x-text="track"></span></p>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ $course->code }} &bull; Level: <span class="font-semibold text-slate-600" x-text="track"></span> &bull; <span class="font-semibold text-teal-700" x-text="modeLabel"></span></p>
                 </div>
-                <span class="amount-chip shrink-0 ml-4 mt-1">ZMW {{ number_format($feeAmount, 2) }}</span>
+                <span class="amount-chip shrink-0 ml-4 mt-1">ZMW <span x-text="Number(feeAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span></span>
             </div>
 
             {{-- Error message banner --}}
@@ -255,6 +255,7 @@
                     <input type="hidden" name="payment_method" :value="paymentMethod">
                     <input type="hidden" name="provider" :value="provider">
                     <input type="hidden" name="track" :value="track">
+                    <input type="hidden" name="mode" :value="mode">
 
                     <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
 
@@ -307,26 +308,57 @@
                                 @endguest
                             </div>
 
-                            {{-- Selected Learning Level Card --}}
+                            {{-- Selected Learning Level & Mode Card --}}
                             <div class="pt-3 border-t border-slate-100">
                                 <div class="flex items-center justify-between mb-2">
-                                    <p class="form-label mb-0">Selected Learning Level</p>
-                                    <span class="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100">Confirmed</span>
+                                    <p class="form-label mb-0">Selected Plan &amp; Mode</p>
+                                    <template x-if="options && options.length > 1">
+                                        <button
+                                            type="button"
+                                            @click="showOptionSwitcher = !showOptionSwitcher"
+                                            class="text-[11px] font-bold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 px-2 py-0.5 rounded-full border border-teal-100 transition cursor-pointer"
+                                        >
+                                            <span x-text="showOptionSwitcher ? 'Close Options' : 'Change Option'"></span>
+                                        </button>
+                                    </template>
                                 </div>
+
+                                {{-- Active Selected Preview --}}
                                 <div class="flex items-center justify-between rounded-xl border border-teal-600/25 bg-teal-50/60 p-3.5">
                                     <div class="flex items-center gap-3">
                                         <div class="h-9 w-9 rounded-xl bg-teal-600 text-white flex items-center justify-center text-sm font-bold shadow-xs shrink-0">
                                             <i class="fa-solid fa-layer-group"></i>
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <p class="text-sm font-black text-[#0a2d27]">{{ $selectedLevel }} Level</p>
-                                            <p class="text-[11px] text-slate-500">Curriculum &amp; exercises configured for {{ strtolower($selectedLevel) }}</p>
+                                            <p class="text-sm font-black text-[#0a2d27]"><span x-text="track"></span> Level &bull; <span x-text="modeLabel"></span></p>
+                                            <p class="text-[11px] text-slate-500">Curriculum &amp; mentor access configured</p>
                                         </div>
                                     </div>
                                     <span class="text-xs font-black text-teal-800 bg-white px-2.5 py-1 rounded-lg border border-teal-100 shadow-2xs shrink-0 ml-2">
-                                        ZMW {{ number_format($feeAmount, 2) }}
+                                        ZMW <span x-text="Number(feeAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span>
                                     </span>
                                 </div>
+
+                                {{-- Inline Option Switcher Drawer (if multiple options available) --}}
+                                <template x-if="options && options.length > 1 && showOptionSwitcher">
+                                    <div class="mt-2.5 space-y-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80 max-h-48 overflow-y-auto">
+                                        <template x-for="opt in options" :key="opt.id">
+                                            <div
+                                                @click="selectCourseOption(opt)"
+                                                class="p-2 rounded-lg border text-xs flex items-center justify-between cursor-pointer transition"
+                                                :class="track === opt.level && mode === (opt.category || opt.mode)
+                                                    ? 'border-teal-600 bg-teal-50 text-teal-900 font-bold'
+                                                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                            >
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-bold" x-text="opt.level"></span>
+                                                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600" x-text="opt.mode_label"></span>
+                                                </div>
+                                                <span class="font-black text-teal-800" x-text="opt.formatted_amount"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
                             </div>
                         </div>
 
@@ -542,7 +574,10 @@
             return {
                 tab: 'mobile',
                 track: '{{ $selectedLevel }}',
+                mode: '{{ $selectedMode }}',
                 feeAmount: {{ (float) $feeAmount }},
+                options: @js($feeOptions),
+                showOptionSwitcher: false,
                 paymentMethod: 'mobile_money',
                 provider: 'airtel',
                 phoneNumber: '',
@@ -558,6 +593,18 @@
                 paymentConfirmed: false,
                 pendingReference: null,
                 pollIntervalId: null,
+
+                get modeLabel() {
+                    if (this.mode === 'one_on_one') return 'One-on-One';
+                    return 'Group Class';
+                },
+
+                selectCourseOption(opt) {
+                    this.track = opt.level;
+                    this.mode = opt.category || opt.mode || 'group';
+                    this.feeAmount = Number(opt.amount);
+                    this.showOptionSwitcher = false;
+                },
                 @php
                     $pendingReg = session('pending_registration', []);
                 @endphp

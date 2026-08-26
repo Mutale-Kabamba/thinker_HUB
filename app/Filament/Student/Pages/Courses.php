@@ -378,6 +378,7 @@ class Courses extends Page
                 );
 
                 $isPayable = $course->isPayable($user->track);
+                $feeOptions = $course->getFeeOptions();
 
                 return [
                     'id' => $course->id,
@@ -393,6 +394,8 @@ class Courses extends Page
                     'is_active' => $course->is_active,
                     'is_open_enrollment' => $isOpenEnrollment,
                     'is_payable' => $isPayable,
+                    'fee_options' => $feeOptions,
+                    'has_multiple_options' => count($feeOptions) > 1,
                     'fee_amount' => $course->getNumericFeeForLevel($user->track),
                     'checkout_url' => route('checkout.show', [$course->id, 'track' => $user->track ?: 'Beginner']),
                     'enrolled' => $isEnrolled,

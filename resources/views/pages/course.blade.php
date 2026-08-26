@@ -417,10 +417,32 @@
                 </div>
                 <div class="mt-8 flex flex-wrap items-center gap-4">
                     @if (! $isLockedCourse)
-                        <a href="{{ route('checkout.show', $course) }}" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] shadow-lg shadow-yellow-400/20 transition hover:bg-yellow-300">
-                            <i class="fa-solid fa-credit-card"></i>
-                            Enroll &amp; Pay (Instant Access)
-                        </a>
+                        @php
+                            $feeOptions = $course->getFeeOptions();
+                            $hasMultipleOptions = count($feeOptions) > 1;
+                            $courseModalData = [
+                                'id' => $course->id,
+                                'title' => $course->title,
+                                'code' => $course->code,
+                                'checkoutUrl' => route('checkout.show', $course),
+                                'options' => $feeOptions,
+                            ];
+                        @endphp
+                        @if ($hasMultipleOptions)
+                            <button
+                                type="button"
+                                @click="window.openCourseOptionModal(@js($courseModalData))"
+                                class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] shadow-lg shadow-yellow-400/20 transition hover:bg-yellow-300 cursor-pointer"
+                            >
+                                <i class="fa-solid fa-credit-card"></i>
+                                Enroll &amp; Pay (Instant Access)
+                            </button>
+                        @else
+                            <a href="{{ route('checkout.show', $course) }}" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] shadow-lg shadow-yellow-400/20 transition hover:bg-yellow-300">
+                                <i class="fa-solid fa-credit-card"></i>
+                                Enroll &amp; Pay (Instant Access)
+                            </a>
+                        @endif
                     @else
                         <span class="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-6 py-3.5 text-sm font-bold text-slate-300 cursor-not-allowed">
                             <i class="fa-solid fa-lock text-amber-400"></i>
@@ -592,9 +614,19 @@
                             <i class="fa-solid fa-lock mr-2 text-amber-500"></i> Enrollment Locked
                         </button>
                     @else
-                        <a href="{{ route('checkout.show', $course) }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm">
-                            <i class="fa-solid fa-credit-card mr-2"></i> Enroll &amp; Pay
-                        </a>
+                        @if ($hasMultipleOptions ?? false)
+                            <button
+                                type="button"
+                                @click="window.openCourseOptionModal(@js($courseModalData))"
+                                class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm cursor-pointer"
+                            >
+                                <i class="fa-solid fa-credit-card mr-2"></i> Enroll &amp; Pay
+                            </button>
+                        @else
+                            <a href="{{ route('checkout.show', $course) }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm">
+                                <i class="fa-solid fa-credit-card mr-2"></i> Enroll &amp; Pay
+                            </a>
+                        @endif
                     @endif
 
                     <div class="mt-6 border-t border-slate-100 pt-4">
@@ -742,6 +774,7 @@
             ],
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
     </script>
+    @include('partials.course-selection-modal')
     @include('partials.legal-modals')
 </body>
 </html>

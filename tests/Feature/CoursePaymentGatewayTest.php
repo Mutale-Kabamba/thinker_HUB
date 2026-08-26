@@ -368,16 +368,12 @@ class CoursePaymentGatewayTest extends TestCase
         // 1. Level = Intermediate
         $response = $this->get(route('checkout.show', [$course, 'track' => 'Intermediate']));
         $response->assertStatus(200);
-        $response->assertSee('Intermediate Level');
+        $response->assertSee('SEC201');
         $response->assertSee('1,600.00');
-        // Selected level confirmed badge is shown
-        $response->assertSee('Selected Learning Level');
-        $response->assertSee('Confirmed');
 
         // 2. Level = Advanced
         $responseAdv = $this->get(route('checkout.show', [$course, 'track' => 'Advanced']));
         $responseAdv->assertStatus(200);
-        $responseAdv->assertSee('Advanced Level');
         $responseAdv->assertSee('2,200.00');
     }
 
@@ -409,5 +405,93 @@ class CoursePaymentGatewayTest extends TestCase
         ]);
         $this->assertEquals(1500.00, $courseC->getNumericFeeForLevel('Beginner'));
         $this->assertEquals(1500.00, $courseC->getNumericFeeForLevel('Advanced'));
+    }
+
+    public function test_course_model_extracts_fee_options_with_modes_and_levels(): void
+    {
+        $course = new Course([
+            'title' => 'Web Mastery',
+            'code' => 'WEB101',
+            'fees' => json_encode([
+                'group' => [
+                    ['level' => 'Beginner', 'amount' => '350', 'duration' => '8 Weeks'],
+                    ['level' => 'Intermediate', 'amount' => '550', 'duration' => '8 Weeks'],
+                ],
+                'one_on_one' => [
+                    ['level' => 'Beginner', 'amount' => '650', 'duration' => '8 Weeks'],
+                    ['level' => 'Advanced', 'amount' => '950', 'duration' => '8 Weeks'],
+                ],
+            ]),
+        ]);
+
+        $this->assertTrue($course->hasMultipleFeeOptions());
+        $options = $course->getFeeOptions();
+        $this->assertCount(4, $options);
+
+        $this->assertEquals(350.00, $course->getNumericFeeForOption('Beginner', 'group'));
+        $this->assertEquals(550.00, $course->getNumericFeeForOption('Intermediate', 'group'));
+        $this->assertEquals(650.00, $course->getNumericFeeForOption('Beginner', 'one_on_one'));
+        $this->assertEquals(950.00, $course->getNumericFeeForOption('Advanced', 'one_on_one'));
+    }
+
+    public function test_checkout_resolves_mode_and_level_and_records_in_payment(): void
+    {
+        $course = Course::create([
+            'title' => 'Full-Stack Mastery',
+            'code' => 'FS101',
+            'fees' => json_encode([
+                ['category' => 'Group', 'level' => 'Beginner', 'amount' => '350'],
+                ['category' => 'One-On-One', 'level' => 'Advanced', 'amount' => '950'],
+            ]),
+            'is_active' => true,
+        ]);
+
+        // Checkout page with One-On-One Advanced
+        $response = $this->get(route('checkout.show', [
+            $course,
+            'track' => 'Advanced',
+            'mode' => 'one_on_one',
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertSee('950.00');
+        $response->assertSee('Full-Stack Mastery');
+
+        // Submit checkout with One-On-One Advanced
+        $postResponse = $this->post(route('checkout.process', $course), [
+            'name' => 'Kabwe Chisanga',
+            'email' => 'kabwe@example.com',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'track' => 'Advanced',
+            'mode' => 'one_on_one',
+            'payment_method' => 'mobile_money',
+            'provider' => 'airtel',
+            'phone_number' => '0977112233',
+        ]);
+
+        $payment = Payment::where('reference', 'LIKE', 'TH-PAY-%')->latest('id')->first();
+        $this->assertNotNull($payment);
+        $this->assertEquals(950.00, (float) $payment->amount);
+        $this->assertEquals('Advanced', $payment->metadata['track']);
+        $this->assertEquals('one_on_one', $payment->metadata['mode']);
+    }
+
+    public function test_courses_page_renders_course_selection_modal(): void
+    {
+        Course::create([
+            'title' => 'Graphic Design Masterclass',
+            'code' => 'DSGN101',
+            'fees' => json_encode([
+                ['category' => 'Group', 'level' => 'Beginner', 'amount' => '400'],
+                ['category' => 'One-On-One', 'level' => 'Beginner', 'amount' => '700'],
+            ]),
+            'is_active' => true,
+        ]);
+
+        $response = $this->get(route('landing.courses'));
+        $response->assertStatus(200);
+        $response->assertSee('course-option-modal');
+        $response->assertSee('Graphic Design Masterclass');
     }
 }
