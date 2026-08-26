@@ -103,15 +103,293 @@
         color: #94a3b8 !important;
     }
 
+    /* ==========================================================================
+       GLOBAL PREMIUM BUTTON DESIGN SYSTEM (ALL PANELS)
+       ========================================================================== */
     .fi-btn,
-    .fi-btn-color-primary,
-    .hub-btn-primary {
-        border-radius: 999px !important;
+    button.fi-btn,
+    a.fi-btn,
+    .hub-btn,
+    .hub-btn-primary,
+    .fi-ac-btn-action,
+    .fi-page-header-actions .fi-btn,
+    .fi-header-actions .fi-btn,
+    .fi-form-actions .fi-btn,
+    .fi-modal-footer-actions .fi-btn,
+    .fi-modal-window footer .fi-btn,
+    .fi-ta-actions .fi-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.45rem !important;
+        font-family: inherit !important;
+        font-weight: 700 !important;
+        font-size: 0.8125rem !important;
+        line-height: 1.25rem !important;
+        border-radius: 9999px !important;
+        padding: 0.5rem 1.2rem !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        border: 1px solid transparent !important;
+        transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        user-select: none !important;
+        white-space: nowrap !important;
+        letter-spacing: 0.01em !important;
     }
 
-    .fi-btn-color-primary {
-        background: linear-gradient(135deg, var(--hub-primary), #008884) !important;
-        box-shadow: 0 14px 26px -20px rgba(0, 106, 103, 0.82);
+    .fi-btn:disabled,
+    button.fi-btn:disabled {
+        opacity: 0.55 !important;
+        cursor: not-allowed !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    /* --- PRIMARY BUTTONS (Save changes, Create, Submit, New, etc.) --- */
+    .fi-btn-color-primary,
+    [data-color="primary"].fi-btn,
+    .hub-btn-primary,
+    .fi-form-actions button[type="submit"]:not(.fi-btn-color-gray):not(.fi-btn-color-danger),
+    .fi-modal-footer-actions button[type="submit"]:not(.fi-btn-color-gray):not(.fi-btn-color-danger) {
+        background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%) !important;
+        color: #ffffff !important;
+        border-color: #6D28D9 !important;
+        box-shadow: 0 4px 14px -2px rgba(124, 58, 237, 0.38) !important;
+    }
+
+    .fi-btn-color-primary:hover,
+    [data-color="primary"].fi-btn:hover,
+    .hub-btn-primary:hover,
+    .fi-form-actions button[type="submit"]:not(.fi-btn-color-gray):not(.fi-btn-color-danger):hover,
+    .fi-modal-footer-actions button[type="submit"]:not(.fi-btn-color-gray):not(.fi-btn-color-danger):hover {
+        background: linear-gradient(135deg, #6D28D9 0%, #5B21B6 100%) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 20px -2px rgba(124, 58, 237, 0.48) !important;
+    }
+
+    .fi-btn-color-primary:active,
+    [data-color="primary"].fi-btn:active {
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 8px -2px rgba(124, 58, 237, 0.3) !important;
+    }
+
+    .fi-btn-color-primary svg,
+    [data-color="primary"].fi-btn svg {
+        color: #ffffff !important;
+    }
+
+    /* --- GRAY / SECONDARY BUTTONS (Cancel, Close, Dismiss, Filter, Back, etc.) --- */
+    .fi-btn-color-gray,
+    [data-color="gray"].fi-btn,
+    .fi-btn-color-secondary,
+    .hub-btn-secondary,
+    .fi-modal-close-btn,
+    .fi-form-actions button[type="button"]:not(.fi-btn-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info),
+    .fi-modal-footer-actions button[type="button"]:not(.fi-btn-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info) {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+    }
+
+    .fi-btn-color-gray:hover,
+    [data-color="gray"].fi-btn:hover,
+    .fi-btn-color-secondary:hover,
+    .hub-btn-secondary:hover,
+    .fi-modal-close-btn:hover,
+    .fi-form-actions button[type="button"]:not(.fi-btn-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info):hover,
+    .fi-modal-footer-actions button[type="button"]:not(.fi-btn-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info):hover {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 3px 8px -2px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    .dark .fi-btn-color-gray,
+    .dark [data-color="gray"].fi-btn,
+    .dark .fi-btn-color-secondary,
+    .dark .hub-btn-secondary,
+    .dark .fi-modal-close-btn,
+    .dark .fi-form-actions button[type="button"]:not(.fi-btn-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info),
+    .dark .fi-modal-footer-actions button[type="button"]:not(.fi-btn-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info) {
+        background: #1e293b !important;
+        color: #cbd5e1 !important;
+        border-color: #334155 !important;
+    }
+
+    .dark .fi-btn-color-gray:hover,
+    .dark [data-color="gray"].fi-btn:hover,
+    .dark .fi-btn-color-secondary:hover,
+    .dark .hub-btn-secondary:hover,
+    .dark .fi-modal-close-btn:hover,
+    .dark .fi-form-actions button[type="button"]:not(.fi-btn-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info):hover,
+    .dark .fi-modal-footer-actions button[type="button"]:not(.fi-btn-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info):hover {
+        background: #334155 !important;
+        color: #f8fafc !important;
+        border-color: #475569 !important;
+    }
+
+    /* --- WARNING BUTTONS (Import Sessions, Export, Pending, etc.) --- */
+    .fi-btn-color-warning,
+    [data-color="warning"].fi-btn,
+    .hub-btn-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        color: #ffffff !important;
+        border-color: #d97706 !important;
+        box-shadow: 0 4px 14px -2px rgba(217, 119, 6, 0.35) !important;
+    }
+
+    .fi-btn-color-warning:hover,
+    [data-color="warning"].fi-btn:hover,
+    .hub-btn-warning:hover {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 18px -2px rgba(217, 119, 6, 0.45) !important;
+    }
+
+    .fi-btn-color-warning svg,
+    [data-color="warning"].fi-btn svg {
+        color: #ffffff !important;
+    }
+
+    /* --- DANGER BUTTONS (Delete, Revoke, Remove, Reject, etc.) --- */
+    .fi-btn-color-danger,
+    [data-color="danger"].fi-btn,
+    .hub-btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        color: #ffffff !important;
+        border-color: #dc2626 !important;
+        box-shadow: 0 4px 14px -2px rgba(220, 38, 38, 0.35) !important;
+    }
+
+    .fi-btn-color-danger:hover,
+    [data-color="danger"].fi-btn:hover,
+    .hub-btn-danger:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 18px -2px rgba(220, 38, 38, 0.45) !important;
+    }
+
+    .fi-btn-color-danger svg,
+    [data-color="danger"].fi-btn svg {
+        color: #ffffff !important;
+    }
+
+    /* --- SUCCESS BUTTONS (Approve, Complete, Graded, Accept, etc.) --- */
+    .fi-btn-color-success,
+    [data-color="success"].fi-btn,
+    .hub-btn-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: #ffffff !important;
+        border-color: #059669 !important;
+        box-shadow: 0 4px 14px -2px rgba(5, 150, 105, 0.35) !important;
+    }
+
+    .fi-btn-color-success:hover,
+    [data-color="success"].fi-btn:hover,
+    .hub-btn-success:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 18px -2px rgba(5, 150, 105, 0.45) !important;
+    }
+
+    .fi-btn-color-success svg,
+    [data-color="success"].fi-btn svg {
+        color: #ffffff !important;
+    }
+
+    /* --- INFO / TEAL BUTTONS (Download, Explore, Details, etc.) --- */
+    .fi-btn-color-info,
+    [data-color="info"].fi-btn,
+    .hub-btn-info {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+        color: #ffffff !important;
+        border-color: #0891b2 !important;
+        box-shadow: 0 4px 14px -2px rgba(8, 145, 178, 0.35) !important;
+    }
+
+    .fi-btn-color-info:hover,
+    [data-color="info"].fi-btn:hover,
+    .hub-btn-info:hover {
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 18px -2px rgba(8, 145, 178, 0.45) !important;
+    }
+
+    .fi-btn-color-info svg,
+    [data-color="info"].fi-btn svg {
+        color: #ffffff !important;
+    }
+
+    /* --- BUTTON SIZES --- */
+    .fi-btn-size-xs {
+        padding: 0.25rem 0.7rem !important;
+        font-size: 0.72rem !important;
+    }
+
+    .fi-btn-size-sm,
+    .fi-ta-actions .fi-btn {
+        padding: 0.35rem 0.9rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    .fi-btn-size-md,
+    .fi-page-header-actions .fi-btn,
+    .fi-header-actions .fi-btn,
+    .fi-form-actions .fi-btn,
+    .fi-modal-footer-actions .fi-btn {
+        padding: 0.52rem 1.25rem !important;
+        font-size: 0.8125rem !important;
+    }
+
+    .fi-btn-size-lg {
+        padding: 0.65rem 1.5rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* --- ICON BUTTONS (Circle Actions) --- */
+    .fi-icon-btn,
+    button.fi-icon-btn,
+    a.fi-icon-btn {
+        border-radius: 9999px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0.45rem !important;
+        transition: all 0.18s ease !important;
+    }
+
+    .fi-icon-btn:hover,
+    button.fi-icon-btn:hover,
+    a.fi-icon-btn:hover {
+        background: rgba(124, 58, 237, 0.12) !important;
+        color: #7C3AED !important;
+        transform: scale(1.06) !important;
+    }
+
+    .dark .fi-icon-btn:hover,
+    .dark button.fi-icon-btn:hover,
+    .dark a.fi-icon-btn:hover {
+        background: rgba(168, 85, 247, 0.2) !important;
+        color: #c084fc !important;
+    }
+
+    /* --- ACTION & MODAL FOOTER BAR LAYOUT --- */
+    .fi-form-actions,
+    .fi-modal-footer-actions,
+    .fi-modal-window footer,
+    .fi-page-header-actions,
+    .fi-header-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        flex-wrap: wrap !important;
     }
 
     .fi-input,
