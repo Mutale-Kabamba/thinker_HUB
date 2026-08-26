@@ -20,7 +20,7 @@
         {{-- Compose Broadcast Card --}}
         <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm overflow-hidden p-6 space-y-5">
             <div class="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-[#233842]">
-                <div class="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-[#7C3AED] dark:text-purple-300 flex items-center justify-center font-bold">
                     <x-heroicon-o-megaphone class="w-5 h-5" />
                 </div>
                 <div>
@@ -47,7 +47,7 @@
                         <select 
                             id="broadcast-course" 
                             wire:model.live="courseId" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition"
                         >
                             <option value="">Select a course…</option>
                             @foreach ($courseOptions as $option)
@@ -88,7 +88,7 @@
                             wire:model="subject" 
                             maxlength="255" 
                             placeholder="e.g. Project Phase 2 Guidelines & Live Q&A Session"
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition"
                         />
                     </div>
 
@@ -102,7 +102,7 @@
                             wire:model="message" 
                             rows="6" 
                             placeholder="Write your announcement to the class… Students will receive this formatted in their email inbox and in-app dashboard."
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-3 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-3 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition"
                         ></textarea>
                     </div>
 
@@ -113,14 +113,14 @@
                         </label>
 
                         @if ($attachment)
-                            <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800">
+                            <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800">
                                 <div class="flex items-center gap-2 min-w-0">
                                     <span class="text-lg">📎</span>
                                     <div class="min-w-0">
-                                        <p class="text-xs font-extrabold text-teal-900 dark:text-teal-200 truncate">
+                                        <p class="text-xs font-extrabold text-purple-900 dark:text-purple-200 truncate">
                                             {{ $attachment->getClientOriginalName() }}
                                         </p>
-                                        <p class="text-[10px] text-teal-600 dark:text-teal-400">
+                                        <p class="text-[10px] text-[#7C3AED] dark:text-purple-400">
                                             {{ round($attachment->getSize() / 1024, 1) }} KB &bull; Ready to send
                                         </p>
                                     </div>
@@ -135,7 +135,7 @@
                                 </button>
                             </div>
                         @else
-                            <div class="border-2 border-dashed border-slate-200 dark:border-[#233842] rounded-xl p-5 text-center bg-slate-50/50 dark:bg-slate-800/30 hover:border-teal-500 transition cursor-pointer relative">
+                            <div class="border-2 border-dashed border-slate-200 dark:border-[#233842] rounded-xl p-5 text-center bg-slate-50/50 dark:bg-slate-800/30 hover:border-[#7C3AED] transition cursor-pointer relative">
                                 <input
                                     type="file"
                                     wire:model="attachment"
@@ -151,7 +151,7 @@
                                         Images, PDFs, Slides, Videos, or Archives up to 25MB
                                     </p>
                                 </div>
-                                <div wire:loading wire:target="attachment" class="text-xs font-bold text-teal-600 dark:text-teal-400 flex items-center justify-center gap-2">
+                                <div wire:loading wire:target="attachment" class="text-xs font-bold text-[#7C3AED] dark:text-purple-400 flex items-center justify-center gap-2">
                                     <x-heroicon-m-arrow-path class="w-4 h-4 animate-spin" />
                                     <span>Uploading attachment…</span>
                                 </div>
@@ -170,7 +170,7 @@
                             wire:confirm="Send this broadcast to all enrolled students in the selected course?"
                             wire:loading.attr="disabled"
                             wire:target="send,attachment"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition disabled:opacity-50 transform hover:-translate-y-0.5"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-purple-600 dark:hover:bg-purple-500 shadow-sm transition disabled:opacity-50 transform hover:-translate-y-0.5"
                         >
                             <span wire:loading.remove wire:target="send" class="inline-flex items-center gap-2">
                                 <x-heroicon-m-paper-airplane class="w-4 h-4" />
@@ -189,7 +189,7 @@
         {{-- Broadcast History Feed Card --}}
         <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm overflow-hidden p-6 space-y-4">
             <div class="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-[#233842]">
-                <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-[#7C3AED] dark:text-purple-300 flex items-center justify-center font-bold">
                     <x-heroicon-o-clock class="w-5 h-5" />
                 </div>
                 <div>
@@ -243,7 +243,7 @@
                                     <button
                                         type="button"
                                         @click="expanded = !expanded"
-                                        class="text-xs font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 px-2 py-1"
+                                        class="text-xs font-bold text-[#7C3AED] dark:text-purple-400 hover:text-purple-700 px-2 py-1"
                                     >
                                         <span x-show="!expanded">View Details ↓</span>
                                         <span x-show="expanded">Hide ↑</span>
@@ -263,7 +263,7 @@
                                         <a
                                             href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($item['attachment_path']) }}"
                                             target="_blank"
-                                            class="inline-flex items-center gap-1 text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline"
+                                            class="inline-flex items-center gap-1 text-xs font-bold text-[#7C3AED] dark:text-purple-400 hover:underline"
                                         >
                                             <span>Download Attachment</span>
                                             <x-heroicon-m-arrow-top-right-on-square class="w-3.5 h-3.5" />
