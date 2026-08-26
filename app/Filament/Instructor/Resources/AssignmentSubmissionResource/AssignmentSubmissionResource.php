@@ -314,12 +314,14 @@ class AssignmentSubmissionResource extends Resource
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markGraded')
                         ->label('Mark Graded')
+                        ->icon('heroicon-o-check-badge')
                         ->action(fn (Collection $records) => $records->each(function ($record) {
                             $record->update(['status' => 'Graded', 'viewed_at' => $record->viewed_at ?? now()]);
                         }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markGradedAndNotify')
                         ->label('Mark Graded + Notify')
+                        ->icon('heroicon-o-bell-alert')
                         ->requiresConfirmation()
                         ->form([
                             Textarea::make('message')
@@ -345,12 +347,14 @@ class AssignmentSubmissionResource extends Resource
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markChecked')
                         ->label('Mark Checked')
+                        ->icon('heroicon-o-clipboard-document-check')
                         ->action(fn (Collection $records) => $records->each(function ($record) {
                             $record->update(['status' => 'Checked', 'viewed_at' => $record->viewed_at ?? now()]);
                         }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markReturned')
                         ->label('Mark Returned')
+                        ->icon('heroicon-o-arrow-uturn-left')
                         ->action(fn (Collection $records) => $records->each(function ($record) {
                             $record->update(['status' => 'Returned', 'viewed_at' => $record->viewed_at ?? now()]);
                         }))

@@ -163,18 +163,21 @@ class AssessmentSubmissionsTable
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markGraded')
                         ->label('Mark Graded')
+                        ->icon('heroicon-o-check-badge')
                         ->action(fn (Collection $records) => $records->each(function ($record) {
                             $record->update(['status' => 'Graded', 'viewed_at' => $record->viewed_at ?? now()]);
                         }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markChecked')
                         ->label('Mark Checked')
+                        ->icon('heroicon-o-clipboard-document-check')
                         ->action(fn (Collection $records) => $records->each(function ($record) {
                             $record->update(['status' => 'Checked', 'viewed_at' => $record->viewed_at ?? now()]);
                         }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markGradedAndNotify')
                         ->label('Mark Graded + Notify')
+                        ->icon('heroicon-o-bell-alert')
                         ->requiresConfirmation()
                         ->modalHeading('Mark graded and notify students')
                         ->form([
@@ -206,18 +209,21 @@ class AssessmentSubmissionsTable
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markReviewed')
                         ->label('Mark Reviewed')
+                        ->icon('heroicon-o-document-magnifying-glass')
                         ->action(fn (Collection $records) => $records->each(function ($record) {
                             $record->update(['status' => 'Reviewed', 'viewed_at' => $record->viewed_at ?? now()]);
                         }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markReturned')
                         ->label('Mark Returned')
+                        ->icon('heroicon-o-arrow-uturn-left')
                         ->action(fn (Collection $records) => $records->each(function ($record) {
                             $record->update(['status' => 'Returned', 'viewed_at' => $record->viewed_at ?? now()]);
                         }))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markReviewedAndNotify')
                         ->label('Mark Reviewed + Notify')
+                        ->icon('heroicon-o-chat-bubble-left-ellipsis')
                         ->requiresConfirmation()
                         ->modalHeading('Mark reviewed and notify students')
                         ->form([
