@@ -1,251 +1,192 @@
 @extends('reports.layout')
 
-@section('title', 'Course Analytics & Performance Report - ' . $course->title)
+@section('title', 'Course Executive Analytics - ' . $course->title)
+@section('report_type', 'Course Executive Analytics & Performance Report')
 
 @section('content')
-    {{-- Course Header Executive Dossier --}}
-    <div class="card" style="margin-bottom: 12px;">
-        <div class="card-header" style="background: #0f172a; color: #ffffff;">
+    {{-- Course Metadata Box --}}
+    <div class="section-box">
+        <div class="section-header">
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
-                    <td style="font-size: 11pt; font-weight: 800; color: #ffffff;">
-                        COURSE EXECUTIVE ANALYTICS & COHORT PERFORMANCE REPORT
+                    <td style="font-weight: 800; font-size: 8pt; color: #0f172a;">
+                        {{ $course->title }} ({{ $course->code ?? 'COURSE' }})
                     </td>
-                    <td style="text-align: right;">
-                        <span class="badge" style="background: #0d9488; color: #ffffff; border: none; font-size: 7.5pt; padding: 3px 10px;">
-                            {{ $course->code ?? 'COURSE' }}
-                        </span>
+                    <td class="text-right">
+                        @if ($intake)
+                            <span class="badge badge-info">Cohort: {{ $intake->name }}</span>
+                        @else
+                            <span class="badge badge-gray">All Enrolled Cohorts</span>
+                        @endif
                     </td>
                 </tr>
             </table>
         </div>
-        <div class="card-body">
-            <table style="width: 100%; border-collapse: collapse; font-size: 8pt;">
+        <div class="section-body">
+            <table style="width: 100%; border-collapse: collapse; font-size: 7.5pt;">
                 <tr>
-                    <td style="width: 25%; padding: 4px 0;"><strong>Course Title:</strong></td>
-                    <td style="width: 35%; padding: 4px 0; font-weight: 700; color: #0d9488;">{{ $course->title }}</td>
-                    <td style="width: 20%; padding: 4px 0;"><strong>Offering Mode:</strong></td>
-                    <td style="width: 20%; padding: 4px 0;">{{ ucfirst($course->offering_mode ?? 'Cohort-Based') }}</td>
+                    <td style="width: 20%; padding: 2px 0; color: #64748b;"><strong>Instructor(s):</strong></td>
+                    <td style="width: 30%; padding: 2px 0; font-weight: 700;">
+                        {{ $course->instructors->pluck('name')->join(', ') ?: ($course->course_by ?: 'Faculty Team') }}
+                    </td>
+                    <td style="width: 20%; padding: 2px 0; color: #64748b;"><strong>Scheduled Sessions:</strong></td>
+                    <td style="width: 30%; padding: 2px 0;">{{ $attendance['total_sessions'] ?? 0 }} Sessions</td>
                 </tr>
                 <tr>
-                    <td style="padding: 4px 0;"><strong>Assigned Instructors:</strong></td>
-                    <td style="padding: 4px 0;">
-                        {{ $course->instructors->pluck('name')->implode(', ') ?: 'Department Academic Faculty' }}
-                    </td>
-                    <td style="padding: 4px 0;"><strong>Cohort / Intake Scope:</strong></td>
-                    <td style="padding: 4px 0;">{{ $intake?->name ?: 'All Cohorts / Global' }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 0;"><strong>Curriculum Timeline:</strong></td>
-                    <td style="padding: 4px 0;">{{ $course->timeline ?: 'Self-Paced / 6 Weeks' }}</td>
-                    <td style="padding: 4px 0;"><strong>Course Status:</strong></td>
-                    <td style="padding: 4px 0;">
-                        <span class="badge {{ $course->is_active ? 'badge-success' : 'badge-gray' }}">
-                            {{ $course->is_active ? 'ACTIVE ENROLLMENT' : 'ARCHIVED' }}
-                        </span>
-                    </td>
+                    <td style="padding: 2px 0; color: #64748b;"><strong>Status:</strong></td>
+                    <td style="padding: 2px 0;">{{ $course->is_active ? 'Active Curriculum' : 'Archived' }}</td>
+                    <td style="padding: 2px 0; color: #64748b;"><strong>Curriculum Tasks:</strong></td>
+                    <td style="padding: 2px 0;">{{ $assignments['total'] ?? 0 }} Assignments • {{ $quizzes['total'] ?? 0 }} Quizzes</td>
                 </tr>
             </table>
         </div>
     </div>
 
-    {{-- Aggregate Summary Stats Tiles --}}
-    <table class="stats-table">
+    {{-- Executive Stats Grid --}}
+    <table class="stats-grid-table">
         <tr>
-            <td style="width: 20%; padding: 0 4px 0 0;">
-                <div class="stat-tile">
-                    <div class="stat-val" style="color: #0d9488;">{{ $total_students }}</div>
-                    <div class="stat-label">Enrolled Students</div>
-                </div>
+            <td style="width: 20%;">
+                <div class="stat-value">{{ $total_students }}</div>
+                <div class="stat-caption">Total Enrolled</div>
             </td>
-            <td style="width: 20%; padding: 0 4px;">
-                <div class="stat-tile">
-                    <div class="stat-val" style="color: #16a34a;">{{ $completion_rate }}%</div>
-                    <div class="stat-label">Completion ({{ $completed_students_count }})</div>
-                </div>
+            <td style="width: 20%;">
+                <div class="stat-value" style="color: #16a34a;">{{ $completed_students_count }}</div>
+                <div class="stat-caption">Graduated ({{ $completion_rate }}%)</div>
             </td>
-            <td style="width: 20%; padding: 0 4px;">
-                <div class="stat-tile">
-                    <div class="stat-val" style="color: #7c3aed;">{{ $attendance['rate'] }}%</div>
-                    <div class="stat-label">Attendance Rate</div>
-                </div>
+            <td style="width: 20%;">
+                <div class="stat-value">{{ $attendance['rate'] }}%</div>
+                <div class="stat-caption">Cohort Attendance</div>
             </td>
-            <td style="width: 20%; padding: 0 4px;">
-                <div class="stat-tile">
-                    <div class="stat-val" style="color: #ea580c;">{{ $assignments['average_score'] ? $assignments['average_score'] . '%' : 'N/A' }}</div>
-                    <div class="stat-label">Avg Assignment Grade</div>
-                </div>
+            <td style="width: 20%;">
+                <div class="stat-value">{{ $assignments['average_score'] ? $assignments['average_score'] . '%' : 'N/A' }}</div>
+                <div class="stat-caption">Avg Assignment Grade</div>
             </td>
-            <td style="width: 20%; padding: 0 0 0 4px;">
-                <div class="stat-tile">
-                    <div class="stat-val" style="color: #2563eb;">{{ $quizzes['pass_rate'] !== null ? $quizzes['pass_rate'] . '%' : 'N/A' }}</div>
-                    <div class="stat-label">Quiz Pass Rate</div>
-                </div>
+            <td style="width: 20%;">
+                <div class="stat-value">{{ $quizzes['pass_rate'] ?? 100 }}%</div>
+                <div class="stat-caption">Quiz Pass Rate</div>
             </td>
         </tr>
     </table>
 
-    {{-- Visual Analytics & Performance Distribution Cards --}}
-    <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px;">
+    {{-- Attendance & Grade Distribution Matrix --}}
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
         <tr>
-            {{-- Attendance Distribution Box --}}
-            <td style="width: 50%; vertical-align: top; padding-right: 6px;">
-                <div class="card" style="margin-bottom: 0;">
-                    <div class="card-header" style="font-size: 8.5pt;">
-                        SESSION ATTENDANCE COMPOSITION
-                    </div>
-                    <div class="card-body" style="font-size: 8pt;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 7.5pt; margin-bottom: 6px;">
+            {{-- Column 1: Attendance Breakdown --}}
+            <td style="width: 49%; vertical-align: top; padding-right: 6px;">
+                <div class="section-box" style="margin-bottom: 0;">
+                    <div class="section-header">Attendance Composition</div>
+                    <div class="section-body">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 7.5pt;">
                             <tr>
-                                <td><span class="badge badge-success">Present</span> {{ $attendance['present'] }} sessions</td>
-                                <td><span class="badge badge-warning">Late</span> {{ $attendance['late'] }} sessions</td>
+                                <td style="padding: 3px 0; width: 45%;"><strong>Present:</strong></td>
+                                <td style="padding: 3px 0; width: 25%; text-align: right; font-weight: bold; color: #16a34a;">{{ $attendance['present'] }}</td>
+                                <td style="padding: 3px 0; width: 30%; text-align: right;" class="text-muted">
+                                    {{ $attendance['total_marked'] > 0 ? round(($attendance['present'] / $attendance['total_marked']) * 100, 1) : 0 }}%
+                                </td>
                             </tr>
                             <tr>
-                                <td style="padding-top: 4px;"><span class="badge badge-info">Excused</span> {{ $attendance['apology'] }} sessions</td>
-                                <td style="padding-top: 4px;"><span class="badge badge-danger">Absent</span> {{ $attendance['absent'] }} sessions</td>
+                                <td style="padding: 3px 0;"><strong>Late:</strong></td>
+                                <td style="padding: 3px 0; text-align: right; font-weight: bold; color: #d97706;">{{ $attendance['late'] }}</td>
+                                <td style="padding: 3px 0; text-align: right;" class="text-muted">
+                                    {{ $attendance['total_marked'] > 0 ? round(($attendance['late'] / $attendance['total_marked']) * 100, 1) : 0 }}%
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 3px 0;"><strong>Excused:</strong></td>
+                                <td style="padding: 3px 0; text-align: right; font-weight: bold; color: #0284c7;">{{ $attendance['apology'] }}</td>
+                                <td style="padding: 3px 0; text-align: right;" class="text-muted">
+                                    {{ $attendance['total_marked'] > 0 ? round(($attendance['apology'] / $attendance['total_marked']) * 100, 1) : 0 }}%
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 3px 0;"><strong>Absent:</strong></td>
+                                <td style="padding: 3px 0; text-align: right; font-weight: bold; color: #dc2626;">{{ $attendance['absent'] }}</td>
+                                <td style="padding: 3px 0; text-align: right;" class="text-muted">
+                                    {{ $attendance['total_marked'] > 0 ? round(($attendance['absent'] / $attendance['total_marked']) * 100, 1) : 0 }}%
+                                </td>
                             </tr>
                         </table>
-
-                        <div style="margin-top: 8px;">
-                            <div style="font-size: 7pt; font-weight: 700; color: #64748b; margin-bottom: 3px;">
-                                OVERALL ATTENDANCE BENCHMARK ({{ $attendance['rate'] }}%)
-                            </div>
-                            <div class="progress-bar-container">
-                                <div class="progress-bar-fill" style="width: {{ $attendance['rate'] }}%; background: #0d9488;"></div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </td>
 
-            {{-- Grade Distribution Histogram --}}
-            <td style="width: 50%; vertical-align: top; padding-left: 6px;">
-                <div class="card" style="margin-bottom: 0;">
-                    <div class="card-header" style="font-size: 8.5pt;">
-                        ASSIGNMENT GRADE DISTRIBUTION
-                    </div>
-                    <div class="card-body" style="font-size: 7.5pt;">
-                        @php
-                            $totalGraded = array_sum($assignments['grade_distribution']);
-                        @endphp
-                        @foreach ($assignments['grade_distribution'] as $band => $count)
-                            @php
-                                $percent = $totalGraded > 0 ? round(($count / $totalGraded) * 100) : 0;
-                                $barColor = match(substr($band, 0, 1)) {
-                                    'A' => '#16a34a',
-                                    'B' => '#2563eb',
-                                    'C' => '#f59e0b',
-                                    default => '#ef4444',
-                                };
-                            @endphp
-                            <div style="margin-bottom: 5px;">
-                                <table style="width: 100%; border-collapse: collapse; font-size: 7pt; margin-bottom: 2px;">
-                                    <tr>
-                                        <td><strong>{{ $band }}</strong></td>
-                                        <td style="text-align: right; color: #64748b;">{{ $count }} submissions ({{ $percent }}%)</td>
-                                    </tr>
-                                </table>
-                                <div class="progress-bar-container" style="height: 5px;">
-                                    <div class="progress-bar-fill" style="width: {{ $percent }}%; background: {{ $barColor }};"></div>
-                                </div>
-                            </div>
-                        @endforeach
+            {{-- Column 2: Assignment Grade Brackets --}}
+            <td style="width: 51%; vertical-align: top; padding-left: 6px;">
+                <div class="section-box" style="margin-bottom: 0;">
+                    <div class="section-header">Assignment Grade Distribution</div>
+                    <div class="section-body">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 7.5pt;">
+                            @foreach ($assignments['grade_distribution'] as $bracket => $count)
+                                <tr>
+                                    <td style="padding: 3px 0; width: 60%;"><strong>{{ $bracket }}:</strong></td>
+                                    <td style="padding: 3px 0; width: 40%; text-align: right; font-weight: bold;">{{ $count }} submissions</td>
+                                </tr>
+                            @endforeach
+                        </table>
                     </div>
                 </div>
             </td>
         </tr>
     </table>
 
-    {{-- Comprehensive Student Roster Matrix --}}
-    <div class="card">
-        <div class="card-header" style="background: #f8fafc;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                    <td style="font-size: 9pt; font-weight: 700; color: #0f172a;">
-                        STUDENT COHORT PERFORMANCE MATRIX ({{ count($roster) }} Enrolled)
-                    </td>
-                    <td style="text-align: right; font-size: 7pt; color: #64748b;">
-                        Sorted by Student Record
-                    </td>
-                </tr>
+    {{-- Student Performance Matrix Roster --}}
+    <div class="section-box">
+        <div class="section-header">
+            Student Cohort Performance Matrix ({{ count($roster) }} Enrolled)
+        </div>
+        <div class="section-body" style="padding: 0;">
+            <table class="data-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Student Name</th>
+                        <th style="width: 15%;">Track</th>
+                        <th style="width: 15%; text-align: center;">Attendance</th>
+                        <th style="width: 15%; text-align: center;">Avg Assignment</th>
+                        <th style="width: 15%; text-align: center;">Quizzes</th>
+                        <th style="width: 10%; text-align: center;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($roster as $s)
+                        <tr>
+                            <td>
+                                <strong>{{ $s['student']->name }}</strong>
+                                <div class="text-muted" style="font-size: 6.5pt;">{{ $s['student']->email }}</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-gray">{{ strtoupper($s['student']->track ?? 'LEARNER') }}</span>
+                            </td>
+                            <td class="text-center">
+                                <strong>{{ $s['attendance_rate'] }}%</strong>
+                                <div class="text-muted" style="font-size: 6pt;">{{ $s['sessions_attended'] }}/{{ $s['sessions_total'] }}</div>
+                            </td>
+                            <td class="text-center">
+                                @if ($s['avg_assignment_grade'] !== null)
+                                    <strong>{{ $s['avg_assignment_grade'] }}%</strong>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                <strong>{{ $s['quizzes_passed'] }}</strong> / {{ $s['total_quizzes'] }}
+                            </td>
+                            <td class="text-center">
+                                @if ($s['is_completed'])
+                                    <span class="badge badge-success">Completed</span>
+                                @else
+                                    <span class="badge badge-warning">Active</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center text-muted" style="padding: 8px;">
+                                No students enrolled in this course or cohort.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
             </table>
         </div>
-        <div class="card-body" style="padding: 0;">
-            @if (empty($roster))
-                <p style="padding: 12px; font-size: 8pt; color: #94a3b8; font-style: italic; margin: 0;">No students enrolled in this course scope.</p>
-            @else
-                <table class="data-table" style="margin: 0;">
-                    <thead>
-                        <tr>
-                            <th style="width: 25%;">Student Name</th>
-                            <th style="width: 12%;">Track</th>
-                            <th style="width: 14%; text-align: center;">Attendance</th>
-                            <th style="width: 14%; text-align: center;">Assignments</th>
-                            <th style="width: 13%; text-align: center;">Avg Grade</th>
-                            <th style="width: 12%; text-align: center;">Quizzes</th>
-                            <th style="width: 10%; text-align: center;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($roster as $st)
-                            <tr>
-                                <td>
-                                    <strong>{{ $st['name'] }}</strong>
-                                    <div style="font-size: 6.5pt; color: #64748b;">{{ $st['email'] }}</div>
-                                </td>
-                                <td>
-                                    <span class="badge badge-info">{{ $st['track'] }}</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <strong style="color: {{ $st['attendance_rate'] >= 75 ? '#15803d' : '#b91c1c' }};">
-                                        {{ $st['attendance_rate'] }}%
-                                    </strong>
-                                    <div style="font-size: 6.5pt; color: #64748b;">({{ $st['attended_sessions'] }}/{{ $st['total_sessions'] }})</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <strong>{{ $st['assignments_submitted'] }}</strong>
-                                </td>
-                                <td style="text-align: center; font-weight: 700; color: {{ ($st['avg_assignment_grade'] ?? 0) >= 50 ? '#15803d' : '#b91c1c' }};">
-                                    {{ $st['avg_assignment_grade'] !== null ? $st['avg_assignment_grade'] . '%' : '-' }}
-                                </td>
-                                <td style="text-align: center;">
-                                    <strong>{{ $st['quizzes_passed'] }} / {{ $st['total_quizzes'] }}</strong>
-                                </td>
-                                <td style="text-align: center;">
-                                    @if ($st['completed'])
-                                        <span class="badge badge-success">Completed</span>
-                                    @else
-                                        <span class="badge badge-warning">In Progress</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
-        </div>
-    </div>
-
-    {{-- Official Institutional Verification Block --}}
-    <div class="no-break" style="margin-top: 20px; border-top: 2px solid #0d9488; padding-top: 10px;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 7.5pt;">
-            <tr>
-                <td style="width: 35%; vertical-align: top;">
-                    <p style="margin: 0 0 4px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Dean of Academic Affairs</p>
-                    <div style="height: 35px; border-bottom: 1px dashed #cbd5e1; width: 85%;"></div>
-                    <p style="margin: 3px 0 0; color: #64748b;">Thinker HUB Institutional Board</p>
-                </td>
-                <td style="width: 30%; text-align: center; vertical-align: top;">
-                    <div style="display: inline-block; border: 2px solid #0d9488; border-radius: 9999px; width: 60px; height: 60px; line-height: 56px; font-weight: 800; color: #0d9488; font-size: 7pt;">
-                        VERIFIED
-                    </div>
-                </td>
-                <td style="width: 35%; text-align: right; vertical-align: top;">
-                    <p style="margin: 0 0 4px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Registry seal & Date</p>
-                    <div style="height: 35px; border-bottom: 1px dashed #cbd5e1; width: 85%; margin-left: auto;"></div>
-                    <p style="margin: 3px 0 0; color: #64748b;">Generated on: {{ now()->format('F d, Y') }}</p>
-                </td>
-            </tr>
-        </table>
     </div>
 @endsection
