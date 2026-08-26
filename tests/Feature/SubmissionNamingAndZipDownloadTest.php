@@ -219,11 +219,19 @@ class SubmissionNamingAndZipDownloadTest extends TestCase
         $response = $service->downloadAssignmentsZip(collect([$sub1, $sub2]), 'Test_Assignments');
 
         $this->assertNotNull($response);
-        $zipFilePath = $response->getFile()->getPathname();
-        $this->assertFileExists($zipFilePath);
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $response);
+
+        ob_start();
+        $response->sendContent();
+        $zipContent = ob_get_clean();
+
+        $this->assertNotEmpty($zipContent);
+
+        $tempZip = tempnam(sys_get_temp_dir(), 'test_zip');
+        file_put_contents($tempZip, $zipContent);
 
         $zip = new ZipArchive();
-        $opened = $zip->open($zipFilePath);
+        $opened = $zip->open($tempZip);
         $this->assertTrue($opened);
 
         $entryNames = [];
@@ -231,6 +239,7 @@ class SubmissionNamingAndZipDownloadTest extends TestCase
             $entryNames[] = $zip->getNameIndex($i);
         }
         $zip->close();
+        @unlink($tempZip);
 
         // Check entry names in ZIP
         $this->assertContains('david_figma_prototype.pdf', $entryNames);
