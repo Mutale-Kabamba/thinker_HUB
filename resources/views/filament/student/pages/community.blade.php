@@ -207,8 +207,8 @@
                         {{-- Top 5 Rows (Default Display) --}}
                         @foreach ($top5 as $row)
                             @php $isMe = $row['user_id'] === auth()->id(); @endphp
-                            <div style="display:flex;align-items:center;gap:0.3rem;padding:0.28rem 0.45rem;border-radius:0.4rem;border:1px solid {{ $isMe ? 'color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%)' : 'var(--hub-border)' }};{{ $isMe ? 'background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);' : 'background:var(--hub-surface);' }}box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow:hidden;">
-                                <span style="min-width:1.5rem;flex-shrink:0;text-align:center;font-size:0.76rem;font-weight:800;color:{{ $row['rank'] <= 3 ? '#0f766e' : 'var(--hub-muted)' }};">
+                            <div style="display:flex;align-items:center;gap:0.35rem;padding:0.32rem 0.5rem;border-radius:0.4rem;border:1px solid {{ $isMe ? 'color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%)' : 'var(--hub-border)' }};{{ $isMe ? 'background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);' : 'background:var(--hub-surface);' }}box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow:hidden;">
+                                <span style="width:1.6rem;min-width:1.6rem;max-width:1.6rem;flex-shrink:0;text-align:left;font-size:0.76rem;font-weight:800;color:{{ $row['rank'] <= 3 ? '#0f766e' : 'var(--hub-muted)' }};">
                                     #{{ $row['rank'] }}
                                 </span>
                                 <button
@@ -223,43 +223,49 @@
                                     <x-heroicon-m-sparkles style="width:0.7rem;height:0.7rem;color:#f59e0b;opacity:0.75;flex-shrink:0;" />
                                 </button>
 
-                                {{-- Badges Showcase (Icons only) --}}
-                                @if (!empty($row['badges']))
-                                    <div style="display:inline-flex;align-items:center;gap:0.12rem;flex-shrink:0;" title="{{ $row['badge_count'] }} {{ Str::plural('badge', $row['badge_count']) }}">
-                                        @foreach (array_slice($row['badges'], 0, 3) as $b)
-                                            @php
-                                                $bKey = is_array($b) ? ($b['key'] ?? '') : ($b->key ?? '');
-                                                $bName = is_array($b) ? ($b['name'] ?? '') : ($b->name ?? '');
-                                            @endphp
-                                            <span class="hub-chip hub-chip-amber" style="width:1.15rem;height:1.15rem;padding:0;border-radius:9999px;display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;" title="{{ $bName }}">
-                                                @if ($bKey === 'course_completed')
-                                                    <x-heroicon-s-academic-cap style="width:0.68rem;height:0.68rem;color:#0f766e;" />
-                                                @elseif (str_contains($bKey, 'streak'))
-                                                    <x-heroicon-s-fire style="width:0.68rem;height:0.68rem;color:#ea580c;" />
-                                                @elseif ($bKey === 'first_perfect_quiz')
-                                                    <x-heroicon-s-check-badge style="width:0.68rem;height:0.68rem;color:#10b981;" />
-                                                @elseif ($bKey === 'mastermind')
-                                                    <x-heroicon-s-sparkles style="width:0.68rem;height:0.68rem;color:#8b5cf6;" />
-                                                @elseif ($bKey === 'study_networker')
-                                                    <x-heroicon-s-user-group style="width:0.68rem;height:0.68rem;color:#0284c7;" />
-                                                @elseif ($bKey === 'active_contributor')
-                                                    <x-heroicon-s-chat-bubble-left-right style="width:0.68rem;height:0.68rem;color:#6366f1;" />
-                                                @else
-                                                    <x-heroicon-s-trophy style="width:0.68rem;height:0.68rem;color:#d97706;" />
-                                                @endif
-                                            </span>
-                                        @endforeach
+                                {{-- Right Metrics Cluster (Always Aligned Across All Rows) --}}
+                                <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.45rem;flex-shrink:0;margin-left:auto;">
+                                    {{-- Badges Slot (Fixed width 3.6rem so 0, 1, 2, or 3 badges never shift adjacent columns) --}}
+                                    <div style="display:inline-flex;align-items:center;justify-content:flex-end;gap:0.12rem;width:3.6rem;min-width:3.6rem;max-width:3.6rem;flex-shrink:0;" title="{{ $row['badge_count'] }} {{ Str::plural('badge', $row['badge_count']) }}">
+                                        @if (!empty($row['badges']))
+                                            @foreach (array_slice($row['badges'], 0, 3) as $b)
+                                                @php
+                                                    $bKey = is_array($b) ? ($b['key'] ?? '') : ($b->key ?? '');
+                                                    $bName = is_array($b) ? ($b['name'] ?? '') : ($b->name ?? '');
+                                                @endphp
+                                                <span class="hub-chip hub-chip-amber" style="width:1.15rem;height:1.15rem;padding:0;border-radius:9999px;display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;" title="{{ $bName }}">
+                                                    @if ($bKey === 'course_completed')
+                                                        <x-heroicon-s-academic-cap style="width:0.68rem;height:0.68rem;color:#0f766e;" />
+                                                    @elseif (str_contains($bKey, 'streak'))
+                                                        <x-heroicon-s-fire style="width:0.68rem;height:0.68rem;color:#ea580c;" />
+                                                    @elseif ($bKey === 'first_perfect_quiz')
+                                                        <x-heroicon-s-check-badge style="width:0.68rem;height:0.68rem;color:#10b981;" />
+                                                    @elseif ($bKey === 'mastermind')
+                                                        <x-heroicon-s-sparkles style="width:0.68rem;height:0.68rem;color:#8b5cf6;" />
+                                                    @elseif ($bKey === 'study_networker')
+                                                        <x-heroicon-s-user-group style="width:0.68rem;height:0.68rem;color:#0284c7;" />
+                                                    @elseif ($bKey === 'active_contributor')
+                                                        <x-heroicon-s-chat-bubble-left-right style="width:0.68rem;height:0.68rem;color:#6366f1;" />
+                                                    @else
+                                                        <x-heroicon-s-trophy style="width:0.68rem;height:0.68rem;color:#d97706;" />
+                                                    @endif
+                                                </span>
+                                            @endforeach
+                                        @endif
                                     </div>
-                                @endif
 
-                                <span style="font-size:0.68rem;color:var(--hub-muted);display:inline-flex;align-items:center;gap:0.1rem;flex-shrink:0;" title="{{ $row['badge_count'] }} Badges">
-                                    <x-heroicon-s-trophy style="width:0.65rem;height:0.65rem;color:#f59e0b;" />
-                                    <span>{{ $row['badge_count'] }}</span>
-                                </span>
-                                <span style="font-size:0.74rem;font-weight:800;color:#0f766e;text-align:right;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.1rem;flex-shrink:0;">
-                                    <x-heroicon-s-bolt style="width:0.65rem;height:0.65rem;color:#eab308;" />
-                                    <span>{{ number_format($row['xp']) }}</span>
-                                </span>
+                                    {{-- Badge Count Column (Fixed width 1.6rem) --}}
+                                    <div style="width:1.6rem;min-width:1.6rem;max-width:1.6rem;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.12rem;font-size:0.72rem;color:var(--hub-muted);flex-shrink:0;" title="{{ $row['badge_count'] }} Badges">
+                                        <x-heroicon-s-trophy style="width:0.68rem;height:0.68rem;color:#f59e0b;flex-shrink:0;" />
+                                        <span style="font-weight:600;">{{ $row['badge_count'] }}</span>
+                                    </div>
+
+                                    {{-- XP Count Column (Fixed width 3.2rem) --}}
+                                    <div style="width:3.2rem;min-width:3.2rem;max-width:3.2rem;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.12rem;font-size:0.76rem;font-weight:800;color:#0f766e;text-align:right;flex-shrink:0;">
+                                        <x-heroicon-s-bolt style="width:0.68rem;height:0.68rem;color:#eab308;flex-shrink:0;" />
+                                        <span>{{ number_format($row['xp']) }}</span>
+                                    </div>
+                                </div>
                             </div>
                         @endforeach
 
@@ -268,8 +274,8 @@
                             <div x-show="showAllLeaderboard" x-collapse style="display:flex;flex-direction:column;gap:0.28rem;width:100%;box-sizing:border-box;">
                                 @foreach ($remaining as $row)
                                     @php $isMe = $row['user_id'] === auth()->id(); @endphp
-                                    <div style="display:flex;align-items:center;gap:0.3rem;padding:0.28rem 0.45rem;border-radius:0.4rem;border:1px solid {{ $isMe ? 'color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%)' : 'var(--hub-border)' }};{{ $isMe ? 'background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);' : 'background:var(--hub-surface);' }}box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow:hidden;">
-                                        <span style="min-width:1.5rem;flex-shrink:0;text-align:center;font-size:0.76rem;font-weight:700;color:var(--hub-muted);">
+                                    <div style="display:flex;align-items:center;gap:0.35rem;padding:0.32rem 0.5rem;border-radius:0.4rem;border:1px solid {{ $isMe ? 'color-mix(in oklab, var(--hub-border) 40%, #0f766e 60%)' : 'var(--hub-border)' }};{{ $isMe ? 'background:color-mix(in oklab, var(--hub-surface) 70%, #0f766e 12%);' : 'background:var(--hub-surface);' }}box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow:hidden;">
+                                        <span style="width:1.6rem;min-width:1.6rem;max-width:1.6rem;flex-shrink:0;text-align:left;font-size:0.76rem;font-weight:700;color:var(--hub-muted);">
                                             #{{ $row['rank'] }}
                                         </span>
                                         <button
@@ -283,41 +289,50 @@
                                             <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $row['name'] }}{{ $isMe ? ' (you)' : '' }}</span>
                                             <x-heroicon-m-sparkles style="width:0.7rem;height:0.7rem;color:#f59e0b;opacity:0.75;flex-shrink:0;" />
                                         </button>
-                                        @if (!empty($row['badges']))
-                                            <div style="display:inline-flex;align-items:center;gap:0.12rem;flex-shrink:0;" title="{{ $row['badge_count'] }} Badges">
-                                                @foreach (array_slice($row['badges'], 0, 3) as $b)
-                                                    @php
-                                                        $bKey = is_array($b) ? ($b['key'] ?? '') : ($b->key ?? '');
-                                                        $bName = is_array($b) ? ($b['name'] ?? '') : ($b->name ?? '');
-                                                    @endphp
-                                                    <span class="hub-chip hub-chip-amber" style="width:1.15rem;height:1.15rem;padding:0;border-radius:9999px;display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;" title="{{ $bName }}">
-                                                        @if ($bKey === 'course_completed')
-                                                            <x-heroicon-s-academic-cap style="width:0.68rem;height:0.68rem;color:#0f766e;" />
-                                                        @elseif (str_contains($bKey, 'streak'))
-                                                            <x-heroicon-s-fire style="width:0.68rem;height:0.68rem;color:#ea580c;" />
-                                                        @elseif ($bKey === 'first_perfect_quiz')
-                                                            <x-heroicon-s-check-badge style="width:0.68rem;height:0.68rem;color:#10b981;" />
-                                                        @elseif ($bKey === 'mastermind')
-                                                            <x-heroicon-s-sparkles style="width:0.68rem;height:0.68rem;color:#8b5cf6;" />
-                                                        @elseif ($bKey === 'study_networker')
-                                                            <x-heroicon-s-user-group style="width:0.68rem;height:0.68rem;color:#0284c7;" />
-                                                        @elseif ($bKey === 'active_contributor')
-                                                            <x-heroicon-s-chat-bubble-left-right style="width:0.68rem;height:0.68rem;color:#6366f1;" />
-                                                        @else
-                                                            <x-heroicon-s-trophy style="width:0.68rem;height:0.68rem;color:#d97706;" />
-                                                        @endif
-                                                    </span>
-                                                @endforeach
+
+                                        {{-- Right Metrics Cluster (Always Aligned Across All Rows) --}}
+                                        <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.45rem;flex-shrink:0;margin-left:auto;">
+                                            {{-- Badges Slot (Fixed width 3.6rem so 0, 1, 2, or 3 badges never shift adjacent columns) --}}
+                                            <div style="display:inline-flex;align-items:center;justify-content:flex-end;gap:0.12rem;width:3.6rem;min-width:3.6rem;max-width:3.6rem;flex-shrink:0;" title="{{ $row['badge_count'] }} Badges">
+                                                @if (!empty($row['badges']))
+                                                    @foreach (array_slice($row['badges'], 0, 3) as $b)
+                                                        @php
+                                                            $bKey = is_array($b) ? ($b['key'] ?? '') : ($b->key ?? '');
+                                                            $bName = is_array($b) ? ($b['name'] ?? '') : ($b->name ?? '');
+                                                        @endphp
+                                                        <span class="hub-chip hub-chip-amber" style="width:1.15rem;height:1.15rem;padding:0;border-radius:9999px;display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;" title="{{ $bName }}">
+                                                            @if ($bKey === 'course_completed')
+                                                                <x-heroicon-s-academic-cap style="width:0.68rem;height:0.68rem;color:#0f766e;" />
+                                                            @elseif (str_contains($bKey, 'streak'))
+                                                                <x-heroicon-s-fire style="width:0.68rem;height:0.68rem;color:#ea580c;" />
+                                                            @elseif ($bKey === 'first_perfect_quiz')
+                                                                <x-heroicon-s-check-badge style="width:0.68rem;height:0.68rem;color:#10b981;" />
+                                                            @elseif ($bKey === 'mastermind')
+                                                                <x-heroicon-s-sparkles style="width:0.68rem;height:0.68rem;color:#8b5cf6;" />
+                                                            @elseif ($bKey === 'study_networker')
+                                                                <x-heroicon-s-user-group style="width:0.68rem;height:0.68rem;color:#0284c7;" />
+                                                            @elseif ($bKey === 'active_contributor')
+                                                                <x-heroicon-s-chat-bubble-left-right style="width:0.68rem;height:0.68rem;color:#6366f1;" />
+                                                            @else
+                                                                <x-heroicon-s-trophy style="width:0.68rem;height:0.68rem;color:#d97706;" />
+                                                            @endif
+                                                        </span>
+                                                    @endforeach
+                                                @endif
                                             </div>
-                                        @endif
-                                        <span style="font-size:0.68rem;color:var(--hub-muted);display:inline-flex;align-items:center;gap:0.1rem;flex-shrink:0;" title="{{ $row['badge_count'] }} Badges">
-                                            <x-heroicon-s-trophy style="width:0.65rem;height:0.65rem;color:#f59e0b;" />
-                                            <span>{{ $row['badge_count'] }}</span>
-                                        </span>
-                                        <span style="font-size:0.74rem;font-weight:800;color:#0f766e;text-align:right;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.1rem;flex-shrink:0;">
-                                            <x-heroicon-s-bolt style="width:0.65rem;height:0.65rem;color:#eab308;" />
-                                            <span>{{ number_format($row['xp']) }}</span>
-                                        </span>
+
+                                            {{-- Badge Count Column (Fixed width 1.6rem) --}}
+                                            <div style="width:1.6rem;min-width:1.6rem;max-width:1.6rem;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.12rem;font-size:0.72rem;color:var(--hub-muted);flex-shrink:0;" title="{{ $row['badge_count'] }} Badges">
+                                                <x-heroicon-s-trophy style="width:0.68rem;height:0.68rem;color:#f59e0b;flex-shrink:0;" />
+                                                <span style="font-weight:600;">{{ $row['badge_count'] }}</span>
+                                            </div>
+
+                                            {{-- XP Count Column (Fixed width 3.2rem) --}}
+                                            <div style="width:3.2rem;min-width:3.2rem;max-width:3.2rem;display:inline-flex;align-items:center;justify-content:flex-end;gap:0.12rem;font-size:0.76rem;font-weight:800;color:#0f766e;text-align:right;flex-shrink:0;">
+                                                <x-heroicon-s-bolt style="width:0.68rem;height:0.68rem;color:#eab308;flex-shrink:0;" />
+                                                <span>{{ number_format($row['xp']) }}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 @endforeach
                             </div>
