@@ -126,7 +126,8 @@
                                         ];
                                     @endphp
                                     <button type="button"
-                                            @click="window.openCourseOptionModal(@js($studentModalData))"
+                                            onclick="window.openCourseOptionModal(@js($studentModalData))"
+                                            @click.prevent="window.openCourseOptionModal(@js($studentModalData))"
                                             class="inline-flex items-center justify-center px-5 py-2 rounded-full text-xs font-bold text-white bg-[#7C3AED] hover:bg-[#6D28D9] shadow-xs transition-colors cursor-pointer">
                                         Enroll &amp; Pay &rarr;
                                     </button>

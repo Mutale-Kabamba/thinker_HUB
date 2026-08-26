@@ -431,7 +431,8 @@
                         @if ($hasMultipleOptions)
                             <button
                                 type="button"
-                                @click="window.openCourseOptionModal(@js($courseModalData))"
+                                onclick="window.openCourseOptionModal(@js($courseModalData))"
+                                @click.prevent="window.openCourseOptionModal(@js($courseModalData))"
                                 class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] shadow-lg shadow-yellow-400/20 transition hover:bg-yellow-300 cursor-pointer"
                             >
                                 <i class="fa-solid fa-credit-card"></i>
@@ -617,7 +618,8 @@
                         @if ($hasMultipleOptions ?? false)
                             <button
                                 type="button"
-                                @click="window.openCourseOptionModal(@js($courseModalData))"
+                                onclick="window.openCourseOptionModal(@js($courseModalData))"
+                                @click.prevent="window.openCourseOptionModal(@js($courseModalData))"
                                 class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm cursor-pointer"
                             >
                                 <i class="fa-solid fa-credit-card mr-2"></i> Enroll &amp; Pay
