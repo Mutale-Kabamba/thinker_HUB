@@ -172,7 +172,7 @@
                                 Course Completion Rates
                             </h2>
                             <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                                Proportion of students who passed all required curriculum checkpoints.
+                                Proportion of scheduled curriculum sessions delivered and completed.
                             </p>
                         </div>
                     </div>
@@ -191,12 +191,12 @@
                                                 {{ $row['course'] }}
                                             </span>
                                             <span class="ml-2 text-[11px] font-bold text-slate-400">
-                                                {{ $row['code'] }} &bull; {{ $row['active_quizzes'] }} active quiz{{ $row['active_quizzes'] === 1 ? '' : 'zes' }}
+                                                {{ $row['code'] }} &bull; {{ $row['total_sessions'] }} scheduled session{{ $row['total_sessions'] === 1 ? '' : 's' }}
                                             </span>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <span class="text-xs font-black text-[#7C3AED] dark:text-purple-400">
-                                                {{ $row['completed'] }}/{{ $row['enrolled'] }} Learners
+                                                {{ $row['completed_sessions'] }}/{{ $row['total_sessions'] }} Sessions
                                             </span>
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300">
                                                 {{ $row['percentage'] }}%
