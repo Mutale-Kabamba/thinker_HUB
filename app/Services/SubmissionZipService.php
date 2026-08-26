@@ -8,7 +8,7 @@ use App\Support\PublicDiskPath;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use ZipArchive;
 
 class SubmissionZipService
@@ -16,7 +16,7 @@ class SubmissionZipService
     /**
      * Download selected assignment submissions as a ZIP archive.
      */
-    public function downloadAssignmentsZip(Collection|array $submissions, string $zipNamePrefix = 'Assignment_Submissions'): ?BinaryFileResponse
+    public function downloadAssignmentsZip(Collection|array $submissions, string $zipNamePrefix = 'Assignment_Submissions'): ?StreamedResponse
     {
         $records = is_array($submissions) ? collect($submissions) : $submissions;
 
@@ -54,38 +54,46 @@ class SubmissionZipService
             $assignmentSlug = Str::slug((string) ($assignment?->name ?? 'Assignment'), '_');
 
             $paths = $submission->all_file_paths;
+            $submissionFilesAdded = 0;
 
             foreach ($paths as $idx => $rawPath) {
-                $normalized = PublicDiskPath::normalize($rawPath);
-                if (! $normalized) {
-                    continue;
-                }
+                $resolvedPath = $this->resolveFilePath($rawPath, $disk);
 
-                $fullPath = $disk->path($normalized);
-                if (! file_exists($fullPath)) {
-                    if ($disk->exists('submissions/' . basename($normalized))) {
-                        $fullPath = $disk->path('submissions/' . basename($normalized));
-                    }
-                }
-
-                if (file_exists($fullPath) && is_file($fullPath)) {
-                    $ext = pathinfo($fullPath, PATHINFO_EXTENSION);
+                if ($resolvedPath && file_exists($resolvedPath) && is_file($resolvedPath)) {
+                    $ext = pathinfo($resolvedPath, PATHINFO_EXTENSION);
                     $ext = $ext ? '.' . $ext : '';
 
                     $suffix = count($paths) > 1 ? '_' . ($idx + 1) : '';
                     $baseName = "{$studentFirst}_{$assignmentSlug}{$suffix}";
 
-                    $entryName = $baseName . $ext;
-                    $counter = 2;
-                    while (isset($usedNames[strtolower($entryName)])) {
-                        $entryName = "{$baseName}_({$counter}){$ext}";
-                        $counter++;
-                    }
-                    $usedNames[strtolower($entryName)] = true;
-
-                    $zip->addFile($fullPath, $entryName);
+                    $entryName = $this->uniqueEntryName($baseName, $ext, $usedNames);
+                    $zip->addFile($resolvedPath, $entryName);
                     $filesAdded++;
+                    $submissionFilesAdded++;
                 }
+            }
+
+            // If no physical attachment file existed, check if student submitted text content or link
+            if ($submissionFilesAdded === 0 && (filled($submission->content) || filled($submission->link) || filled($submission->video_url))) {
+                $textData = "Student: " . ($user?->name ?? 'Student') . "\n";
+                $textData .= "Assignment: " . ($assignment?->name ?? 'Assignment') . "\n";
+                $textData .= "Submitted At: " . ($submission->submitted_at?->toDateTimeString() ?? now()->toDateTimeString()) . "\n";
+                $textData .= "Status: " . ($submission->status ?? 'Submitted') . "\n\n";
+
+                if (filled($submission->content)) {
+                    $textData .= "--- SUBMISSION CONTENT ---\n" . $submission->content . "\n\n";
+                }
+                if (filled($submission->link)) {
+                    $textData .= "Submission Link: " . $submission->link . "\n";
+                }
+                if (filled($submission->video_url)) {
+                    $textData .= "Video URL: " . $submission->video_url . "\n";
+                }
+
+                $baseName = "{$studentFirst}_{$assignmentSlug}_text_submission";
+                $entryName = $this->uniqueEntryName($baseName, '.txt', $usedNames);
+                $zip->addFromString($entryName, $textData);
+                $filesAdded++;
             }
         }
 
@@ -99,15 +107,23 @@ class SubmissionZipService
             return null;
         }
 
-        return response()->download($tempZipPath, $zipFileName, [
+        return response()->streamDownload(function () use ($tempZipPath) {
+            if (file_exists($tempZipPath)) {
+                $stream = fopen($tempZipPath, 'rb');
+                fpassthru($stream);
+                fclose($stream);
+                @unlink($tempZipPath);
+            }
+        }, $zipFileName, [
             'Content-Type' => 'application/zip',
-        ])->deleteFileAfterSend(true);
+            'Content-Disposition' => 'attachment; filename="' . $zipFileName . '"',
+        ]);
     }
 
     /**
      * Download selected assessment submissions as a ZIP archive.
      */
-    public function downloadAssessmentsZip(Collection|array $submissions, string $zipNamePrefix = 'Assessment_Submissions'): ?BinaryFileResponse
+    public function downloadAssessmentsZip(Collection|array $submissions, string $zipNamePrefix = 'Assessment_Submissions'): ?StreamedResponse
     {
         $records = is_array($submissions) ? collect($submissions) : $submissions;
 
@@ -145,38 +161,46 @@ class SubmissionZipService
             $assessmentSlug = Str::slug((string) ($assessment?->name ?? 'Assessment'), '_');
 
             $paths = $submission->all_file_paths;
+            $submissionFilesAdded = 0;
 
             foreach ($paths as $idx => $rawPath) {
-                $normalized = PublicDiskPath::normalize($rawPath);
-                if (! $normalized) {
-                    continue;
-                }
+                $resolvedPath = $this->resolveFilePath($rawPath, $disk);
 
-                $fullPath = $disk->path($normalized);
-                if (! file_exists($fullPath)) {
-                    if ($disk->exists('submissions/' . basename($normalized))) {
-                        $fullPath = $disk->path('submissions/' . basename($normalized));
-                    }
-                }
-
-                if (file_exists($fullPath) && is_file($fullPath)) {
-                    $ext = pathinfo($fullPath, PATHINFO_EXTENSION);
+                if ($resolvedPath && file_exists($resolvedPath) && is_file($resolvedPath)) {
+                    $ext = pathinfo($resolvedPath, PATHINFO_EXTENSION);
                     $ext = $ext ? '.' . $ext : '';
 
                     $suffix = count($paths) > 1 ? '_' . ($idx + 1) : '';
                     $baseName = "{$studentFirst}_{$assessmentSlug}{$suffix}";
 
-                    $entryName = $baseName . $ext;
-                    $counter = 2;
-                    while (isset($usedNames[strtolower($entryName)])) {
-                        $entryName = "{$baseName}_({$counter}){$ext}";
-                        $counter++;
-                    }
-                    $usedNames[strtolower($entryName)] = true;
-
-                    $zip->addFile($fullPath, $entryName);
+                    $entryName = $this->uniqueEntryName($baseName, $ext, $usedNames);
+                    $zip->addFile($resolvedPath, $entryName);
                     $filesAdded++;
+                    $submissionFilesAdded++;
                 }
+            }
+
+            // If no physical attachment file existed, check if student submitted text content or link
+            if ($submissionFilesAdded === 0 && (filled($submission->content) || filled($submission->link) || filled($submission->video_url))) {
+                $textData = "Student: " . ($user?->name ?? 'Student') . "\n";
+                $textData .= "Assessment: " . ($assessment?->name ?? 'Assessment') . "\n";
+                $textData .= "Submitted At: " . ($submission->submitted_at?->toDateTimeString() ?? now()->toDateTimeString()) . "\n";
+                $textData .= "Status: " . ($submission->status ?? 'Submitted') . "\n\n";
+
+                if (filled($submission->content)) {
+                    $textData .= "--- SUBMISSION CONTENT ---\n" . $submission->content . "\n\n";
+                }
+                if (filled($submission->link)) {
+                    $textData .= "Submission Link: " . $submission->link . "\n";
+                }
+                if (filled($submission->video_url)) {
+                    $textData .= "Video URL: " . $submission->video_url . "\n";
+                }
+
+                $baseName = "{$studentFirst}_{$assessmentSlug}_text_submission";
+                $entryName = $this->uniqueEntryName($baseName, '.txt', $usedNames);
+                $zip->addFromString($entryName, $textData);
+                $filesAdded++;
             }
         }
 
@@ -190,8 +214,66 @@ class SubmissionZipService
             return null;
         }
 
-        return response()->download($tempZipPath, $zipFileName, [
+        return response()->streamDownload(function () use ($tempZipPath) {
+            if (file_exists($tempZipPath)) {
+                $stream = fopen($tempZipPath, 'rb');
+                fpassthru($stream);
+                fclose($stream);
+                @unlink($tempZipPath);
+            }
+        }, $zipFileName, [
             'Content-Type' => 'application/zip',
-        ])->deleteFileAfterSend(true);
+            'Content-Disposition' => 'attachment; filename="' . $zipFileName . '"',
+        ]);
+    }
+
+    /**
+     * Resolve file path across multiple possible storage locations.
+     */
+    protected function resolveFilePath(?string $rawPath, $disk): ?string
+    {
+        if (blank($rawPath)) {
+            return null;
+        }
+
+        $normalized = PublicDiskPath::normalize($rawPath);
+        if (! $normalized) {
+            $normalized = ltrim($rawPath, '/\\');
+        }
+
+        $candidates = [
+            $disk->path($normalized),
+            storage_path('app/public/' . $normalized),
+            storage_path('app/' . $normalized),
+            public_path('storage/' . $normalized),
+            public_path($normalized),
+            $disk->path('submissions/' . basename($normalized)),
+            storage_path('app/public/submissions/' . basename($normalized)),
+            storage_path('app/submissions/' . basename($normalized)),
+        ];
+
+        foreach ($candidates as $candidate) {
+            if ($candidate && file_exists($candidate) && is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Ensure a unique name in the ZIP archive.
+     */
+    protected function uniqueEntryName(string $baseName, string $ext, array &$usedNames): string
+    {
+        $entryName = $baseName . $ext;
+        $counter = 2;
+        while (isset($usedNames[strtolower($entryName)])) {
+            $entryName = "{$baseName}_({$counter}){$ext}";
+            $counter++;
+        }
+        $usedNames[strtolower($entryName)] = true;
+
+        return $entryName;
     }
 }
