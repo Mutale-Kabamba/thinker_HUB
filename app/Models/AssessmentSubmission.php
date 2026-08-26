@@ -45,14 +45,19 @@ class AssessmentSubmission extends Model
     protected static function booted(): void
     {
         static::saving(function (AssessmentSubmission $submission) {
-            $paths = $submission->file_paths;
-            if (is_array($paths) && ! empty($paths)) {
-                $first = reset($paths);
-                if ($first && is_string($first)) {
-                    $submission->file_path = $first;
+            $rawPaths = $submission->attributes['file_paths'] ?? null;
+            if (is_string($rawPaths)) {
+                $rawPaths = json_decode($rawPaths, true);
+            }
+
+            if (is_array($rawPaths) && ! empty($rawPaths)) {
+                $clean = array_values(array_filter($rawPaths, fn ($p) => filled($p)));
+                $submission->attributes['file_paths'] = json_encode($clean);
+                if (! empty($clean)) {
+                    $submission->attributes['file_path'] = $clean[0];
                 }
-            } elseif ($submission->file_path && empty($submission->file_paths)) {
-                $submission->file_paths = [$submission->file_path];
+            } elseif (! empty($submission->attributes['file_path'])) {
+                $submission->attributes['file_paths'] = json_encode([$submission->attributes['file_path']]);
             }
 
             if ($submission->is_retake && $submission->score !== null && is_numeric($submission->score)) {
