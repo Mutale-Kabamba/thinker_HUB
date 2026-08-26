@@ -115,10 +115,27 @@
                                     🔒 Locked
                                 </button>
                             @elseif ($course['is_payable'])
-                                <a href="{{ $course['checkout_url'] }}"
-                                   class="inline-flex items-center justify-center px-5 py-2 rounded-full text-xs font-bold text-white bg-[#7C3AED] hover:bg-[#6D28D9] shadow-xs transition-colors">
-                                    Enroll &amp; Pay &rarr;
-                                </a>
+                                @if ($course['has_multiple_options'] ?? false)
+                                    @php
+                                        $studentModalData = [
+                                            'id' => $course['id'],
+                                            'title' => $course['title'],
+                                            'code' => $course['code'],
+                                            'checkoutUrl' => $course['checkout_url'],
+                                            'options' => $course['fee_options'] ?? [],
+                                        ];
+                                    @endphp
+                                    <button type="button"
+                                            @click="window.openCourseOptionModal(@js($studentModalData))"
+                                            class="inline-flex items-center justify-center px-5 py-2 rounded-full text-xs font-bold text-white bg-[#7C3AED] hover:bg-[#6D28D9] shadow-xs transition-colors cursor-pointer">
+                                        Enroll &amp; Pay &rarr;
+                                    </button>
+                                @else
+                                    <a href="{{ $course['checkout_url'] }}"
+                                       class="inline-flex items-center justify-center px-5 py-2 rounded-full text-xs font-bold text-white bg-[#7C3AED] hover:bg-[#6D28D9] shadow-xs transition-colors">
+                                        Enroll &amp; Pay &rarr;
+                                    </a>
+                                @endif
                             @else
                                 <button type="button" wire:click="enroll({{ $course['id'] }})"
                                         class="inline-flex items-center justify-center px-5 py-2 rounded-full text-xs font-bold text-white bg-[#7C3AED] hover:bg-[#6D28D9] shadow-xs transition-colors cursor-pointer">
@@ -135,4 +152,6 @@
             @endforelse
         </div>
     </div>
+
+    @include('partials.course-selection-modal')
 </x-filament-panels::page>

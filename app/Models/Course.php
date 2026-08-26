@@ -240,82 +240,290 @@ class Course extends Model
         return 0.0;
     }
 
-    public function getNumericFeeForLevel(?string $level = null): float
+    /**
+     * Parse and extract all available fee options (mode/category, level, amount, duration).
+     *
+     * @return array<int, array{
+     *     id: string,
+     *     category: string,
+     *     mode: string,
+     *     mode_label: string,
+     *     mode_badge: string,
+     *     level: string,
+     *     amount: float,
+     *     formatted_amount: string,
+     *     duration: ?string,
+     *     highlight: string
+     * }>
+     */
+    public function getFeeOptions(): array
     {
-        $defaultFee = $this->getNumericFee();
-
-        if (! $level) {
-            return $defaultFee;
-        }
-
         $fees = $this->fees;
-
-        if (empty($fees)) {
-            return $defaultFee;
-        }
-
-        // If fees is a JSON string or array
+        $defaultDuration = $this->timeline ?: null;
         $parsed = is_string($fees) ? json_decode($fees, true) : $fees;
+        $options = [];
+
+        $normalizeCategory = static function (string $raw): array {
+            $cat = strtolower(trim(str_replace(['-', ' '], '_', $raw)));
+            if (in_array($cat, ['one_on_one', 'one2one', 'one_to_one', 'private', 'private_class', '1_1'], true)) {
+                return ['one_on_one', 'One-on-One', '1:1 Focus', 'Personalized 1:1 mentorship & dedicated project guidance'];
+            }
+            if (in_array($cat, ['group', 'group_class', 'group_classes', 'class_group'], true)) {
+                return ['group', 'Group Class', 'Best Value', 'Interactive group cohorts & collaborative exercises'];
+            }
+            return ['group', 'Group Class', 'Standard', 'Comprehensive curriculum & hands-on practical training'];
+        };
+
+        $normalizeLevel = static function (string $raw): string {
+            $lvl = strtolower(trim($raw));
+            if (str_contains($lvl, 'beginner')) return 'Beginner';
+            if (str_contains($lvl, 'intermediate')) return 'Intermediate';
+            if (str_contains($lvl, 'advanced')) return 'Advanced';
+            return trim($raw) !== '' ? ucwords(trim($raw)) : 'Beginner';
+        };
+
+        $parseAmount = static function (mixed $raw): float {
+            if (is_numeric($raw)) return (float) $raw;
+            if (is_string($raw)) {
+                $clean = (float) str_replace(',', '', (string) preg_replace('/[^\d.,]/', '', $raw));
+                return $clean > 0 ? $clean : 0.0;
+            }
+            return 0.0;
+        };
 
         if (is_array($parsed)) {
-            // Check flat level map: ['Beginner' => 1200, ...]
-            foreach ($parsed as $k => $v) {
-                if (is_string($k) && strcasecmp(trim($k), trim($level)) === 0) {
-                    $amount = is_numeric($v) ? (float) $v : (float) str_replace(',', '', (string) preg_replace('/[^\d.,]/', '', (string) $v));
-                    if ($amount > 0) {
-                        return $amount;
-                    }
-                }
-            }
-
-            // Check nested sections: ['group' => [['level' => 'Beginner', 'amount' => 600]], ...]
-            foreach (['group', 'one_on_one', 'fees', 'levels'] as $section) {
-                if (isset($parsed[$section]) && is_array($parsed[$section])) {
-                    foreach ($parsed[$section] as $entry) {
-                        if (is_array($entry) && isset($entry['level']) && strcasecmp(trim((string) $entry['level']), trim($level)) === 0) {
-                            $rawAmount = $entry['amount'] ?? $entry['fee'] ?? null;
-                            if ($rawAmount !== null) {
-                                $amount = (float) str_replace(',', '', (string) preg_replace('/[^\d.,]/', '', (string) $rawAmount));
-                                if ($amount > 0) {
-                                    return $amount;
-                                }
+            // 1. Check categorized dictionary: ['group' => [...], 'one_on_one' => [...]]
+            foreach (['group', 'one_on_one'] as $sectionKey) {
+                if (isset($parsed[$sectionKey]) && is_array($parsed[$sectionKey])) {
+                    [$catKey, $modeLabel, $modeBadge, $highlight] = $normalizeCategory($sectionKey);
+                    foreach ($parsed[$sectionKey] as $entry) {
+                        if (is_array($entry)) {
+                            $level = $normalizeLevel((string) ($entry['level'] ?? 'Beginner'));
+                            $amount = $parseAmount($entry['amount'] ?? $entry['fee'] ?? null);
+                            $duration = trim((string) ($entry['duration'] ?? $defaultDuration));
+                            if ($amount > 0) {
+                                $options[] = [
+                                    'id' => $catKey . '_' . strtolower($level),
+                                    'category' => $catKey,
+                                    'mode' => $catKey,
+                                    'mode_label' => $modeLabel,
+                                    'mode_badge' => $modeBadge,
+                                    'level' => $level,
+                                    'amount' => $amount,
+                                    'formatted_amount' => 'ZMW ' . number_format($amount, 2),
+                                    'duration' => $duration ?: null,
+                                    'highlight' => $highlight,
+                                ];
                             }
                         }
                     }
                 }
             }
 
-            // Check if sequential list of items: [['level' => 'Beginner', 'amount' => 1200]]
-            foreach ($parsed as $entry) {
-                if (is_array($entry) && isset($entry['level']) && strcasecmp(trim((string) $entry['level']), trim($level)) === 0) {
-                    $rawAmount = $entry['amount'] ?? $entry['fee'] ?? null;
-                    if ($rawAmount !== null) {
-                        $amount = (float) str_replace(',', '', (string) preg_replace('/[^\d.,]/', '', (string) $rawAmount));
+            // 2. Sequential list of items: [['category' => 'Group', 'level' => 'Beginner', 'amount' => 'K350']]
+            if (empty($options) && array_is_list($parsed)) {
+                foreach ($parsed as $entry) {
+                    if (is_array($entry)) {
+                        $rawCat = (string) ($entry['category'] ?? $entry['mode'] ?? $entry['type'] ?? 'group');
+                        [$catKey, $modeLabel, $modeBadge, $highlight] = $normalizeCategory($rawCat);
+                        $level = $normalizeLevel((string) ($entry['level'] ?? 'Beginner'));
+                        $amount = $parseAmount($entry['amount'] ?? $entry['fee'] ?? null);
+                        $duration = trim((string) ($entry['duration'] ?? $defaultDuration));
                         if ($amount > 0) {
-                            return $amount;
+                            $options[] = [
+                                'id' => $catKey . '_' . strtolower($level),
+                                'category' => $catKey,
+                                'mode' => $catKey,
+                                'mode_label' => $modeLabel,
+                                'mode_badge' => $modeBadge,
+                                'level' => $level,
+                                'amount' => $amount,
+                                'formatted_amount' => 'ZMW ' . number_format($amount, 2),
+                                'duration' => $duration ?: null,
+                                'highlight' => $highlight,
+                            ];
+                        }
+                    }
+                }
+            }
+
+            // 3. Flat map: ['Beginner' => 1200, 'Intermediate' => 1800]
+            if (empty($options)) {
+                foreach ($parsed as $k => $v) {
+                    if (is_string($k) && ! in_array($k, ['group', 'one_on_one'], true)) {
+                        $amount = $parseAmount($v);
+                        if ($amount > 0) {
+                            $level = $normalizeLevel($k);
+                            [$catKey, $modeLabel, $modeBadge, $highlight] = $normalizeCategory('group');
+                            $options[] = [
+                                'id' => 'group_' . strtolower($level),
+                                'category' => 'group',
+                                'mode' => 'group',
+                                'mode_label' => $modeLabel,
+                                'mode_badge' => $modeBadge,
+                                'level' => $level,
+                                'amount' => $amount,
+                                'formatted_amount' => 'ZMW ' . number_format($amount, 2),
+                                'duration' => $defaultDuration,
+                                'highlight' => $highlight,
+                            ];
                         }
                     }
                 }
             }
         }
 
-        // If fees is a string with lines like "Beginner: 1200" or "Beginner - K1,500"
-        if (is_string($fees)) {
-            $escapedLevel = preg_quote(trim($level), '/');
-            if (preg_match('/(?:^|[\r\n;,|])\s*(?:level\s*[:\-]\s*)?' . $escapedLevel . '\s*[:\-]\s*(?:ZMW|K|USD|\$)?\s*([\d,]+(?:\.\d+)?)/i', $fees, $matches) === 1) {
-                $amount = (float) str_replace(',', '', (string) $matches[1]);
-                if ($amount > 0) {
-                    return $amount;
+        // 4. If fees is a string with lines
+        if (empty($options) && is_string($fees) && trim($fees) !== '') {
+            $lines = preg_split('/\R+/', trim($fees)) ?: [];
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line === '') continue;
+
+                $rawCat = str_contains(strtolower($line), 'one') || str_contains(strtolower($line), 'private') ? 'one_on_one' : 'group';
+                [$catKey, $modeLabel, $modeBadge, $highlight] = $normalizeCategory($rawCat);
+
+                if (preg_match_all('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:Beginner|Intermediate|Advanced)\s*[:\-]|$)/i', $line, $matches, PREG_SET_ORDER) > 0) {
+                    foreach ($matches as $match) {
+                        $level = $normalizeLevel((string) ($match[1] ?? ''));
+                        $amount = $parseAmount($match[2] ?? 0);
+                        $dur = trim((string) ($match[3] ?? $defaultDuration));
+                        if ($amount > 0) {
+                            $options[] = [
+                                'id' => $catKey . '_' . strtolower($level),
+                                'category' => $catKey,
+                                'mode' => $catKey,
+                                'mode_label' => $modeLabel,
+                                'mode_badge' => $modeBadge,
+                                'level' => $level,
+                                'amount' => $amount,
+                                'formatted_amount' => 'ZMW ' . number_format($amount, 2),
+                                'duration' => $dur ?: null,
+                                'highlight' => $highlight,
+                            ];
+                        }
+                    }
+                    continue;
+                }
+
+                if (preg_match('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*(?:ZMW|K|USD|\$)?\s*([\d,]+(?:\.\d+)?)/i', $line, $match) === 1) {
+                    $level = $normalizeLevel((string) $match[1]);
+                    $amount = $parseAmount($match[2]);
+                    if ($amount > 0) {
+                        $options[] = [
+                            'id' => $catKey . '_' . strtolower($level),
+                            'category' => $catKey,
+                            'mode' => $catKey,
+                            'mode_label' => $modeLabel,
+                            'mode_badge' => $modeBadge,
+                            'level' => $level,
+                            'amount' => $amount,
+                            'formatted_amount' => 'ZMW ' . number_format($amount, 2),
+                            'duration' => $defaultDuration,
+                            'highlight' => $highlight,
+                        ];
+                    }
                 }
             }
         }
 
-        return $defaultFee;
+        // 5. Fallback single flat fee
+        if (empty($options)) {
+            $defaultFee = $this->getNumericFee();
+            if ($defaultFee > 0) {
+                $options[] = [
+                    'id' => 'group_beginner',
+                    'category' => 'group',
+                    'mode' => 'group',
+                    'mode_label' => 'Standard',
+                    'mode_badge' => 'Self Paced',
+                    'level' => 'Beginner',
+                    'amount' => $defaultFee,
+                    'formatted_amount' => 'ZMW ' . number_format($defaultFee, 2),
+                    'duration' => $defaultDuration,
+                    'highlight' => 'Comprehensive curriculum & hands-on practical training',
+                ];
+            }
+        }
+
+        return $options;
     }
 
-    public function isPayable(?string $level = null): bool
+    /**
+     * Check if course has multiple level and/or mode options.
+     */
+    public function hasMultipleFeeOptions(): bool
     {
-        return $this->getNumericFeeForLevel($level) > 0 || $this->getNumericFee() > 0;
+        return count($this->getFeeOptions()) > 1;
+    }
+
+    /**
+     * Get numeric fee for exact level and mode combination.
+     */
+    public function getNumericFeeForOption(?string $level = null, ?string $mode = null): float
+    {
+        $options = $this->getFeeOptions();
+
+        if (empty($options)) {
+            $fee = $this->getNumericFee();
+            return $fee > 0 ? $fee : 1500.00;
+        }
+
+        $normMode = $mode ? strtolower(trim(str_replace(['-', ' '], '_', $mode))) : null;
+        if ($normMode && in_array($normMode, ['one_on_one', 'one2one', '1_1', 'private'], true)) {
+            $normMode = 'one_on_one';
+        } elseif ($normMode && in_array($normMode, ['group', 'class'], true)) {
+            $normMode = 'group';
+        }
+
+        $normLevel = $level ? strtolower(trim($level)) : null;
+
+        // 1. Exact match on both Mode & Level
+        if ($normMode && $normLevel) {
+            foreach ($options as $opt) {
+                if ($opt['category'] === $normMode && strtolower($opt['level']) === $normLevel) {
+                    return (float) $opt['amount'];
+                }
+            }
+        }
+
+        // 2. Match on Mode only (if level not given or not found in that mode)
+        if ($normMode) {
+            foreach ($options as $opt) {
+                if ($opt['category'] === $normMode) {
+                    if ($normLevel && strtolower($opt['level']) === $normLevel) {
+                        return (float) $opt['amount'];
+                    }
+                }
+            }
+            foreach ($options as $opt) {
+                if ($opt['category'] === $normMode) {
+                    return (float) $opt['amount'];
+                }
+            }
+        }
+
+        // 3. Match on Level only
+        if ($normLevel) {
+            foreach ($options as $opt) {
+                if (strtolower($opt['level']) === $normLevel) {
+                    return (float) $opt['amount'];
+                }
+            }
+        }
+
+        // 4. Default to first option amount or numeric fee
+        return (float) ($options[0]['amount'] ?? ($this->getNumericFee() ?: 1500.00));
+    }
+
+    public function getNumericFeeForLevel(?string $level = null, ?string $mode = null): float
+    {
+        return $this->getNumericFeeForOption($level, $mode);
+    }
+
+    public function isPayable(?string $level = null, ?string $mode = null): bool
+    {
+        return $this->getNumericFeeForOption($level, $mode) > 0 || $this->getNumericFee() > 0;
     }
 
     public function getLevelFees(): array

@@ -122,12 +122,33 @@
                                 <div class="mt-4 flex items-center justify-between gap-2">
                                     <div class="flex items-center gap-2">
                                         @if ($isOpenEnrollment)
-                                            <a
-                                                href="{{ route('checkout.show', $course) }}"
-                                                class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm"
-                                            >
-                                                Enroll &amp; Pay
-                                            </a>
+                                            @php
+                                                $feeOptions = $course->getFeeOptions();
+                                                $hasMultipleOptions = count($feeOptions) > 1;
+                                                $courseModalData = [
+                                                    'id' => $course->id,
+                                                    'title' => $course->title,
+                                                    'code' => $course->code,
+                                                    'checkoutUrl' => route('checkout.show', $course),
+                                                    'options' => $feeOptions,
+                                                ];
+                                            @endphp
+                                            @if ($hasMultipleOptions)
+                                                <button
+                                                    type="button"
+                                                    @click="window.openCourseOptionModal(@js($courseModalData))"
+                                                    class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm cursor-pointer"
+                                                >
+                                                    Enroll &amp; Pay
+                                                </button>
+                                            @else
+                                                <a
+                                                    href="{{ route('checkout.show', $course) }}"
+                                                    class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm"
+                                                >
+                                                    Enroll &amp; Pay
+                                                </a>
+                                            @endif
                                         @else
                                             <span
                                                 class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400 cursor-not-allowed border border-slate-200"
@@ -262,6 +283,7 @@
         </div>
     </footer>
 
+    @include('partials.course-selection-modal')
     @include('partials.legal-modals')
 </body>
 </html>

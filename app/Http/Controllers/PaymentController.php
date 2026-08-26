@@ -36,7 +36,11 @@ class PaymentController extends Controller
             $selectedLevel = 'Beginner';
         }
 
-        $feeAmount = $course->getNumericFeeForLevel($selectedLevel);
+        $rawMode = strtolower(trim((string) $request->query('mode', $request->query('category', 'group'))));
+        $selectedMode = in_array($rawMode, ['one_on_one', 'one2one', '1_1', 'private'], true) ? 'one_on_one' : 'group';
+
+        $feeOptions = $course->getFeeOptions();
+        $feeAmount = $course->getNumericFeeForOption($selectedLevel, $selectedMode);
         if ($feeAmount <= 0) {
             $feeAmount = $course->getNumericFee();
         }
@@ -48,6 +52,8 @@ class PaymentController extends Controller
             'course' => $course,
             'feeAmount' => $feeAmount,
             'selectedLevel' => $selectedLevel,
+            'selectedMode' => $selectedMode,
+            'feeOptions' => $feeOptions,
             'user' => Auth::user(),
         ]);
     }
@@ -68,6 +74,7 @@ class PaymentController extends Controller
 
         $rules = [
             'track' => ['required', 'in:Beginner,Intermediate,Advanced'],
+            'mode' => ['nullable', 'string', 'max:50'],
             'payment_method' => ['required', 'in:mobile_money,card,demo'],
             'provider' => ['nullable', 'string', 'max:50'],
             'phone_number' => ['nullable', 'string', 'max:30'],
