@@ -863,6 +863,13 @@ Route::middleware('auth')->group(function () {
     })->name('file.signed');
 
     Route::get('/claim-hub', fn () => redirect()->to('/student/claim-hub'))->name('claim-hub');
+
+    // Admin Report Generation Routes
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/student/{student}', [\App\Http\Controllers\ReportController::class, 'studentReport'])->name('student');
+        Route::get('/course/{course}', [\App\Http\Controllers\ReportController::class, 'courseReport'])->name('course');
+        Route::get('/intake/{intake}', [\App\Http\Controllers\ReportController::class, 'intakeReport'])->name('intake');
+    });
 });
 
 // Publicly accessible signed route for Google Docs Viewer to fetch the file.
