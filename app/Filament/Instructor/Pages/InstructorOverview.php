@@ -144,6 +144,21 @@ class InstructorOverview extends Page
 
         $this->recentSubmissions = $recentAssignSubmissions->concat($recentAssessSubmissions)->take(5)->values()->all();
 
+        $totalSubmissions = AssignmentSubmission::query()->whereHas('assignment', fn ($q) => $q->whereIn('course_id', $courseIds))->count()
+            + AssessmentSubmission::query()->whereHas('assessment', fn ($q) => $q->whereIn('course_id', $courseIds))->count();
+        $gradedSubmissions = max(0, $totalSubmissions - $this->pendingSubmissionsCount);
+        $gradingPercent = $totalSubmissions > 0 ? (int) round(($gradedSubmissions / $totalSubmissions) * 100) : 100;
+
+        $this->stats = [
+            'classes_total' => count($this->courses),
+            'students_total' => $this->totalStudents,
+            'assignments_total' => $this->totalAssignments,
+            'assessments_total' => $this->totalAssessments,
+            'pending_reviews' => $this->pendingSubmissionsCount,
+            'grading_percent' => $gradingPercent,
+            'upcoming_sessions' => $this->upcomingSessionCount,
+        ];
+
         $now = Carbon::now();
         $this->calendarMonth = $now->format('m');
         $this->calendarYear = $now->format('Y');

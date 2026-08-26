@@ -7,6 +7,7 @@
             selectedDate: null,
             calendarMonth: @js($calendarMonthName),
             events: @js($calendarEvents),
+            activeTab: 'active',
             init() {
                 this.startTimer();
             },
@@ -39,7 +40,7 @@
         class="space-y-6 font-sans"
     >
         {{-- ============================================================ --}}
-        {{-- 1. MAIN TOP HERO BANNER CAROUSEL & INSTRUCTOR METRICS ROW   --}}
+        {{-- 1. MAIN TOP HERO BANNER CAROUSEL & INSTRUCTOR PROFILE CARD   --}}
         {{-- ============================================================ --}}
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
             
@@ -128,8 +129,8 @@
                             <button
                                 type="button"
                                 x-on:click="goToSlide({{ $idx }})"
-                                class="h-1.5 rounded-full transition-all duration-300"
-                                :class="currentSlide === {{ $idx }} ? 'w-7 bg-teal-600 dark:bg-teal-400' : 'w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400'"
+                                class="h-2 rounded-full transition-all duration-300 focus:outline-none"
+                                :class="currentSlide === {{ $idx }} ? 'w-8 bg-teal-600 dark:bg-teal-400' : 'w-2.5 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400'"
                                 aria-label="Go to slide {{ $idx + 1 }}"
                             ></button>
                         @endforeach
@@ -139,88 +140,241 @@
                         <button
                             type="button"
                             x-on:click="prevSlide()"
-                            class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                            class="w-6 h-6 rounded-full bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-colors"
                             aria-label="Previous slide"
                         >
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
                         <button
                             type="button"
                             x-on:click="nextSlide()"
-                            class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                            class="w-6 h-6 rounded-full bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-colors"
                             aria-label="Next slide"
                         >
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
                     </div>
                 </div>
             </div>
 
-            {{-- Right Column: Instructor Summary / Quick Status (~30% / 4 cols on LG) --}}
-            <div class="lg:col-span-4 flex flex-col">
-                <div class="h-full bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Teaching Profile</span>
-                        </div>
-                        <span class="text-xs font-extrabold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/50 px-2.5 py-0.5 rounded-full">
-                            {{ count($courses) }} Classes
-                        </span>
+            {{-- Right Column: Teaching Profile Card (~30% / 4 cols on LG) --}}
+            <div class="lg:col-span-4 edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col justify-between space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-[#233842] pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">Teaching Profile</h2>
                     </div>
+                    <span class="text-xs font-extrabold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/50 px-2.5 py-0.5 rounded-full">
+                        {{ count($courses) }} Classes
+                    </span>
+                </div>
 
-                    <div class="space-y-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 text-white flex items-center justify-center font-black text-lg shadow-sm">
-                                👨‍🏫
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <h3 class="font-black text-slate-900 dark:text-white text-sm truncate">
-                                    {{ auth()->user()->name }}
-                                </h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                    {{ auth()->user()->email }}
-                                </p>
-                            </div>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 text-white flex items-center justify-center font-black text-lg shadow-2xs">
+                            👨‍🏫
                         </div>
-
-                        <div class="grid grid-cols-2 gap-2 pt-1">
-                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 text-center">
-                                <span class="block text-[10px] font-bold text-slate-400 uppercase">Learners</span>
-                                <span class="text-lg font-black text-slate-900 dark:text-white">{{ $totalStudents }}</span>
-                            </div>
-                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 text-center">
-                                <span class="block text-[10px] font-bold text-slate-400 uppercase">Pending</span>
-                                <span class="text-lg font-black {{ $pendingSubmissionsCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">
-                                    {{ $pendingSubmissionsCount }}
-                                </span>
-                            </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="font-black text-slate-900 dark:text-white text-sm truncate">
+                                {{ auth()->user()->name }}
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                {{ auth()->user()->email }}
+                            </p>
                         </div>
                     </div>
 
-                    <div class="pt-2">
-                        <a 
-                            href="{{ \App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl() }}" 
-                            class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 shadow-sm transition"
-                        >
-                            <span>Open Submission Queue</span>
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                            </svg>
-                        </a>
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-100 dark:border-slate-800 text-center">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Learners</span>
+                            <span class="text-lg font-black text-slate-900 dark:text-white">{{ $totalStudents }}</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-100 dark:border-slate-800 text-center">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Pending</span>
+                            <span class="text-lg font-black {{ $pendingSubmissionsCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">
+                                {{ $pendingSubmissionsCount }}
+                            </span>
+                        </div>
                     </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 dark:border-[#233842]">
+                    <a 
+                        href="{{ \App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl() }}" 
+                        class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 shadow-sm transition transform hover:-translate-y-0.5"
+                    >
+                        <span>Open Submission Queue</span>
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </a>
                 </div>
             </div>
         </div>
 
         {{-- ============================================================ --}}
-        {{-- 2. QUICK ACTIONS SHORTCUTS BAR                               --}}
+        {{-- 2. STATUS KPI CARDS WITH CIRCULAR PERCENTAGE RINGS           --}}
         {{-- ============================================================ --}}
-        <div class="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <div class="space-y-3">
+            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Status Overview</h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                {{-- Card 1: Total Classes (Amber / Peach Pastel) --}}
+                <a 
+                    href="#classrooms-section" 
+                    class="bg-[#FFF9EC] dark:bg-[#1c1917] border border-[#FEEFD0] dark:border-[#292524] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group no-underline"
+                >
+                    <div class="flex items-start justify-between">
+                        <div class="w-9 h-9 rounded-full bg-[#FDE68A] text-[#B45309] dark:bg-amber-900/60 dark:text-amber-300 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+
+                        <div class="relative w-11 h-11 flex items-center justify-center">
+                            <svg class="w-11 h-11 transform -rotate-90" viewBox="0 0 36 36">
+                                <path class="text-[#FDE68A]/50 dark:text-amber-900/40" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="text-[#F59E0B]" stroke-dasharray="100, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <span class="absolute text-[10px] font-extrabold text-[#B45309] dark:text-amber-300">
+                                100%
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                            {{ sprintf('%02d', count($courses)) }}
+                        </div>
+                        <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 group-hover:text-[#B45309] dark:group-hover:text-amber-300 transition-colors">
+                            Total Classes &rarr;
+                        </div>
+                        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                            Active assigned cohorts
+                        </div>
+                    </div>
+                </a>
+
+                {{-- Card 2: Total Students (Sky Pastel) --}}
+                <a 
+                    href="{{ route('filament.instructor.pages.student-results') }}" 
+                    class="bg-[#F0F9FF] dark:bg-[#0c1f2d] border border-[#E0F2FE] dark:border-[#0f3b56] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group no-underline"
+                >
+                    <div class="flex items-start justify-between">
+                        <div class="w-9 h-9 rounded-full bg-[#BAE6FD] text-[#0284C7] dark:bg-sky-900/60 dark:text-sky-300 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+
+                        <div class="relative w-11 h-11 flex items-center justify-center">
+                            <svg class="w-11 h-11 transform -rotate-90" viewBox="0 0 36 36">
+                                <path class="text-[#BAE6FD]/50 dark:text-sky-900/40" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="text-[#0284C7]" stroke-dasharray="100, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <span class="absolute text-[10px] font-extrabold text-[#0284C7] dark:text-sky-300">
+                                {{ $totalStudents }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                            {{ sprintf('%02d', $totalStudents) }}
+                        </div>
+                        <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 group-hover:text-[#0284C7] dark:group-hover:text-sky-300 transition-colors">
+                            Total Students &rarr;
+                        </div>
+                        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                            Enrolled across cohorts
+                        </div>
+                    </div>
+                </a>
+
+                {{-- Card 3: Pending Reviews (Rose / Pink Pastel) --}}
+                <a 
+                    href="{{ \App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl() }}" 
+                    class="bg-[#FFF0F3] dark:bg-[#201316] border border-[#FDDDE3] dark:border-[#351920] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group no-underline"
+                >
+                    <div class="flex items-start justify-between">
+                        <div class="w-9 h-9 rounded-full bg-[#FECDD3] text-[#E11D48] dark:bg-rose-900/60 dark:text-rose-300 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        </div>
+
+                        <div class="relative w-11 h-11 flex items-center justify-center">
+                            <svg class="w-11 h-11 transform -rotate-90" viewBox="0 0 36 36">
+                                <path class="text-[#FECDD3]/50 dark:text-rose-900/40" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="text-[#F43F5E]" stroke-dasharray="{{ $stats['grading_percent'] ?? 100 }}, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <span class="absolute text-[10px] font-extrabold text-[#E11D48] dark:text-rose-300">
+                                {{ $stats['grading_percent'] ?? 100 }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                            {{ sprintf('%02d', $pendingSubmissionsCount) }}
+                        </div>
+                        <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 group-hover:text-[#E11D48] dark:group-hover:text-rose-300 transition-colors">
+                            Pending Reviews &rarr;
+                        </div>
+                        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                            {{ $pendingSubmissionsCount > 0 ? 'Needs instructor evaluation' : 'All submissions graded' }}
+                        </div>
+                    </div>
+                </a>
+
+                {{-- Card 4: Upcoming Sessions (Mint / Green Pastel) --}}
+                <a 
+                    href="{{ route('filament.instructor.pages.schedule') }}" 
+                    class="bg-[#F0FDF4] dark:bg-[#0f1f17] border border-[#DCFCE7] dark:border-[#1a3324] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group no-underline"
+                >
+                    <div class="flex items-start justify-between">
+                        <div class="w-9 h-9 rounded-full bg-[#BBF7D0] text-[#16A34A] dark:bg-emerald-900/60 dark:text-emerald-300 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+
+                        <div class="relative w-11 h-11 flex items-center justify-center">
+                            <svg class="w-11 h-11 transform -rotate-90" viewBox="0 0 36 36">
+                                <path class="text-[#BBF7D0]/50 dark:text-emerald-900/40" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="text-[#10B981]" stroke-dasharray="100, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <span class="absolute text-[10px] font-extrabold text-[#16A34A] dark:text-emerald-300">
+                                {{ $upcomingSessionCount }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                            {{ sprintf('%02d', $upcomingSessionCount) }}
+                        </div>
+                        <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 group-hover:text-[#16A34A] dark:group-hover:text-emerald-300 transition-colors">
+                            Upcoming Sessions &rarr;
+                        </div>
+                        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                            Scheduled workshops & webinars
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+
+        {{-- ============================================================ --}}
+        {{-- 3. QUICK ACTIONS SHORTCUTS BAR                               --}}
+        {{-- ============================================================ --}}
+        <div class="edtech-card bg-white dark:bg-[#102028] p-3.5 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm">
             <div class="flex items-center justify-between gap-3 overflow-x-auto pb-1 sm:pb-0">
                 <span class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-2 hidden sm:inline-block">
                     Quick Actions:
@@ -229,7 +383,7 @@
                     @foreach ($quickActions as $action)
                         <a
                             href="{{ $action['url'] }}"
-                            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800/70 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-200 hover:text-teal-700 dark:hover:text-teal-300 border border-slate-200/70 dark:border-slate-700/60 transition whitespace-nowrap"
+                            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800/70 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-200 hover:text-teal-700 dark:hover:text-teal-300 border border-slate-200/70 dark:border-slate-700/60 transition whitespace-nowrap transform hover:-translate-y-0.5"
                         >
                             <x-filament::icon :icon="$action['icon']" class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                             <span>{{ $action['label'] }}</span>
@@ -245,66 +399,21 @@
         </div>
 
         {{-- ============================================================ --}}
-        {{-- 3. KPI STAT CARDS WITH SPARKLINES                            --}}
-        {{-- ============================================================ --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <x-edtech.stat-card
-                title="Total Classes"
-                :value="count($courses)"
-                delta="+100%"
-                deltaType="positive"
-                subtitle="Active teaching courses"
-                color="teal"
-                :sparkline="[10, 20, 30, 45, 50, 65, 80]"
-            />
-
-            <x-edtech.stat-card
-                title="Total Students"
-                :value="$totalStudents"
-                delta="Active"
-                deltaType="positive"
-                subtitle="Enrolled cohort students"
-                color="sky"
-                :sparkline="[15, 28, 40, 52, 68, 85, 95]"
-            />
-
-            <x-edtech.stat-card
-                title="Pending Reviews"
-                :value="$pendingSubmissionsCount"
-                :delta="$pendingSubmissionsCount > 0 ? 'Needs Grading' : 'All Graded'"
-                :deltaType="$pendingSubmissionsCount > 0 ? 'negative' : 'positive'"
-                subtitle="Submissions in queue"
-                color="rose"
-                :href="\App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl()"
-                :sparkline="[35, 25, 40, 20, 30, 15, 10]"
-            />
-
-            <x-edtech.stat-card
-                title="Upcoming Sessions"
-                :value="$upcomingSessionCount"
-                delta="This Week"
-                deltaType="neutral"
-                subtitle="Scheduled workshops & classes"
-                color="indigo"
-                :href="route('filament.instructor.pages.schedule')"
-                :sparkline="[5, 15, 25, 40, 60, 75, 90]"
-            />
-        </div>
-
-        {{-- ============================================================ --}}
         {{-- 4. CORE 2-COLUMN DASHBOARD (CLASSROOMS + AGENDA & QUEUE)     --}}
         {{-- ============================================================ --}}
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
             {{-- LEFT COLUMN: 8 Cols (Classrooms & Active Cohorts Cards) --}}
             <div id="classrooms-section" class="lg:col-span-8 space-y-6">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-                    <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 flex-wrap">
+                
+                {{-- Classrooms Section Card --}}
+                <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-[#233842] pb-3 flex-wrap gap-2">
                         <div>
-                            <h3 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
                                 My Classrooms & Cohorts
-                            </h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            </h2>
+                            <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                                 Assigned active courses, student rosters, and curriculum deliverables.
                             </p>
                         </div>
@@ -319,9 +428,9 @@
                         </a>
                     </div>
 
-                    <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                         @forelse ($courses as $course)
-                            <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/60 bg-gradient-to-b from-slate-50/50 to-white dark:from-slate-800/40 dark:to-slate-850 hover:shadow-md transition-all space-y-3">
+                            <div class="p-4 rounded-xl border border-slate-200/80 dark:border-[#233842] bg-gradient-to-b from-slate-50/50 to-white dark:from-slate-800/40 dark:to-slate-850 hover:shadow-md transition-all space-y-3">
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="space-y-0.5">
                                         <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300">
@@ -348,7 +457,7 @@
                                     </span>
                                 </div>
 
-                                <div class="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between gap-2">
+                                <div class="pt-2 border-t border-slate-100 dark:border-[#233842] flex items-center justify-between gap-2">
                                     {{-- Student Avatars Stack --}}
                                     <div class="flex -space-x-2 overflow-hidden">
                                         @foreach ($course['student_list'] as $st)
@@ -388,19 +497,19 @@
                     </div>
                 </div>
 
-                {{-- Pending Grading Queue Feed --}}
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-                    <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 flex-wrap">
+                {{-- Pending Grading Queue Feed Card --}}
+                <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-[#233842] pb-3 flex-wrap gap-2">
                         <div>
-                            <h3 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                 <span>Submissions Requiring Review</span>
                                 @if ($pendingSubmissionsCount > 0)
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white">
                                         {{ $pendingSubmissionsCount }}
                                     </span>
                                 @endif
-                            </h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            </h2>
+                            <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                                 Newly turned in student assignments and assessments waiting for evaluation.
                             </p>
                         </div>
@@ -416,14 +525,14 @@
                         </a>
                     </div>
 
-                    <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <div class="divide-y divide-slate-100 dark:divide-[#233842]">
                         @forelse ($recentSubmissions as $submission)
-                            <div class="p-4 flex items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                            <div class="py-3 flex items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition rounded-xl px-2">
                                 <div class="flex items-center gap-3 min-w-0">
                                     @if (!empty($submission['student_photo']))
-                                        <img src="{{ $submission['student_photo'] }}" alt="{{ $submission['student_name'] }}" class="w-9 h-9 rounded-full object-cover shadow-xs" />
+                                        <img src="{{ $submission['student_photo'] }}" alt="{{ $submission['student_name'] }}" class="w-9 h-9 rounded-full object-cover shadow-2xs" />
                                     @else
-                                        <div class="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs flex items-center justify-center shadow-xs">
+                                        <div class="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs flex items-center justify-center shadow-2xs">
                                             {{ $submission['initials'] }}
                                         </div>
                                     @endif
@@ -449,7 +558,7 @@
                                     </span>
                                     <a 
                                         href="{{ $submission['url'] }}" 
-                                        class="px-3 py-1.5 rounded-lg text-xs font-extrabold text-white bg-teal-600 hover:bg-teal-700 shadow-xs transition"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-extrabold text-white bg-teal-600 hover:bg-teal-700 shadow-2xs transition transform hover:-translate-y-0.5"
                                     >
                                         Grade &rarr;
                                     </a>
@@ -469,28 +578,28 @@
             {{-- RIGHT COLUMN: 4 Cols (Interactive Calendar & Today Schedule) --}}
             <div class="lg:col-span-4 space-y-6">
                 
-                {{-- Interactive Session Calendar Widget --}}
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 space-y-3">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                {{-- Interactive Session Calendar Widget Card --}}
+                <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-3">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-[#233842]">
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <h4 class="font-black text-xs uppercase tracking-wider text-slate-900 dark:text-white">
+                            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">
                                 {{ $calendarMonthName }}
-                            </h4>
+                            </h2>
                         </div>
 
                         <div class="flex items-center gap-1">
                             <button 
                                 wire:click="previousMonth" 
-                                class="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                                class="w-6 h-6 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition text-xs"
                             >
                                 &larr;
                             </button>
                             <button 
                                 wire:click="nextMonth" 
-                                class="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                                class="w-6 h-6 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition text-xs"
                             >
                                 &rarr;
                             </button>
@@ -523,7 +632,7 @@
 
                     {{-- Expandable Selected Date Drawer --}}
                     <template x-if="selectedDate && events[selectedDate]">
-                        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-[#233842] space-y-2">
                             <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
                                 Sessions on <strong x-text="selectedDate"></strong>:
                             </span>
@@ -540,12 +649,12 @@
                     </template>
                 </div>
 
-                {{-- Upcoming Sessions Widget --}}
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 space-y-3">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                        <h4 class="font-black text-xs uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5">
-                            <span>Upcoming Live Classes</span>
-                        </h4>
+                {{-- Upcoming Sessions Widget Card --}}
+                <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-3">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-[#233842]">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">
+                            Upcoming Live Classes
+                        </h2>
                         <a 
                             href="{{ route('filament.instructor.pages.schedule') }}" 
                             class="text-[11px] font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700"
@@ -556,7 +665,7 @@
 
                     <div class="space-y-2">
                         @forelse ($upcomingSessions as $session)
-                            <div class="p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-teal-50/50 dark:hover:bg-slate-800 transition space-y-1">
+                            <div class="p-3 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/60 dark:bg-slate-800/40 hover:bg-teal-50/50 dark:hover:bg-slate-800 transition space-y-1">
                                 <div class="flex items-center justify-between gap-2">
                                     <span class="font-black text-xs text-slate-900 dark:text-white truncate">
                                         {{ $session['title'] }}
