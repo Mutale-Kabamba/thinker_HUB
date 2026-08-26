@@ -355,3 +355,61 @@ a.fi-dropdown-list-item svg {
 	transition: transform 0.15s ease !important;
 }
 
+/* ==========================================================================
+   GLOBAL BUTTON UTILITIES
+   ========================================================================== */
+.btn-primary,
+.edtech-btn-primary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 0.8125rem;
+	padding: 0.52rem 1.25rem;
+	border-radius: 9999px;
+	border: 1px solid #6D28D9;
+	box-shadow: 0 4px 14px -2px rgba(124, 58, 237, 0.35);
+	cursor: pointer;
+	text-decoration: none;
+	transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary:hover,
+.edtech-btn-primary:hover {
+	background: linear-gradient(135deg, #6D28D9 0%, #5B21B6 100%);
+	transform: translateY(-1px);
+	box-shadow: 0 6px 20px -2px rgba(124, 58, 237, 0.45);
+	color: #ffffff;
+}
+
+.btn-secondary,
+.edtech-btn-secondary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	background: #f8fafc;
+	color: #475569;
+	font-weight: 700;
+	font-size: 0.8125rem;
+	padding: 0.52rem 1.25rem;
+	border-radius: 9999px;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	cursor: pointer;
+	text-decoration: none;
+	transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-secondary:hover,
+.edtech-btn-secondary:hover {
+	background: #f1f5f9;
+	color: #0f172a;
+	border-color: #cbd5e1;
+	transform: translateY(-1px);
+}
+
+
