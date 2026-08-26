@@ -22,13 +22,12 @@ class ChatMessageReceivedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return FilamentNotification::make()
-            ->title('New message in '.$this->roomName)
-            ->body($this->senderName.': '.$this->preview)
+            ->title('New message from '.$this->senderName)
+            ->body(mb_strimwidth($this->preview, 0, 120, '...'))
             ->actions([
-                Action::make('view')
-                    ->label('Open chat')
-                    ->url('/learn/community')
-                    ->markAsRead(),
+                Action::make('reply')
+                    ->label('Reply')
+                    ->url('/chat'),
             ])
             ->getDatabaseMessage();
     }

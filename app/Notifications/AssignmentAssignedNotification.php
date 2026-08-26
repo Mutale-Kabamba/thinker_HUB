@@ -15,7 +15,10 @@ class AssignmentAssignedNotification extends Notification implements ShouldQueue
 {
     use Queueable, ResolvesMailPersonalization;
 
-    public function __construct(private readonly Assignment $assignment) {}
+    public function __construct(
+        private readonly Assignment $assignment,
+        private readonly string $courseName,
+    ) {}
 
     public function via(object $notifiable): array
     {
@@ -34,6 +37,7 @@ class AssignmentAssignedNotification extends Notification implements ShouldQueue
             ->subject('New Assignment: '.$this->assignment->name)
             ->markdown('emails.assignment-assigned', [
                 'assignment' => $this->assignment,
+                'courseName' => $this->courseName,
                 'notifiable' => $notifiable,
                 'recipientName' => $this->resolveRecipientName($notifiable),
                 'signerName' => $this->resolveSignerName(),
@@ -42,20 +46,13 @@ class AssignmentAssignedNotification extends Notification implements ShouldQueue
 
     public function toArray(object $notifiable): array
     {
-        $body = $this->assignment->name;
-
-        if ($this->assignment->due_date) {
-            $body .= ' — due '.$this->assignment->due_date->format('M j, Y');
-        }
-
         return FilamentNotification::make()
-            ->title('New assignment assigned')
-            ->body($body)
+            ->title('New assignment: '.$this->assignment->name)
+            ->body('A new assignment has been assigned for '.$this->courseName)
             ->actions([
                 Action::make('view')
-                    ->label('View assignments')
-                    ->url('/learn/assignments')
-                    ->markAsRead(),
+                    ->label('View assignment')
+                    ->url('/learn/assignments'),
             ])
             ->getDatabaseMessage();
     }

@@ -64,8 +64,7 @@ class SubmissionGradedNotification extends Notification
             ->actions([
                 Action::make('view')
                     ->label('View '.$this->submissionType)
-                    ->url($this->submissionType === 'assignment' ? '/learn/assignments' : '/learn/assessments')
-                    ->markAsRead(),
+                    ->url($this->submissionType === 'assignment' ? '/learn/assignments' : '/learn/assessments'),
             ])
             ->getDatabaseMessage();
     }

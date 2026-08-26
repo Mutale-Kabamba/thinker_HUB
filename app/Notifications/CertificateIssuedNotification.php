@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Certificate;
+use App\Notifications\Concerns\ResolvesMailPersonalization;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Notifications\Notification;
@@ -20,14 +21,15 @@ class CertificateIssuedNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
+        $courseTitle = $this->certificate->course?->title ?? 'your course';
+
         return FilamentNotification::make()
-            ->title('Certificate issued')
-            ->body('Your certificate for '.($this->certificate->course?->title ?? 'your course').' is ready to download.')
+            ->title('Certificate Issued!')
+            ->body('Congratulations! You earned a certificate for completing '.$courseTitle.'.')
             ->actions([
                 Action::make('view')
-                    ->label('View certificates')
-                    ->url('/learn/certificates')
-                    ->markAsRead(),
+                    ->label('View certificate')
+                    ->url('/learn/certificates'),
             ])
             ->getDatabaseMessage();
     }

@@ -287,6 +287,26 @@ class AssignmentSubmissionResource extends Resource
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    BulkAction::make('downloadZip')
+                        ->label('Download Selected (ZIP)')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('primary')
+                        ->action(function (Collection $records) {
+                            $service = app(\App\Services\SubmissionZipService::class);
+                            $response = $service->downloadAssignmentsZip($records);
+
+                            if (! $response) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('No downloadable files found in selected submissions.')
+                                    ->warning()
+                                    ->send();
+
+                                return null;
+                            }
+
+                            return $response;
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     BulkAction::make('markViewed')
                         ->label('Mark as Viewed')
                         ->icon('heroicon-o-eye')

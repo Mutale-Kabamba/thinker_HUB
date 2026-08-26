@@ -147,7 +147,10 @@ class AdminRescheduleRequestsWidget extends Widget
         }
 
         $session->update([
-            'status' => 'rescheduled',
+            'session_date' => $this->decisionDate,
+            'start_time' => $this->decisionStartTime,
+            'end_time' => $this->decisionEndTime,
+            'status' => 'scheduled',
             'rescheduled_date' => $this->decisionDate,
             'rescheduled_start_time' => $this->decisionStartTime,
             'rescheduled_end_time' => $this->decisionEndTime,
@@ -162,7 +165,7 @@ class AdminRescheduleRequestsWidget extends Widget
 
         $this->updateStudentRequestDecision($session->id, $this->decisionStudentId, 'accepted');
 
-        Notification::make()->title('Reschedule request accepted. Session updated and students notified.')->success()->send();
+        Notification::make()->title('Reschedule request accepted. Session moved to new date.')->success()->send();
 
         $this->closeDecisionWizard();
         $this->loadRequests();
@@ -254,22 +257,26 @@ class AdminRescheduleRequestsWidget extends Widget
 
     protected function notifyStudentsAboutReschedule(CourseSession $session): void
     {
-        $session->refresh();
-        $courseName = $session->course->title ?? 'Course';
+        try {
+            $session->refresh();
+            $courseName = $session->course->title ?? 'Course';
 
-        if ($session->isOneOnOne() && $session->student_id) {
-            $student = User::find($session->student_id);
-            $student?->notify(new SessionRescheduledNotification($session, $courseName));
+            if ($session->isOneOnOne() && $session->student_id) {
+                $student = User::find($session->student_id);
+                $student?->notify(new SessionRescheduledNotification($session, $courseName));
 
-            return;
-        }
+                return;
+            }
 
-        $students = User::query()
-            ->whereHas('enrollments', fn ($query) => $query->where('course_id', $session->course_id))
-            ->get();
+            $students = User::query()
+                ->whereHas('enrollments', fn ($query) => $query->where('course_id', $session->course_id))
+                ->get();
 
-        foreach ($students as $student) {
-            $student->notify(new SessionRescheduledNotification($session, $courseName));
+            foreach ($students as $student) {
+                $student->notify(new SessionRescheduledNotification($session, $courseName));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Admin widget reschedule notification error: ' . $e->getMessage());
         }
     }
 

@@ -24,7 +24,8 @@ class RescheduleRequestSubmittedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         $courseName = $this->session->course->title ?? 'Course';
-        $message = 'Request sent for '.$courseName.' on '.$this->session->session_date->format('M j, Y').'.';
+        $sessionDateStr = $this->session->getEffectiveDate()->format('M j, Y');
+        $message = 'Request sent for '.$courseName.' on '.$sessionDateStr.'.';
 
         // Filament bell payload merged with the legacy keys the reschedule
         // decision workflow reads from stored notification data.
@@ -35,8 +36,7 @@ class RescheduleRequestSubmittedNotification extends Notification
                 ->actions([
                     Action::make('view')
                         ->label('View schedule')
-                        ->url('/learn/schedule')
-                        ->markAsRead(),
+                        ->url('/learn/schedule'),
                 ])
                 ->getDatabaseMessage(),
             [

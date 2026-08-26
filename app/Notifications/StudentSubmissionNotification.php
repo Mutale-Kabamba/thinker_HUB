@@ -8,7 +8,6 @@ use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Str;
 
 class StudentSubmissionNotification extends Notification
 {
@@ -16,18 +15,15 @@ class StudentSubmissionNotification extends Notification
 
     public function __construct(
         private readonly string $studentName,
-        private readonly string $submissionType,
         private readonly string $itemTitle,
-        private readonly int $itemId,
+        private readonly string $courseName,
+        private readonly string $itemType = 'assignment',
     ) {}
 
     public function via(object $notifiable): array
     {
         $channels = ['database'];
-
-        $email = strtolower((string) ($notifiable->email ?? ''));
-
-        if ($email !== '' && ! Str::endsWith($email, '@example.com')) {
+        if (filled($notifiable->email ?? null)) {
             $channels[] = 'mail';
         }
 
@@ -37,11 +33,12 @@ class StudentSubmissionNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('New Submission from '.$this->studentName)
+            ->subject('New Submission: '.$this->itemTitle)
             ->markdown('emails.student-submission', [
                 'studentName' => $this->studentName,
-                'submissionType' => $this->submissionType,
                 'itemTitle' => $this->itemTitle,
+                'courseName' => $this->courseName,
+                'itemType' => $this->itemType,
                 'notifiable' => $notifiable,
                 'recipientName' => $this->resolveRecipientName($notifiable),
                 'signerName' => $this->resolveSignerName(),
@@ -51,19 +48,18 @@ class StudentSubmissionNotification extends Notification
     public function toArray(object $notifiable): array
     {
         $url = match ($notifiable->role ?? null) {
-            'admin' => $this->submissionType === 'assessment' ? '/manage/assessment-submissions' : '/manage/assignment-submissions',
-            'instructor' => $this->submissionType === 'assessment' ? '/teach/assessment-submissions' : '/teach/assignment-submissions',
+            'admin' => $this->itemType === 'assessment' ? '/manage/assessment-submissions' : '/manage/assignment-submissions',
+            'instructor' => $this->itemType === 'assessment' ? '/teach/assessment-submissions' : '/teach/assignment-submissions',
             default => '/learn/overview',
         };
 
         return FilamentNotification::make()
-            ->title('Student submission received')
-            ->body($this->studentName.' submitted '.$this->submissionType.': '.$this->itemTitle)
+            ->title('New '.$this->itemType.' submission')
+            ->body($this->studentName.' submitted '.$this->itemTitle.' for '.$this->courseName)
             ->actions([
                 Action::make('view')
                     ->label('View submissions')
-                    ->url($url)
-                    ->markAsRead(),
+                    ->url($url),
             ])
             ->getDatabaseMessage();
     }

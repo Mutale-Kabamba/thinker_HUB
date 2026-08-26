@@ -15,7 +15,10 @@ class AssessmentAssignedNotification extends Notification implements ShouldQueue
 {
     use Queueable, ResolvesMailPersonalization;
 
-    public function __construct(private readonly Assessment $assessment) {}
+    public function __construct(
+        private readonly Assessment $assessment,
+        private readonly string $courseName,
+    ) {}
 
     public function via(object $notifiable): array
     {
@@ -31,9 +34,10 @@ class AssessmentAssignedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('New Assessment: '.$this->assessment->name)
+            ->subject('New Assessment: '.$this->assessment->title)
             ->markdown('emails.assessment-assigned', [
                 'assessment' => $this->assessment,
+                'courseName' => $this->courseName,
                 'notifiable' => $notifiable,
                 'recipientName' => $this->resolveRecipientName($notifiable),
                 'signerName' => $this->resolveSignerName(),
@@ -42,20 +46,13 @@ class AssessmentAssignedNotification extends Notification implements ShouldQueue
 
     public function toArray(object $notifiable): array
     {
-        $body = $this->assessment->name;
-
-        if ($this->assessment->due_date) {
-            $body .= ' — due '.$this->assessment->due_date->format('M j, Y');
-        }
-
         return FilamentNotification::make()
-            ->title('New assessment assigned')
-            ->body($body)
+            ->title('New assessment: '.$this->assessment->title)
+            ->body('A new assessment has been assigned for '.$this->courseName)
             ->actions([
                 Action::make('view')
-                    ->label('View assessments')
-                    ->url('/learn/assessments')
-                    ->markAsRead(),
+                    ->label('View assessment')
+                    ->url('/learn/assessments'),
             ])
             ->getDatabaseMessage();
     }

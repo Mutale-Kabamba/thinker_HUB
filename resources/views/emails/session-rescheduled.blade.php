@@ -4,6 +4,10 @@
 @php
     $rawName = trim((string) ($recipientName ?? $notifiable->name ?? 'Learner'));
     $firstName = explode(' ', $rawName)[0] ?? $rawName;
+    $dateObj = $session->getEffectiveDate();
+    $formattedDate = $dateObj->format('l, M j, Y');
+    $startTimeStr = $session->getEffectiveStartTime();
+    $formattedTime = filled($startTimeStr) ? \Illuminate\Support\Carbon::parse($startTimeStr)->format('g:i A') : '—';
 @endphp
 Hello {{ $firstName }}!
 
@@ -11,8 +15,7 @@ Please take note that a scheduled live session for **{{ $courseName }}** has bee
 
 <x-mail::panel>
 **Course:** {{ $courseName }}  
-**Original Schedule:** {{ $session->session_date->format('l, M j, Y') }} at {{ $session->start_time }}  
-**Updated Schedule:** **{{ $session->rescheduled_date->format('l, M j, Y') }} at {{ $session->rescheduled_start_time }}**  
+**Updated Schedule:** **{{ $formattedDate }} at {{ $formattedTime }}**  
 </x-mail::panel>
 
 Please update your personal calendar accordingly. You can view your complete updated schedule on the student portal.

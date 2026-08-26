@@ -41,8 +41,7 @@ class SessionScheduledNotification extends Notification
             ->actions([
                 Action::make('view')
                     ->label('View schedule')
-                    ->url('/learn/schedule')
-                    ->markAsRead(),
+                    ->url('/learn/schedule'),
             ])
             ->getDatabaseMessage();
     }

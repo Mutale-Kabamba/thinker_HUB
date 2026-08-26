@@ -9,6 +9,7 @@ use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Carbon;
 
 class RescheduleRequestNotification extends Notification
 {
@@ -53,7 +54,8 @@ class RescheduleRequestNotification extends Notification
     {
         $courseName = $this->session->course->title ?? 'Course';
         $url = $notifiable->role === 'instructor' ? '/teach/schedule' : '/manage/course-sessions';
-        $message = $courseName.' ('.$this->session->session_date->format('M j').'): '.$this->reason;
+        $sessionDateStr = $this->session->getEffectiveDate()->format('M j');
+        $message = $courseName.' ('.$sessionDateStr.'): '.$this->reason;
 
         // Filament bell payload merged with the legacy keys the reschedule
         // decision workflow reads from stored notification data.
@@ -64,8 +66,7 @@ class RescheduleRequestNotification extends Notification
                 ->actions([
                     Action::make('review')
                         ->label('Review request')
-                        ->url($url)
-                        ->markAsRead(),
+                        ->url($url),
                 ])
                 ->getDatabaseMessage(),
             [
