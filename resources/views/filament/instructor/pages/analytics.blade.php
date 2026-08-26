@@ -4,7 +4,7 @@
         <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-[#7C3AED] dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800">
                         Performance Insights
                     </span>
                 </div>
@@ -18,7 +18,7 @@
             <div class="flex items-center gap-2">
                 <a 
                     href="{{ route('filament.instructor.pages.student-results') }}" 
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 transition"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold text-[#7C3AED] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 transition shadow-2xs"
                 >
                     <x-filament::icon icon="heroicon-o-academic-cap" class="w-4 h-4" />
                     <span>Gradebook & Roster</span>
@@ -195,10 +195,10 @@
                                             </span>
                                         </div>
                                         <div class="flex items-center gap-2">
-                                            <span class="text-xs font-black text-teal-600 dark:text-teal-400">
+                                            <span class="text-xs font-black text-[#7C3AED] dark:text-purple-400">
                                                 {{ $row['completed'] }}/{{ $row['enrolled'] }} Learners
                                             </span>
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300">
                                                 {{ $row['percentage'] }}%
                                             </span>
                                         </div>
@@ -206,7 +206,7 @@
 
                                     <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                         <div 
-                                            class="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full transition-all duration-500" 
+                                            class="h-full bg-gradient-to-r from-[#7C3AED] to-indigo-600 rounded-full transition-all duration-500" 
                                             style="width: {{ $row['percentage'] }}%;"
                                         ></div>
                                     </div>
@@ -291,7 +291,9 @@
 
                     @if (count($atRiskStudents) === 0)
                         <div class="py-6 text-center text-slate-500 dark:text-slate-400 space-y-2">
-                            <span class="text-3xl block">🌟</span>
+                            <div class="w-10 h-10 mx-auto mb-2 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center justify-center">
+                                <x-heroicon-o-check-badge class="w-6 h-6" />
+                            </div>
                             <p class="text-xs font-bold text-slate-800 dark:text-slate-200">All students are actively engaged!</p>
                             <p class="text-[11px]">No inactive students detected in the last 14 days.</p>
                         </div>
@@ -330,7 +332,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 text-center space-y-1">
                             <span class="block text-[10px] font-bold text-slate-400 uppercase">Assessments</span>
-                            <span class="text-base font-black text-teal-600 dark:text-teal-400 block">
+                            <span class="text-base font-black text-[#7C3AED] dark:text-purple-400 block">
                                 {{ $turnaround['assessments']['label'] ?? '—' }}
                             </span>
                             <span class="text-[10px] text-slate-400 block">

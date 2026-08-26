@@ -3,7 +3,7 @@
         {{-- Search Input Hero Header Card --}}
         <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
             <div class="space-y-1">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-[#7C3AED] dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800">
                     Workspace Search
                 </span>
                 <h1 class="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
@@ -22,7 +22,7 @@
                     type="text" 
                     wire:model.live.debounce.300ms="query" 
                     placeholder="Type keywords (course title, student name, session date)…" 
-                    class="w-full pl-11 pr-4 py-3 text-sm font-medium rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition shadow-inner"
+                    class="w-full pl-11 pr-4 py-3 text-sm font-medium rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition shadow-inner"
                 />
             </div>
         </div>
@@ -33,7 +33,7 @@
                 <div class="edtech-card bg-white dark:bg-[#102028] p-5 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
                     <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-[#233842]">
                         <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                            <x-heroicon-o-book-open class="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                            <x-heroicon-o-book-open class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
                             <span>My Courses</span>
                         </h2>
                         <span class="text-xs font-bold text-slate-400">{{ count($results['courses']) }} found</span>
@@ -41,7 +41,7 @@
 
                     <div class="space-y-2.5">
                         @forelse ($results['courses'] as $item)
-                            <div class="p-3 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/60 dark:bg-slate-800/40 hover:bg-teal-50/40 dark:hover:bg-slate-800 transition">
+                            <div class="p-3 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/60 dark:bg-slate-800/40 hover:bg-purple-50/40 dark:hover:bg-slate-800 transition">
                                 <div class="flex items-center justify-between gap-2">
                                     <span class="font-bold text-xs text-slate-900 dark:text-white">
                                         {{ $item['code'] }} &bull; {{ $item['title'] }}
