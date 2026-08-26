@@ -43,7 +43,8 @@ class GenerateReports extends Page
 
     public function mount(): void
     {
-        $firstCourse = $this->instructorCourses()->first();
+        $courseIds = static::instructorCourseIds();
+        $firstCourse = Course::whereIn('id', $courseIds)->first();
         if ($firstCourse) {
             $this->selectedCourseId = $firstCourse->id;
             $firstStudentId = Enrollment::query()->where('course_id', $firstCourse->id)->value('user_id');
@@ -55,7 +56,7 @@ class GenerateReports extends Page
 
     public function getStudentsProperty(): Collection
     {
-        $courseIds = $this->instructorCourseIds();
+        $courseIds = static::instructorCourseIds();
 
         return User::query()
             ->whereIn('role', ['student', 'researcher'])
@@ -75,7 +76,7 @@ class GenerateReports extends Page
     public function getCoursesProperty(): Collection
     {
         return Course::query()
-            ->whereIn('id', $this->instructorCourseIds())
+            ->whereIn('id', static::instructorCourseIds())
             ->with(['instructors', 'intakes', 'enrollments'])
             ->when($this->search, function (Builder $q) {
                 $q->where('title', 'like', "%{$this->search}%")

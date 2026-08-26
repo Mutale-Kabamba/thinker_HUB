@@ -17,12 +17,12 @@ class ReportController extends Controller
     ) {}
 
     /**
-     * Ensure only administrators can access the reporting engine.
+     * Ensure authorized administrators and instructors can access the reporting engine.
      */
-    protected function authorizeAdmin(Request $request): void
+    protected function authorizeReportAccess(Request $request): void
     {
         $user = $request->user();
-        abort_unless($user && ($user->role === 'admin' || (bool) $user->canSwitchToAdmin()), 403, 'Unauthorized access to the Thinker HUB Reporting Engine.');
+        abort_unless($user && ($user->role === 'admin' || $user->role === 'instructor' || (bool) $user->canSwitchToAdmin() || (bool) $user->canSwitchToInstructor()), 403, 'Unauthorized access to the Thinker HUB Reporting Engine.');
     }
 
     /**
@@ -30,7 +30,7 @@ class ReportController extends Controller
      */
     public function studentReport(Request $request, User $student): Response
     {
-        $this->authorizeAdmin($request);
+        $this->authorizeReportAccess($request);
 
         $courseId = $request->query('course_id');
         $course = $courseId ? Course::find($courseId) : null;
@@ -58,7 +58,7 @@ class ReportController extends Controller
      */
     public function courseReport(Request $request, Course $course): Response
     {
-        $this->authorizeAdmin($request);
+        $this->authorizeReportAccess($request);
 
         $intakeId = $request->query('intake_id');
         $intakeId = $intakeId ? (int) $intakeId : null;
@@ -81,7 +81,7 @@ class ReportController extends Controller
      */
     public function intakeReport(Request $request, CourseIntake $intake): Response
     {
-        $this->authorizeAdmin($request);
+        $this->authorizeReportAccess($request);
 
         $pdf = $this->reportService->renderIntakeReportPdf($intake);
 

@@ -198,15 +198,35 @@ class AdminReportGenerationTest extends TestCase
         $response->assertHeader('content-type', 'application/pdf');
     }
 
-    public function test_non_admin_is_forbidden_from_accessing_reports(): void
+    public function test_instructor_can_download_student_report_endpoint(): void
     {
-        $student = User::factory()->create(['role' => 'student']);
-        $targetStudent = User::factory()->create(['role' => 'student']);
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $student = User::factory()->create(['role' => 'student', 'name' => 'Charlie Day']);
+        $course = Course::create([
+            'title' => 'Vue.js Framework',
+            'code' => 'VUE101',
+            'is_active' => true,
+            'course_by' => (string) $instructor->id,
+        ]);
 
-        $response = $this->actingAs($student)->get(route('reports.student', [
-            'student' => $targetStudent->id,
+        Enrollment::create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+        ]);
+
+        $response = $this->actingAs($instructor)->get(route('reports.student', [
+            'student' => $student->id,
+            'course_id' => $course->id,
         ]));
 
-        $response->assertForbidden();
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_instructor_can_access_reports_side_nav_page(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $response = $this->actingAs($instructor)->get('/teach/reports');
+        $response->assertOk();
     }
 }
