@@ -3215,7 +3215,7 @@
     }
 
     /* =========================================================================
-       SIDEBAR NOTIFICATION BADGES & BRIGHT GLOWING DOTS
+       SIDEBAR NOTIFICATION BADGES (MINIMAL, MODERN INDICATOR PILLS)
        ========================================================================= */
     .fi-sidebar-item-badge-ctn {
         display: inline-flex !important;
@@ -3225,74 +3225,101 @@
     }
 
     .fi-sidebar-item-badge-ctn .fi-badge {
-        font-weight: 800 !important;
-        font-size: 0.72rem !important;
+        font-weight: 600 !important;
+        font-size: 0.68rem !important;
         line-height: 1 !important;
         letter-spacing: 0.02em;
         border-radius: 9999px !important;
-        padding: 0.2rem 0.5rem !important;
-        box-shadow: 0 0 10px rgba(244, 63, 94, 0.45), 0 1px 3px rgba(0, 0, 0, 0.12) !important;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        padding: 0.2rem 0.45rem !important;
+        min-width: 1.25rem !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        filter: none !important;
+        animation: none !important;
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
     }
 
-    /* Glowing red/rose notification alert badges (e.g. pending assignments, urgent evaluations) */
+    /* Minimal danger / rose indicator pills (e.g. pending assignments, urgent evaluations) */
     .fi-sidebar-item-badge-ctn .fi-color-danger,
     .fi-sidebar-item-badge-ctn .fi-badge[class*="danger"],
     .fi-sidebar-item-badge-ctn .fi-badge[class*="red"],
     .fi-sidebar-item-badge-ctn .fi-badge[class*="rose"] {
-        background: linear-gradient(135deg, #f43f5e, #e11d48) !important;
-        color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.35) !important;
-        box-shadow: 0 0 12px rgba(244, 63, 94, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
-        animation: hub-sidebar-badge-pulse 2.2s infinite ease-in-out;
+        background: rgba(244, 63, 94, 0.1) !important;
+        color: #e11d48 !important;
+        border: 1px solid rgba(244, 63, 94, 0.2) !important;
     }
 
-    /* Glowing amber/orange alert badges (e.g. available quizzes, pending items) */
+    .dark .fi-sidebar-item-badge-ctn .fi-color-danger,
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="danger"],
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="red"],
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="rose"] {
+        background: rgba(244, 63, 94, 0.15) !important;
+        color: #fb7185 !important;
+        border-color: rgba(244, 63, 94, 0.3) !important;
+    }
+
+    /* Minimal warning / amber indicator pills (e.g. available quizzes, pending items) */
     .fi-sidebar-item-badge-ctn .fi-color-warning,
     .fi-sidebar-item-badge-ctn .fi-badge[class*="warning"],
     .fi-sidebar-item-badge-ctn .fi-badge[class*="amber"],
     .fi-sidebar-item-badge-ctn .fi-badge[class*="orange"] {
-        background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-        color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.35) !important;
-        box-shadow: 0 0 10px rgba(245, 158, 11, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+        background: rgba(245, 158, 11, 0.1) !important;
+        color: #d97706 !important;
+        border: 1px solid rgba(245, 158, 11, 0.2) !important;
     }
 
-    /* Glowing emerald/teal alert badges (e.g. live sessions, schedule today) */
+    .dark .fi-sidebar-item-badge-ctn .fi-color-warning,
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="warning"],
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="amber"],
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="orange"] {
+        background: rgba(245, 158, 11, 0.15) !important;
+        color: #fbbf24 !important;
+        border-color: rgba(245, 158, 11, 0.3) !important;
+    }
+
+    /* Minimal success / emerald indicator pills (e.g. live sessions, schedule today) */
     .fi-sidebar-item-badge-ctn .fi-color-success,
     .fi-sidebar-item-badge-ctn .fi-badge[class*="success"],
     .fi-sidebar-item-badge-ctn .fi-badge[class*="emerald"],
     .fi-sidebar-item-badge-ctn .fi-badge[class*="teal"] {
-        background: linear-gradient(135deg, #10b981, #059669) !important;
-        color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.35) !important;
-        box-shadow: 0 0 10px rgba(16, 185, 129, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
-        animation: hub-sidebar-badge-pulse 2.5s infinite ease-in-out;
+        background: rgba(16, 185, 129, 0.1) !important;
+        color: #059669 !important;
+        border: 1px solid rgba(16, 185, 129, 0.2) !important;
     }
 
-    /* Glowing sky/blue alert badges (e.g. new resources, materials) */
+    .dark .fi-sidebar-item-badge-ctn .fi-color-success,
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="success"],
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="emerald"],
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="teal"] {
+        background: rgba(16, 185, 129, 0.15) !important;
+        color: #34d399 !important;
+        border-color: rgba(16, 185, 129, 0.3) !important;
+    }
+
+    /* Minimal info / primary indicator pills (e.g. new resources, materials) */
     .fi-sidebar-item-badge-ctn .fi-color-info,
     .fi-sidebar-item-badge-ctn .fi-badge[class*="info"],
     .fi-sidebar-item-badge-ctn .fi-badge[class*="sky"],
-    .fi-sidebar-item-badge-ctn .fi-badge[class*="blue"] {
-        background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
-        color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.35) !important;
-        box-shadow: 0 0 10px rgba(14, 165, 233, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="blue"],
+    .fi-sidebar-item-badge-ctn .fi-color-primary,
+    .fi-sidebar-item-badge-ctn .fi-badge[class*="primary"] {
+        background: rgba(14, 165, 233, 0.1) !important;
+        color: #0284c7 !important;
+        border: 1px solid rgba(14, 165, 233, 0.2) !important;
     }
 
-    @keyframes hub-sidebar-badge-pulse {
-        0%, 100% {
-            transform: scale(1);
-            filter: brightness(1);
-        }
-        50% {
-            transform: scale(1.08);
-            filter: brightness(1.18);
-        }
+    .dark .fi-sidebar-item-badge-ctn .fi-color-info,
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="info"],
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="sky"],
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="blue"],
+    .dark .fi-sidebar-item-badge-ctn .fi-color-primary,
+    .dark .fi-sidebar-item-badge-ctn .fi-badge[class*="primary"] {
+        background: rgba(14, 165, 233, 0.15) !important;
+        color: #38bdf8 !important;
+        border-color: rgba(14, 165, 233, 0.3) !important;
     }
 
     /* =========================================================================

@@ -26,12 +26,20 @@ class Materials extends Page
         }
 
         try {
-            $newCount = LearningMaterial::query()
-                ->visibleTo($user)
-                ->where('created_at', '>=', now()->subDays(3))
-                ->count();
+            $lastViewed = session('last_viewed_materials_at_' . $user->id)
+                ?? \Illuminate\Support\Facades\Cache::get('user_' . $user->id . '_last_viewed_materials_at');
 
-            return $newCount > 0 ? '●' : null;
+            $query = LearningMaterial::query()->visibleTo($user);
+
+            if ($lastViewed) {
+                $query->where('created_at', '>', $lastViewed);
+            } else {
+                $query->where('created_at', '>=', now()->subDays(3));
+            }
+
+            $newCount = $query->count();
+
+            return $newCount > 0 ? (string) $newCount : null;
         } catch (\Throwable) {
             return null;
         }
@@ -44,7 +52,7 @@ class Materials extends Page
 
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return 'New learning materials available';
+        return 'New learning materials';
     }
 
     protected string $view = 'filament.student.pages.materials';
@@ -64,6 +72,12 @@ class Materials extends Page
 
     public function mount(): void
     {
+        $user = auth()->user();
+        if ($user) {
+            session(['last_viewed_materials_at_' . $user->id => now()]);
+            \Illuminate\Support\Facades\Cache::put('user_' . $user->id . '_last_viewed_materials_at', now(), now()->addDays(60));
+        }
+
         $this->loadMaterials();
     }
 
