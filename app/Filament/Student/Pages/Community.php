@@ -3,15 +3,19 @@
 namespace App\Filament\Student\Pages;
 
 use App\Events\ChatMessageSent;
+use App\Models\AssessmentSubmission;
+use App\Models\AssignmentSubmission;
 use App\Models\ChatMessage;
 use App\Models\ChatMessageReaction;
 use App\Models\ChatRoom;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Friendship;
+use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Models\XpTransaction;
 use App\Services\GamificationService;
+use Carbon\Carbon;
 use Filament\Pages\Page;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -35,16 +39,31 @@ class Community extends Page
     public const DIRECTORY_LIMIT = 50;
 
     #[Url(as: 'tab')]
-    public string $tab = 'chats'; // chats | friends | leaderboard
+    public string $tab = 'chats'; // chats | results | friends | leaderboard
 
     public string $directorySearch = '';
+
+    public string $resultsSearch = '';
+
+    public string $resultsFilter = 'all'; // all | quiz | assignment | assessment
+
+    public string $chatSearch = '';
+
+    public string $chatFilter = 'all'; // all | groups | direct
 
     /** @var array<string, mixed>|null */
     public ?array $profileUser = null;
 
     public ?int $selectedRoomId = null;
 
+    public ?string $selectedTaskId = null;
+
     public ?int $replyingToMessageId = null;
+
+    public function selectTask(?string $taskId): void
+    {
+        $this->selectedTaskId = $taskId;
+    }
 
     public int $messagesLimit = 30;
 
@@ -77,6 +96,17 @@ class Community extends Page
             unset($this->attachments[$index]);
             $this->attachments = array_values($this->attachments);
         }
+    }
+
+    public function selectRoom(int $id): void
+    {
+        $this->openRoom($id);
+    }
+
+    public function closeRoom(): void
+    {
+        $this->selectedRoomId = null;
+        $this->replyingToMessageId = null;
     }
 
     public function mount(): void
@@ -567,6 +597,530 @@ class Community extends Page
         }
     }
 
+    // -------------------------------------------------------- Results & Performance
+
+    /**
+     * Aggregated live performance results across quizzes, assignments, and assessments.
+     *
+     * @return array{
+     *   items: Collection<int, array<string, mixed>>,
+     *   stats: array<string, mixed>,
+     *   total_count: int,
+     *   filtered_count: int
+     * }
+     */
+    public function getResultsProperty(): array
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return [
+                'items' => collect(),
+                'stats' => [
+                    'average_score' => 0,
+                    'total_completed' => 0,
+                    'quizzes_count' => 0,
+                    'assignments_count' => 0,
+                    'assessments_count' => 0,
+                    'pass_rate' => 0,
+                    'passed_count' => 0,
+                ],
+                'total_count' => 0,
+                'filtered_count' => 0,
+            ];
+        }
+
+        // 1. Quizzes (QuizAttempt)
+        $quizzes = QuizAttempt::query()
+            ->with(['quiz.course'])
+            ->where('user_id', $user->id)
+            ->whereNotNull('completed_at')
+            ->get()
+            ->map(function (QuizAttempt $attempt): array {
+                $percentage = $attempt->percentage !== null
+                    ? (float) $attempt->percentage
+                    : ($attempt->total_points > 0 ? round(($attempt->score / $attempt->total_points) * 100, 1) : (float) ($attempt->score ?? 0));
+
+                return [
+                    'id' => 'quiz_'.$attempt->id,
+                    'raw_id' => $attempt->id,
+                    'type' => 'quiz',
+                    'type_label' => 'Quiz',
+                    'type_badge' => 'Q',
+                    'title' => $attempt->quiz?->title ?? 'Quiz Evaluation',
+                    'course' => $attempt->quiz?->course?->title ?? 'General Curriculum',
+                    'score_display' => round($percentage).'%',
+                    'numeric_score' => $percentage,
+                    'status' => $attempt->passed ? 'Passed' : 'Failed',
+                    'status_color' => $attempt->passed ? 'success' : 'danger',
+                    'is_pass' => (bool) $attempt->passed,
+                    'date' => $attempt->completed_at ?? $attempt->created_at,
+                    'date_formatted' => ($attempt->completed_at ?? $attempt->created_at)?->diffForHumans() ?? 'Recently',
+                    'full_date' => ($attempt->completed_at ?? $attempt->created_at)?->format('M d, Y · g:i A'),
+                    'feedback' => null,
+                    'link_url' => route('filament.student.pages.quizzes'),
+                ];
+            });
+
+        // 2. Assignments (AssignmentSubmission)
+        $assignments = AssignmentSubmission::query()
+            ->with(['assignment.course'])
+            ->where('user_id', $user->id)
+            ->whereNotNull('grade')
+            ->get()
+            ->map(function (AssignmentSubmission $sub): array {
+                $numericGrade = is_numeric($sub->grade) ? (float) $sub->grade : 0.0;
+                $passed = $numericGrade >= 50.0;
+
+                return [
+                    'id' => 'assignment_'.$sub->id,
+                    'raw_id' => $sub->id,
+                    'type' => 'assignment',
+                    'type_label' => 'Assignment',
+                    'type_badge' => 'A',
+                    'title' => $sub->assignment?->name ?? 'Assignment Project',
+                    'course' => $sub->assignment?->course?->title ?? 'General Curriculum',
+                    'score_display' => is_numeric($sub->grade) ? round($numericGrade).'%' : (string) $sub->grade,
+                    'numeric_score' => $numericGrade,
+                    'status' => $passed ? 'Graded' : 'Needs Review',
+                    'status_color' => $passed ? 'success' : 'warning',
+                    'is_pass' => $passed,
+                    'date' => $sub->updated_at ?? $sub->submitted_at ?? $sub->created_at,
+                    'date_formatted' => ($sub->updated_at ?? $sub->submitted_at ?? $sub->created_at)?->diffForHumans() ?? 'Recently',
+                    'full_date' => ($sub->updated_at ?? $sub->submitted_at ?? $sub->created_at)?->format('M d, Y · g:i A'),
+                    'feedback' => $sub->feedback,
+                    'link_url' => route('filament.student.pages.assignments'),
+                ];
+            });
+
+        // 3. Assessments (AssessmentSubmission)
+        $assessments = AssessmentSubmission::query()
+            ->with(['assessment.course'])
+            ->where('user_id', $user->id)
+            ->where(function ($q): void {
+                $q->whereNotNull('score')->orWhereNotNull('raw_score');
+            })
+            ->get()
+            ->map(function (AssessmentSubmission $sub): array {
+                $gradeVal = $sub->score ?? $sub->raw_score;
+                $numericScore = is_numeric($gradeVal) ? (float) $gradeVal : 0.0;
+                $passed = $numericScore >= 50.0;
+
+                return [
+                    'id' => 'assessment_'.$sub->id,
+                    'raw_id' => $sub->id,
+                    'type' => 'assessment',
+                    'type_label' => 'Assessment',
+                    'type_badge' => 'As',
+                    'title' => $sub->assessment?->name ?? 'Comprehensive Assessment',
+                    'course' => $sub->assessment?->course?->title ?? 'General Curriculum',
+                    'score_display' => is_numeric($gradeVal) ? round($numericScore).'%' : (string) $gradeVal,
+                    'numeric_score' => $numericScore,
+                    'status' => $passed ? 'Graded' : 'Needs Review',
+                    'status_color' => $passed ? 'success' : 'warning',
+                    'is_pass' => $passed,
+                    'date' => $sub->updated_at ?? $sub->submitted_at ?? $sub->created_at,
+                    'date_formatted' => ($sub->updated_at ?? $sub->submitted_at ?? $sub->created_at)?->diffForHumans() ?? 'Recently',
+                    'full_date' => ($sub->updated_at ?? $sub->submitted_at ?? $sub->created_at)?->format('M d, Y · g:i A'),
+                    'feedback' => $sub->feedback,
+                    'link_url' => route('filament.student.pages.assessments'),
+                ];
+            });
+
+        // 4. Cohort Academic Performance Leaderboard calculation
+        $allStudents = User::query()
+            ->where('role', 'student')
+            ->where('is_active', true)
+            ->get(['id', 'name']);
+
+        $studentIds = $allStudents->pluck('id')->all();
+
+        $quizScoresByUser = QuizAttempt::query()
+            ->whereIn('user_id', $studentIds)
+            ->whereNotNull('completed_at')
+            ->get()
+            ->groupBy('user_id');
+
+        $assignmentScoresByUser = AssignmentSubmission::query()
+            ->whereIn('user_id', $studentIds)
+            ->whereNotNull('grade')
+            ->get()
+            ->groupBy('user_id');
+
+        $assessmentScoresByUser = AssessmentSubmission::query()
+            ->whereIn('user_id', $studentIds)
+            ->where(fn ($q) => $q->whereNotNull('score')->orWhereNotNull('raw_score'))
+            ->get()
+            ->groupBy('user_id');
+
+        $leaderboardRows = $allStudents->map(function (User $s) use ($quizScoresByUser, $assignmentScoresByUser, $assessmentScoresByUser, $user): array {
+            $sQuizzes = $quizScoresByUser->get($s->id, collect());
+            $sAssignments = $assignmentScoresByUser->get($s->id, collect());
+            $sAssessments = $assessmentScoresByUser->get($s->id, collect());
+
+            $scores = [];
+            $passedCount = 0;
+
+            foreach ($sQuizzes as $q) {
+                $pct = $q->percentage !== null
+                    ? (float) $q->percentage
+                    : ($q->total_points > 0 ? ($q->score / $q->total_points) * 100 : (float) ($q->score ?? 0));
+                $scores[] = $pct;
+                if ($q->passed) {
+                    $passedCount++;
+                }
+            }
+
+            foreach ($sAssignments as $a) {
+                if (is_numeric($a->grade)) {
+                    $val = (float) $a->grade;
+                    $scores[] = $val;
+                    if ($val >= 50.0) {
+                        $passedCount++;
+                    }
+                }
+            }
+
+            foreach ($sAssessments as $as) {
+                $raw = $as->score ?? $as->raw_score;
+                if (is_numeric($raw)) {
+                    $val = (float) $raw;
+                    $scores[] = $val;
+                    if ($val >= 50.0) {
+                        $passedCount++;
+                    }
+                }
+            }
+
+            $count = count($scores);
+            $avgScore = $count > 0 ? round(array_sum($scores) / $count, 1) : 0.0;
+            $passRate = $count > 0 ? round(($passedCount / $count) * 100) : 0;
+
+            $tier = match (true) {
+                $avgScore >= 90.0 => ['label' => 'Distinction', 'color' => 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'],
+                $avgScore >= 75.0 => ['label' => 'High Merit', 'color' => 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'],
+                $avgScore >= 60.0 => ['label' => 'Merit', 'color' => 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300'],
+                $avgScore >= 50.0 => ['label' => 'Pass', 'color' => 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'],
+                default => ['label' => 'In Progress', 'color' => 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'],
+            };
+
+            return [
+                'user_id' => $s->id,
+                'name' => $s->name,
+                'avatar' => $s->getFilamentAvatarUrl(),
+                'avg_score' => $avgScore,
+                'evaluations_count' => $count,
+                'quizzes_count' => $sQuizzes->count(),
+                'assignments_count' => $sAssignments->count(),
+                'assessments_count' => $sAssessments->count(),
+                'passed_count' => $passedCount,
+                'pass_rate' => $passRate,
+                'tier' => $tier,
+                'is_self' => $s->id === $user->id,
+            ];
+        })
+        ->filter(fn (array $r) => $r['evaluations_count'] > 0 || $r['is_self'])
+        ->sortByDesc(fn (array $r) => ($r['avg_score'] * 1000) + $r['evaluations_count'])
+        ->values()
+        ->map(function (array $r, int $idx): array {
+            $r['rank'] = $idx + 1;
+            return $r;
+        });
+
+        $allRaw = $quizzes->concat($assignments)->concat($assessments);
+        $totalCount = $allRaw->count();
+
+        // Summary Stats
+        $avgScore = $totalCount > 0 ? round($allRaw->avg('numeric_score'), 1) : 0;
+        $passedCount = $allRaw->where('is_pass', true)->count();
+        $passRate = $totalCount > 0 ? round(($passedCount / $totalCount) * 100) : 0;
+
+        $viewerStanding = $leaderboardRows->firstWhere('is_self', true);
+
+        $stats = [
+            'average_score' => $avgScore,
+            'total_completed' => $totalCount,
+            'quizzes_count' => $quizzes->count(),
+            'assignments_count' => $assignments->count(),
+            'assessments_count' => $assessments->count(),
+            'pass_rate' => $passRate,
+            'passed_count' => $passedCount,
+            'my_rank' => $viewerStanding['rank'] ?? 1,
+            'total_ranked_students' => $leaderboardRows->count(),
+        ];
+
+        // Filter leaderboard rows if searching
+        $term = mb_strtolower(trim($this->resultsSearch));
+        $filteredLeaderboard = $leaderboardRows;
+        if ($term !== '') {
+            $filteredLeaderboard = $leaderboardRows->filter(function (array $r) use ($term): bool {
+                return str_contains(mb_strtolower($r['name']), $term);
+            })->values();
+        }
+
+        // 5. Recent Graded Tasks & Candidate Scores for the Score Board
+        $tasksList = collect();
+
+        // A. Quizzes
+        $allQuizzesWithAttempts = QuizAttempt::query()
+            ->with(['quiz.course', 'user'])
+            ->whereNotNull('completed_at')
+            ->get()
+            ->groupBy('quiz_id');
+
+        foreach ($allQuizzesWithAttempts as $quizId => $attempts) {
+            $firstAttempt = $attempts->first();
+            $quiz = $firstAttempt->quiz;
+            if (! $quiz) {
+                continue;
+            }
+
+            $candidates = $attempts->map(function (QuizAttempt $att) use ($user): array {
+                $percentage = $att->percentage !== null
+                    ? (float) $att->percentage
+                    : ($att->total_points > 0 ? round(($att->score / $att->total_points) * 100, 1) : (float) ($att->score ?? 0));
+
+                return [
+                    'user_id' => $att->user_id,
+                    'candidate_name' => $att->user?->name ?? 'Student',
+                    'candidate_avatar' => $att->user?->getFilamentAvatarUrl(),
+                    'score' => round($percentage).'%',
+                    'numeric_score' => $percentage,
+                    'status' => $att->passed ? 'Passed' : 'Failed',
+                    'status_color' => $att->passed ? 'success' : 'danger',
+                    'feedback' => null,
+                    'graded_at' => ($att->completed_at ?? $att->created_at)?->diffForHumans() ?? 'Recently',
+                    'full_date' => ($att->completed_at ?? $att->created_at)?->format('M d, Y · g:i A'),
+                    'is_self' => $att->user_id === $user->id,
+                    'timestamp' => $att->completed_at ?? $att->created_at,
+                ];
+            })->sortByDesc('numeric_score')->values()->map(function (array $c, int $idx): array {
+                $c['rank'] = $idx + 1;
+
+                return $c;
+            });
+
+            $latestDate = $candidates->max('timestamp');
+
+            $tasksList->push([
+                'id' => 'quiz_'.$quiz->id,
+                'raw_id' => $quiz->id,
+                'title' => $quiz->title,
+                'type' => 'quiz',
+                'type_label' => 'Quiz',
+                'type_badge' => 'Q',
+                'course' => $quiz->course?->title ?? 'Curriculum Course',
+                'candidates_count' => $candidates->count(),
+                'average_score' => round($candidates->avg('numeric_score'), 1),
+                'pass_rate' => $candidates->count() > 0 ? round(($candidates->where('status', 'Passed')->count() / $candidates->count()) * 100) : 0,
+                'latest_date' => $latestDate,
+                'latest_date_formatted' => $latestDate?->diffForHumans() ?? 'Recently',
+                'publish_date' => $quiz->published_at ?? $quiz->created_at ?? $quiz->id,
+                'candidates' => $candidates,
+            ]);
+        }
+
+        // B. Assignments
+        $allAssignmentsWithSubmissions = AssignmentSubmission::query()
+            ->with(['assignment.course', 'user'])
+            ->whereNotNull('grade')
+            ->get()
+            ->groupBy('assignment_id');
+
+        foreach ($allAssignmentsWithSubmissions as $assignmentId => $submissions) {
+            $firstSub = $submissions->first();
+            $assignment = $firstSub->assignment;
+            if (! $assignment) {
+                continue;
+            }
+
+            $candidates = $submissions->map(function (AssignmentSubmission $sub) use ($user): array {
+                $numericGrade = is_numeric($sub->grade) ? (float) $sub->grade : 0.0;
+                $passed = $numericGrade >= 50.0;
+
+                return [
+                    'user_id' => $sub->user_id,
+                    'candidate_name' => $sub->user?->name ?? 'Student',
+                    'candidate_avatar' => $sub->user?->getFilamentAvatarUrl(),
+                    'score' => is_numeric($sub->grade) ? round($numericGrade).'%' : (string) $sub->grade,
+                    'numeric_score' => $numericGrade,
+                    'status' => $passed ? 'Graded' : 'Needs Review',
+                    'status_color' => $passed ? 'success' : 'warning',
+                    'feedback' => $sub->feedback,
+                    'graded_at' => ($sub->updated_at ?? $sub->submitted_at ?? $sub->created_at)?->diffForHumans() ?? 'Recently',
+                    'full_date' => ($sub->updated_at ?? $sub->submitted_at ?? $sub->created_at)?->format('M d, Y · g:i A'),
+                    'is_self' => $sub->user_id === $user->id,
+                    'timestamp' => $sub->updated_at ?? $sub->submitted_at ?? $sub->created_at,
+                ];
+            })->sortByDesc('numeric_score')->values()->map(function (array $c, int $idx): array {
+                $c['rank'] = $idx + 1;
+
+                return $c;
+            });
+
+            $latestDate = $candidates->max('timestamp');
+
+            $tasksList->push([
+                'id' => 'assignment_'.$assignment->id,
+                'raw_id' => $assignment->id,
+                'title' => $assignment->name,
+                'type' => 'assignment',
+                'type_label' => 'Assignment',
+                'type_badge' => 'A',
+                'course' => $assignment->course?->title ?? 'Curriculum Course',
+                'candidates_count' => $candidates->count(),
+                'average_score' => round($candidates->avg('numeric_score'), 1),
+                'pass_rate' => $candidates->count() > 0 ? round(($candidates->where('status', 'Graded')->count() / $candidates->count()) * 100) : 0,
+                'latest_date' => $latestDate,
+                'latest_date_formatted' => $latestDate?->diffForHumans() ?? 'Recently',
+                'publish_date' => $assignment->published_at ?? $assignment->created_at ?? $assignment->id,
+                'candidates' => $candidates,
+            ]);
+        }
+
+        // C. Assessments
+        $allAssessmentsWithSubmissions = AssessmentSubmission::query()
+            ->with(['assessment.course', 'user'])
+            ->where(fn ($q) => $q->whereNotNull('score')->orWhereNotNull('raw_score'))
+            ->get()
+            ->groupBy('assessment_id');
+
+        foreach ($allAssessmentsWithSubmissions as $assessmentId => $submissions) {
+            $firstSub = $submissions->first();
+            $assessment = $firstSub->assessment;
+            if (! $assessment) {
+                continue;
+            }
+
+            $candidates = $submissions->map(function (AssessmentSubmission $sub) use ($user): array {
+                $gradeVal = $sub->score ?? $sub->raw_score;
+                $numericScore = is_numeric($gradeVal) ? (float) $gradeVal : 0.0;
+                $passed = $numericScore >= 50.0;
+
+                return [
+                    'user_id' => $sub->user_id,
+                    'candidate_name' => $sub->user?->name ?? 'Student',
+                    'candidate_avatar' => $sub->user?->getFilamentAvatarUrl(),
+                    'score' => is_numeric($gradeVal) ? round($numericScore).'%' : (string) $gradeVal,
+                    'numeric_score' => $numericScore,
+                    'status' => $passed ? 'Graded' : 'Needs Review',
+                    'status_color' => $passed ? 'success' : 'warning',
+                    'feedback' => $sub->feedback,
+                    'graded_at' => ($sub->updated_at ?? $sub->submitted_at ?? $sub->created_at)?->diffForHumans() ?? 'Recently',
+                    'full_date' => ($sub->updated_at ?? $sub->submitted_at ?? $sub->created_at)?->format('M d, Y · g:i A'),
+                    'is_self' => $sub->user_id === $user->id,
+                    'timestamp' => $sub->updated_at ?? $sub->submitted_at ?? $sub->created_at,
+                ];
+            })->sortByDesc('numeric_score')->values()->map(function (array $c, int $idx): array {
+                $c['rank'] = $idx + 1;
+
+                return $c;
+            });
+
+            $latestDate = $candidates->max('timestamp');
+
+            $tasksList->push([
+                'id' => 'assessment_'.$assessment->id,
+                'raw_id' => $assessment->id,
+                'title' => $assessment->name,
+                'type' => 'assessment',
+                'type_label' => 'Assessment',
+                'type_badge' => 'As',
+                'course' => $assessment->course?->title ?? 'Curriculum Course',
+                'candidates_count' => $candidates->count(),
+                'average_score' => round($candidates->avg('numeric_score'), 1),
+                'pass_rate' => $candidates->count() > 0 ? round(($candidates->where('status', 'Graded')->count() / $candidates->count()) * 100) : 0,
+                'latest_date' => $latestDate,
+                'latest_date_formatted' => $latestDate?->diffForHumans() ?? 'Recently',
+                'publish_date' => $assessment->published_at ?? $assessment->created_at ?? $assessment->id,
+                'candidates' => $candidates,
+            ]);
+        }
+
+        // Compute shortened titles according to time of publish (Quiz 1, Quiz 2, Assignment 1, Assignment 2, Assessment 1...)
+        $quizzes = $tasksList->where('type', 'quiz')->sortBy('publish_date')->values();
+        $assignments = $tasksList->where('type', 'assignment')->sortBy('publish_date')->values();
+        $assessments = $tasksList->where('type', 'assessment')->sortBy('publish_date')->values();
+
+        $quizNumberMap = [];
+        foreach ($quizzes as $index => $q) {
+            $quizNumberMap[$q['id']] = 'Quiz '.($index + 1);
+        }
+
+        $assignmentNumberMap = [];
+        foreach ($assignments as $index => $a) {
+            $assignmentNumberMap[$a['id']] = 'Assignment '.($index + 1);
+        }
+
+        $assessmentNumberMap = [];
+        foreach ($assessments as $index => $as) {
+            $assessmentNumberMap[$as['id']] = 'Assessment '.($index + 1);
+        }
+
+        $tasksList = $tasksList->map(function (array $task) use ($quizNumberMap, $assignmentNumberMap, $assessmentNumberMap): array {
+            $task['short_title'] = match ($task['type']) {
+                'quiz' => $quizNumberMap[$task['id']] ?? 'Quiz',
+                'assignment' => $assignmentNumberMap[$task['id']] ?? 'Assignment',
+                'assessment' => $assessmentNumberMap[$task['id']] ?? 'Assessment',
+                default => $task['type_label'],
+            };
+
+            return $task;
+        });
+
+        $sortedTasks = $tasksList->sortByDesc('latest_date')->values();
+
+        // Filter tasks by type if selected
+        if ($this->resultsFilter !== 'all') {
+            $sortedTasks = $sortedTasks->where('type', $this->resultsFilter)->values();
+        }
+
+        // Filter tasks list if searching
+        if ($term !== '') {
+            $sortedTasks = $sortedTasks->filter(function (array $t) use ($term): bool {
+                return str_contains(mb_strtolower($t['title']), $term)
+                    || str_contains(mb_strtolower($t['course']), $term)
+                    || str_contains(mb_strtolower($t['type_label']), $term);
+            })->values();
+        }
+
+        // Selected or default active task
+        $activeTaskId = $this->selectedTaskId ?? ($sortedTasks->first()['id'] ?? null);
+        $activeTask = $sortedTasks->firstWhere('id', $activeTaskId) ?? $sortedTasks->first();
+
+        // Filter task candidate list if searching
+        if ($activeTask && $term !== '') {
+            $filteredCandidates = $activeTask['candidates']->filter(function (array $c) use ($term): bool {
+                return str_contains(mb_strtolower($c['candidate_name']), $term);
+            })->values();
+            $activeTask['candidates'] = $filteredCandidates;
+        }
+        // Personal evaluation history for student records
+        $filtered = $allRaw->sortByDesc('date')->values();
+
+        if ($this->resultsFilter !== 'all') {
+            $filtered = $filtered->where('type', $this->resultsFilter)->values();
+        }
+
+        if ($term !== '') {
+            $filtered = $filtered->filter(function (array $item) use ($term): bool {
+                return str_contains(mb_strtolower($item['title']), $term)
+                    || str_contains(mb_strtolower($item['course']), $term)
+                    || str_contains(mb_strtolower($item['type_label']), $term);
+            })->values();
+        }
+
+        return [
+            'items' => $filtered,
+            'leaderboard' => $filteredLeaderboard,
+            'tasks' => $sortedTasks,
+            'active_task' => $activeTask,
+            'stats' => $stats,
+            'total_count' => $totalCount,
+            'filtered_count' => $filtered->count(),
+        ];
+    }
+
     // ------------------------------------------------------------------ Chats
 
     public function getRoomsProperty(): Collection
@@ -577,11 +1131,30 @@ class Community extends Page
             return collect();
         }
 
-        return $user->chatRooms()
-            ->with(['members', 'latestMessage', 'course'])
+        $rooms = $user->chatRooms()
+            ->with(['members', 'latestMessage.user', 'course'])
             ->get()
             ->sortByDesc(fn (ChatRoom $room) => $room->latestMessage?->created_at ?? $room->created_at)
             ->values();
+
+        if ($this->chatFilter === 'groups') {
+            $rooms = $rooms->where('type', 'course')->values();
+        } elseif ($this->chatFilter === 'direct') {
+            $rooms = $rooms->where('type', 'direct')->values();
+        }
+
+        $search = mb_strtolower(trim($this->chatSearch));
+        if ($search !== '') {
+            $rooms = $rooms->filter(function (ChatRoom $room) use ($user, $search): bool {
+                $name = mb_strtolower($room->displayNameFor($user));
+                $course = mb_strtolower($room->course?->title ?? '');
+                $lastMsg = mb_strtolower($room->latestMessage?->body ?? '');
+
+                return str_contains($name, $search) || str_contains($course, $search) || str_contains($lastMsg, $search);
+            })->values();
+        }
+
+        return $rooms;
     }
 
     public function openDirect(int $userId): void

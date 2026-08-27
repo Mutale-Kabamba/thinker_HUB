@@ -437,7 +437,7 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                         @forelse ($courses as $course)
-                            <div class="p-4 rounded-xl border border-slate-200/80 dark:border-[#233842] bg-gradient-to-b from-slate-50/50 to-white dark:from-slate-800/40 dark:to-slate-850 hover:shadow-md transition-all space-y-3">
+                            <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#111b21] hover:shadow-md transition-all space-y-3">
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="space-y-0.5">
                                         <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300">
