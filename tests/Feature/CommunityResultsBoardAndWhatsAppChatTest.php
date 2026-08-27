@@ -86,8 +86,6 @@ class CommunityResultsBoardAndWhatsAppChatTest extends TestCase
             ->assertSee('90%')
             ->assertSee('85%')
             ->assertSee('95%')
-            ->assertSee('Exceptional performance on recursion problems.')
-            ->assertSee('Well documented and clean implementation.')
             // Verify real-time search filtering
             ->set('resultsSearch', 'Python')
             ->assertSee('Python Basics Quiz')

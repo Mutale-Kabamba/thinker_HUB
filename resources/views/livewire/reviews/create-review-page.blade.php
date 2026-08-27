@@ -27,8 +27,8 @@
 
         .dark .hub-card,
         .fi-theme-dark .hub-card {
-            background: #0f172a;
-            border-color: #1e293b;
+            background: #111b21;
+            border-color: #1f2c34;
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
         }
 
