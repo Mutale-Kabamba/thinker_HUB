@@ -939,150 +939,417 @@
                 $allRooms = $this->rooms;
                 $activeRoom = $this->activeRoom;
             @endphp
-            <div class="whatsapp-container w-full min-w-0 {{ $selectedRoomId ? 'h-[calc(100vh-90px)] min-h-[calc(100vh-90px)] sm:h-[calc(100vh-100px)] sm:min-h-[calc(100vh-100px)]' : 'h-[calc(100vh-175px)] min-h-[calc(100vh-175px)] sm:h-[calc(100vh-185px)] sm:min-h-[calc(100vh-185px)]' }} rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#111b21] shadow-xl flex overflow-hidden relative mb-2">
-                
-                {{-- LEFT SIDEBAR: CHAT LIST --}}
-                <div class="w-full md:w-80 lg:w-96 flex-shrink-0 bg-white dark:bg-[#111b21] border-r border-gray-200 dark:border-gray-800 flex flex-col h-full overflow-hidden {{ $selectedRoomId ? 'hidden md:flex' : 'flex' }}">
-                    
-                    {{-- WhatsApp Header --}}
-                    <div class="whatsapp-header-bar bg-[#f0f2f5] dark:bg-[#202c33] px-3.5 py-3 border-b border-gray-200 dark:border-gray-700/60 flex items-center justify-between shrink-0">
-                        <div class="flex items-center gap-2.5">
-                            @php $myAvatar = auth()->user()?->getFilamentAvatarUrl(); @endphp
-                            @if ($myAvatar)
-                                <img src="{{ $myAvatar }}" alt="{{ auth()->user()?->name }}" class="w-9 h-9 rounded-full object-cover border border-gray-300 dark:border-gray-600">
+
+            @if ($selectedRoomId && $activeRoom)
+                {{-- 1. FULLSCREEN LOCKED CHAT ROOM (ZERO PAGE SCROLLING, WHATSAPP IMMERSIVE) --}}
+                <div class="fixed inset-0 top-0 sm:top-[64px] z-50 flex flex-col bg-[#efeae2] dark:bg-[#0b141a] overflow-hidden text-gray-900 dark:text-gray-100">
+
+                    {{-- FIXED TOP CHAT HEADER --}}
+                    <header class="h-14 bg-white dark:bg-[#202c33] px-3 sm:px-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700/60 flex-shrink-0 z-10 shadow-xs">
+                        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                            <button type="button" wire:click="closeRoom" class="p-1.5 -ml-1 text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition shrink-0" title="Back to chat list">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            
+                            @php
+                                $displayName = $activeRoom->displayNameFor(auth()->user());
+                                $isCourse = $activeRoom->type === 'course';
+                                $otherUser = $activeRoom->members->firstWhere('id', '!=', auth()->id());
+                                $activeAvatar = $isCourse ? null : $otherUser?->getFilamentAvatarUrl();
+                            @endphp
+
+                            @if ($isCourse)
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#00a884] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-xs">
+                                    <x-heroicon-s-academic-cap class="w-5 h-5" />
+                                </div>
+                            @elseif ($activeAvatar)
+                                <img src="{{ $activeAvatar }}" alt="{{ $displayName }}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700 shrink-0">
                             @else
-                                <div class="w-9 h-9 rounded-full bg-[#00a884] text-white flex items-center justify-center font-bold text-sm">
-                                    {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 1)) }}
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#00a884] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-xs">
+                                    {{ strtoupper(substr($displayName, 0, 2)) }}
                                 </div>
                             @endif
-                            <div>
-                                <h3 class="font-bold text-sm text-slate-900 dark:text-white leading-tight">Community Chats</h3>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Thinker HUB</p>
+                            
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-sm font-semibold text-gray-900 dark:text-white truncate leading-tight">{{ $displayName }}</h3>
+                                <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate leading-tight">
+                                    @if ($isCourse)
+                                        {{ $activeRoom->members->count() }} cohort members · {{ $activeRoom->course?->title ?? 'Course' }}
+                                    @else
+                                        Direct peer conversation
+                                    @endif
+                                </p>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-1">
-                            <button type="button" wire:click="$set('tab','friends')" class="p-1.5 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Friends & Directory">
-                                <x-heroicon-o-user-plus class="w-5 h-5" />
+                        <div class="flex items-center gap-1 shrink-0 ml-2">
+                            <button type="button" wire:click="$refresh" class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition" title="Refresh messages">
+                                <x-heroicon-o-arrow-path class="w-5 h-5" />
                             </button>
                         </div>
-                    </div>
+                    </header>
 
-                    {{-- Search & Category Filter --}}
-                    <div class="p-2.5 bg-white dark:bg-[#111b21] border-b border-gray-100 dark:border-gray-800 space-y-2 shrink-0">
-                        <div class="relative">
-                            <x-heroicon-o-magnifying-glass class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input 
-                                type="text" 
-                                wire:model.live.debounce.300ms="chatSearch" 
-                                placeholder="Search or start new chat" 
-                                class="w-full pl-9 pr-7 py-1.5 text-xs rounded-lg bg-[#f0f2f5] dark:bg-[#202c33] text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 border-none focus:ring-1 focus:ring-[#00a884] outline-none"
-                            />
-                            @if ($chatSearch)
-                                <button type="button" wire:click="$set('chatSearch', '')" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
-                                    &times;
+                    {{-- SCROLLABLE MESSAGES STREAM (ONLY THIS SCROLLS) --}}
+                    <main 
+                        class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 bg-repeat" 
+                        style="background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 0); background-size: 16px 16px;"
+                        x-data="{
+                            scrollToBottom() {
+                                $el.scrollTop = $el.scrollHeight;
+                            }
+                        }"
+                        x-init="$nextTick(() => scrollToBottom())"
+                        x-on:message-sent.window="$nextTick(() => scrollToBottom())"
+                    >
+                        @if ($this->hasMoreMessages)
+                            <div class="text-center my-1.5">
+                                <button type="button" wire:click="loadMoreMessages" class="px-3 py-1 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 shadow-xs hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                    Load earlier messages
                                 </button>
-                            @endif
-                        </div>
+                            </div>
+                        @endif
 
-                        <div class="flex items-center gap-1 text-[11px]">
-                            <button type="button" wire:click="$set('chatFilter', 'all')"
-                                class="px-2.5 py-0.5 rounded-full font-bold transition {{ $chatFilter === 'all' ? 'bg-[#00a884] text-white' : 'bg-[#f0f2f5] dark:bg-[#202c33] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
-                                All
-                            </button>
-                            <button type="button" wire:click="$set('chatFilter', 'groups')"
-                                class="px-2.5 py-0.5 rounded-full font-bold transition {{ $chatFilter === 'groups' ? 'bg-[#00a884] text-white' : 'bg-[#f0f2f5] dark:bg-[#202c33] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
-                                Cohorts / Groups
-                            </button>
-                            <button type="button" wire:click="$set('chatFilter', 'direct')"
-                                class="px-2.5 py-0.5 rounded-full font-bold transition {{ $chatFilter === 'direct' ? 'bg-[#00a884] text-white' : 'bg-[#f0f2f5] dark:bg-[#202c33] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
-                                Direct DMs
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- Room List Feed --}}
-                    <div class="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800/60">
-                        @forelse ($allRooms as $room)
+                        @forelse ($this->messages as $msg)
                             @php
-                                $isActive = $selectedRoomId === $room->id;
-                                $isCourse = $room->type === 'course';
-                                $displayName = $room->displayNameFor(auth()->user());
-                                $lastMsg = $room->latestMessage;
+                                $isMe = $msg->user_id === auth()->id();
+                                $groupedReactions = $msg->getGroupedReactions(auth()->id());
+                                $author = $msg->user;
+                                $authorName = $author ? ($author->first_name ?: $author->name) : 'Participant';
+                                $palette = $author?->chatColorPalette() ?? ['name_color' => '#d97706'];
                             @endphp
-                            <button 
-                                type="button" 
-                                wire:click="selectRoom({{ $room->id }})"
-                                class="w-full text-left p-3 flex items-center gap-3 transition-colors {{ $isActive ? 'bg-[#f0f2f5] dark:bg-[#2a3942]' : 'hover:bg-slate-50 dark:hover:bg-[#202c33]' }}"
-                            >
-                                {{-- Room Avatar --}}
-                                <div class="relative shrink-0">
-                                    @if ($isCourse)
-                                        <div class="w-11 h-11 rounded-full bg-gradient-to-br from-[#00a884] to-[#008069] text-white flex items-center justify-center font-bold text-sm shadow-2xs">
-                                            <x-heroicon-s-academic-cap class="w-6 h-6" />
-                                        </div>
-                                    @else
-                                        @php
-                                            $otherUser = $room->members->firstWhere('id', '!=', auth()->id());
-                                            $avatar = $otherUser?->getFilamentAvatarUrl();
-                                        @endphp
-                                        @if ($avatar)
-                                            <img src="{{ $avatar }}" alt="{{ $displayName }}" class="w-11 h-11 rounded-full object-cover border border-gray-200 dark:border-gray-700">
-                                        @else
-                                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-2xs">
-                                                {{ strtoupper(substr($displayName, 0, 1)) }}
-                                            </div>
-                                        @endif
-                                        <span class="w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#111b21] absolute bottom-0 right-0"></span>
-                                    @endif
-                                </div>
-
-                                {{-- Name & Message Preview --}}
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-baseline justify-between gap-1">
-                                        <h4 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
-                                            {{ $displayName }}
-                                        </h4>
-                                        @if ($lastMsg)
-                                            <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0">
-                                                {{ $lastMsg->created_at?->format('H:i') }}
-                                            </span>
-                                        @endif
-                                    </div>
-
-                                    <div class="flex items-center justify-between gap-1 mt-0.5">
-                                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                            @if ($lastMsg)
-                                                @if ($lastMsg->user_id === auth()->id())
-                                                    <span class="text-[#00a884] font-semibold">You: </span>
-                                                @elseif ($lastMsg->user)
-                                                    <span class="font-semibold">{{ $lastMsg->user->first_name }}: </span>
-                                                @endif
-                                                {{ $lastMsg->body ?: ($lastMsg->attachment_name ? '📎 '.$lastMsg->attachment_name : 'Sent an attachment') }}
-                                            @else
-                                                <span class="italic text-slate-400">No messages yet</span>
-                                            @endif
+                            <div class="flex {{ $isMe ? 'justify-end' : 'justify-start' }}" wire:key="msg-{{ $msg->id }}">
+                                <div 
+                                    class="group relative max-w-[85%] sm:max-w-[70%] rounded-2xl px-3.5 py-2 shadow-xs text-sm {{ 
+                                        $isMe 
+                                            ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-gray-900 dark:text-gray-100 rounded-tr-none' 
+                                            : 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-gray-100 rounded-tl-none' 
+                                    }}"
+                                    x-data="{ showMenu: false, copied: false }"
+                                >
+                                    {{-- Author Name for Received Messages --}}
+                                    @if (! $isMe)
+                                        <p class="text-[11px] font-bold text-amber-600 dark:text-amber-400 mb-0.5" style="color: {{ $palette['name_color'] ?? '#d97706' }};">
+                                            {{ $authorName }}
                                         </p>
-                                        @if ($isCourse)
-                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 shrink-0">
-                                                {{ $room->course?->code ?? 'Cohort' }}
+                                    @endif
+
+                                    {{-- Replying to Quote Preview --}}
+                                    @if ($msg->replyTo)
+                                        @php
+                                            $repUser = $msg->replyTo->user;
+                                            $repMine = $msg->replyTo->user_id === auth()->id();
+                                        @endphp
+                                        <div class="p-1.5 px-2 mb-1.5 rounded-lg bg-black/5 dark:bg-white/10 border-l-3 text-xs space-y-0.5" style="border-left-color:#00a884;">
+                                            <span class="font-bold text-[#00a884] block leading-tight">
+                                                {{ $repMine ? 'You' : ($repUser?->first_name ?? 'Participant') }}
                                             </span>
+                                            <p class="text-gray-600 dark:text-gray-300 truncate leading-tight">
+                                                {{ $msg->replyTo->body ?: 'Attachment' }}
+                                            </p>
+                                        </div>
+                                    @endif
+
+                                    {{-- Message Body Text --}}
+                                    @if ($msg->body)
+                                        <p class="leading-relaxed break-words whitespace-pre-line text-xs sm:text-sm">
+                                            {{ $msg->body }}
+                                        </p>
+                                    @endif
+
+                                    {{-- Attachments & Files --}}
+                                    @php
+                                        $rawAtts = $msg->attachments;
+                                        $attachmentsList = is_array($rawAtts) ? $rawAtts : (is_string($rawAtts) ? json_decode($rawAtts, true) : []);
+                                        if (empty($attachmentsList) && $msg->attachment_path) {
+                                            $attachmentsList = [[
+                                                'path' => $msg->attachment_path,
+                                                'name' => $msg->attachment_name ?: 'File',
+                                                'type' => $msg->attachment_type ?: 'file',
+                                            ]];
+                                        }
+                                    @endphp
+                                    @if (!empty($attachmentsList))
+                                        <div class="space-y-1.5 my-1.5">
+                                            @foreach ($attachmentsList as $att)
+                                                @php
+                                                    $url = \Illuminate\Support\Facades\Storage::disk('public')->url($att['path'] ?? '');
+                                                    $isImage = ($att['type'] ?? '') === 'image' || preg_match('/\.(jpg|jpeg|png|gif|webp|svg)$/i', $att['path'] ?? '');
+                                                @endphp
+                                                @if ($isImage)
+                                                    <a href="{{ $url }}" target="_blank" class="block rounded-lg overflow-hidden border border-black/10 dark:border-white/10">
+                                                        <img src="{{ $url }}" alt="{{ $att['name'] ?? 'Image' }}" class="max-h-60 w-full object-cover">
+                                                    </a>
+                                                @else
+                                                    <a href="{{ $url }}" target="_blank" download class="p-2 rounded-lg bg-black/5 dark:bg-black/20 hover:bg-black/10 dark:hover:bg-black/30 flex items-center gap-2 text-xs transition">
+                                                        <span class="text-base font-bold">📄</span>
+                                                        <span class="truncate flex-1 font-medium">{{ $att['name'] ?? basename($att['path'] ?? 'Document') }}</span>
+                                                        <x-heroicon-s-arrow-down-tray class="w-4 h-4 text-[#00a884] shrink-0" />
+                                                    </a>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    @endif
+
+                                    {{-- Footer: Timestamp & Dual Checkmarks for Self --}}
+                                    <div class="flex items-center justify-end gap-1 mt-1 text-[10px] text-gray-500 dark:text-gray-400 select-none leading-none">
+                                        <span>{{ $msg->created_at?->format('H:i') }}</span>
+                                        @if ($isMe)
+                                            <span class="text-sky-500 font-bold tracking-tighter" title="Delivered">✓✓</span>
                                         @endif
                                     </div>
+
+                                    {{-- Quick Action Hover Menu --}}
+                                    <div class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 bg-white/90 dark:bg-[#111b21]/90 backdrop-blur-md rounded-full px-1 py-0.5 shadow-xs border border-gray-200 dark:border-gray-700">
+                                        <button type="button" wire:click="setReplyTo({{ $msg->id }})" class="text-gray-500 hover:text-gray-800 dark:hover:text-white p-0.5 transition" title="Reply">
+                                            <x-heroicon-m-arrow-uturn-left class="w-3 h-3" />
+                                        </button>
+                                        <button type="button" wire:click="toggleReaction({{ $msg->id }}, '👍')" class="text-gray-500 hover:text-gray-800 dark:hover:text-white p-0.5 transition text-[10px]" title="Like">
+                                            👍
+                                        </button>
+                                        <div class="relative">
+                                            <button type="button" @click="showMenu = !showMenu" class="text-gray-500 hover:text-gray-800 dark:hover:text-white p-0.5 transition">
+                                                <x-heroicon-m-chevron-down class="w-3 h-3" />
+                                            </button>
+                                            <div x-show="showMenu" @click.away="showMenu = false" x-transition class="absolute right-0 top-full mt-1 w-28 bg-white dark:bg-[#202c33] rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-0.5 z-30 text-xs">
+                                                <button type="button" wire:click="setReplyTo({{ $msg->id }})" @click="showMenu = false" class="w-full text-left px-2.5 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between text-gray-700 dark:text-gray-200 text-[11px]">
+                                                    <span>Reply</span>
+                                                    <x-heroicon-m-arrow-uturn-left class="w-3 h-3" />
+                                                </button>
+                                                <button type="button" @click="navigator.clipboard.writeText(@js($msg->body ?? '')); copied = true; setTimeout(() => { copied = false; showMenu = false; }, 900);" class="w-full text-left px-2.5 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between text-gray-700 dark:text-gray-200 text-[11px]">
+                                                    <span x-text="copied ? 'Copied!' : 'Copy'">Copy</span>
+                                                    <x-heroicon-m-clipboard class="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </button>
+                            </div>
+
+                            {{-- Emoji Reactions Row --}}
+                            @if (count($groupedReactions) > 0)
+                                <div class="flex flex-wrap gap-1 -mt-1.5 {{ $isMe ? 'justify-end' : 'justify-start' }}">
+                                    @foreach ($groupedReactions as $reaction)
+                                        <button 
+                                            type="button" 
+                                            wire:click="toggleReaction({{ $msg->id }}, '{{ $reaction['emoji'] }}')" 
+                                            title="{{ implode(', ', $reaction['names']) }}" 
+                                            class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[10px] border transition {{ 
+                                                $reaction['reacted_by_me'] 
+                                                    ? 'bg-[#00a884]/15 border-[#00a884] text-[#008069] dark:text-emerald-300 font-bold' 
+                                                    : 'bg-white/80 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300' 
+                                            }}"
+                                        >
+                                            <span>{{ $reaction['emoji'] }}</span>
+                                            <span class="text-[9px] font-bold">{{ $reaction['count'] }}</span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @endif
                         @empty
-                            <div class="p-6 text-center text-slate-400 dark:text-slate-500 text-xs">
-                                <p>No chat rooms found.</p>
+                            <div class="m-auto text-center p-6 text-gray-400 dark:text-gray-500 text-xs">
+                                <p>No messages yet in this chat. Start the conversation!</p>
                             </div>
                         @endforelse
-                    </div>
-                </div>
+                    </main>
 
-                {{-- RIGHT MAIN PANEL: ACTIVE CONVERSATION OR EMPTY STATE --}}
-                <div class="flex-1 min-w-0 flex flex-col bg-[#efeae2] dark:bg-[#0b141a] h-full overflow-hidden {{ ! $selectedRoomId ? 'hidden md:flex' : 'flex' }}">
-                    @if (! $activeRoom)
-                        {{-- WhatsApp Web Empty State --}}
+                    {{-- Replying-To Active Banner --}}
+                    @if ($this->replyingToMessage)
+                        @php
+                            $repUser = $this->replyingToMessage->user;
+                            $repMine = $this->replyingToMessage->user_id === auth()->id();
+                        @endphp
+                        <div class="bg-gray-50 dark:bg-[#202c33] px-3.5 py-2 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2 shrink-0">
+                            <div class="border-l-3 border-[#00a884] pl-2 min-w-0 flex-1">
+                                <span class="text-[11px] font-bold text-[#00a884] block">
+                                    Replying to {{ $repMine ? 'yourself' : ($repUser?->first_name ?? 'Participant') }}
+                                </span>
+                                <p class="text-xs text-gray-600 dark:text-gray-300 truncate">
+                                    {{ $this->replyingToMessage->body ?: 'Attachment' }}
+                                </p>
+                            </div>
+                            <button type="button" wire:click="cancelReply" class="text-gray-400 hover:text-rose-500 text-lg leading-none p-1">
+                                &times;
+                            </button>
+                        </div>
+                    @endif
+
+                    {{-- FIXED BOTTOM INPUT BAR --}}
+                    <footer class="p-2 sm:p-3 bg-white dark:bg-[#202c33] flex items-center gap-2 flex-shrink-0 border-t border-gray-200 dark:border-gray-700/60 pb-[calc(env(safe-area-inset-bottom,0.75rem)+0.25rem)] z-10">
+                        {{-- Attachment Trigger --}}
+                        <label class="p-2 rounded-full text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition shrink-0" title="Attach file">
+                            <x-heroicon-o-paper-clip class="w-5 h-5" />
+                            <input type="file" wire:model="attachments" multiple class="hidden">
+                        </label>
+
+                        {{-- Pill Input Field --}}
+                        <input 
+                            type="text" 
+                            wire:model="messageBody" 
+                            wire:keydown.enter="sendMessage" 
+                            placeholder="Type a message..." 
+                            class="flex-1 bg-gray-100 dark:bg-[#2a3942] border-0 rounded-full px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-1 focus:ring-[#00a884] outline-none"
+                        />
+
+                        {{-- Round Emerald Send Button --}}
+                        <button 
+                            type="button" 
+                            wire:click="sendMessage" 
+                            wire:loading.attr="disabled"
+                            class="w-10 h-10 rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white flex items-center justify-center flex-shrink-0 shadow-xs transition-colors disabled:opacity-50"
+                            title="Send message"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                            </svg>
+                        </button>
+                    </footer>
+
+                </div>
+            @else
+                {{-- Standard WhatsApp Rooms List (when browsing rooms) --}}
+                <div class="whatsapp-container w-full min-w-0 h-[calc(100vh-175px)] min-h-[calc(100vh-175px)] sm:h-[calc(100vh-185px)] sm:min-h-[calc(100vh-185px)] rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#111b21] shadow-xl flex overflow-hidden relative mb-2">
+                    
+                    {{-- LEFT SIDEBAR: CHAT LIST --}}
+                    <div class="w-full md:w-80 lg:w-96 flex-shrink-0 bg-white dark:bg-[#111b21] border-r border-gray-200 dark:border-gray-800 flex flex-col h-full overflow-hidden flex">
+                        
+                        {{-- WhatsApp Header --}}
+                        <div class="whatsapp-header-bar bg-[#f0f2f5] dark:bg-[#202c33] px-3.5 py-3 border-b border-gray-200 dark:border-gray-700/60 flex items-center justify-between shrink-0">
+                            <div class="flex items-center gap-2.5">
+                                @php $myAvatar = auth()->user()?->getFilamentAvatarUrl(); @endphp
+                                @if ($myAvatar)
+                                    <img src="{{ $myAvatar }}" alt="{{ auth()->user()?->name }}" class="w-9 h-9 rounded-full object-cover border border-gray-300 dark:border-gray-600">
+                                @else
+                                    <div class="w-9 h-9 rounded-full bg-[#00a884] text-white flex items-center justify-center font-bold text-sm">
+                                        {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 1)) }}
+                                    </div>
+                                @endif
+                                <div>
+                                    <h3 class="font-bold text-sm text-slate-900 dark:text-white leading-tight">Community Chats</h3>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Thinker HUB</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-1">
+                                <button type="button" wire:click="$set('tab','friends')" class="p-1.5 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Friends & Directory">
+                                    <x-heroicon-o-user-plus class="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Search & Category Filter --}}
+                        <div class="p-2.5 bg-white dark:bg-[#111b21] border-b border-gray-100 dark:border-gray-800 space-y-2 shrink-0">
+                            <div class="relative">
+                                <x-heroicon-o-magnifying-glass class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <input 
+                                    type="text" 
+                                    wire:model.live.debounce.300ms="chatSearch" 
+                                    placeholder="Search or start new chat" 
+                                    class="w-full pl-9 pr-7 py-1.5 text-xs rounded-lg bg-[#f0f2f5] dark:bg-[#202c33] text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 border-none focus:ring-1 focus:ring-[#00a884] outline-none"
+                                />
+                                @if ($chatSearch)
+                                    <button type="button" wire:click="$set('chatSearch', '')" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                                        &times;
+                                    </button>
+                                @endif
+                            </div>
+
+                            <div class="flex items-center gap-1 text-[11px]">
+                                <button type="button" wire:click="$set('chatFilter', 'all')"
+                                    class="px-2.5 py-0.5 rounded-full font-bold transition {{ $chatFilter === 'all' ? 'bg-[#00a884] text-white' : 'bg-[#f0f2f5] dark:bg-[#202c33] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
+                                    All
+                                </button>
+                                <button type="button" wire:click="$set('chatFilter', 'groups')"
+                                    class="px-2.5 py-0.5 rounded-full font-bold transition {{ $chatFilter === 'groups' ? 'bg-[#00a884] text-white' : 'bg-[#f0f2f5] dark:bg-[#202c33] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
+                                    Cohorts / Groups
+                                </button>
+                                <button type="button" wire:click="$set('chatFilter', 'direct')"
+                                    class="px-2.5 py-0.5 rounded-full font-bold transition {{ $chatFilter === 'direct' ? 'bg-[#00a884] text-white' : 'bg-[#f0f2f5] dark:bg-[#202c33] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
+                                    Direct DMs
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Room List Feed --}}
+                        <div class="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800/60">
+                            @forelse ($allRooms as $room)
+                                @php
+                                    $isCourse = $room->type === 'course';
+                                    $displayName = $room->displayNameFor(auth()->user());
+                                    $lastMsg = $room->latestMessage;
+                                @endphp
+                                <button 
+                                    type="button" 
+                                    wire:click="selectRoom({{ $room->id }})"
+                                    class="w-full text-left p-3 flex items-center gap-3 transition-colors hover:bg-slate-50 dark:hover:bg-[#202c33]"
+                                >
+                                    {{-- Room Avatar --}}
+                                    <div class="relative shrink-0">
+                                        @if ($isCourse)
+                                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-[#00a884] to-[#008069] text-white flex items-center justify-center font-bold text-sm shadow-2xs">
+                                                <x-heroicon-s-academic-cap class="w-6 h-6" />
+                                            </div>
+                                        @else
+                                            @php
+                                                $otherUser = $room->members->firstWhere('id', '!=', auth()->id());
+                                                $avatar = $otherUser?->getFilamentAvatarUrl();
+                                            @endphp
+                                            @if ($avatar)
+                                                <img src="{{ $avatar }}" alt="{{ $displayName }}" class="w-11 h-11 rounded-full object-cover border border-gray-200 dark:border-gray-700">
+                                            @else
+                                                <div class="w-11 h-11 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-2xs">
+                                                    {{ strtoupper(substr($displayName, 0, 1)) }}
+                                                </div>
+                                            @endif
+                                            <span class="w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#111b21] absolute bottom-0 right-0"></span>
+                                        @endif
+                                    </div>
+
+                                    {{-- Name & Message Preview --}}
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-baseline justify-between gap-1">
+                                            <h4 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
+                                                {{ $displayName }}
+                                            </h4>
+                                            @if ($lastMsg)
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0">
+                                                    {{ $lastMsg->created_at?->format('H:i') }}
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        <div class="flex items-center justify-between gap-1 mt-0.5">
+                                            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                                @if ($lastMsg)
+                                                    @if ($lastMsg->user_id === auth()->id())
+                                                        <span class="text-[#00a884] font-semibold">You: </span>
+                                                    @elseif ($lastMsg->user)
+                                                        <span class="font-semibold">{{ $lastMsg->user->first_name }}: </span>
+                                                    @endif
+                                                    {{ $lastMsg->body ?: ($lastMsg->attachment_name ? '📎 '.$lastMsg->attachment_name : 'Sent an attachment') }}
+                                                @else
+                                                    <span class="italic text-slate-400">No messages yet</span>
+                                                @endif
+                                            </p>
+                                            @if ($isCourse)
+                                                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 shrink-0">
+                                                    {{ $room->course?->code ?? 'Cohort' }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </button>
+                            @empty
+                                <div class="p-6 text-center text-slate-400 dark:text-slate-500 text-xs">
+                                    <p>No chat rooms found.</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    {{-- RIGHT MAIN PANEL: EMPTY STATE --}}
+                    <div class="flex-1 min-w-0 hidden md:flex flex-col bg-[#efeae2] dark:bg-[#0b141a] h-full overflow-hidden">
                         <div class="m-auto text-center p-6 max-w-md space-y-4">
                             <div class="w-20 h-20 rounded-full bg-[#00a884]/10 dark:bg-[#00a884]/20 text-[#00a884] mx-auto flex items-center justify-center shadow-inner">
                                 <x-heroicon-o-chat-bubble-left-right class="w-10 h-10" />
@@ -1090,7 +1357,7 @@
                             <div class="space-y-1">
                                 <h3 class="font-bold text-slate-800 dark:text-slate-200 text-base sm:text-lg">Thinker HUB Community Chat</h3>
                                 <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    Send and receive messages with your class cohort, study partners, and instructors in real time.
+                                    Select a conversation to start chatting with your class cohort and study partners in real time.
                                 </p>
                             </div>
                             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-[#008069] dark:text-emerald-400 text-xs font-semibold">
@@ -1098,327 +1365,9 @@
                                 <span>End-to-end peer learning chat</span>
                             </div>
                         </div>
-                    @else
-                        {{-- Active Chat Header --}}
-                        <div class="whatsapp-header-bar bg-[#f0f2f5] dark:bg-[#202c33] px-3 sm:px-4 py-2 border-b border-gray-200 dark:border-gray-700/80 flex items-center justify-between shrink-0 z-10">
-                            <div class="flex items-center gap-2 min-w-0 flex-1">
-                                {{-- Back Button (Returns to Chat List / Community Page) --}}
-                                <button 
-                                    type="button" 
-                                    wire:click="closeRoom" 
-                                    class="p-1.5 -ml-1 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition flex items-center justify-center shrink-0" 
-                                    title="Back to chat list"
-                                >
-                                    <x-heroicon-o-arrow-left class="w-5 h-5" />
-                                </button>
-
-                                {{-- Room Details --}}
-                                <div class="min-w-0 flex-1 flex items-center gap-2">
-                                    @php
-                                        $activeDisplayName = $activeRoom->displayNameFor(auth()->user());
-                                        $isActiveCourse = $activeRoom->type === 'course';
-                                    @endphp
-                                    @if ($isActiveCourse)
-                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#00a884] to-[#008069] text-white flex items-center justify-center font-bold text-xs shrink-0">
-                                            <x-heroicon-s-academic-cap class="w-4 h-4" />
-                                        </div>
-                                    @else
-                                        @php
-                                            $otherUser = $activeRoom->members->firstWhere('id', '!=', auth()->id());
-                                            $activeAvatar = $otherUser?->getFilamentAvatarUrl();
-                                        @endphp
-                                        @if ($activeAvatar)
-                                            <img src="{{ $activeAvatar }}" alt="{{ $activeDisplayName }}" class="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700 shrink-0">
-                                        @else
-                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                                                {{ strtoupper(substr($activeDisplayName, 0, 1)) }}
-                                            </div>
-                                        @endif
-                                    @endif
-                                    <div class="min-w-0 flex-1">
-                                        <h3 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
-                                            {{ $activeDisplayName }}
-                                        </h3>
-                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                                            @if ($isActiveCourse)
-                                                {{ $activeRoom->members->count() }} cohort members · {{ $activeRoom->course?->title ?? 'Course' }}
-                                            @else
-                                                Direct peer conversation
-                                            @endif
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-1 shrink-0 ml-2">
-                                <button type="button" wire:click="$refresh" class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Refresh messages">
-                                    <x-heroicon-o-arrow-path class="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {{-- WhatsApp Message Feed Area --}}
-                        <div 
-                            class="whatsapp-chat-pane flex-1 overflow-y-auto overflow-x-hidden p-2.5 sm:p-3 space-y-1.5 w-full min-w-0"
-                            style="background-color:#efeae2;"
-                            x-data="{
-                                scrollToBottom() {
-                                    $el.scrollTop = $el.scrollHeight;
-                                }
-                            }"
-                            x-init="$nextTick(() => scrollToBottom())"
-                            x-on:message-sent.window="$nextTick(() => scrollToBottom())"
-                        >
-                            @if ($this->hasMoreMessages)
-                                <div class="text-center my-1.5">
-                                    <button type="button" wire:click="loadMoreMessages" class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 shadow-xs hover:bg-white dark:hover:bg-slate-800 transition">
-                                        Load earlier messages
-                                    </button>
-                                </div>
-                            @endif
-
-                            @forelse ($this->messages as $message)
-                                @php
-                                    $mine = $message->user_id === auth()->id();
-                                    $groupedReactions = $message->getGroupedReactions(auth()->id());
-                                    $author = $message->user;
-                                    $authorName = $author ? $author->first_name : 'Student';
-                                    $palette = $author?->chatColorPalette() ?? ['accent' => '#0d9488', 'name_color' => '#0d9488'];
-                                @endphp
-                                <div class="w-full flex flex-col min-w-0 {{ $mine ? 'items-end' : 'items-start' }}" wire:key="msg-{{ $message->id }}">
-                                    
-                                    {{-- Message Bubble with Context Actions --}}
-                                    <div 
-                                        class="group relative max-w-[78%] sm:max-w-[62%] rounded-xl px-2.5 py-1.5 shadow-2xs text-xs sm:text-[13px] leading-snug {{ 
-                                            $mine 
-                                                ? 'whatsapp-bubble-mine rounded-tr-xs ml-auto mr-0.5' 
-                                                : 'whatsapp-bubble-other rounded-tl-xs mr-auto ml-0.5' 
-                                        }}"
-                                        style="{{ $mine ? 'background-color:#d9fdd3;color:#111b21;' : 'background-color:#ffffff;color:#111b21;' }}"
-                                        x-data="{ showMenu: false, showPicker: false, copied: false }"
-                                    >
-                                        {{-- Author Name (Group chats / other members) --}}
-                                        @if (! $mine)
-                                            <div class="font-bold text-[10px] mb-0.5 leading-none" style="color: {{ $palette['name_color'] ?? '#0d9488' }};">
-                                                {{ $authorName }}
-                                            </div>
-                                        @endif
-
-                                        {{-- Replying to Quote Preview --}}
-                                        @if ($message->replyTo)
-                                            @php
-                                                $repUser = $message->replyTo->user;
-                                                $repMine = $message->replyTo->user_id === auth()->id();
-                                            @endphp
-                                            <div class="p-1 px-1.5 mb-1 rounded bg-black/5 dark:bg-white/10 border-l-2 text-[10px] space-y-0.2" style="border-left-color:#00a884;">
-                                                <span class="font-bold text-[#00a884] block leading-tight">
-                                                    {{ $repMine ? 'You' : ($repUser?->first_name ?? 'Student') }}
-                                                </span>
-                                                <p class="text-slate-600 dark:text-slate-300 truncate leading-tight">
-                                                    {{ $message->replyTo->body ?: 'Attachment' }}
-                                                </p>
-                                            </div>
-                                        @endif
-
-                                        {{-- Attachments Rendering --}}
-                                        @php
-                                            $rawAtts = $message->attachments;
-                                            $attachmentsList = is_array($rawAtts) ? $rawAtts : (is_string($rawAtts) ? json_decode($rawAtts, true) : []);
-                                            if (empty($attachmentsList) && $message->attachment_path) {
-                                                $attachmentsList = [[
-                                                    'path' => $message->attachment_path,
-                                                    'name' => $message->attachment_name ?: 'File',
-                                                    'type' => $message->attachment_type ?: 'file',
-                                                ]];
-                                            }
-                                        @endphp
-                                        @if (!empty($attachmentsList))
-                                            <div class="space-y-1 my-1">
-                                                @foreach ($attachmentsList as $att)
-                                                    @php
-                                                        $url = \Illuminate\Support\Facades\Storage::disk('public')->url($att['path'] ?? '');
-                                                        $isImage = ($att['type'] ?? '') === 'image' || preg_match('/\.(jpg|jpeg|png|gif|webp|svg)$/i', $att['path'] ?? '');
-                                                    @endphp
-                                                    @if ($isImage)
-                                                        <a href="{{ $url }}" target="_blank" class="block rounded-lg overflow-hidden border border-black/10 dark:border-white/10">
-                                                            <img src="{{ $url }}" alt="{{ $att['name'] ?? 'Image' }}" class="max-h-52 w-full object-cover">
-                                                        </a>
-                                                    @else
-                                                        <a href="{{ $url }}" target="_blank" download class="flex items-center gap-1.5 p-1.5 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition text-[11px] font-semibold">
-                                                            <x-heroicon-s-document-arrow-down class="w-4 h-4 text-[#00a884] shrink-0" />
-                                                            <span class="truncate flex-1">{{ $att['name'] ?? 'Download File' }}</span>
-                                                        </a>
-                                                    @endif
-                                                @endforeach
-                                            </div>
-                                        @endif
-
-                                        {{-- Message Body Text --}}
-                                        @if ($message->body)
-                                            <p class="leading-snug break-words whitespace-pre-wrap">
-                                                {{ $message->body }}
-                                            </p>
-                                        @endif
-
-                                        {{-- Footer: Timestamp & Checkmarks --}}
-                                        <div class="flex items-center justify-end gap-1 mt-0.5 text-[9px] text-slate-400 dark:text-slate-400 select-none leading-none">
-                                            <span>{{ $message->created_at?->format('g:i A') }}</span>
-                                            @if ($mine)
-                                                <span class="text-[#53bdeb] font-bold text-[10px]" title="Delivered">✓✓</span>
-                                            @endif
-                                        </div>
-
-                                        {{-- Floating Quick Action Button (Reply / Copy / React) --}}
-                                        <div class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 bg-white/90 dark:bg-[#111b21]/90 backdrop-blur-md rounded-full px-1 py-0.5 shadow-2xs border border-gray-200 dark:border-gray-700">
-                                            {{-- Reply Button --}}
-                                            <button 
-                                                type="button" 
-                                                wire:click="setReplyTo({{ $message->id }})" 
-                                                class="text-slate-500 hover:text-slate-800 dark:hover:text-white p-0.5 transition" 
-                                                title="Reply"
-                                            >
-                                                <x-heroicon-m-arrow-uturn-left class="w-3 h-3" />
-                                            </button>
-
-                                            {{-- Quick React Button --}}
-                                            <button 
-                                                type="button" 
-                                                wire:click="toggleReaction({{ $message->id }}, '👍')" 
-                                                class="text-slate-500 hover:text-slate-800 dark:hover:text-white p-0.5 transition text-[11px]" 
-                                                title="Like"
-                                            >
-                                                <span>👍</span>
-                                            </button>
-
-                                            {{-- Menu Trigger --}}
-                                            <div class="relative">
-                                                <button 
-                                                    type="button" 
-                                                    @click="showMenu = !showMenu" 
-                                                    class="text-slate-500 hover:text-slate-800 dark:hover:text-white p-0.5 transition"
-                                                >
-                                                    <x-heroicon-m-chevron-down class="w-3 h-3" />
-                                                </button>
-
-                                                {{-- Dropdown Context Menu --}}
-                                                <div 
-                                                    x-show="showMenu" 
-                                                    @click.away="showMenu = false" 
-                                                    x-transition 
-                                                    class="absolute right-0 top-full mt-1 w-28 bg-white dark:bg-[#202c33] rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-0.5 z-30 text-xs"
-                                                >
-                                                    <button 
-                                                        type="button" 
-                                                        wire:click="setReplyTo({{ $message->id }})" 
-                                                        @click="showMenu = false" 
-                                                        class="w-full text-left px-2.5 py-1 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-between text-slate-700 dark:text-slate-200 text-[11px]"
-                                                    >
-                                                        <span>Reply</span>
-                                                        <x-heroicon-m-arrow-uturn-left class="w-3 h-3" />
-                                                    </button>
-
-                                                    <button 
-                                                        type="button" 
-                                                        @click="
-                                                            navigator.clipboard.writeText(@js($message->body ?? ''));
-                                                            copied = true;
-                                                            setTimeout(() => { copied = false; showMenu = false; }, 900);
-                                                        " 
-                                                        class="w-full text-left px-2.5 py-1 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-between text-slate-700 dark:text-slate-200 text-[11px]"
-                                                    >
-                                                        <span x-text="copied ? 'Copied!' : 'Copy'">Copy</span>
-                                                        <x-heroicon-m-clipboard class="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {{-- Emoji Reactions Row --}}
-                                    @if (count($groupedReactions) > 0)
-                                        <div class="flex flex-wrap gap-1 mt-0.5 {{ $mine ? 'justify-end' : 'justify-start' }}">
-                                            @foreach ($groupedReactions as $reaction)
-                                                <button 
-                                                    type="button" 
-                                                    wire:click="toggleReaction({{ $message->id }}, '{{ $reaction['emoji'] }}')" 
-                                                    title="{{ implode(', ', $reaction['names']) }}" 
-                                                    class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[10px] border transition {{ 
-                                                        $reaction['reacted_by_me'] 
-                                                            ? 'bg-[#00a884]/15 border-[#00a884] text-[#008069] dark:text-emerald-300 font-bold' 
-                                                            : 'bg-white/80 dark:bg-slate-800/80 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-slate-300' 
-                                                    }}"
-                                                >
-                                                    <span>{{ $reaction['emoji'] }}</span>
-                                                    <span class="text-[9px] font-bold">{{ $reaction['count'] }}</span>
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </div>
-                            @empty
-                                <div class="m-auto text-center p-6 text-slate-400 dark:text-slate-500 text-xs">
-                                    <p>No messages yet in this chat. Start the conversation!</p>
-                                </div>
-                            @endforelse
-                        </div>
-
-                        {{-- Replying-To Active Banner --}}
-                        @if ($this->replyingToMessage)
-                            @php
-                                $repUser = $this->replyingToMessage->user;
-                                $repMine = $this->replyingToMessage->user_id === auth()->id();
-                            @endphp
-                            <div class="whatsapp-header-bar bg-[#f0f2f5] dark:bg-[#202c33] px-3.5 py-2 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2 shrink-0">
-                                <div class="border-l-3 border-[#00a884] pl-2 min-w-0 flex-1">
-                                    <span class="text-[11px] font-bold text-[#00a884] block">
-                                        Replying to {{ $repMine ? 'yourself' : ($repUser?->first_name ?? 'Student') }}
-                                    </span>
-                                    <p class="text-xs text-slate-600 dark:text-slate-300 truncate">
-                                        {{ $this->replyingToMessage->body ?: 'Attachment' }}
-                                    </p>
-                                </div>
-                                <button type="button" wire:click="cancelReply" class="text-slate-400 hover:text-rose-500 text-lg leading-none p-1">
-                                    &times;
-                                </button>
-                            </div>
-                        @endif
-
-                        {{-- Composer Input Bar --}}
-                        <form 
-                            wire:submit.prevent="sendMessage" 
-                            class="whatsapp-composer-bar bg-[#f0f2f5] dark:bg-[#202c33] p-2 sm:p-2.5 border-t border-gray-200/80 dark:border-gray-700/80 flex items-center gap-1.5 sm:gap-2 pb-[calc(env(safe-area-inset-bottom,0.5rem)+0.25rem)] z-10 shrink-0 w-full min-w-0 box-border"
-                        >
-                            {{-- Attachment Trigger --}}
-                            <label class="p-1.5 sm:p-2 rounded-full text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer transition shrink-0" title="Attach file">
-                                <x-heroicon-o-paper-clip class="w-5 h-5" />
-                                <input type="file" wire:model="attachments" multiple class="hidden">
-                            </label>
-
-                            {{-- Text Message Input --}}
-                            <div class="flex-1 min-w-0 bg-white dark:bg-[#2a3942] rounded-2xl px-3 py-1.5 sm:py-2 border border-gray-200 dark:border-gray-700 focus-within:border-[#00a884] transition flex items-center gap-2">
-                                <input 
-                                    type="text" 
-                                    wire:model="messageBody" 
-                                    placeholder="Type a message…" 
-                                    autocomplete="off"
-                                    class="w-full min-w-0 bg-transparent text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none border-none p-0 focus:ring-0"
-                                />
-                            </div>
-
-                            {{-- Emerald Send Button --}}
-                            <button 
-                                type="submit" 
-                                wire:loading.attr="disabled"
-                                class="w-9 h-9 sm:w-10 sm:h-10 rounded-full whatsapp-send-btn text-white flex items-center justify-center shadow-md transition shrink-0 disabled:opacity-50"
-                                style="background-color:#00a884;color:#ffffff;"
-                                title="Send"
-                            >
-                                <x-heroicon-s-paper-airplane class="w-4 h-4 sm:w-5 sm:h-5 -rotate-45 -mr-0.5" style="color:#ffffff;" />
-                            </button>
-                        </form>
-                    @endif
+                    </div>
                 </div>
-            </div>
+            @endif
         @endif
 
         {{-- ===================== STUDENT XP & BADGE EARNINGS / PROFILE MODAL ===================== --}}
