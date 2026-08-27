@@ -18,7 +18,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
 </head>
-<body class="font-sans antialiased bg-slate-100 text-slate-900 min-h-dvh safe-p" x-data="{ sidebarOpen: false }">
+<body class="font-sans antialiased bg-slate-50 dark:bg-[#0b141a] text-slate-900 dark:text-slate-100 min-h-dvh safe-p" x-data="{ sidebarOpen: false }">
     @php
         $resolvedSection = $section ?? (auth()->user()?->isAdmin() ? 'admin' : 'student');
         $links = $resolvedSection === 'admin'
@@ -39,11 +39,11 @@
     @endphp
 
     @if (isset($slot))
-        <div class="min-h-screen bg-gray-100 flex flex-col">
+        <div class="min-h-dvh bg-slate-50 dark:bg-[#0b141a] flex flex-col justify-between">
             @include('layouts.navigation')
 
             @isset($header)
-                <header class="bg-white shadow">
+                <header class="bg-white dark:bg-[#111b21] border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs">
                     <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
@@ -55,9 +55,9 @@
             </main>
         </div>
     @else
-        <div class="edu-shell min-h-dvh lg:grid lg:grid-cols-[280px_1fr]">
+        <div class="edu-shell min-h-dvh lg:grid lg:grid-cols-[280px_1fr] bg-slate-50 dark:bg-[#0b141a]">
             <!-- Mobile Top Bar with Drawer Trigger -->
-            <div class="lg:hidden flex items-center justify-between bg-slate-900 text-white px-4 py-3 border-b border-slate-800 sticky top-0 z-30">
+            <div class="lg:hidden flex items-center justify-between bg-slate-900 dark:bg-[#111b21] text-white px-4 py-3 border-b border-slate-800 sticky top-0 z-30">
                 <div class="flex items-center gap-2">
                     <button type="button" @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg bg-slate-800 text-slate-200 hover:text-white focus:outline-none touch-target" aria-label="Toggle navigation drawer">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -109,10 +109,10 @@
             </aside>
 
             <main class="edu-content p-4 sm:p-6 lg:p-10 w-full min-w-0 max-w-full overflow-x-hidden">
-                <header class="edu-reveal mb-6 rounded-3xl border border-cyan-100 bg-gradient-to-r from-cyan-50 via-white to-amber-50 p-4 sm:p-6 shadow-xs">
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Thinker HUB Workspace</p>
-                    <h1 class="edu-display mt-2 text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-slate-900">{{ $title ?? 'Dashboard' }}</h1>
-                    <p class="mt-1 max-w-2xl text-xs sm:text-sm text-slate-600">Plan courses, track learner progress, and keep every resource in one focused platform.</p>
+                <header class="edu-reveal mb-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#111b21] p-4 sm:p-6 shadow-xs">
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600 dark:text-teal-400">Thinker HUB Workspace</p>
+                    <h1 class="edu-display mt-2 text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100">{{ $title ?? 'Dashboard' }}</h1>
+                    <p class="mt-1 max-w-2xl text-xs sm:text-sm text-slate-600 dark:text-slate-400">Plan courses, track learner progress, and keep every resource in one focused platform.</p>
                 </header>
 
                 @yield('content')

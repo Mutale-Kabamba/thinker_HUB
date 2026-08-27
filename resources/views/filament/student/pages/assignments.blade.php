@@ -100,7 +100,7 @@
                                         </div>
                                     @endif
 
-                                    {{-- Grade & Feedback --}}
+                                    {{-- Grade & Status --}}
                                     @if (in_array($assignment['status'], ['Graded', 'Checked']))
                                         <div style="padding:0.55rem 0.75rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:0.5rem;">
                                             <div style="display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap;">
@@ -115,12 +115,6 @@
                                                     <p style="margin:0;font-size:0.84rem;font-weight:600;color:#15803d;">{{ $assignment['status'] }}</p>
                                                 </div>
                                             </div>
-                                            @if (!empty($assignment['feedback']))
-                                                <div style="margin-top:0.45rem;border-top:1px solid #bbf7d0;padding-top:0.45rem;">
-                                                    <p style="margin:0;font-size:0.7rem;font-weight:600;color:#166534;text-transform:uppercase;">Feedback</p>
-                                                    <p style="margin:0.2rem 0 0;font-size:0.82rem;color:#14532d;white-space:pre-line;">{{ $assignment['feedback'] }}</p>
-                                                </div>
-                                            @endif
                                         </div>
                                     @endif
 
@@ -289,12 +283,6 @@
                                             <p style="margin:0;font-size:0.82rem;font-weight:600;color:#15803d;">{{ $assignment['status'] }}</p>
                                         </div>
                                     </div>
-                                    @if (!empty($assignment['feedback']))
-                                        <div style="margin-top:0.4rem;border-top:1px solid #bbf7d0;padding-top:0.4rem;">
-                                            <p style="margin:0;font-size:0.68rem;font-weight:600;color:#166534;text-transform:uppercase;">Feedback</p>
-                                            <p style="margin:0.15rem 0 0;font-size:0.8rem;color:#14532d;white-space:pre-line;">{{ $assignment['feedback'] }}</p>
-                                        </div>
-                                    @endif
                                 </div>
                             @endif
 

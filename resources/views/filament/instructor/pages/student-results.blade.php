@@ -1027,7 +1027,7 @@
                  @keydown.escape.window="$wire.closeAwardModal()">
                 <div style="position: relative; width: 100%; max-width: 580px; max-height: 90vh; background: #ffffff; border-radius: 14px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--hub-border);">
                     {{-- Modal Top Bar --}}
-                    <div style="padding: 0.85rem 1.25rem; background: linear-gradient(135deg, #fffbeb, #fef3c7); border-bottom: 1px solid #fde68a; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="padding: 0.85rem 1.25rem; background: var(--hub-surface-soft); border-bottom: 1px solid var(--hub-border); display: flex; justify-content: space-between; align-items: center;">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <div style="width: 32px; height: 32px; border-radius: 8px; background: #f59e0b; display: flex; align-items: center; justify-content: center; color: #ffffff;">
                                 <x-heroicon-s-sparkles style="width: 1.2rem; height: 1.2rem;" />
