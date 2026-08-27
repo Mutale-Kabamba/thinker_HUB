@@ -205,8 +205,12 @@ class InstructorResource extends Resource
             ])
             ->defaultSort('name')
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    ViewAction::make()->icon('heroicon-m-eye'),
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

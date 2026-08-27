@@ -412,4 +412,135 @@ a.fi-dropdown-list-item svg {
 	transform: translateY(-1px);
 }
 
+/* ==========================================================================
+   MOBILE-FIRST & SAFE-AREA RESPONSIVE ENFORCEMENTS
+   ========================================================================== */
+
+:root {
+	--sat: env(safe-area-inset-top, 0px);
+	--sar: env(safe-area-inset-right, 0px);
+	--sab: env(safe-area-inset-bottom, 0px);
+	--sal: env(safe-area-inset-left, 0px);
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+	touch-action: manipulation;
+	overflow-x: hidden;
+}
+
+body {
+	overflow-x: hidden;
+	min-height: 100vh;
+	min-height: 100dvh;
+	padding-top: var(--sat);
+	padding-bottom: var(--sab);
+	padding-left: var(--sal);
+	padding-right: var(--sar);
+}
+
+/* Dynamic Viewport Heights */
+.h-dvh {
+	height: 100vh;
+	height: 100dvh;
+}
+
+.min-h-dvh {
+	min-height: 100vh;
+	min-height: 100dvh;
+}
+
+.max-h-dvh {
+	max-height: 100vh;
+	max-height: 100dvh;
+}
+
+/* Safe Area Inset Helpers */
+.safe-top {
+	padding-top: var(--sat);
+}
+
+.safe-bottom {
+	padding-bottom: var(--sab);
+}
+
+.safe-left {
+	padding-left: var(--sal);
+}
+
+.safe-right {
+	padding-right: var(--sar);
+}
+
+.safe-p {
+	padding-top: var(--sat);
+	padding-bottom: var(--sab);
+	padding-left: var(--sal);
+	padding-right: var(--sar);
+}
+
+.safe-pb {
+	padding-bottom: max(0.75rem, var(--sab));
+}
+
+.safe-pt {
+	padding-top: max(0.75rem, var(--sat));
+}
+
+/* Zero Horizontal Overflow Guard */
+.prevent-overflow {
+	max-width: 100%;
+	overflow-x: hidden;
+	box-sizing: border-box;
+}
+
+.touch-scroll-x {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior-x: contain;
+}
+
+/* Touch Target Standards (Apple HIG & Material 44-48px) */
+.touch-target,
+.btn-touch {
+	min-height: 44px;
+	min-width: 44px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@media (pointer: coarse) {
+	button,
+	a.inline-flex,
+	input[type="button"],
+	input[type="submit"],
+	.fi-btn {
+		min-height: 44px;
+	}
+	
+	input[type="text"],
+	input[type="email"],
+	input[type="password"],
+	input[type="number"],
+	input[type="tel"],
+	input[type="url"],
+	input[type="search"],
+	select,
+	textarea {
+		font-size: 16px !important; /* Prevents auto-zoom on iOS */
+	}
+}
+
+/* Touch Active Feedback */
+.active-press {
+	transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.active-press:active {
+	transform: scale(0.96);
+	opacity: 0.88;
+}
+
+
 

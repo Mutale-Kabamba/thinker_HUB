@@ -189,29 +189,33 @@ class AssessmentResource extends Resource
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('course_id', static::instructorCourseIds()))
             ->recordActions([
-                EditAction::make(),
-                \Filament\Actions\Action::make('downloadSubmissionsZip')
-                    ->label('Download Submissions (ZIP)')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('info')
-                    ->visible(fn ($record) => $record->submissions()->exists())
-                    ->action(function ($record) {
-                        $submissions = $record->submissions()->with(['user', 'assessment'])->get();
-                        $service = app(\App\Services\SubmissionZipService::class);
-                        $slug = \Illuminate\Support\Str::slug($record->name ?: 'Assessment', '_');
-                        $response = $service->downloadAssessmentsZip($submissions, "Submissions_{$slug}");
+                \Filament\Actions\ActionGroup::make([
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
+                    \Filament\Actions\Action::make('downloadSubmissionsZip')
+                        ->label('Download Submissions (ZIP)')
+                        ->icon('heroicon-m-arrow-down-tray')
+                        ->color('info')
+                        ->visible(fn ($record) => $record->submissions()->exists())
+                        ->action(function ($record) {
+                            $submissions = $record->submissions()->with(['user', 'assessment'])->get();
+                            $service = app(\App\Services\SubmissionZipService::class);
+                            $slug = \Illuminate\Support\Str::slug($record->name ?: 'Assessment', '_');
+                            $response = $service->downloadAssessmentsZip($submissions, "Submissions_{$slug}");
 
-                        if (! $response) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('No submission files found for this assessment.')
-                                ->warning()
-                                ->send();
+                            if (! $response) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('No submission files found for this assessment.')
+                                    ->warning()
+                                    ->send();
 
-                            return null;
-                        }
+                                return null;
+                            }
 
-                        return $response;
-                    }),
+                            return $response;
+                        }),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

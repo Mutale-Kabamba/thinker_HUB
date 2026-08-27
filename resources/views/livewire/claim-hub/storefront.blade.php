@@ -901,13 +901,30 @@
             .claim-tab-container {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 0.35rem;
+                gap: 0.4rem;
             }
             .claim-tab-grid {
                 max-width: 100% !important;
             }
+            .claim-tab-btn {
+                min-height: 44px;
+                font-size: 0.82rem;
+            }
             .claim-history-btn {
                 width: 100% !important;
+                min-height: 44px;
+                justify-content: center;
+            }
+            .hub-modal-overlay {
+                align-items: flex-end;
+                padding: 0;
+            }
+            .hub-modal-card {
+                max-width: 100% !important;
+                border-bottom-left-radius: 0;
+                border-bottom-right-radius: 0;
+                max-height: 90dvh;
+                padding-bottom: max(1.2rem, env(safe-area-inset-bottom));
             }
         }
 

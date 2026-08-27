@@ -94,7 +94,7 @@ class OpportunityForm
                             ->visible(fn (callable $get): bool => $get('type') === 'Scholarship')
                             ->maxLength(255),
                     ])
-                    ->columns(2)
+                    ->columns(['default' => 1, 'md' => 2])
                     ->columnSpanFull(),
 
                 TextInput::make('link_url')

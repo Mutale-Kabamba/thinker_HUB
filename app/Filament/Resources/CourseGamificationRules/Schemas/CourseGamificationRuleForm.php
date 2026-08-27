@@ -22,7 +22,7 @@ class CourseGamificationRuleForm
                     ->description('Define course assignment and activation status for this point rule matrix.')
                     ->columnSpanFull()
                     ->compact()
-                    ->columns(2)
+                    ->columns(['default' => 1, 'md' => 2])
                     ->schema([
                         Select::make('course_id')
                             ->label('Course Scope')

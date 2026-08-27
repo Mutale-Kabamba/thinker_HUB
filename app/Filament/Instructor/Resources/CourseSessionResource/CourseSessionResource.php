@@ -200,54 +200,59 @@ class CourseSessionResource extends Resource
                     ]),
             ])
             ->recordActions([
-                Action::make('markCompleted')
-                    ->label('Mark Completed')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn (CourseSession $record): bool => $record->status === 'scheduled')
-                    ->action(fn (CourseSession $record) => $record->update(['status' => 'completed'])),
+                \Filament\Actions\ActionGroup::make([
+                    Action::make('markCompleted')
+                        ->label('Mark Completed')
+                        ->icon('heroicon-m-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->visible(fn (CourseSession $record): bool => $record->status === 'scheduled')
+                        ->action(fn (CourseSession $record) => $record->update(['status' => 'completed'])),
 
-                Action::make('reschedule')
-                    ->label('Reschedule')
-                    ->icon('heroicon-o-calendar')
-                    ->color('warning')
-                    ->visible(fn (CourseSession $record): bool => in_array($record->status, ['scheduled', 'rescheduled']))
-                    ->form([
-                        DatePicker::make('rescheduled_date')->required(),
-                        TimePicker::make('rescheduled_start_time')->required()->seconds(false),
-                        TimePicker::make('rescheduled_end_time')->seconds(false),
-                    ])
-                    ->action(function (CourseSession $record, array $data): void {
-                        $record->update([
-                            'status' => 'rescheduled',
-                            'rescheduled_date' => $data['rescheduled_date'],
-                            'rescheduled_start_time' => $data['rescheduled_start_time'],
-                            'rescheduled_end_time' => $data['rescheduled_end_time'] ?? null,
-                        ]);
+                    Action::make('reschedule')
+                        ->label('Reschedule')
+                        ->icon('heroicon-m-calendar')
+                        ->color('warning')
+                        ->visible(fn (CourseSession $record): bool => in_array($record->status, ['scheduled', 'rescheduled']))
+                        ->form([
+                            DatePicker::make('rescheduled_date')->required(),
+                            TimePicker::make('rescheduled_start_time')->required()->seconds(false),
+                            TimePicker::make('rescheduled_end_time')->seconds(false),
+                        ])
+                        ->action(function (CourseSession $record, array $data): void {
+                            $record->update([
+                                'status' => 'rescheduled',
+                                'rescheduled_date' => $data['rescheduled_date'],
+                                'rescheduled_start_time' => $data['rescheduled_start_time'],
+                                'rescheduled_end_time' => $data['rescheduled_end_time'] ?? null,
+                            ]);
 
-                        $record->refresh();
-                        $courseName = $record->course->title ?? 'Course';
+                            $record->refresh();
+                            $courseName = $record->course->title ?? 'Course';
 
-                        if ($record->isOneOnOne() && $record->student_id) {
-                            $student = User::find($record->student_id);
-                            $student?->notify(new SessionRescheduledNotification($record, $courseName));
-                        } else {
-                            $students = User::query()
-                                ->whereHas('enrollments', fn ($q) => $q->where('course_id', $record->course_id))
-                                ->get();
-                            foreach ($students as $student) {
-                                $student->notify(new SessionRescheduledNotification($record, $courseName));
+                            if ($record->isOneOnOne() && $record->student_id) {
+                                $student = User::find($record->student_id);
+                                $student?->notify(new SessionRescheduledNotification($record, $courseName));
+                            } else {
+                                $students = User::query()
+                                    ->whereHas('enrollments', fn ($q) => $q->where('course_id', $record->course_id))
+                                    ->get();
+                                foreach ($students as $student) {
+                                    $student->notify(new SessionRescheduledNotification($record, $courseName));
+                                }
                             }
-                        }
-                    }),
+                        }),
 
-                Action::make('attendance')
-                    ->label('Attendance')
-                    ->icon('heroicon-o-clipboard-document-check')
-                    ->url(fn (CourseSession $record): string => self::getUrl('edit', ['record' => $record])),
+                    Action::make('attendance')
+                        ->label('Attendance')
+                        ->icon('heroicon-m-clipboard-document-check')
+                        ->color('info')
+                        ->url(fn (CourseSession $record): string => self::getUrl('edit', ['record' => $record])),
 
-                EditAction::make(),
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([DeleteBulkAction::make()]),

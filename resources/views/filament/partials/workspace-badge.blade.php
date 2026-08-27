@@ -7,25 +7,28 @@
             'label' => 'Admin Workspace',
             'short' => 'Admin',
             'icon' => 'fa-shield-halved',
-            'color' => '#0f766e',
-            'bg' => '#ccfbf1',
-            'border' => '#99f6e4',
+            'color' => '#0d9488',
+            'bg' => 'rgba(13, 148, 136, 0.08)',
+            'border' => 'rgba(13, 148, 136, 0.2)',
+            'dot' => '#0d9488',
         ],
         'instructor' => [
             'label' => 'Instructor Workspace',
             'short' => 'Instructor',
             'icon' => 'fa-chalkboard-user',
-            'color' => '#047857',
-            'bg' => '#d1fae5',
-            'border' => '#a7f3d0',
+            'color' => '#059669',
+            'bg' => 'rgba(5, 150, 105, 0.08)',
+            'border' => 'rgba(5, 150, 105, 0.2)',
+            'dot' => '#10b981',
         ],
         'student' => [
             'label' => 'Student Portal',
             'short' => 'Student',
             'icon' => 'fa-graduation-cap',
-            'color' => '#0369a1',
-            'bg' => '#e0f2fe',
-            'border' => '#bae6fd',
+            'color' => '#0284c7',
+            'bg' => 'rgba(2, 132, 199, 0.08)',
+            'border' => 'rgba(2, 132, 199, 0.2)',
+            'dot' => '#0ea5e9',
         ],
         'contributor' => match ($user?->role) {
             'blogger' => [
@@ -33,41 +36,46 @@
                 'short' => 'Blogger',
                 'icon' => 'fa-pen-nib',
                 'color' => '#7c3aed',
-                'bg' => '#ede9fe',
-                'border' => '#ddd6fe',
+                'bg' => 'rgba(124, 58, 237, 0.08)',
+                'border' => 'rgba(124, 58, 237, 0.2)',
+                'dot' => '#8b5cf6',
             ],
             'researcher' => [
                 'label' => 'Researcher Workspace',
                 'short' => 'Researcher',
                 'icon' => 'fa-flask-vial',
-                'color' => '#b45309',
-                'bg' => '#fef3c7',
-                'border' => '#fde68a',
+                'color' => '#d97706',
+                'bg' => 'rgba(217, 119, 6, 0.08)',
+                'border' => 'rgba(217, 119, 6, 0.2)',
+                'dot' => '#f59e0b',
             ],
             'employer' => [
                 'label' => 'Employer Workspace',
                 'short' => 'Employer',
                 'icon' => 'fa-briefcase',
                 'color' => '#0284c7',
-                'bg' => '#e0f2fe',
-                'border' => '#bae6fd',
+                'bg' => 'rgba(2, 132, 199, 0.08)',
+                'border' => 'rgba(2, 132, 199, 0.2)',
+                'dot' => '#0ea5e9',
             ],
             default => [
                 'label' => 'Contributor Portal',
                 'short' => 'Contributor',
                 'icon' => 'fa-sparkles',
-                'color' => '#0f766e',
-                'bg' => '#ccfbf1',
-                'border' => '#99f6e4',
+                'color' => '#0d9488',
+                'bg' => 'rgba(13, 148, 136, 0.08)',
+                'border' => 'rgba(13, 148, 136, 0.2)',
+                'dot' => '#0d9488',
             ],
         },
         default => [
             'label' => ucfirst((string) $panelId) . ' Portal',
             'short' => ucfirst((string) $panelId),
             'icon' => 'fa-user',
-            'color' => '#374151',
-            'bg' => '#f3f4f6',
-            'border' => '#e5e7eb',
+            'color' => '#475569',
+            'bg' => 'rgba(71, 85, 105, 0.08)',
+            'border' => 'rgba(71, 85, 105, 0.2)',
+            'dot' => '#64748b',
         ],
     };
 
@@ -75,28 +83,33 @@
 @endphp
 
 @if ($position === 'sidebar')
-    <div class="hub-sidebar-badge-container flex items-center justify-between gap-2" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:0.25rem 0.5rem;">
-        <div class="hub-sidebar-badge flex-1 text-center" style="flex:1;background: {{ $roleInfo['bg'] }}; color: {{ $roleInfo['color'] }}; border: 1px solid {{ $roleInfo['border'] }};">
-            <i class="fa-solid {{ $roleInfo['icon'] }}"></i>
-            <span>{{ $roleInfo['label'] }}</span>
+    <div class="hub-sidebar-badge-wrapper my-1 px-1">
+        <div class="hub-sidebar-badge flex items-center justify-center gap-2 w-full py-1.5 px-3 rounded-lg text-xs font-semibold tracking-wide transition-all shadow-2xs"
+             style="background: {{ $roleInfo['bg'] }}; color: {{ $roleInfo['color'] }}; border: 1px solid {{ $roleInfo['border'] }};">
+            <span class="hub-badge-dot inline-block w-1.5 h-1.5 rounded-full animate-pulse"
+                  style="background: {{ $roleInfo['dot'] ?? $roleInfo['color'] }}; box-shadow: 0 0 6px {{ $roleInfo['dot'] ?? $roleInfo['color'] }};"></span>
+            <i class="fa-solid {{ $roleInfo['icon'] }} text-[11px]"></i>
+            <span class="truncate">{{ $roleInfo['label'] }}</span>
         </div>
         <button 
             type="button"
             x-data="{}"
             x-on:click="$store.sidebar.isOpen = false; $store.sidebar.close(); document.querySelectorAll('.fi-sidebar, .fi-main-sidebar').forEach(el => el.classList.remove('fi-sidebar-open'))"
-            class="hub-sidebar-mobile-close lg:hidden"
-            style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border-radius:999px;background:var(--hub-surface-soft, #f1f5f9);color:var(--hub-muted, #64748b);border:1px solid var(--hub-border, #e2e8f0);cursor:pointer;flex-shrink:0;"
+            class="hub-sidebar-mobile-close lg:hidden fixed top-3 right-3 z-9999 flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-slate-200/80 dark:border-slate-700/80 shadow-xs cursor-pointer transition-all active:scale-95"
             aria-label="Close navigation"
             title="Close navigation"
         >
-            <svg style="width:1rem;height:1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
             </svg>
         </button>
     </div>
 @else
-    <div class="hub-topbar-badge" style="background: {{ $roleInfo['bg'] }}; color: {{ $roleInfo['color'] }}; border: 1px solid {{ $roleInfo['border'] }};">
-        <i class="fa-solid {{ $roleInfo['icon'] }}"></i>
+    <div class="hub-topbar-badge flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs font-semibold tracking-wide shadow-2xs"
+         style="background: {{ $roleInfo['bg'] }}; color: {{ $roleInfo['color'] }}; border: 1px solid {{ $roleInfo['border'] }};">
+        <span class="hub-badge-dot inline-block w-1.5 h-1.5 rounded-full"
+              style="background: {{ $roleInfo['dot'] ?? $roleInfo['color'] }};"></span>
+        <i class="fa-solid {{ $roleInfo['icon'] }} text-[10px]"></i>
         <span>{{ $roleInfo['label'] }}</span>
     </div>
 @endif

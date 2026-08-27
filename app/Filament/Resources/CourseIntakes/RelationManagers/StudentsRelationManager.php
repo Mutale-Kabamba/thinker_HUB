@@ -6,6 +6,7 @@ use App\Models\CourseIntake;
 use App\Models\Enrollment;
 use App\Models\User;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -134,59 +135,64 @@ class StudentsRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                Action::make('transfer_intake')
-                    ->label('Move Intake')
-                    ->icon('heroicon-o-arrows-right-left')
-                    ->color('warning')
-                    ->modalHeading('Move Student to Another Intake')
-                    ->modalDescription(fn (Enrollment $record): string => "Transfer {$record->user?->name} to another intake for {$record->course?->title}.")
-                    ->form([
-                        Select::make('target_intake_id')
-                            ->label('Target Intake')
-                            ->required()
-                            ->options(function () use ($intake): array {
-                                return CourseIntake::query()
-                                    ->where('course_id', $intake->course_id)
-                                    ->whereKeyNot($intake->id)
-                                    ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
-                                    ->orderBy('start_date', 'desc')
-                                    ->pluck('name', 'id')
-                                    ->toArray();
-                            }),
-                    ])
-                    ->action(function (Enrollment $record, array $data): void {
-                        $targetIntake = CourseIntake::find($data['target_intake_id']);
-                        $record->update([
-                            'course_intake_id' => $targetIntake?->id,
-                        ]);
+                ActionGroup::make([
+                    Action::make('transfer_intake')
+                        ->label('Move Intake')
+                        ->icon('heroicon-m-arrows-right-left')
+                        ->color('warning')
+                        ->modalHeading('Move Student to Another Intake')
+                        ->modalDescription(fn (Enrollment $record): string => "Transfer {$record->user?->name} to another intake for {$record->course?->title}.")
+                        ->form([
+                            Select::make('target_intake_id')
+                                ->label('Target Intake')
+                                ->required()
+                                ->options(function () use ($intake): array {
+                                    return CourseIntake::query()
+                                        ->where('course_id', $intake->course_id)
+                                        ->whereKeyNot($intake->id)
+                                        ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
+                                        ->orderBy('start_date', 'desc')
+                                        ->pluck('name', 'id')
+                                        ->toArray();
+                                }),
+                        ])
+                        ->action(function (Enrollment $record, array $data): void {
+                            $targetIntake = CourseIntake::find($data['target_intake_id']);
+                            $record->update([
+                                'course_intake_id' => $targetIntake?->id,
+                            ]);
 
-                        Notification::make()
-                            ->title("Transferred student to '{$targetIntake?->name}'.")
-                            ->success()
-                            ->send();
-                    }),
+                            Notification::make()
+                                ->title("Transferred student to '{$targetIntake?->name}'.")
+                                ->success()
+                                ->send();
+                        }),
 
-                Action::make('remove_from_intake')
-                    ->label('Remove from Intake')
-                    ->icon('heroicon-o-x-mark')
-                    ->color('gray')
-                    ->requiresConfirmation()
-                    ->modalHeading('Remove Student from Intake')
-                    ->modalDescription(fn (Enrollment $record): string => "Remove {$record->user?->name} from '{$intake->name}'? (Student will remain enrolled in the course without an assigned cohort).")
-                    ->action(function (Enrollment $record): void {
-                        $record->update([
-                            'course_intake_id' => null,
-                        ]);
+                    Action::make('remove_from_intake')
+                        ->label('Remove from Intake')
+                        ->icon('heroicon-m-x-mark')
+                        ->color('gray')
+                        ->requiresConfirmation()
+                        ->modalHeading('Remove Student from Intake')
+                        ->modalDescription(fn (Enrollment $record): string => "Remove {$record->user?->name} from '{$intake->name}'? (Student will remain enrolled in the course without an assigned cohort).")
+                        ->action(function (Enrollment $record): void {
+                            $record->update([
+                                'course_intake_id' => null,
+                            ]);
 
-                        Notification::make()
-                            ->title('Student removed from intake cohort.')
-                            ->info()
-                            ->send();
-                    }),
+                            Notification::make()
+                                ->title('Student removed from intake cohort.')
+                                ->info()
+                                ->send();
+                        }),
 
-                DeleteAction::make()
-                    ->label('Unenroll Course')
-                    ->modalHeading('Unenroll Student from Course Entirely'),
+                    DeleteAction::make()
+                        ->label('Unenroll Course')
+                        ->icon('heroicon-m-trash')
+                        ->modalHeading('Unenroll Student from Course Entirely'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

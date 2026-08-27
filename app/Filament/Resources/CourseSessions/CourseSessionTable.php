@@ -80,164 +80,169 @@ class CourseSessionTable
                     ]),
             ])
             ->recordActions([
-                Action::make('markCompleted')
-                    ->label('Mark Completed')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn (CourseSession $record): bool => $record->status === 'scheduled')
-                    ->action(fn (CourseSession $record) => $record->update(['status' => 'completed'])),
+                \Filament\Actions\ActionGroup::make([
+                    Action::make('markCompleted')
+                        ->label('Mark Completed')
+                        ->icon('heroicon-m-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->visible(fn (CourseSession $record): bool => $record->status === 'scheduled')
+                        ->action(fn (CourseSession $record) => $record->update(['status' => 'completed'])),
 
-                Action::make('reschedule')
-                    ->label('Reschedule')
-                    ->icon('heroicon-o-calendar')
-                    ->color('warning')
-                    ->visible(fn (CourseSession $record): bool => in_array($record->status, ['scheduled', 'rescheduled']))
-                    ->form([
-                        DatePicker::make('rescheduled_date')->required(),
-                        TimePicker::make('rescheduled_start_time')->required()->seconds(false),
-                        TimePicker::make('rescheduled_end_time')->seconds(false),
-                    ])
-                    ->action(function (CourseSession $record, array $data): void {
-                        $record->update([
-                            'session_date' => $data['rescheduled_date'],
-                            'start_time' => $data['rescheduled_start_time'],
-                            'end_time' => $data['rescheduled_end_time'] ?? null,
-                            'status' => 'scheduled',
-                            'rescheduled_date' => $data['rescheduled_date'],
-                            'rescheduled_start_time' => $data['rescheduled_start_time'],
-                            'rescheduled_end_time' => $data['rescheduled_end_time'] ?? null,
-                        ]);
+                    Action::make('reschedule')
+                        ->label('Reschedule')
+                        ->icon('heroicon-m-calendar')
+                        ->color('warning')
+                        ->visible(fn (CourseSession $record): bool => in_array($record->status, ['scheduled', 'rescheduled']))
+                        ->form([
+                            DatePicker::make('rescheduled_date')->required(),
+                            TimePicker::make('rescheduled_start_time')->required()->seconds(false),
+                            TimePicker::make('rescheduled_end_time')->seconds(false),
+                        ])
+                        ->action(function (CourseSession $record, array $data): void {
+                            $record->update([
+                                'session_date' => $data['rescheduled_date'],
+                                'start_time' => $data['rescheduled_start_time'],
+                                'end_time' => $data['rescheduled_end_time'] ?? null,
+                                'status' => 'scheduled',
+                                'rescheduled_date' => $data['rescheduled_date'],
+                                'rescheduled_start_time' => $data['rescheduled_start_time'],
+                                'rescheduled_end_time' => $data['rescheduled_end_time'] ?? null,
+                            ]);
 
-                        self::notifyStudentsAboutReschedule($record);
-                    }),
+                            self::notifyStudentsAboutReschedule($record);
+                        }),
 
-                Action::make('reviewRescheduleRequest')
-                    ->label('Review Request')
-                    ->icon('heroicon-o-chat-bubble-left-right')
-                    ->color('info')
-                    ->visible(fn (CourseSession $record): bool => self::findPendingRequestNotificationForSession($record) !== null)
-                    ->fillForm(function (CourseSession $record): array {
-                        $notification = self::findPendingRequestNotificationForSession($record);
-                        $data = $notification?->data ?? [];
+                    Action::make('reviewRescheduleRequest')
+                        ->label('Review Request')
+                        ->icon('heroicon-m-chat-bubble-left-right')
+                        ->color('info')
+                        ->visible(fn (CourseSession $record): bool => self::findPendingRequestNotificationForSession($record) !== null)
+                        ->fillForm(function (CourseSession $record): array {
+                            $notification = self::findPendingRequestNotificationForSession($record);
+                            $data = $notification?->data ?? [];
 
-                        return [
-                            'decision' => 'accept',
-                            'request_reason' => (string) ($data['reason'] ?? ''),
-                            'request_student' => (string) ($data['student_name'] ?? 'Student'),
-                            'request_preferred_date' => $data['preferred_date'] ?? null,
-                            'request_preferred_time' => $data['preferred_time'] ?? null,
-                            'rescheduled_date' => $data['preferred_date'] ?? null,
-                            'rescheduled_start_time' => $data['preferred_time'] ?? null,
-                            'rescheduled_end_time' => null,
-                            'decline_reason' => '',
-                        ];
-                    })
-                    ->form([
-                        Placeholder::make('request_student')
-                            ->label('Student')
-                            ->content(fn ($state): string => (string) $state),
-                        Placeholder::make('request_reason')
-                            ->label('Reason')
-                            ->content(fn ($state): string => (string) ($state ?: 'No reason provided.')),
-                        Placeholder::make('request_preferred_date')
-                            ->label('Preferred Date')
-                            ->content(fn ($state): string => (string) ($state ?: 'Not provided')),
-                        Placeholder::make('request_preferred_time')
-                            ->label('Preferred Time')
-                            ->content(fn ($state): string => (string) ($state ?: 'Not provided')),
-                        Select::make('decision')
-                            ->label('Decision')
-                            ->options([
-                                'accept' => 'Accept request',
-                                'decline' => 'Decline request',
-                            ])
-                            ->default('accept')
-                            ->required()
-                            ->live(),
-                        DatePicker::make('rescheduled_date')
-                            ->label('Rescheduled Date')
-                            ->visible(fn (callable $get): bool => $get('decision') === 'accept')
-                            ->required(fn (callable $get): bool => $get('decision') === 'accept'),
-                        TimePicker::make('rescheduled_start_time')
-                            ->label('Rescheduled Start Time')
-                            ->seconds(false)
-                            ->visible(fn (callable $get): bool => $get('decision') === 'accept')
-                            ->required(fn (callable $get): bool => $get('decision') === 'accept'),
-                        TimePicker::make('rescheduled_end_time')
-                            ->label('Rescheduled End Time')
-                            ->seconds(false)
-                            ->visible(fn (callable $get): bool => $get('decision') === 'accept'),
-                        Textarea::make('decline_reason')
-                            ->label('Decline Message (optional)')
-                            ->rows(3)
-                            ->visible(fn (callable $get): bool => $get('decision') === 'decline'),
-                    ])
-                    ->action(function (CourseSession $record, array $data): void {
-                        $notification = self::findPendingRequestNotificationForSession($record);
+                            return [
+                                'decision' => 'accept',
+                                'request_reason' => (string) ($data['reason'] ?? ''),
+                                'request_student' => (string) ($data['student_name'] ?? 'Student'),
+                                'request_preferred_date' => $data['preferred_date'] ?? null,
+                                'request_preferred_time' => $data['preferred_time'] ?? null,
+                                'rescheduled_date' => $data['preferred_date'] ?? null,
+                                'rescheduled_start_time' => $data['preferred_time'] ?? null,
+                                'rescheduled_end_time' => null,
+                                'decline_reason' => '',
+                            ];
+                        })
+                        ->form([
+                            Placeholder::make('request_student')
+                                ->label('Student')
+                                ->content(fn ($state): string => (string) $state),
+                            Placeholder::make('request_reason')
+                                ->label('Reason')
+                                ->content(fn ($state): string => (string) ($state ?: 'No reason provided.')),
+                            Placeholder::make('request_preferred_date')
+                                ->label('Preferred Date')
+                                ->content(fn ($state): string => (string) ($state ?: 'Not provided')),
+                            Placeholder::make('request_preferred_time')
+                                ->label('Preferred Time')
+                                ->content(fn ($state): string => (string) ($state ?: 'Not provided')),
+                            Select::make('decision')
+                                ->label('Decision')
+                                ->options([
+                                    'accept' => 'Accept request',
+                                    'decline' => 'Decline request',
+                                ])
+                                ->default('accept')
+                                ->required()
+                                ->live(),
+                            DatePicker::make('rescheduled_date')
+                                ->label('Rescheduled Date')
+                                ->visible(fn (callable $get): bool => $get('decision') === 'accept')
+                                ->required(fn (callable $get): bool => $get('decision') === 'accept'),
+                            TimePicker::make('rescheduled_start_time')
+                                ->label('Rescheduled Start Time')
+                                ->seconds(false)
+                                ->visible(fn (callable $get): bool => $get('decision') === 'accept')
+                                ->required(fn (callable $get): bool => $get('decision') === 'accept'),
+                            TimePicker::make('rescheduled_end_time')
+                                ->label('Rescheduled End Time')
+                                ->seconds(false)
+                                ->visible(fn (callable $get): bool => $get('decision') === 'accept'),
+                            Textarea::make('decline_reason')
+                                ->label('Decline Message (optional)')
+                                ->rows(3)
+                                ->visible(fn (callable $get): bool => $get('decision') === 'decline'),
+                        ])
+                        ->action(function (CourseSession $record, array $data): void {
+                            $notification = self::findPendingRequestNotificationForSession($record);
 
-                        if (! $notification) {
-                            Notification::make()->title('No pending request found for this session.')->warning()->send();
+                            if (! $notification) {
+                                Notification::make()->title('No pending request found for this session.')->warning()->send();
 
-                            return;
-                        }
-
-                        $requestData = $notification->data;
-                        $decision = (string) ($data['decision'] ?? 'accept');
-
-                        if ($decision === 'decline') {
-                            $studentId = isset($requestData['student_id']) ? (int) $requestData['student_id'] : null;
-                            $student = $studentId ? User::find($studentId) : null;
-
-                            if ($student) {
-                                $student->notify(new RescheduleRequestDeclinedNotification(
-                                    session: $record,
-                                    courseName: $record->course->title ?? 'Course',
-                                    reason: filled($data['decline_reason'] ?? null) ? (string) $data['decline_reason'] : null,
-                                ));
+                                return;
                             }
+
+                            $requestData = $notification->data;
+                            $decision = (string) ($data['decision'] ?? 'accept');
+
+                            if ($decision === 'decline') {
+                                $studentId = isset($requestData['student_id']) ? (int) $requestData['student_id'] : null;
+                                $student = $studentId ? User::find($studentId) : null;
+
+                                if ($student) {
+                                    $student->notify(new RescheduleRequestDeclinedNotification(
+                                        session: $record,
+                                        courseName: $record->course->title ?? 'Course',
+                                        reason: filled($data['decline_reason'] ?? null) ? (string) $data['decline_reason'] : null,
+                                    ));
+                                }
+
+                                $notification->update([
+                                    'read_at' => now(),
+                                    'data' => array_merge($notification->data ?? [], ['decision_status' => 'declined']),
+                                ]);
+
+                                self::updateStudentRequestDecision($record->id, $studentId, 'declined');
+
+                                Notification::make()->title('Reschedule request declined. Student notified.')->success()->send();
+
+                                return;
+                            }
+
+                            $record->update([
+                                'session_date' => $data['rescheduled_date'],
+                                'start_time' => $data['rescheduled_start_time'],
+                                'end_time' => $data['rescheduled_end_time'] ?? null,
+                                'status' => 'scheduled',
+                                'rescheduled_date' => $data['rescheduled_date'],
+                                'rescheduled_start_time' => $data['rescheduled_start_time'],
+                                'rescheduled_end_time' => $data['rescheduled_end_time'] ?? null,
+                            ]);
+
+                            self::notifyStudentsAboutReschedule($record);
 
                             $notification->update([
                                 'read_at' => now(),
-                                'data' => array_merge($notification->data ?? [], ['decision_status' => 'declined']),
+                                'data' => array_merge($notification->data ?? [], ['decision_status' => 'accepted']),
                             ]);
 
-                            self::updateStudentRequestDecision($record->id, $studentId, 'declined');
+                            $studentId = isset($requestData['student_id']) ? (int) $requestData['student_id'] : null;
+                            self::updateStudentRequestDecision($record->id, $studentId, 'accepted');
 
-                            Notification::make()->title('Reschedule request declined. Student notified.')->success()->send();
+                            Notification::make()->title('Reschedule request accepted. Session updated and students notified.')->success()->send();
+                        }),
 
-                            return;
-                        }
+                    Action::make('attendance')
+                        ->label('Attendance')
+                        ->icon('heroicon-m-clipboard-document-check')
+                        ->color('info')
+                        ->url(fn (CourseSession $record): string => CourseSessionResource::getUrl('edit', ['record' => $record])),
 
-                        $record->update([
-                            'session_date' => $data['rescheduled_date'],
-                            'start_time' => $data['rescheduled_start_time'],
-                            'end_time' => $data['rescheduled_end_time'] ?? null,
-                            'status' => 'scheduled',
-                            'rescheduled_date' => $data['rescheduled_date'],
-                            'rescheduled_start_time' => $data['rescheduled_start_time'],
-                            'rescheduled_end_time' => $data['rescheduled_end_time'] ?? null,
-                        ]);
-
-                        self::notifyStudentsAboutReschedule($record);
-
-                        $notification->update([
-                            'read_at' => now(),
-                            'data' => array_merge($notification->data ?? [], ['decision_status' => 'accepted']),
-                        ]);
-
-                        $studentId = isset($requestData['student_id']) ? (int) $requestData['student_id'] : null;
-                        self::updateStudentRequestDecision($record->id, $studentId, 'accepted');
-
-                        Notification::make()->title('Reschedule request accepted. Session updated and students notified.')->success()->send();
-                    }),
-
-                Action::make('attendance')
-                    ->label('Attendance')
-                    ->icon('heroicon-o-clipboard-document-check')
-                    ->url(fn (CourseSession $record): string => CourseSessionResource::getUrl('edit', ['record' => $record])),
-
-                EditAction::make(),
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([DeleteBulkAction::make()]),

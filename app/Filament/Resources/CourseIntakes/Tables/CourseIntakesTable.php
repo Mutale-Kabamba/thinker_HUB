@@ -106,158 +106,162 @@ class CourseIntakesTable
                     ]),
             ])
             ->recordActions([
-                \Filament\Actions\ViewAction::make(),
-                EditAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    \Filament\Actions\ViewAction::make()->icon('heroicon-m-eye'),
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
 
-                Action::make('add_students')
-                    ->label('Add Students')
-                    ->icon('heroicon-o-user-plus')
-                    ->color('primary')
-                    ->modalHeading(fn (CourseIntake $record) => "Add Students to '{$record->name}' ({$record->course?->title})")
-                    ->modalDescription(function (CourseIntake $record): string {
-                        $current = $record->enrollments()->count();
-                        $capacity = $record->max_capacity ? " (Capacity: {$current} / {$record->max_capacity})" : " ({$current} currently enrolled)";
-                        return "Select students to assign or enroll into this intake cohort{$capacity}.";
-                    })
-                    ->modalSubmitActionLabel('Add to Intake')
-                    ->form([
-                        Select::make('user_ids')
-                            ->label('Select Student(s)')
-                            ->multiple()
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->helperText('Search by student name or email.')
-                            ->options(function (CourseIntake $record): array {
-                                $alreadyInThisIntake = Enrollment::query()
+                    Action::make('add_students')
+                        ->label('Add Students')
+                        ->icon('heroicon-m-user-plus')
+                        ->color('primary')
+                        ->modalHeading(fn (CourseIntake $record) => "Add Students to '{$record->name}' ({$record->course?->title})")
+                        ->modalDescription(function (CourseIntake $record): string {
+                            $current = $record->enrollments()->count();
+                            $capacity = $record->max_capacity ? " (Capacity: {$current} / {$record->max_capacity})" : " ({$current} currently enrolled)";
+                            return "Select students to assign or enroll into this intake cohort{$capacity}.";
+                        })
+                        ->modalSubmitActionLabel('Add to Intake')
+                        ->form([
+                            Select::make('user_ids')
+                                ->label('Select Student(s)')
+                                ->multiple()
+                                ->searchable()
+                                ->preload()
+                                ->required()
+                                ->helperText('Search by student name or email.')
+                                ->options(function (CourseIntake $record): array {
+                                    $alreadyInThisIntake = Enrollment::query()
+                                        ->where('course_id', $record->course_id)
+                                        ->where('course_intake_id', $record->id)
+                                        ->pluck('user_id');
+
+                                    return User::query()
+                                        ->where(function ($q) {
+                                            $q->whereNull('role')->orWhere('role', 'student');
+                                        })
+                                        ->whereNotIn('id', $alreadyInThisIntake)
+                                        ->orderBy('name')
+                                        ->get()
+                                        ->mapWithKeys(function (User $u) use ($record) {
+                                            $isEnrolledInCourse = Enrollment::query()
+                                                ->where('course_id', $record->course_id)
+                                                ->where('user_id', $u->id)
+                                                ->exists();
+                                            $tag = $isEnrolledInCourse ? ' (Already in Course - Will Assign to Intake)' : '';
+                                            return [$u->id => "{$u->name} ({$u->email}) - Track: " . ($u->track ?? 'Beginner') . $tag];
+                                        })
+                                        ->toArray();
+                                }),
+                        ])
+                        ->action(function (CourseIntake $record, array $data): void {
+                            $userIds = (array) ($data['user_ids'] ?? []);
+                            $count = 0;
+
+                            foreach ($userIds as $userId) {
+                                $enrollment = Enrollment::query()
+                                    ->where('user_id', $userId)
                                     ->where('course_id', $record->course_id)
-                                    ->where('course_intake_id', $record->id)
-                                    ->pluck('user_id');
+                                    ->first();
 
-                                return User::query()
-                                    ->where(function ($q) {
-                                        $q->whereNull('role')->orWhere('role', 'student');
-                                    })
-                                    ->whereNotIn('id', $alreadyInThisIntake)
-                                    ->orderBy('name')
-                                    ->get()
-                                    ->mapWithKeys(function (User $u) use ($record) {
-                                        $isEnrolledInCourse = Enrollment::query()
-                                            ->where('course_id', $record->course_id)
-                                            ->where('user_id', $u->id)
-                                            ->exists();
-                                        $tag = $isEnrolledInCourse ? ' (Already in Course - Will Assign to Intake)' : '';
-                                        return [$u->id => "{$u->name} ({$u->email}) - Track: " . ($u->track ?? 'Beginner') . $tag];
-                                    })
-                                    ->toArray();
-                            }),
-                    ])
-                    ->action(function (CourseIntake $record, array $data): void {
-                        $userIds = (array) ($data['user_ids'] ?? []);
-                        $count = 0;
-
-                        foreach ($userIds as $userId) {
-                            $enrollment = Enrollment::query()
-                                ->where('user_id', $userId)
-                                ->where('course_id', $record->course_id)
-                                ->first();
-
-                            if ($enrollment) {
-                                $enrollment->update([
-                                    'course_intake_id' => $record->id,
-                                ]);
-                            } else {
-                                Enrollment::create([
-                                    'user_id' => $userId,
-                                    'course_id' => $record->course_id,
-                                    'course_intake_id' => $record->id,
-                                ]);
+                                if ($enrollment) {
+                                    $enrollment->update([
+                                        'course_intake_id' => $record->id,
+                                    ]);
+                                } else {
+                                    Enrollment::create([
+                                        'user_id' => $userId,
+                                        'course_id' => $record->course_id,
+                                        'course_intake_id' => $record->id,
+                                    ]);
+                                }
+                                $count++;
                             }
-                            $count++;
-                        }
 
-                        Notification::make()
-                            ->title("Successfully added {$count} student(s) to '{$record->name}'.")
-                            ->success()
-                            ->send();
-                    }),
+                            Notification::make()
+                                ->title("Successfully added {$count} student(s) to '{$record->name}'.")
+                                ->success()
+                                ->send();
+                        }),
 
-                Action::make('activate')
-                    ->label('Activate')
-                    ->icon('heroicon-o-play')
-                    ->color('success')
-                    ->visible(fn (CourseIntake $record): bool => ! $record->is_active && ! $record->isArchived())
-                    ->requiresConfirmation()
-                    ->modalHeading('Activate Intake')
-                    ->modalDescription('Set this as the active intake? Any other currently active intake for this course will be marked as completed.')
-                    ->action(function (CourseIntake $record): void {
-                        $record->activate();
-                        Notification::make()
-                            ->title("Intake '{$record->name}' is now active.")
-                            ->success()
-                            ->send();
-                    }),
+                    Action::make('activate')
+                        ->label('Activate')
+                        ->icon('heroicon-m-play')
+                        ->color('success')
+                        ->visible(fn (CourseIntake $record): bool => ! $record->is_active && ! $record->isArchived())
+                        ->requiresConfirmation()
+                        ->modalHeading('Activate Intake')
+                        ->modalDescription('Set this as the active intake? Any other currently active intake for this course will be marked as completed.')
+                        ->action(function (CourseIntake $record): void {
+                            $record->activate();
+                            Notification::make()
+                                ->title("Intake '{$record->name}' is now active.")
+                                ->success()
+                                ->send();
+                        }),
 
-                Action::make('archive')
-                    ->label('Archive')
-                    ->icon('heroicon-o-archive-box')
-                    ->color('warning')
-                    ->visible(fn (CourseIntake $record): bool => ! $record->isArchived())
-                    ->requiresConfirmation()
-                    ->modalHeading('Archive Intake')
-                    ->modalDescription('Archive this intake? Its enrollment and class history will remain preserved in historical archive.')
-                    ->action(function (CourseIntake $record): void {
-                        $record->archive();
-                        Notification::make()
-                            ->title("Intake '{$record->name}' has been archived.")
-                            ->warning()
-                            ->send();
-                    }),
+                    Action::make('archive')
+                        ->label('Archive')
+                        ->icon('heroicon-m-archive-box')
+                        ->color('warning')
+                        ->visible(fn (CourseIntake $record): bool => ! $record->isArchived())
+                        ->requiresConfirmation()
+                        ->modalHeading('Archive Intake')
+                        ->modalDescription('Archive this intake? Its enrollment and class history will remain preserved in historical archive.')
+                        ->action(function (CourseIntake $record): void {
+                            $record->archive();
+                            Notification::make()
+                                ->title("Intake '{$record->name}' has been archived.")
+                                ->warning()
+                                ->send();
+                        }),
 
-                Action::make('archive_and_launch_next')
-                    ->label('Archive & Start Next')
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('info')
-                    ->visible(fn (CourseIntake $record): bool => $record->is_active && ! $record->isArchived())
-                    ->form([
-                        TextInput::make('next_name')
-                            ->label('New Intake Name')
-                            ->placeholder('e.g. Intake 2 - April 2026, Cohort Beta')
-                            ->required(),
-                        DatePicker::make('next_start_date')
-                            ->label('New Intake Start Date')
-                            ->default(fn (CourseIntake $record) => $record->next_intake_start_date ?? now()->toDateString())
-                            ->required(),
-                        DatePicker::make('next_end_date')
-                            ->label('New Intake End Date'),
-                        DatePicker::make('subsequent_intake_start_date')
-                            ->label('Subsequent (Next) Intake Start Date'),
-                    ])
-                    ->modalHeading('Archive Current Cohort & Start Next')
-                    ->modalDescription('This will archive the current intake, preserving all student records, and immediately create the new cohort as active on a blank slate.')
-                    ->action(function (CourseIntake $record, array $data): void {
-                        $course = $record->course;
-                        $record->archive();
+                    Action::make('archive_and_launch_next')
+                        ->label('Archive & Start Next')
+                        ->icon('heroicon-m-arrow-path')
+                        ->color('info')
+                        ->visible(fn (CourseIntake $record): bool => $record->is_active && ! $record->isArchived())
+                        ->form([
+                            TextInput::make('next_name')
+                                ->label('New Intake Name')
+                                ->placeholder('e.g. Intake 2 - April 2026, Cohort Beta')
+                                ->required(),
+                            DatePicker::make('next_start_date')
+                                ->label('New Intake Start Date')
+                                ->default(fn (CourseIntake $record) => $record->next_intake_start_date ?? now()->toDateString())
+                                ->required(),
+                            DatePicker::make('next_end_date')
+                                ->label('New Intake End Date'),
+                            DatePicker::make('subsequent_intake_start_date')
+                                ->label('Subsequent (Next) Intake Start Date'),
+                        ])
+                        ->modalHeading('Archive Current Cohort & Start Next')
+                        ->modalDescription('This will archive the current intake, preserving all student records, and immediately create the new cohort as active on a blank slate.')
+                        ->action(function (CourseIntake $record, array $data): void {
+                            $course = $record->course;
+                            $record->archive();
 
-                        $newIntake = CourseIntake::create([
-                            'course_id' => $course->id,
-                            'name' => $data['next_name'],
-                            'start_date' => $data['next_start_date'],
-                            'end_date' => $data['next_end_date'] ?? null,
-                            'next_intake_start_date' => $data['subsequent_intake_start_date'] ?? null,
-                            'status' => CourseIntake::STATUS_ACTIVE,
-                            'is_active' => true,
-                        ]);
+                            $newIntake = CourseIntake::create([
+                                'course_id' => $course->id,
+                                'name' => $data['next_name'],
+                                'start_date' => $data['next_start_date'],
+                                'end_date' => $data['next_end_date'] ?? null,
+                                'next_intake_start_date' => $data['subsequent_intake_start_date'] ?? null,
+                                'status' => CourseIntake::STATUS_ACTIVE,
+                                'is_active' => true,
+                            ]);
 
-                        $newIntake->activate();
+                            $newIntake->activate();
 
-                        Notification::make()
-                            ->title("Previous cohort archived. '{$newIntake->name}' launched on a clean slate!")
-                            ->success()
-                            ->send();
-                    }),
+                            Notification::make()
+                                ->title("Previous cohort archived. '{$newIntake->name}' launched on a clean slate!")
+                                ->success()
+                                ->send();
+                        }),
 
-                DeleteAction::make(),
+                    DeleteAction::make()->icon('heroicon-m-trash'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

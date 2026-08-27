@@ -260,47 +260,51 @@ class AssignmentSubmissionResource extends Resource
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
-                \Filament\Actions\Action::make('download')
-                    ->label('Download')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('primary')
-                    ->action(function ($record) {
-                        $service = app(\App\Services\SubmissionZipService::class);
+                \Filament\Actions\ActionGroup::make([
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
+                    \Filament\Actions\Action::make('download')
+                        ->label('Download')
+                        ->icon('heroicon-m-arrow-down-tray')
+                        ->color('primary')
+                        ->action(function ($record) {
+                            $service = app(\App\Services\SubmissionZipService::class);
 
-                        return $service->downloadSingleAssignmentSubmission($record);
-                    }),
-                \Filament\Actions\Action::make('markViewed')
-                    ->label('Mark Viewed')
-                    ->icon('heroicon-o-eye')
-                    ->color('gray')
-                    ->visible(fn ($record): bool => $record->viewed_at === null && ! in_array($record->status, ['Graded', 'Checked']))
-                    ->action(function ($record): void {
-                        $record->markAsViewed();
-                        \Filament\Notifications\Notification::make()->title('Marked as viewed.')->success()->send();
-                    }),
-                \Filament\Actions\Action::make('grantRetake')
-                    ->label('Grant 2nd Try')
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('success')
-                    ->visible(fn ($record) => ! $record->retake_allowed)
-                    ->requiresConfirmation()
-                    ->modalHeading('Grant Second Chance')
-                    ->modalDescription('Allow the student to submit a second attempt. Any recorded grade above 50% will be capped at the 50% passing mark.')
-                    ->action(function ($record) {
-                        $record->grantRetake(auth()->user());
-                        \Filament\Notifications\Notification::make()->title('Second chance granted.')->success()->send();
-                    }),
-                \Filament\Actions\Action::make('revokeRetake')
-                    ->label('Revoke 2nd Try')
-                    ->icon('heroicon-o-x-mark')
-                    ->color('danger')
-                    ->visible(fn ($record) => (bool) $record->retake_allowed)
-                    ->requiresConfirmation()
-                    ->action(function ($record) {
-                        $record->revokeRetake();
-                        \Filament\Notifications\Notification::make()->title('Second chance revoked.')->info()->send();
-                    }),
+                            return $service->downloadSingleAssignmentSubmission($record);
+                        }),
+                    \Filament\Actions\Action::make('markViewed')
+                        ->label('Mark Viewed')
+                        ->icon('heroicon-m-eye')
+                        ->color('gray')
+                        ->visible(fn ($record): bool => $record->viewed_at === null && ! in_array($record->status, ['Graded', 'Checked']))
+                        ->action(function ($record): void {
+                            $record->markAsViewed();
+                            \Filament\Notifications\Notification::make()->title('Marked as viewed.')->success()->send();
+                        }),
+                    \Filament\Actions\Action::make('grantRetake')
+                        ->label('Grant 2nd Try')
+                        ->icon('heroicon-m-arrow-path')
+                        ->color('success')
+                        ->visible(fn ($record) => ! $record->retake_allowed)
+                        ->requiresConfirmation()
+                        ->modalHeading('Grant Second Chance')
+                        ->modalDescription('Allow the student to submit a second attempt. Any recorded grade above 50% will be capped at the 50% passing mark.')
+                        ->action(function ($record) {
+                            $record->grantRetake(auth()->user());
+                            \Filament\Notifications\Notification::make()->title('Second chance granted.')->success()->send();
+                        }),
+                    \Filament\Actions\Action::make('revokeRetake')
+                        ->label('Revoke 2nd Try')
+                        ->icon('heroicon-m-x-mark')
+                        ->color('danger')
+                        ->visible(fn ($record) => (bool) $record->retake_allowed)
+                        ->requiresConfirmation()
+                        ->action(function ($record) {
+                            $record->revokeRetake();
+                            \Filament\Notifications\Notification::make()->title('Second chance revoked.')->info()->send();
+                        }),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

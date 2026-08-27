@@ -1,88 +1,88 @@
 <x-filament-panels::page>
-    <div class="hub-shell">
+    <div class="hub-shell safe-pb">
         @if ($submitted && !empty($results))
             {{-- =================== RESULTS VIEW =================== --}}
-            <section class="hub-card" style="text-align:center;padding:2rem 1.5rem;">
-                <div style="margin-bottom:1rem;">
+            <section class="hub-card text-center p-6 sm:p-8">
+                <div class="mb-4">
                     @if ($results['passed'])
-                        <div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;display:inline-flex;align-items:center;justify-content:center;margin-bottom:0.75rem;">
-                            <svg style="width:32px;height:32px;color:#16a34a;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <div class="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 inline-flex items-center justify-center mb-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         </div>
-                        <h2 style="font-size:1.5rem;font-weight:800;color:#15803d;margin:0;">Passed!</h2>
+                        <h2 class="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 m-0">Passed!</h2>
                     @else
-                        <div style="width:64px;height:64px;border-radius:50%;background:#fef2f2;display:inline-flex;align-items:center;justify-content:center;margin-bottom:0.75rem;">
-                            <svg style="width:32px;height:32px;color:#dc2626;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <div class="w-16 h-16 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 inline-flex items-center justify-center mb-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </div>
-                        <h2 style="font-size:1.5rem;font-weight:800;color:#dc2626;margin:0;">Not Passed</h2>
+                        <h2 class="text-2xl font-extrabold text-rose-600 dark:text-rose-400 m-0">Not Passed</h2>
                     @endif
                 </div>
 
-                <p style="font-size:0.9rem;color:var(--hub-muted);margin:0 0 1rem;">{{ $quiz['course'] }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">{{ $quiz['course'] }}</p>
 
                 @if (!empty($results['is_retake']))
-                    <div style="margin: 0.5rem auto 1rem auto; max-width: 420px; padding: 0.45rem 0.8rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; font-size: 0.76rem; color: #1d4ed8;">
-                        <span style="font-weight: 700;">⭐ 2nd Attempt (Retake):</span> Recorded marks are capped at the passing mark ({{ $quiz['pass_percentage'] }}%).
+                    <div class="my-2 mx-auto max-w-md p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs text-blue-700 dark:text-blue-300">
+                        <span class="font-bold">⭐ 2nd Attempt (Retake):</span> Recorded marks are capped at the passing mark ({{ $quiz['pass_percentage'] }}%).
                     </div>
                 @endif
 
-                <div style="display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:1rem;">
-                    <div>
-                        <p style="font-size:2rem;font-weight:800;color:var(--hub-ink);margin:0;">{{ $results['percentage'] }}%</p>
-                        <p style="font-size:0.75rem;color:var(--hub-muted);margin:0;">Score</p>
+                <div class="flex justify-center gap-6 sm:gap-8 flex-wrap my-4">
+                    <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 min-w-[110px]">
+                        <p class="text-3xl font-black text-slate-900 dark:text-white m-0">{{ $results['percentage'] }}%</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 m-0 mt-1">Score</p>
                     </div>
-                    <div>
-                        <p style="font-size:2rem;font-weight:800;color:var(--hub-ink);margin:0;">{{ $results['score'] }}/{{ $results['total'] }}</p>
-                        <p style="font-size:0.75rem;color:var(--hub-muted);margin:0;">Points</p>
+                    <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 min-w-[110px]">
+                        <p class="text-3xl font-black text-slate-900 dark:text-white m-0">{{ $results['score'] }}/{{ $results['total'] }}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 m-0 mt-1">Points</p>
                     </div>
                 </div>
 
-                <p style="font-size:0.78rem;color:var(--hub-muted);margin:0;">Pass mark: {{ $quiz['pass_percentage'] }}% &middot; Completed: {{ $results['completed_at'] }}</p>
+                <p class="text-xs text-slate-400 dark:text-slate-500 m-0">Pass mark: {{ $quiz['pass_percentage'] }}% &middot; Completed: {{ $results['completed_at'] }}</p>
             </section>
 
             @if (!empty($quiz['show_results']) && !empty($questions))
-                <section class="hub-card" style="padding:1rem 1.25rem;">
-                    <h3 style="font-size:1rem;font-weight:700;color:var(--hub-ink);margin:0 0 1rem;">Review Answers</h3>
+                <section class="hub-card p-4 sm:p-6 mt-4">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white m-0 mb-4">Review Answers</h3>
                     @foreach ($questions as $index => $question)
-                        <div style="padding:1rem 0;{{ !$loop->last ? 'border-bottom:1px solid var(--hub-border);' : '' }}">
-                            <div style="display:flex;gap:0.5rem;align-items:flex-start;">
-                                <span style="background:var(--hub-surface);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--hub-ink);flex-shrink:0;">{{ $index + 1 }}</span>
-                                <div style="flex:1;min-width:0;">
-                                    <p style="font-weight:600;color:var(--hub-ink);margin:0;font-size:0.88rem;">{{ $question['question'] }}</p>
-                                    <span class="hub-chip" style="font-size:0.65rem;margin-top:0.25rem;{{ $question['type'] === 'multiple_choice' ? 'background:#dbeafe;color:#1e40af;' : ($question['type'] === 'theory' ? 'background:#fef3c7;color:#92400e;' : 'background:#ede9fe;color:#5b21b6;') }}">{{ ucfirst(str_replace('_', ' ', $question['type'])) }} &middot; {{ $question['points'] }} pts</span>
+                        <div class="py-4 {{ !$loop->last ? 'border-b border-slate-100 dark:border-slate-800' : '' }}">
+                            <div class="flex gap-3 items-start">
+                                <span class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0">{{ $index + 1 }}</span>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-bold text-slate-900 dark:text-white m-0 text-sm leading-relaxed">{{ $question['question'] }}</p>
+                                    <span class="hub-chip mt-1 inline-flex {{ $question['type'] === 'multiple_choice' ? 'hub-chip-blue' : ($question['type'] === 'theory' ? 'hub-chip-amber' : 'hub-chip-primary') }}">{{ ucfirst(str_replace('_', ' ', $question['type'])) }} &middot; {{ $question['points'] }} pts</span>
 
                                     @if ($question['type'] === 'multiple_choice' && !empty($question['options']))
-                                        <div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.35rem;">
+                                        <div class="mt-3 flex flex-col gap-2">
                                             @foreach ($question['options'] as $option)
                                                 @php
                                                     $isSelected = ($question['user_answer']['option_id'] ?? null) == $option['id'];
                                                     $isCorrectOption = !empty($option['is_correct']);
-                                                    $bg = '';
-                                                    if ($isCorrectOption) $bg = 'background:#dcfce7;border-color:#86efac;';
-                                                    elseif ($isSelected && !$isCorrectOption) $bg = 'background:#fef2f2;border-color:#fca5a5;';
+                                                    $optClass = 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900';
+                                                    if ($isCorrectOption) $optClass = 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200';
+                                                    elseif ($isSelected && !$isCorrectOption) $optClass = 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-700 text-rose-800 dark:text-rose-200';
                                                 @endphp
-                                                <div style="padding:0.4rem 0.6rem;border:1px solid var(--hub-border);border-radius:8px;font-size:0.82rem;{{ $bg }}display:flex;align-items:center;gap:0.4rem;">
+                                                <div class="p-3 rounded-xl border {{ $optClass }} flex items-center gap-2.5 text-xs sm:text-sm">
                                                     @if ($isCorrectOption)
-                                                        <svg style="width:16px;height:16px;color:#16a34a;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                     @elseif ($isSelected)
-                                                        <svg style="width:16px;height:16px;color:#dc2626;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                        <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                                     @else
-                                                        <span style="width:16px;height:16px;border-radius:50%;border:2px solid #d1d5db;flex-shrink:0;display:block;"></span>
+                                                        <span class="w-4 h-4 rounded-full border-2 border-slate-300 dark:border-slate-600 shrink-0 inline-block"></span>
                                                     @endif
-                                                    <span style="color:var(--hub-ink);">{{ $option['text'] }}</span>
+                                                    <span class="text-slate-800 dark:text-slate-200">{{ $option['text'] }}</span>
                                                 </div>
                                             @endforeach
                                         </div>
                                     @elseif (in_array($question['type'], ['theory', 'practical']))
-                                        <div style="margin-top:0.5rem;padding:0.5rem 0.75rem;background:var(--hub-surface);border-radius:8px;font-size:0.82rem;">
-                                            <p style="margin:0;font-size:0.72rem;font-weight:600;color:var(--hub-muted);text-transform:uppercase;">Your Answer:</p>
-                                            <p style="margin:0.2rem 0 0;color:var(--hub-ink);white-space:pre-wrap;">{{ $question['user_answer']['text'] ?? 'No answer provided' }}</p>
+                                        <div class="mt-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 text-xs sm:text-sm">
+                                            <p class="m-0 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Your Answer:</p>
+                                            <p class="m-0 mt-1 text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{{ $question['user_answer']['text'] ?? 'No answer provided' }}</p>
                                         </div>
                                     @endif
 
                                     @if (!empty($question['explanation']))
-                                        <div style="margin-top:0.5rem;padding:0.5rem 0.75rem;background:#f0f9ff;border-left:3px solid #0ea5e9;border-radius:0 8px 8px 0;font-size:0.8rem;">
-                                            <p style="margin:0;font-weight:600;color:#0369a1;font-size:0.72rem;">Explanation</p>
-                                            <p style="margin:0.15rem 0 0;color:#334155;">{{ $question['explanation'] }}</p>
+                                        <div class="mt-3 p-3 bg-sky-50 dark:bg-sky-950/40 border-l-4 border-sky-500 rounded-r-xl text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+                                            <p class="m-0 font-bold text-sky-700 dark:text-sky-300 text-xs">Explanation</p>
+                                            <p class="m-0 mt-1">{{ $question['explanation'] }}</p>
                                         </div>
                                     @endif
                                 </div>
@@ -92,30 +92,30 @@
                 </section>
             @endif
 
-            <div style="text-align:center;padding:1rem 0;">
-                <a href="{{ route('filament.student.pages.quizzes') }}" class="hub-btn hub-btn-primary" style="font-size:0.85rem;text-decoration:none;">Back to Quizzes</a>
+            <div class="text-center py-6">
+                <a href="{{ route('filament.student.pages.quizzes') }}" class="btn-primary min-h-[46px] px-8 text-sm">Back to Quizzes</a>
             </div>
 
         @elseif (!empty($questions))
             {{-- =================== QUIZ FORM =================== --}}
             @if ($isRetake)
-                <div style="margin-bottom: 0.75rem; padding: 0.55rem 0.85rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; font-size: 0.8rem; color: #1d4ed8;">
+                <div class="mb-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs sm:text-sm text-blue-700 dark:text-blue-300">
                     <strong>⭐ 2nd Attempt / Retake:</strong> You are taking your 2nd attempt for this quiz. (Recorded mark is capped at the passing mark of {{ $quiz['pass_percentage'] }}%).
                 </div>
             @endif
 
-            <section class="hub-card" style="padding:0.75rem 1rem;">
+            <section class="hub-card p-4 sm:p-5 mb-3">
                 <p class="hub-eyebrow">{{ $quiz['course'] }}</p>
-                <h2 class="hub-title" style="font-size:1.1rem;">{{ $quiz['title'] }}</h2>
+                <h2 class="hub-title text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-0.5">{{ $quiz['title'] }}</h2>
                 @if (!empty($quiz['description']))
-                    <p class="hub-copy" style="margin-top:0.2rem;">{{ $quiz['description'] }}</p>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">{{ $quiz['description'] }}</p>
                 @endif
-                <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.5rem;">
-                    <span style="font-size:0.75rem;color:var(--hub-muted);">{{ count($questions) }} Questions</span>
+                <div class="flex gap-4 flex-wrap mt-3 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    <span>{{ count($questions) }} Questions</span>
                     @if ($quiz['time_limit'])
-                        <span style="font-size:0.75rem;color:var(--hub-muted);">⏱ {{ $quiz['time_limit'] }} minutes</span>
+                        <span>⏱ {{ $quiz['time_limit'] }} minutes</span>
                     @endif
-                    <span style="font-size:0.75rem;color:var(--hub-muted);">Pass: {{ $quiz['pass_percentage'] }}%</span>
+                    <span>Pass: {{ $quiz['pass_percentage'] }}%</span>
                 </div>
             </section>
 
@@ -143,76 +143,86 @@
                 @endif
             }" @if ($quiz['time_limit']) x-init="startTimer()" @endif>
 
-                {{-- Timer Bar --}}
-                @if ($quiz['time_limit'])
-                    <div class="hub-quiz-timer-bar" style="position:sticky;top:0;z-index:50;background:var(--hub-surface);padding:0.5rem 1rem;border:1px solid var(--hub-border);display:flex;justify-content:space-between;align-items:center;border-radius:12px;margin-bottom:0.5rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-                        <span style="font-size:0.8rem;font-weight:600;color:var(--hub-ink);">Question <span x-text="currentQuestion + 1"></span> of {{ count($questions) }}</span>
-                        <span style="font-size:0.85rem;font-weight:700;padding:0.25rem 0.75rem;border-radius:20px;" :style="timeRemaining <= 60 ? 'background:#fef2f2;color:#dc2626;' : 'background:#f0fdf4;color:#15803d;'" x-text="formatTime(timeRemaining)"></span>
-                    </div>
-                @endif
+                {{-- Sticky Timer & Question Header Bar --}}
+                <div class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-md flex justify-between items-center mb-3">
+                    <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Question <span x-text="currentQuestion + 1"></span> of {{ count($questions) }}</span>
+                    @if ($quiz['time_limit'])
+                        <span class="text-xs sm:text-sm font-bold px-3 py-1 rounded-full font-mono transition" :class="timeRemaining <= 60 ? 'bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400 animate-pulse' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'" x-text="formatTime(timeRemaining)"></span>
+                    @endif
+                </div>
 
                 {{-- Progress Bar --}}
-                <div style="background:var(--hub-border);border-radius:99px;height:6px;overflow:hidden;margin-bottom:0.75rem;">
-                    <div style="height:100%;border-radius:99px;background:var(--hub-primary);transition:width 0.3s ease;" :style="'width:' + (((currentQuestion + 1) / totalQuestions) * 100) + '%'"></div>
+                <div class="bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden mb-4">
+                    <div class="h-full rounded-full bg-teal-600 dark:bg-teal-400 transition-all duration-300 ease-out" :style="'width:' + (((currentQuestion + 1) / totalQuestions) * 100) + '%'"></div>
                 </div>
 
                 {{-- Questions --}}
                 @foreach ($questions as $index => $question)
-                    <div x-show="currentQuestion === {{ $index }}" x-cloak class="hub-card hub-quiz-question-card" style="padding:1.25rem;">
-                        <div style="display:flex;gap:0.5rem;align-items:flex-start;margin-bottom:1rem;">
-                            <span style="background:var(--hub-primary);color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0;">{{ $index + 1 }}</span>
-                            <div style="flex:1;">
-                                <p style="font-weight:700;color:var(--hub-ink);margin:0;font-size:0.95rem;line-height:1.4;">{{ $question['question'] }}</p>
-                                <span class="hub-chip" style="font-size:0.65rem;margin-top:0.35rem;{{ $question['type'] === 'multiple_choice' ? 'background:#dbeafe;color:#1e40af;' : ($question['type'] === 'theory' ? 'background:#fef3c7;color:#92400e;' : 'background:#ede9fe;color:#5b21b6;') }}">{{ ucfirst(str_replace('_', ' ', $question['type'])) }} &middot; {{ $question['points'] }} {{ $question['points'] === 1 ? 'point' : 'points' }}</span>
+                    <div x-show="currentQuestion === {{ $index }}" x-cloak class="hub-card p-4 sm:p-6 mb-4">
+                        <div class="flex gap-3 items-start mb-4">
+                            <span class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 shadow-xs">{{ $index + 1 }}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-slate-900 dark:text-white m-0 text-sm sm:text-base leading-relaxed">{{ $question['question'] }}</p>
+                                <span class="hub-chip mt-1.5 inline-flex {{ $question['type'] === 'multiple_choice' ? 'hub-chip-blue' : ($question['type'] === 'theory' ? 'hub-chip-amber' : 'hub-chip-primary') }}">{{ ucfirst(str_replace('_', ' ', $question['type'])) }} &middot; {{ $question['points'] }} {{ $question['points'] === 1 ? 'point' : 'points' }}</span>
                             </div>
                         </div>
 
                         @if ($question['type'] === 'multiple_choice')
-                            <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                            <div class="flex flex-col gap-2.5">
                                 @foreach ($question['options'] as $option)
-                                    <label class="hub-quiz-option" style="display:flex;align-items:center;gap:0.6rem;padding:0.65rem 0.85rem;border:2px solid var(--hub-border);border-radius:10px;cursor:pointer;transition:all 0.15s;font-size:0.88rem;background:var(--hub-surface);" :style="$wire.answers[{{ $question['id'] }}] == '{{ $option['id'] }}' ? 'border-color:var(--hub-primary);' : ''" onmouseover="if(!this.querySelector('input').checked)this.style.borderColor='#94a3b8'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--hub-border)'">
-                                        <input type="radio" name="question_{{ $question['id'] }}" value="{{ $option['id'] }}" wire:model="answers.{{ $question['id'] }}" style="accent-color:var(--hub-primary);width:18px;height:18px;flex-shrink:0;">
-                                        <span style="color:var(--hub-ink);">{{ $option['text'] }}</span>
+                                    <label
+                                        class="flex items-center gap-3 p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition min-h-[48px] bg-white dark:bg-slate-900 active:scale-99"
+                                        :class="$wire.answers[{{ $question['id'] }}] == '{{ $option['id'] }}' ? 'border-teal-600 bg-teal-50/50 dark:bg-teal-950/20 dark:border-teal-400 shadow-sm' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'"
+                                    >
+                                        <input type="radio" name="question_{{ $question['id'] }}" value="{{ $option['id'] }}" wire:model="answers.{{ $question['id'] }}" class="text-teal-600 focus:ring-teal-500 w-5 h-5 shrink-0">
+                                        <span class="text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-100 flex-1">{{ $option['text'] }}</span>
                                     </label>
                                 @endforeach
                             </div>
                         @elseif ($question['type'] === 'theory')
-                            <textarea wire:model="answers.{{ $question['id'] }}" rows="6" placeholder="Write your answer here..." style="width:100%;padding:0.75rem;border:2px solid var(--hub-border);border-radius:10px;font-size:0.88rem;resize:vertical;font-family:inherit;color:var(--hub-ink);background:var(--hub-surface);transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--hub-primary)'" onblur="this.style.borderColor='var(--hub-border)'"></textarea>
+                            <textarea wire:model="answers.{{ $question['id'] }}" rows="6" placeholder="Write your detailed answer here…" class="w-full p-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:border-teal-500 focus:ring-0 transition resize-y"></textarea>
                         @elseif ($question['type'] === 'practical')
-                            <div style="margin-bottom:0.5rem;padding:0.5rem 0.75rem;background:#ede9fe;border-radius:8px;font-size:0.8rem;color:#5b21b6;">
-                                <strong>Practical Task:</strong> Write your code or solution below.
+                            <div class="mb-2 p-3 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-xl text-xs text-purple-700 dark:text-purple-300 font-medium">
+                                <strong>Practical Task:</strong> Write your solution or code below.
                             </div>
-                            <textarea wire:model="answers.{{ $question['id'] }}" rows="10" placeholder="Write your code or solution here..." style="width:100%;padding:0.75rem;border:2px solid var(--hub-border);border-radius:10px;font-size:0.85rem;resize:vertical;font-family:'Courier New',monospace;color:var(--hub-ink);background:var(--hub-surface);transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--hub-primary)'" onblur="this.style.borderColor='var(--hub-border)'"></textarea>
+                            <textarea wire:model="answers.{{ $question['id'] }}" rows="8" placeholder="Write your code or practical solution here…" class="w-full p-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm font-mono text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:border-teal-500 focus:ring-0 transition resize-y"></textarea>
                         @endif
 
-                        {{-- Navigation --}}
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;flex-wrap:wrap;gap:0.5rem;">
-                            <button x-show="currentQuestion > 0" @click="currentQuestion--" type="button" class="hub-btn" style="font-size:0.82rem;padding:0.45rem 1rem;background:var(--hub-surface);color:var(--hub-ink);border:1px solid var(--hub-border);border-radius:8px;">← Previous</button>
+                        {{-- Question Actions Navigation Bar --}}
+                        <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 gap-3">
+                            <button x-show="currentQuestion > 0" @click="currentQuestion--" type="button" class="btn-secondary min-h-[44px] px-5 text-xs sm:text-sm active:scale-95">← Previous</button>
                             <span x-show="currentQuestion === 0"></span>
 
                             @if ($index < count($questions) - 1)
-                                <button @click="currentQuestion++" type="button" class="hub-btn hub-btn-primary" style="font-size:0.82rem;padding:0.45rem 1rem;border-radius:8px;">Next →</button>
+                                <button @click="currentQuestion++" type="button" class="btn-primary min-h-[44px] px-6 text-xs sm:text-sm active:scale-95">Next →</button>
                             @else
-                                <button wire:click="submitQuiz" type="button" class="hub-btn" style="font-size:0.82rem;padding:0.5rem 1.5rem;background:#15803d;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;" wire:confirm="Are you sure you want to submit this quiz? You cannot change your answers after submission." wire:loading.attr="disabled">
-                                    <span wire:loading.remove>Submit Quiz</span>
-                                    <span wire:loading>Submitting...</span>
+                                <button wire:click="submitQuiz" type="button" class="inline-flex items-center justify-center min-h-[44px] px-6 py-2 rounded-full font-bold text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white shadow-md active:scale-95 transition" wire:confirm="Are you sure you want to submit this quiz? You cannot change your answers after submission." wire:loading.attr="disabled">
+                                    <span wire:loading.remove>Submit Assessment</span>
+                                    <span wire:loading>Submitting…</span>
                                 </button>
                             @endif
                         </div>
                     </div>
                 @endforeach
 
-                {{-- Question Navigation Dots --}}
-                <div class="hub-quiz-nav-dots" style="display:flex;justify-content:center;gap:0.35rem;flex-wrap:wrap;padding:0.75rem 0;">
+                {{-- Question Navigation Dots (Scrollable / Wrapping with 40px Tap Targets) --}}
+                <div class="hub-quiz-nav-dots flex justify-center gap-2 flex-wrap py-3 max-w-full overflow-x-auto touch-scroll-x">
                     @foreach ($questions as $index => $question)
-                        <button @click="currentQuestion = {{ $index }}" type="button" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--hub-border);font-size:0.7rem;font-weight:700;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;" :style="currentQuestion === {{ $index }} ? 'background:var(--hub-primary);color:white;border-color:var(--hub-primary);' : ($wire.answers[{{ $question['id'] }}] ? 'background:#dcfce7;color:#15803d;border-color:#86efac;' : '')">{{ $index + 1 }}</button>
+                        <button
+                            @click="currentQuestion = {{ $index }}"
+                            type="button"
+                            class="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl border-2 font-bold text-xs flex items-center justify-center transition active:scale-95"
+                            :class="currentQuestion === {{ $index }} ? 'bg-teal-600 text-white border-teal-600 shadow-sm' : ($wire.answers[{{ $question['id'] }}] ? 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300')"
+                        >
+                            {{ $index + 1 }}
+                        </button>
                     @endforeach
                 </div>
             </div>
         @else
-            <section class="hub-card" style="text-align:center;padding:2rem;">
-                <p class="hub-copy">No quiz available or quiz has already been completed.</p>
-                <a href="{{ route('filament.student.pages.quizzes') }}" class="hub-btn hub-btn-primary" style="margin-top:1rem;font-size:0.85rem;text-decoration:none;">Back to Quizzes</a>
+            <section class="hub-card text-center p-8">
+                <p class="text-sm text-slate-500 dark:text-slate-400">No quiz available or quiz has already been completed.</p>
+                <a href="{{ route('filament.student.pages.quizzes') }}" class="btn-primary min-h-[46px] inline-flex items-center mt-4 px-6 text-sm">Back to Quizzes</a>
             </section>
         @endif
     </div>

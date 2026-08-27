@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Assessments\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -16,32 +17,49 @@ class AssessmentsTable
             ->columns([
                 TextColumn::make('course.title')
                     ->label('Course')
-                    ->searchable(),
+                    ->badge()
+                    ->color('info')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->label('Assessment')
+                    ->searchable()
+                    ->weight('bold'),
                 TextColumn::make('target_level')
-                    ->label('Level')
+                    ->label('Track')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Beginner' => 'success',
+                        'Intermediate' => 'warning',
+                        'Advanced' => 'danger',
+                        default => 'gray',
+                    })
                     ->searchable(),
                 TextColumn::make('user.name')
-                    ->label('Target User')
+                    ->label('Target')
+                    ->placeholder('All Learners')
                     ->searchable(),
                 TextColumn::make('date_given')
-                    ->date()
+                    ->label('Assigned')
+                    ->date('M d, Y')
                     ->sortable(),
                 TextColumn::make('publish_at')
                     ->label('Publish At')
-                    ->dateTime()
+                    ->dateTime('M d, Y H:i')
                     ->placeholder('Immediate')
                     ->sortable(),
                 TextColumn::make('due_date')
-                    ->date()
+                    ->label('Due Date')
+                    ->date('M d, Y')
+                    ->badge()
+                    ->color(fn ($record): string => $record->due_date && $record->due_date->isPast() ? 'danger' : 'gray')
                     ->sortable(),
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->dateTime('M d, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->dateTime('M d, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -49,29 +67,33 @@ class AssessmentsTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
-                \Filament\Actions\Action::make('downloadSubmissionsZip')
-                    ->label('Download Submissions (ZIP)')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('info')
-                    ->visible(fn ($record) => $record->submissions()->exists())
-                    ->action(function ($record) {
-                        $submissions = $record->submissions()->with(['user', 'assessment'])->get();
-                        $service = app(\App\Services\SubmissionZipService::class);
-                        $slug = \Illuminate\Support\Str::slug($record->name ?: 'Assessment', '_');
-                        $response = $service->downloadAssessmentsZip($submissions, "Submissions_{$slug}");
+                ActionGroup::make([
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
+                    \Filament\Actions\Action::make('downloadSubmissionsZip')
+                        ->label('Download Submissions (ZIP)')
+                        ->icon('heroicon-m-arrow-down-tray')
+                        ->color('info')
+                        ->visible(fn ($record) => $record->submissions()->exists())
+                        ->action(function ($record) {
+                            $submissions = $record->submissions()->with(['user', 'assessment'])->get();
+                            $service = app(\App\Services\SubmissionZipService::class);
+                            $slug = \Illuminate\Support\Str::slug($record->name ?: 'Assessment', '_');
+                            $response = $service->downloadAssessmentsZip($submissions, "Submissions_{$slug}");
 
-                        if (! $response) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('No submission files found for this assessment.')
-                                ->warning()
-                                ->send();
+                            if (! $response) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('No submission files found for this assessment.')
+                                    ->warning()
+                                    ->send();
 
-                            return null;
-                        }
+                                return null;
+                            }
 
-                        return $response;
-                    }),
+                            return $response;
+                        }),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

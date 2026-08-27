@@ -112,75 +112,79 @@ class ClaimRequestsTable
                     ),
             ])
             ->recordActions([
-                Action::make('fulfill')
-                    ->label('Fulfill & Complete')
-                    ->icon('heroicon-o-check-badge')
-                    ->color('success')
-                    ->visible(fn (ClaimRequest $record): bool => ! in_array($record->status, [ClaimRequest::STATUS_FULFILLED, ClaimRequest::STATUS_REJECTED], true))
-                    ->form([
-                        TextInput::make('admin_remarks')
-                            ->label('Fulfillment Reference / Airtime TXN ID')
-                            ->placeholder('e.g. Airtime ref #TXN-998811 or Courier tracking #')
-                            ->maxLength(500),
-                    ])
-                    ->action(function (ClaimRequest $record, array $data): void {
-                        $record->update([
-                            'status' => ClaimRequest::STATUS_FULFILLED,
-                            'fulfilled_at' => now(),
-                            'admin_remarks' => $data['admin_remarks'] ?? $record->admin_remarks,
-                        ]);
-
-                        Notification::make()
-                            ->title('Claim Request Fulfilled')
-                            ->body("Reward '{$record->claimItem?->title}' marked as fulfilled for {$record->user?->name}.")
-                            ->success()
-                            ->send();
-                    }),
-
-                Action::make('reject')
-                    ->label('Reject & Refund')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->modalHeading('Reject Claim & Refund Coins')
-                    ->modalDescription('Are you sure you want to reject this claim? The spent Thinker Coins will be immediately refunded back to the student\'s balance.')
-                    ->visible(fn (ClaimRequest $record): bool => ! in_array($record->status, [ClaimRequest::STATUS_FULFILLED, ClaimRequest::STATUS_REJECTED], true))
-                    ->form([
-                        Textarea::make('admin_remarks')
-                            ->label('Rejection Reason (Required)')
-                            ->required()
-                            ->placeholder('Explain why this claim cannot be fulfilled...')
-                            ->rows(3),
-                    ])
-                    ->action(function (ClaimRequest $record, array $data): void {
-                        DB::transaction(function () use ($record, $data) {
-                            $user = User::query()->where('id', $record->user_id)->lockForUpdate()->first();
-                            $item = ClaimItem::query()->where('id', $record->claim_item_id)->lockForUpdate()->first();
-
-                            // Refund coins
-                            if ($user && $record->coins_spent > 0) {
-                                $user->increment('spendable_coins', $record->coins_spent);
-                            }
-
-                            // Restore stock if finite
-                            if ($item && $item->stock_quantity >= 0) {
-                                $item->increment('stock_quantity');
-                            }
-
+                \Filament\Actions\ActionGroup::make([
+                    Action::make('fulfill')
+                        ->label('Fulfill & Complete')
+                        ->icon('heroicon-m-check-badge')
+                        ->color('success')
+                        ->visible(fn (ClaimRequest $record): bool => ! in_array($record->status, [ClaimRequest::STATUS_FULFILLED, ClaimRequest::STATUS_REJECTED], true))
+                        ->form([
+                            TextInput::make('admin_remarks')
+                                ->label('Fulfillment Reference / Airtime TXN ID')
+                                ->placeholder('e.g. Airtime ref #TXN-998811 or Courier tracking #')
+                                ->maxLength(500),
+                        ])
+                        ->action(function (ClaimRequest $record, array $data): void {
                             $record->update([
-                                'status' => ClaimRequest::STATUS_REJECTED,
-                                'admin_remarks' => $data['admin_remarks'] ?? 'Claim rejected by administrator.',
+                                'status' => ClaimRequest::STATUS_FULFILLED,
+                                'fulfilled_at' => now(),
+                                'admin_remarks' => $data['admin_remarks'] ?? $record->admin_remarks,
                             ]);
-                        });
 
-                        Notification::make()
-                            ->title('Claim Rejected & Coins Refunded')
-                            ->body("Claim rejected and {$record->coins_spent} TC refunded to {$record->user?->name}.")
-                            ->warning()
-                            ->send();
-                    }),
+                            Notification::make()
+                                ->title('Claim Request Fulfilled')
+                                ->body("Reward '{$record->claimItem?->title}' marked as fulfilled for {$record->user?->name}.")
+                                ->success()
+                                ->send();
+                        }),
 
-                ViewAction::make(),
+                    Action::make('reject')
+                        ->label('Reject & Refund')
+                        ->icon('heroicon-m-x-circle')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Reject Claim & Refund Coins')
+                        ->modalDescription('Are you sure you want to reject this claim? The spent Thinker Coins will be immediately refunded back to the student\'s balance.')
+                        ->visible(fn (ClaimRequest $record): bool => ! in_array($record->status, [ClaimRequest::STATUS_FULFILLED, ClaimRequest::STATUS_REJECTED], true))
+                        ->form([
+                            Textarea::make('admin_remarks')
+                                ->label('Rejection Reason (Required)')
+                                ->required()
+                                ->placeholder('Explain why this claim cannot be fulfilled...')
+                                ->rows(3),
+                        ])
+                        ->action(function (ClaimRequest $record, array $data): void {
+                            DB::transaction(function () use ($record, $data) {
+                                $user = User::query()->where('id', $record->user_id)->lockForUpdate()->first();
+                                $item = ClaimItem::query()->where('id', $record->claim_item_id)->lockForUpdate()->first();
+
+                                // Refund coins
+                                if ($user && $record->coins_spent > 0) {
+                                    $user->increment('spendable_coins', $record->coins_spent);
+                                }
+
+                                // Restore stock if finite
+                                if ($item && $item->stock_quantity >= 0) {
+                                    $item->increment('stock_quantity');
+                                }
+
+                                $record->update([
+                                    'status' => ClaimRequest::STATUS_REJECTED,
+                                    'admin_remarks' => $data['admin_remarks'] ?? 'Claim rejected by administrator.',
+                                ]);
+                            });
+
+                            Notification::make()
+                                ->title('Claim Rejected & Coins Refunded')
+                                ->body("Claim rejected and {$record->coins_spent} TC refunded to {$record->user?->name}.")
+                                ->warning()
+                                ->send();
+                        }),
+
+                    ViewAction::make()->icon('heroicon-m-eye'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ]);
     }
 }

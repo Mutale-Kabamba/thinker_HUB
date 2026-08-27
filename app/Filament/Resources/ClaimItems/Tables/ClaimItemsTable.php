@@ -91,8 +91,12 @@ class ClaimItemsTable
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
+                    DeleteAction::make()->icon('heroicon-m-trash'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

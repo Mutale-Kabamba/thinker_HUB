@@ -83,7 +83,7 @@ class CourseIntakeForm
                     ]),
 
                 Section::make('Class / Intake Information')
-                    ->columns(2)
+                    ->columns(['default' => 1, 'md' => 2])
                     ->schema([
                         Select::make('course_id')
                             ->label('Course')

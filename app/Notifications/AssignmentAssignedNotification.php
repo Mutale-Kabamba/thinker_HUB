@@ -15,10 +15,14 @@ class AssignmentAssignedNotification extends Notification implements ShouldQueue
 {
     use Queueable, ResolvesMailPersonalization;
 
+    public string $courseName;
+
     public function __construct(
         private readonly Assignment $assignment,
-        private readonly string $courseName,
-    ) {}
+        ?string $courseName = null,
+    ) {
+        $this->courseName = $courseName ?? $assignment->course?->title ?? 'your course';
+    }
 
     public function via(object $notifiable): array
     {
@@ -52,7 +56,8 @@ class AssignmentAssignedNotification extends Notification implements ShouldQueue
             ->actions([
                 Action::make('view')
                     ->label('View assignment')
-                    ->url('/learn/assignments'),
+                    ->url('/learn/assignments')
+                    ->markAsRead(),
             ])
             ->getDatabaseMessage();
     }

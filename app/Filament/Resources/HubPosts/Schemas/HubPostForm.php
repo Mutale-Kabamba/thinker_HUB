@@ -62,7 +62,7 @@ class HubPostForm
                                 ? 'Your submission will be reviewed and approved by an Admin before going public.'
                                 : 'Publish immediately to the public Knowledge Hub.'),
                     ])
-                    ->columns(2),
+                    ->columns(['default' => 1, 'md' => 2]),
 
                 Section::make('Content & Excerpt')
                     ->schema([
@@ -119,7 +119,7 @@ class HubPostForm
                             ->native(false)
                             ->helperText('Leave empty for no deadline.'),
                     ])
-                    ->columns(2)
+                    ->columns(['default' => 1, 'md' => 2])
                     ->visible(fn (callable $get): bool => $get('type') === 'opportunity'),
             ]);
     }

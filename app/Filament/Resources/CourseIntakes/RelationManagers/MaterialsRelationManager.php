@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CourseIntakes\RelationManagers;
 
 use App\Models\CourseIntake;
 use App\Models\LearningMaterial;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -117,56 +118,61 @@ class MaterialsRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->form([
-                        TextInput::make('title')
-                            ->label('Material Title')
-                            ->required()
-                            ->maxLength(255),
+                ActionGroup::make([
+                    EditAction::make()
+                        ->icon('heroicon-m-pencil-square')
+                        ->form([
+                            TextInput::make('title')
+                                ->label('Material Title')
+                                ->required()
+                                ->maxLength(255),
 
-                        Select::make('category')
-                            ->label('Category')
-                            ->options([
-                                'Study Material' => 'Study Material',
-                                'Reading Material' => 'Reading Material',
-                                'Syllabus' => 'Syllabus',
-                                'Guide' => 'Guide',
-                                'Past Papers' => 'Past Papers',
-                                'Assignment Brief' => 'Assignment Brief',
-                                'Other' => 'Other',
-                            ])
-                            ->required(),
+                            Select::make('category')
+                                ->label('Category')
+                                ->options([
+                                    'Study Material' => 'Study Material',
+                                    'Reading Material' => 'Reading Material',
+                                    'Syllabus' => 'Syllabus',
+                                    'Guide' => 'Guide',
+                                    'Past Papers' => 'Past Papers',
+                                    'Assignment Brief' => 'Assignment Brief',
+                                    'Other' => 'Other',
+                                ])
+                                ->required(),
 
-                        Select::make('material_type')
-                            ->label('Material Type')
-                            ->options([
-                                'Document' => 'Document / PDF',
-                                'Spreadsheet' => 'Spreadsheet',
-                                'Presentation' => 'Presentation',
-                                'Archive' => 'Zip Archive',
-                                'Image' => 'Image / Diagram',
-                                'Other' => 'Other',
-                            ])
-                            ->required(),
+                            Select::make('material_type')
+                                ->label('Material Type')
+                                ->options([
+                                    'Document' => 'Document / PDF',
+                                    'Spreadsheet' => 'Spreadsheet',
+                                    'Presentation' => 'Presentation',
+                                    'Archive' => 'Zip Archive',
+                                    'Image' => 'Image / Diagram',
+                                    'Other' => 'Other',
+                                ])
+                                ->required(),
 
-                        FileUpload::make('file_path')
-                            ->label('Upload File')
-                            ->disk('public')
-                            ->directory('learning-materials')
-                            ->maxSize(20480)
-                            ->columnSpanFull(),
+                            FileUpload::make('file_path')
+                                ->label('Upload File')
+                                ->disk('public')
+                                ->directory('learning-materials')
+                                ->maxSize(20480)
+                                ->columnSpanFull(),
 
-                        TextInput::make('external_url')
-                            ->label('External Link')
-                            ->url()
-                            ->columnSpanFull(),
+                            TextInput::make('external_url')
+                                ->label('External Link')
+                                ->url()
+                                ->columnSpanFull(),
 
-                        Textarea::make('description')
-                            ->label('Description / Notes')
-                            ->rows(2)
-                            ->columnSpanFull(),
-                    ]),
-                DeleteAction::make(),
+                            Textarea::make('description')
+                                ->label('Description / Notes')
+                                ->rows(2)
+                                ->columnSpanFull(),
+                        ]),
+                    DeleteAction::make()->icon('heroicon-m-trash'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

@@ -78,7 +78,7 @@ class CourseForm
                         TextInput::make('duration')
                             ->placeholder('6 Weeks'),
                     ])
-                    ->columns(4)
+                    ->columns(['default' => 1, 'sm' => 2, 'lg' => 4])
                     ->itemLabel(fn (array $state): string => trim(sprintf(
                         '%s - %s (%s)',
                         ($state['category'] ?? 'one_on_one') === 'group' ? 'Group' : 'One-On-One',
@@ -153,7 +153,7 @@ class CourseForm
                             ->rows(2)
                             ->required(),
                     ])
-                    ->columns(2)
+                    ->columns(['default' => 1, 'md' => 2])
                     ->itemLabel(fn (array $state): string => (string) ($state['level'] ?? 'Level'))
                     ->compact()
                     ->collapsible()

@@ -39,7 +39,7 @@ class CertificateService
             if ($sessionsProgress['total'] > 0) {
                 $reasons[] = "Complete all scheduled sessions ({$sessionsProgress['completed']}/{$sessionsProgress['total']}) or have your instructor mark course completion";
             } else {
-                $reasons[] = 'Course completion must be marked by your instructor or all sessions completed';
+                $reasons[] = 'Program completion must be signed off by your instructor';
             }
         }
 

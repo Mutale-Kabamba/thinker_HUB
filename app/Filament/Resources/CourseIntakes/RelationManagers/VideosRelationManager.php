@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CourseIntakes\RelationManagers;
 
 use App\Models\CourseIntake;
 use App\Models\ResourceVideo;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -102,41 +103,46 @@ class VideosRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->form([
-                        TextInput::make('title')
-                            ->label('Video Title')
-                            ->required()
-                            ->maxLength(255),
+                ActionGroup::make([
+                    EditAction::make()
+                        ->icon('heroicon-m-pencil-square')
+                        ->form([
+                            TextInput::make('title')
+                                ->label('Video Title')
+                                ->required()
+                                ->maxLength(255),
 
-                        TextInput::make('youtube_url')
-                            ->label('YouTube URL / Video Link')
-                            ->required()
-                            ->url()
-                            ->columnSpanFull(),
+                            TextInput::make('youtube_url')
+                                ->label('YouTube URL / Video Link')
+                                ->required()
+                                ->url()
+                                ->columnSpanFull(),
 
-                        Select::make('category')
-                            ->label('Category')
-                            ->options(array_combine(ResourceVideo::CATEGORIES, ResourceVideo::CATEGORIES))
-                            ->required(),
+                            Select::make('category')
+                                ->label('Category')
+                                ->options(array_combine(ResourceVideo::CATEGORIES, ResourceVideo::CATEGORIES))
+                                ->required(),
 
-                        Select::make('target_level')
-                            ->label('Target Level')
-                            ->options([
-                                'Beginner' => 'Beginner',
-                                'Intermediate' => 'Intermediate',
-                                'Advanced' => 'Advanced',
-                            ]),
+                            Select::make('target_level')
+                                ->label('Target Level')
+                                ->options([
+                                    'Beginner' => 'Beginner',
+                                    'Intermediate' => 'Intermediate',
+                                    'Advanced' => 'Advanced',
+                                ]),
 
-                        Toggle::make('is_published')
-                            ->label('Published'),
+                            Toggle::make('is_published')
+                                ->label('Published'),
 
-                        Textarea::make('description')
-                            ->label('Description')
-                            ->rows(2)
-                            ->columnSpanFull(),
-                    ]),
-                DeleteAction::make(),
+                            Textarea::make('description')
+                                ->label('Description')
+                                ->rows(2)
+                                ->columnSpanFull(),
+                        ]),
+                    DeleteAction::make()->icon('heroicon-m-trash'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

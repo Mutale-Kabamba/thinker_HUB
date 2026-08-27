@@ -349,5 +349,9 @@
                 </form>
             </div>
         </div>
+
+        <div class="grid grid-cols-1 gap-6">
+            @include('partials.passkey-manager')
+        </div>
     </div>
 </x-filament-panels::page>
