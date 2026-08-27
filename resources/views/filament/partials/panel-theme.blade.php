@@ -3512,18 +3512,26 @@
         color: #c084fc !important;
     }
 
-    /* Brand Logo Light / Dark Mode Toggle Fix */
+    /* Brand Logo Light / Dark Mode Toggle */
     .fi-logo-dark {
         display: none !important;
     }
     .fi-logo-light {
-        display: block !important;
+        display: block;
     }
     .dark .fi-logo-light {
         display: none !important;
     }
     .dark .fi-logo-dark {
-        display: block !important;
+        display: block;
+    }
+
+    /* Prevent duplicate topbar logo across all screen sizes (logo belongs in sidebar header) */
+    .fi-topbar .fi-logo,
+    .fi-topbar-start a.fi-logo,
+    .fi-topbar-brand,
+    .fi-topbar-logo {
+        display: none !important;
     }
 
     /* Brand Logo Size Across All Panels */
