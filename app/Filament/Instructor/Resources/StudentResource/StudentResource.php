@@ -224,10 +224,11 @@ class StudentResource extends Resource
             ])
             ->defaultSort('name')
             ->recordActions([
-                \Filament\Actions\Action::make('award_gamification')
-                    ->label('Award XP & Badges')
-                    ->icon('heroicon-o-sparkles')
-                    ->color('warning')
+                \Filament\Actions\ActionGroup::make([
+                    \Filament\Actions\Action::make('award_gamification')
+                        ->label('Award XP & Badges')
+                        ->icon('heroicon-m-sparkles')
+                        ->color('warning')
                     ->modalHeading(fn (User $record): string => "Award XP & Badges to {$record->name}")
                     ->modalDescription('Recognize off-platform achievements such as classroom presentations, hackathon wins, live participation, leadership, or custom achievements.')
                     ->modalSubmitActionLabel('Award Reward')
@@ -348,9 +349,12 @@ class StudentResource extends Resource
                                 ->send();
                         }
                     }),
-                ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make(),
+                    ViewAction::make()->icon('heroicon-m-eye'),
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
+                    DeleteAction::make()->icon('heroicon-m-trash'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->bulkActions([
                 \Filament\Actions\BulkAction::make('bulk_award_gamification')

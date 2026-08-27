@@ -193,13 +193,13 @@
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 pt-1">
-                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-100 dark:border-slate-800 text-center">
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Learners</span>
-                            <span class="text-lg font-black text-slate-900 dark:text-white">{{ $totalStudents }}</span>
+                        <div class="p-2.5 rounded-xl bg-white/10 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/60 backdrop-blur-sm text-center">
+                            <span class="block text-xs font-semibold tracking-wider text-gray-600 dark:text-gray-300 uppercase">Learners</span>
+                            <span class="text-2xl font-black text-gray-900 dark:text-white">{{ $totalStudents }}</span>
                         </div>
-                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-100 dark:border-slate-800 text-center">
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Pending</span>
-                            <span class="text-lg font-black {{ $pendingSubmissionsCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">
+                        <div class="p-2.5 rounded-xl bg-white/10 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/60 backdrop-blur-sm text-center">
+                            <span class="block text-xs font-semibold tracking-wider text-gray-600 dark:text-gray-300 uppercase">Pending</span>
+                            <span class="text-2xl font-black {{ $pendingSubmissionsCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">
                                 {{ $pendingSubmissionsCount }}
                             </span>
                         </div>

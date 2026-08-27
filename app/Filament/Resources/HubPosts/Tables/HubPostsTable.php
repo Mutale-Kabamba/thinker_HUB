@@ -63,21 +63,25 @@ class HubPostsTable
                     ->label('Published'),
             ])
             ->recordActions([
-                \Filament\Actions\Action::make('approve')
-                    ->label('Approve & Publish')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible(fn (HubPost $record): bool => ! $record->is_published)
-                    ->action(fn (HubPost $record) => $record->update(['is_published' => true])),
+                \Filament\Actions\ActionGroup::make([
+                    \Filament\Actions\Action::make('approve')
+                        ->label('Approve & Publish')
+                        ->icon('heroicon-m-check-circle')
+                        ->color('success')
+                        ->visible(fn (HubPost $record): bool => ! $record->is_published)
+                        ->action(fn (HubPost $record) => $record->update(['is_published' => true])),
 
-                \Filament\Actions\Action::make('unpublish')
-                    ->label('Unpublish')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('warning')
-                    ->visible(fn (HubPost $record): bool => $record->is_published && (auth()->user()?->isAdmin() ?? false))
-                    ->action(fn (HubPost $record) => $record->update(['is_published' => false])),
+                    \Filament\Actions\Action::make('unpublish')
+                        ->label('Unpublish')
+                        ->icon('heroicon-m-x-circle')
+                        ->color('warning')
+                        ->visible(fn (HubPost $record): bool => $record->is_published && (auth()->user()?->isAdmin() ?? false))
+                        ->action(fn (HubPost $record) => $record->update(['is_published' => false])),
 
-                EditAction::make(),
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

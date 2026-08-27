@@ -11,6 +11,7 @@ use App\Notifications\CertificateIssuedNotification;
 use App\Services\CertificateService;
 use App\Services\GamificationService;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -137,91 +138,96 @@ class StudentsRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                Action::make('assign_intake')
-                    ->label('Assign Cohort')
-                    ->icon('heroicon-o-calendar-days')
-                    ->color('primary')
-                    ->modalHeading(fn (Enrollment $record): string => "Assign Intake Cohort for {$record->user?->name}")
-                    ->form([
-                        Select::make('course_intake_id')
-                            ->label('Class / Intake')
-                            ->placeholder('No specific cohort (General)')
-                            ->options(fn (Enrollment $record): array => CourseIntake::query()
-                                ->where('course_id', $record->course_id)
-                                ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
-                                ->orderBy('start_date', 'desc')
-                                ->get()
-                                ->mapWithKeys(fn (CourseIntake $i) => [$i->id => $i->name . ($i->is_active ? ' (Active)' : '')])
-                                ->toArray()
-                            )
-                            ->default(fn (Enrollment $record) => $record->course_intake_id)
-                            ->searchable(),
-                    ])
-                    ->action(function (Enrollment $record, array $data): void {
-                        $record->update(['course_intake_id' => $data['course_intake_id'] ?? null]);
-                        $intakeName = $record->fresh()->intake?->name ?? 'General (No cohort)';
-                        Notification::make()
-                            ->title("Intake updated to '{$intakeName}'.")
-                            ->success()
-                            ->send();
-                    }),
-
-                Action::make('toggle_completion')
-                    ->label(fn (Enrollment $record): string => $record->completed_at ? 'Reset Status' : 'Mark Complete')
-                    ->icon(fn (Enrollment $record): string => $record->completed_at ? 'heroicon-o-arrow-path' : 'heroicon-o-check-circle')
-                    ->color(fn (Enrollment $record): string => $record->completed_at ? 'gray' : 'success')
-                    ->action(function (Enrollment $record): void {
-                        if ($record->completed_at) {
-                            $record->markAsIncomplete();
-                            Certificate::query()
-                                ->where('user_id', $record->user_id)
-                                ->where('course_id', $record->course_id)
-                                ->delete();
-
-                            if ($record->user && $record->course) {
-                                try {
-                                    app(GamificationService::class)->revokeCourseCompleted($record->user, $record->course);
-                                } catch (\Throwable $e) {
-                                    report($e);
-                                }
-                            }
-
+                ActionGroup::make([
+                    Action::make('assign_intake')
+                        ->label('Assign Cohort')
+                        ->icon('heroicon-m-calendar-days')
+                        ->color('primary')
+                        ->modalHeading(fn (Enrollment $record): string => "Assign Intake Cohort for {$record->user?->name}")
+                        ->form([
+                            Select::make('course_intake_id')
+                                ->label('Class / Intake')
+                                ->placeholder('No specific cohort (General)')
+                                ->options(fn (Enrollment $record): array => CourseIntake::query()
+                                    ->where('course_id', $record->course_id)
+                                    ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
+                                    ->orderBy('start_date', 'desc')
+                                    ->get()
+                                    ->mapWithKeys(fn (CourseIntake $i) => [$i->id => $i->name . ($i->is_active ? ' (Active)' : '')])
+                                    ->toArray()
+                                )
+                                ->default(fn (Enrollment $record) => $record->course_intake_id)
+                                ->searchable(),
+                        ])
+                        ->action(function (Enrollment $record, array $data): void {
+                            $record->update(['course_intake_id' => $data['course_intake_id'] ?? null]);
+                            $intakeName = $record->fresh()->intake?->name ?? 'General (No cohort)';
                             Notification::make()
-                                ->title('Course completion reset and certificate revoked.')
-                                ->info()
+                                ->title("Intake updated to '{$intakeName}'.")
+                                ->success()
                                 ->send();
-                        } else {
-                            $record->markAsCompleted(auth()->user());
-                            if ($record->user && $record->course) {
-                                $certificate = app(CertificateService::class)->issue($record->user, $record->course, force: true);
-                                if ($certificate && $certificate->wasRecentlyCreated) {
+                        }),
+
+                    Action::make('toggle_completion')
+                        ->label(fn (Enrollment $record): string => $record->completed_at ? 'Reset Status' : 'Mark Complete')
+                        ->icon(fn (Enrollment $record): string => $record->completed_at ? 'heroicon-m-arrow-path' : 'heroicon-m-check-circle')
+                        ->color(fn (Enrollment $record): string => $record->completed_at ? 'gray' : 'success')
+                        ->action(function (Enrollment $record): void {
+                            if ($record->completed_at) {
+                                $record->markAsIncomplete();
+                                Certificate::query()
+                                    ->where('user_id', $record->user_id)
+                                    ->where('course_id', $record->course_id)
+                                    ->delete();
+
+                                if ($record->user && $record->course) {
                                     try {
-                                        $record->user->notify(new CertificateIssuedNotification($certificate));
+                                        app(GamificationService::class)->revokeCourseCompleted($record->user, $record->course);
                                     } catch (\Throwable $e) {
                                         report($e);
                                     }
                                 }
 
-                                try {
-                                    app(GamificationService::class)->awardCourseCompleted($record->user, $record->course);
-                                } catch (\Throwable $e) {
-                                    report($e);
+                                Notification::make()
+                                    ->title('Course completion reset and certificate revoked.')
+                                    ->info()
+                                    ->send();
+                            } else {
+                                $record->markAsCompleted(auth()->user());
+                                if ($record->user && $record->course) {
+                                    $certificate = app(CertificateService::class)->issue($record->user, $record->course, force: true);
+                                    if ($certificate && $certificate->wasRecentlyCreated) {
+                                        try {
+                                            $record->user->notify(new CertificateIssuedNotification($certificate));
+                                        } catch (\Throwable $e) {
+                                            report($e);
+                                        }
+                                    }
+
+                                    try {
+                                        app(GamificationService::class)->awardCourseCompleted($record->user, $record->course);
+                                    } catch (\Throwable $e) {
+                                        report($e);
+                                    }
                                 }
+
+                                Notification::make()
+                                    ->title('Course Marked Complete!')
+                                    ->body('Certificate and completion badge are now ready for ' . ($record->user?->name ?? 'student') . '.')
+                                    ->success()
+                                    ->send();
                             }
+                        }),
 
-                            Notification::make()
-                                ->title('Course Marked Complete!')
-                                ->body('Certificate and completion badge are now ready for ' . ($record->user?->name ?? 'student') . '.')
-                                ->success()
-                                ->send();
-                        }
-                    }),
-
-                DeleteAction::make()
-                    ->label('Remove from Course')
-                    ->modalHeading(fn (Enrollment $record): string => "Remove {$record->user?->name} from {$record->course?->title}?")
-                    ->modalDescription('Are you sure you want to remove this student from this course? This will unenrol them from the course.')
-                    ->successNotificationTitle('Student removed from course successfully.'),
+                    DeleteAction::make()
+                        ->label('Remove from Course')
+                        ->icon('heroicon-m-trash')
+                        ->modalHeading(fn (Enrollment $record): string => "Remove {$record->user?->name} from {$record->course?->title}?")
+                        ->modalDescription('Are you sure you want to remove this student from this course? This will unenrol them from the course.')
+                        ->successNotificationTitle('Student removed from course successfully.'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

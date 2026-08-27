@@ -5,6 +5,7 @@ namespace App\Filament\Resources\CourseIntakes\RelationManagers;
 use App\Models\Assessment;
 use App\Models\CourseIntake;
 use App\Models\User;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -135,46 +136,51 @@ class AssessmentsRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->form([
-                        TextInput::make('name')
-                            ->label('Assessment Name')
-                            ->required()
-                            ->maxLength(255),
+                ActionGroup::make([
+                    EditAction::make()
+                        ->icon('heroicon-m-pencil-square')
+                        ->form([
+                            TextInput::make('name')
+                                ->label('Assessment Name')
+                                ->required()
+                                ->maxLength(255),
 
-                        Select::make('target_level')
-                            ->label('Target Track / Level')
-                            ->required()
-                            ->options([
-                                'Beginner' => 'Beginner',
-                                'Intermediate' => 'Intermediate',
-                                'Advanced' => 'Advanced',
-                            ]),
+                            Select::make('target_level')
+                                ->label('Target Track / Level')
+                                ->required()
+                                ->options([
+                                    'Beginner' => 'Beginner',
+                                    'Intermediate' => 'Intermediate',
+                                    'Advanced' => 'Advanced',
+                                ]),
 
-                        DatePicker::make('date_given')
-                            ->label('Date Given')
-                            ->required(),
+                            DatePicker::make('date_given')
+                                ->label('Date Given')
+                                ->required(),
 
-                        DatePicker::make('due_date')
-                            ->label('Due Date')
-                            ->afterOrEqual('date_given')
-                            ->required(),
+                            DatePicker::make('due_date')
+                                ->label('Due Date')
+                                ->afterOrEqual('date_given')
+                                ->required(),
 
-                        FileUpload::make('file_paths')
-                            ->label('Assessment Document(s)')
-                            ->disk('public')
-                            ->directory('assessments')
-                            ->multiple()
-                            ->reorderable()
-                            ->maxSize(10240)
-                            ->columnSpanFull(),
+                            FileUpload::make('file_paths')
+                                ->label('Assessment Document(s)')
+                                ->disk('public')
+                                ->directory('assessments')
+                                ->multiple()
+                                ->reorderable()
+                                ->maxSize(10240)
+                                ->columnSpanFull(),
 
-                        Textarea::make('description')
-                            ->label('Instructions / Description')
-                            ->rows(3)
-                            ->columnSpanFull(),
-                    ]),
-                DeleteAction::make(),
+                            Textarea::make('description')
+                                ->label('Instructions / Description')
+                                ->rows(3)
+                                ->columnSpanFull(),
+                        ]),
+                    DeleteAction::make()->icon('heroicon-m-trash'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

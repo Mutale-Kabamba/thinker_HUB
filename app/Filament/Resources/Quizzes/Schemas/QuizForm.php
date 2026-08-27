@@ -21,7 +21,7 @@ class QuizForm
         return $schema
             ->components([
                 Section::make('Quiz Details')
-                    ->columns(2)
+                    ->columns(['default' => 1, 'md' => 2])
                     ->schema([
                         Select::make('course_id')
                             ->label('Course')
@@ -137,7 +137,7 @@ class QuizForm
                                         Checkbox::make('is_correct')
                                             ->label('Correct Answer'),
                                     ])
-                                    ->columns(2)
+                                    ->columns(['default' => 1, 'sm' => 2])
                                     ->minItems(2)
                                     ->maxItems(6)
                                     ->defaultItems(4)
@@ -146,7 +146,7 @@ class QuizForm
                                     ->reorderable()
                                     ->collapsible(),
                             ])
-                            ->columns(2)
+                            ->columns(['default' => 1, 'md' => 2])
                             ->defaultItems(1)
                             ->reorderable()
                             ->collapsible()

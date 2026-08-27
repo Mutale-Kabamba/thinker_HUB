@@ -15,10 +15,14 @@ class QuizPublishedNotification extends Notification implements ShouldQueue
 {
     use Queueable, ResolvesMailPersonalization;
 
+    public string $courseName;
+
     public function __construct(
         private readonly Quiz $quiz,
-        private readonly string $courseName,
-    ) {}
+        ?string $courseName = null,
+    ) {
+        $this->courseName = $courseName ?? $quiz->course?->title ?? 'your course';
+    }
 
     public function via(object $notifiable): array
     {
@@ -52,7 +56,8 @@ class QuizPublishedNotification extends Notification implements ShouldQueue
             ->actions([
                 Action::make('view')
                     ->label('Take quiz')
-                    ->url('/learn/quizzes'),
+                    ->url('/learn/quizzes')
+                    ->markAsRead(),
             ])
             ->getDatabaseMessage();
     }

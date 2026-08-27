@@ -2359,19 +2359,6 @@
         padding-bottom: 0.42rem;
     }
 
-    /* Student sidebar active state accent: keep brand-consistent teal/blue */
-    .fi-panel-student .fi-sidebar-item-button.fi-active,
-    .fi-panel-student .fi-sidebar-item-button[aria-current="page"] {
-        background: linear-gradient(135deg, color-mix(in oklab, var(--hub-primary) 92%, #0ea5e9 8%), #0ea5e9) !important;
-        color: #ffffff !important;
-        border: 1px solid color-mix(in oklab, var(--hub-primary) 65%, #0ea5e9 35%);
-        box-shadow: 0 10px 24px rgba(14, 116, 144, 0.24);
-    }
-
-    .fi-panel-student .fi-sidebar-item-button.fi-active .fi-icon,
-    .fi-panel-student .fi-sidebar-item-button[aria-current="page"] .fi-icon {
-        color: #ffffff !important;
-    }
     .fi-panel-admin .fi-input,
     .fi-panel-admin .fi-select-input,
     .fi-panel-admin .fi-ta-search-field input {
@@ -3220,41 +3207,309 @@
         padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
     }
 
-    /* Quyl Style Student Panel Sidebar Active Pill */
-    .fi-panel-student .fi-sidebar-item-active > .fi-sidebar-item-btn,
-    .fi-panel-student .fi-sidebar-item-active .fi-sidebar-item-btn {
-        background: #7C3AED !important;
-        color: #ffffff !important;
-        border-radius: 12px !important;
-        box-shadow: 0 4px 14px -2px rgba(124, 58, 237, 0.35) !important;
+    /* =========================================================================
+       GLOBAL UNIFIED SIDEBAR ARCHITECTURE (MINIMAL, INTUITIVE & STREAMLINED)
+       ========================================================================= */
+    
+    /* 1. Sidebar Container, Surfaces & Borders */
+    .fi-sidebar,
+    .fi-main-sidebar {
+        background-color: #ffffff !important;
+        border-right: 1px solid rgba(226, 232, 240, 0.85) !important;
+        transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), width 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: none !important;
     }
-    .fi-panel-student .fi-sidebar-item-active .fi-sidebar-item-btn svg,
-    .fi-panel-student .fi-sidebar-item-active .fi-sidebar-item-btn .fi-sidebar-item-label,
-    .fi-panel-student .fi-sidebar-item-active .fi-sidebar-item-btn span {
-        color: #ffffff !important;
-        font-weight: 700 !important;
-    }
-    .fi-panel-student .fi-sidebar-item-btn {
-        border-radius: 12px !important;
-        transition: all 0.15s ease !important;
+    .dark .fi-sidebar,
+    .dark .fi-main-sidebar {
+        background-color: #0b1120 !important;
+        border-right: 1px solid rgba(30, 41, 59, 0.85) !important;
     }
 
-    .fi-panel-instructor .fi-sidebar-item-active > .fi-sidebar-item-btn,
-    .fi-panel-instructor .fi-sidebar-item-active .fi-sidebar-item-btn {
-        background: linear-gradient(135deg, #0d9488, #0f766e) !important;
+    /* Desktop Sidebar Width Expansion (ensures labels never truncate awkwardly) */
+    @media (min-width: 1024px) {
+        .fi-sidebar,
+        .fi-main-sidebar {
+            width: 17.5rem !important;
+        }
+    }
+
+    /* 2. Sleek Custom Scrollbar on Sidebar Nav (replaces chunky OS scrollbar) */
+    .fi-sidebar-nav {
+        scrollbar-width: thin !important;
+        scrollbar-color: rgba(148, 163, 184, 0.2) transparent !important;
+        padding: 0.4rem 0.65rem 1.5rem 0.65rem !important;
+    }
+    .fi-sidebar-nav::-webkit-scrollbar {
+        width: 4px !important;
+    }
+    .fi-sidebar-nav::-webkit-scrollbar-track {
+        background: transparent !important;
+    }
+    .fi-sidebar-nav::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.18) !important;
+        border-radius: 9999px !important;
+    }
+    .fi-sidebar-nav:hover::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.38) !important;
+    }
+
+    /* 3. Header & Brand Logo Area */
+    .fi-sidebar-header {
+        height: 4.25rem !important;
+        min-height: 4.25rem !important;
+        padding: 0 1.25rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        border-bottom: 1px solid rgba(241, 245, 249, 0.9) !important;
+    }
+    .dark .fi-sidebar-header {
+        border-bottom: 1px solid rgba(30, 41, 59, 0.7) !important;
+    }
+
+    /* 4. Navigation Group Headers */
+    .fi-sidebar-group {
+        margin-bottom: 0.4rem !important;
+    }
+    .fi-sidebar-group-header,
+    .fi-sidebar-group-btn,
+    .fi-sidebar-group-button,
+    .fi-sidebar-group-label {
+        padding: 0.45rem 0.75rem 0.2rem 0.75rem !important;
+        margin-top: 0.4rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+    .fi-sidebar-group-label,
+    .fi-sidebar-group-button span,
+    .fi-sidebar-group-header span {
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.06em !important;
+        color: #94a3b8 !important;
+    }
+    .dark .fi-sidebar-group-label,
+    .dark .fi-sidebar-group-button span,
+    .dark .fi-sidebar-group-header span {
+        color: #64748b !important;
+    }
+    .fi-sidebar-group-collapse-btn svg,
+    .fi-sidebar-group-button svg {
+        width: 0.85rem !important;
+        height: 0.85rem !important;
+        color: #94a3b8 !important;
+        transition: transform 0.2s ease !important;
+    }
+
+    /* 5. Navigation Items & Links */
+    .fi-sidebar-item {
+        margin: 1.5px 0 !important;
+    }
+    .fi-sidebar-item-btn,
+    .fi-sidebar-item-button,
+    a.fi-sidebar-item-btn,
+    button.fi-sidebar-item-btn {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        padding: 0.45rem 0.75rem !important;
+        min-height: 2.35rem !important;
+        border-radius: 0.65rem !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        line-height: 1.25rem !important;
+        color: #475569 !important;
+        background-color: transparent !important;
+        border: 1px solid transparent !important;
+        box-shadow: none !important;
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        cursor: pointer !important;
+    }
+    .dark .fi-sidebar-item-btn,
+    .dark .fi-sidebar-item-button,
+    .dark a.fi-sidebar-item-btn,
+    .dark button.fi-sidebar-item-btn {
+        color: #cbd5e1 !important;
+    }
+
+    /* Item Icons */
+    .fi-sidebar-item-btn svg,
+    .fi-sidebar-item-button svg,
+    .fi-sidebar-item-icon {
+        width: 1.2rem !important;
+        height: 1.2rem !important;
+        min-width: 1.2rem !important;
+        min-height: 1.2rem !important;
+        color: #64748b !important;
+        transition: color 0.15s ease, transform 0.15s ease !important;
+        flex-shrink: 0 !important;
+    }
+    .dark .fi-sidebar-item-btn svg,
+    .dark .fi-sidebar-item-button svg,
+    .dark .fi-sidebar-item-icon {
+        color: #94a3b8 !important;
+    }
+
+    /* Item Labels */
+    .fi-sidebar-item-label,
+    .fi-sidebar-item-btn .fi-sidebar-item-label,
+    .fi-sidebar-item-button .fi-sidebar-item-label,
+    .fi-sidebar-item-btn > span,
+    .fi-sidebar-item-button > span {
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        flex: 1 !important;
+    }
+
+    /* Hover State (All Panels) */
+    .fi-sidebar-item-btn:hover,
+    .fi-sidebar-item-button:hover,
+    a.fi-sidebar-item-btn:hover,
+    button.fi-sidebar-item-btn:hover {
+        background-color: rgba(241, 245, 249, 0.9) !important;
+        color: #0f172a !important;
+    }
+    .dark .fi-sidebar-item-btn:hover,
+    .dark .fi-sidebar-item-button:hover,
+    .dark a.fi-sidebar-item-btn:hover,
+    .dark button.fi-sidebar-item-btn:hover {
+        background-color: rgba(30, 41, 59, 0.7) !important;
         color: #ffffff !important;
-        border-radius: 12px !important;
-        box-shadow: 0 4px 14px -2px rgba(13, 148, 136, 0.35) !important;
+    }
+    .fi-sidebar-item-btn:hover svg,
+    .fi-sidebar-item-button:hover svg,
+    .fi-sidebar-item-btn:hover .fi-sidebar-item-icon {
+        color: #0f172a !important;
+    }
+    .dark .fi-sidebar-item-btn:hover svg,
+    .dark .fi-sidebar-item-button:hover svg,
+    .dark .fi-sidebar-item-btn:hover .fi-sidebar-item-icon {
+        color: #ffffff !important;
+    }
+
+    /* 6. Active State Across Panels (Refined Modern Glassmorphic Pill) */
+
+    /* INSTRUCTOR PANEL ACTIVE */
+    .fi-panel-instructor .fi-sidebar-item-active > .fi-sidebar-item-btn,
+    .fi-panel-instructor .fi-sidebar-item-active .fi-sidebar-item-btn,
+    .fi-panel-instructor .fi-sidebar-item-button.fi-active,
+    .fi-panel-instructor .fi-sidebar-item-button[aria-current="page"] {
+        background: rgba(13, 148, 136, 0.09) !important;
+        color: #0d9488 !important;
+        font-weight: 600 !important;
+        border: 1px solid rgba(13, 148, 136, 0.22) !important;
+        box-shadow: 0 1px 3px 0 rgba(13, 148, 136, 0.08) !important;
+    }
+    .dark .fi-panel-instructor .fi-sidebar-item-active > .fi-sidebar-item-btn,
+    .dark .fi-panel-instructor .fi-sidebar-item-active .fi-sidebar-item-btn,
+    .dark .fi-panel-instructor .fi-sidebar-item-button.fi-active,
+    .dark .fi-panel-instructor .fi-sidebar-item-button[aria-current="page"] {
+        background: rgba(20, 184, 166, 0.16) !important;
+        color: #2dd4bf !important;
+        border: 1px solid rgba(45, 212, 191, 0.25) !important;
     }
     .fi-panel-instructor .fi-sidebar-item-active .fi-sidebar-item-btn svg,
-    .fi-panel-instructor .fi-sidebar-item-active .fi-sidebar-item-btn .fi-sidebar-item-label,
-    .fi-panel-instructor .fi-sidebar-item-active .fi-sidebar-item-btn span {
-        color: #ffffff !important;
-        font-weight: 700 !important;
+    .fi-panel-instructor .fi-sidebar-item-button.fi-active svg,
+    .fi-panel-instructor .fi-sidebar-item-button[aria-current="page"] svg {
+        color: #0d9488 !important;
     }
-    .fi-panel-instructor .fi-sidebar-item-btn {
-        border-radius: 12px !important;
-        transition: all 0.15s ease !important;
+    .dark .fi-panel-instructor .fi-sidebar-item-active .fi-sidebar-item-btn svg,
+    .dark .fi-panel-instructor .fi-sidebar-item-button.fi-active svg,
+    .dark .fi-panel-instructor .fi-sidebar-item-button[aria-current="page"] svg {
+        color: #2dd4bf !important;
+    }
+
+    /* STUDENT PANEL ACTIVE */
+    .fi-panel-student .fi-sidebar-item-active > .fi-sidebar-item-btn,
+    .fi-panel-student .fi-sidebar-item-active .fi-sidebar-item-btn,
+    .fi-panel-student .fi-sidebar-item-button.fi-active,
+    .fi-panel-student .fi-sidebar-item-button[aria-current="page"] {
+        background: rgba(2, 132, 199, 0.09) !important;
+        color: #0284c7 !important;
+        font-weight: 600 !important;
+        border: 1px solid rgba(2, 132, 199, 0.22) !important;
+        box-shadow: 0 1px 3px 0 rgba(2, 132, 199, 0.08) !important;
+    }
+    .dark .fi-panel-student .fi-sidebar-item-active > .fi-sidebar-item-btn,
+    .dark .fi-panel-student .fi-sidebar-item-active .fi-sidebar-item-btn,
+    .dark .fi-panel-student .fi-sidebar-item-button.fi-active,
+    .dark .fi-panel-student .fi-sidebar-item-button[aria-current="page"] {
+        background: rgba(56, 189, 248, 0.16) !important;
+        color: #38bdf8 !important;
+        border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    }
+    .fi-panel-student .fi-sidebar-item-active .fi-sidebar-item-btn svg,
+    .fi-panel-student .fi-sidebar-item-button.fi-active svg,
+    .fi-panel-student .fi-sidebar-item-button[aria-current="page"] svg {
+        color: #0284c7 !important;
+    }
+    .dark .fi-panel-student .fi-sidebar-item-active .fi-sidebar-item-btn svg,
+    .dark .fi-panel-student .fi-sidebar-item-button.fi-active svg,
+    .dark .fi-panel-student .fi-sidebar-item-button[aria-current="page"] svg {
+        color: #38bdf8 !important;
+    }
+
+    /* ADMIN PANEL ACTIVE */
+    .fi-panel-admin .fi-sidebar-item-active > .fi-sidebar-item-btn,
+    .fi-panel-admin .fi-sidebar-item-active .fi-sidebar-item-btn,
+    .fi-panel-admin .fi-sidebar-item-button.fi-active,
+    .fi-panel-admin .fi-sidebar-item-button[aria-current="page"] {
+        background: rgba(15, 118, 110, 0.09) !important;
+        color: #0f766e !important;
+        font-weight: 600 !important;
+        border: 1px solid rgba(15, 118, 110, 0.22) !important;
+        box-shadow: 0 1px 3px 0 rgba(15, 118, 110, 0.08) !important;
+    }
+    .dark .fi-panel-admin .fi-sidebar-item-active > .fi-sidebar-item-btn,
+    .dark .fi-panel-admin .fi-sidebar-item-active .fi-sidebar-item-btn,
+    .dark .fi-panel-admin .fi-sidebar-item-button.fi-active,
+    .dark .fi-panel-admin .fi-sidebar-item-button[aria-current="page"] {
+        background: rgba(45, 212, 191, 0.16) !important;
+        color: #2dd4bf !important;
+        border: 1px solid rgba(45, 212, 191, 0.25) !important;
+    }
+    .fi-panel-admin .fi-sidebar-item-active .fi-sidebar-item-btn svg,
+    .fi-panel-admin .fi-sidebar-item-button.fi-active svg,
+    .fi-panel-admin .fi-sidebar-item-button[aria-current="page"] svg {
+        color: #0f766e !important;
+    }
+    .dark .fi-panel-admin .fi-sidebar-item-active .fi-sidebar-item-btn svg,
+    .dark .fi-panel-admin .fi-sidebar-item-button.fi-active svg,
+    .dark .fi-panel-admin .fi-sidebar-item-button[aria-current="page"] svg {
+        color: #2dd4bf !important;
+    }
+
+    /* CONTRIBUTOR PANEL ACTIVE */
+    .fi-panel-contributor .fi-sidebar-item-active > .fi-sidebar-item-btn,
+    .fi-panel-contributor .fi-sidebar-item-active .fi-sidebar-item-btn,
+    .fi-panel-contributor .fi-sidebar-item-button.fi-active,
+    .fi-panel-contributor .fi-sidebar-item-button[aria-current="page"] {
+        background: rgba(124, 58, 237, 0.09) !important;
+        color: #7c3aed !important;
+        font-weight: 600 !important;
+        border: 1px solid rgba(124, 58, 237, 0.22) !important;
+        box-shadow: 0 1px 3px 0 rgba(124, 58, 237, 0.08) !important;
+    }
+    .dark .fi-panel-contributor .fi-sidebar-item-active > .fi-sidebar-item-btn,
+    .dark .fi-panel-contributor .fi-sidebar-item-active .fi-sidebar-item-btn,
+    .dark .fi-panel-contributor .fi-sidebar-item-button.fi-active,
+    .dark .fi-panel-contributor .fi-sidebar-item-button[aria-current="page"] {
+        background: rgba(167, 139, 250, 0.16) !important;
+        color: #c084fc !important;
+        border: 1px solid rgba(167, 139, 250, 0.25) !important;
+    }
+    .fi-panel-contributor .fi-sidebar-item-active .fi-sidebar-item-btn svg,
+    .fi-panel-contributor .fi-sidebar-item-button.fi-active svg,
+    .fi-panel-contributor .fi-sidebar-item-button[aria-current="page"] svg {
+        color: #7c3aed !important;
+    }
+    .dark .fi-panel-contributor .fi-sidebar-item-active .fi-sidebar-item-btn svg,
+    .dark .fi-panel-contributor .fi-sidebar-item-button.fi-active svg,
+    .dark .fi-panel-contributor .fi-sidebar-item-button[aria-current="page"] svg {
+        color: #c084fc !important;
     }
 
     /* Brand Logo Light / Dark Mode Toggle Fix */
@@ -3517,10 +3772,237 @@
         background: #0d1b22 !important;
         border-top-color: #1e3542 !important;
     }
+
+    /* ==========================================================================
+       MOBILE RESPONSIVE FILAMENT ENFORCEMENTS
+       ========================================================================== */
+
+    @media (max-width: 639px) {
+        .fi-topbar {
+            padding-left: max(0.5rem, env(safe-area-inset-left)) !important;
+            padding-right: max(0.5rem, env(safe-area-inset-right)) !important;
+            padding-top: env(safe-area-inset-top) !important;
+        }
+
+        .fi-topbar-item-btn,
+        .fi-topbar-open-sidebar-btn,
+        .fi-topbar-close-sidebar-btn {
+            min-height: 44px !important;
+            min-width: 44px !important;
+        }
+
+        .fi-main-ctn {
+            padding-left: max(0.75rem, env(safe-area-inset-left)) !important;
+            padding-right: max(0.75rem, env(safe-area-inset-right)) !important;
+            padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+        }
+
+        /* Mobile full-width / bottom-sheet modals */
+        .fi-modal-window {
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: 100dvh !important;
+            border-radius: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .fi-modal-content {
+            flex: 1 1 auto !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            padding: 1rem !important;
+        }
+
+        .fi-modal-footer {
+            padding: 0.75rem 1rem max(0.75rem, env(safe-area-inset-bottom)) 1rem !important;
+        }
+
+        /* Table responsiveness */
+        .fi-ta-ctn {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .fi-ta-table {
+            min-width: 100% !important;
+        }
+
+        .fi-ta-header-toolbar {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.5rem !important;
+        }
+
+        .fi-ta-search-field,
+        .fi-ta-search-field input {
+            width: 100% !important;
+        }
+
+        /* Form grids stack cleanly */
+        .fi-fo-field-wrp {
+            width: 100% !important;
+        }
+    }
+
+    /* ==========================================================================
+       WCAG AA CONTRAST & DARK MODE TABLE HARMONIZATION
+       ========================================================================== */
+
+    /* 1. Table Action Links & Buttons */
+    .fi-ta-action,
+    .fi-ta-actions button,
+    .fi-ta-actions a,
+    [class*="fi-ta-action"] {
+        font-weight: 600 !important;
+        transition: color 0.15s ease, opacity 0.15s ease !important;
+    }
+
+    .dark .fi-ta-action,
+    .dark .fi-ta-actions button,
+    .dark .fi-ta-actions a,
+    .dark [class*="fi-ta-action"] {
+        color: #2dd4bf !important;
+    }
+
+    .dark .fi-ta-action:hover,
+    .dark .fi-ta-actions button:hover,
+    .dark .fi-ta-actions a:hover,
+    .dark [class*="fi-ta-action"]:hover {
+        color: #5eead4 !important;
+    }
+
+    .dark .fi-ta-actions [class*="text-gray"],
+    .dark .fi-ta-actions [class*="text-slate"] {
+        color: #cbd5e1 !important;
+    }
+
+    .dark .fi-ta-actions [class*="text-danger"],
+    .dark .fi-ta-actions [class*="text-rose"] {
+        color: #fb7185 !important;
+    }
+
+    .dark .fi-ta-actions [class*="text-warning"],
+    .dark .fi-ta-actions [class*="text-amber"] {
+        color: #fbbf24 !important;
+    }
+
+    /* 2. Table Headers & Rows */
+    .fi-ta-header-cell,
+    th.fi-ta-header-cell,
+    [class*="fi-ta-header-cell"] {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        font-size: 0.72rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    .dark .fi-ta-header-cell,
+    .dark th.fi-ta-header-cell,
+    .dark [class*="fi-ta-header-cell"] {
+        background: #11222c !important;
+        color: #cbd5e1 !important;
+        border-bottom: 1px solid #243c49 !important;
+    }
+
+    .dark .fi-ta-header-cell-label {
+        color: #cbd5e1 !important;
+    }
+
+    .dark .fi-ta-cell,
+    .dark td.fi-ta-cell,
+    .dark [class*="fi-ta-cell"] {
+        color: #f1f5f9 !important;
+        border-bottom-color: #1e3542 !important;
+    }
+
+    .dark .fi-ta-row:hover {
+        background: rgba(30, 58, 73, 0.3) !important;
+    }
+
+    /* 3. Search Bar, Dropdowns & Inputs in Dark Mode */
+    .dark .fi-ta-search-field,
+    .dark .fi-ta-search-field input,
+    .dark .fi-input-wrp,
+    .dark .fi-select-input-wrp,
+    .dark .fi-input {
+        background: #11222c !important;
+        border-color: #243c49 !important;
+        color: #f1f5f9 !important;
+    }
+
+    .dark .fi-ta-search-field input::placeholder,
+    .dark .fi-input::placeholder {
+        color: #64748b !important;
+    }
+
+    .dark .fi-ta-search-field input:focus,
+    .dark .fi-input:focus {
+        border-color: #0d9488 !important;
+        box-shadow: 0 0 0 1px #0d9488 !important;
+    }
+
+    /* 4. Pagination Controls in Dark Mode */
+    .dark .fi-pagination,
+    .dark .fi-ta-pagination,
+    .dark .fi-pagination-item-btn,
+    .dark .fi-pagination-nav-btn {
+        color: #cbd5e1 !important;
+    }
+
+    .dark .fi-pagination-item-btn,
+    .dark .fi-pagination-nav-btn {
+        background: #11222c !important;
+        border: 1px solid #243c49 !important;
+    }
+
+    .dark .fi-pagination-item-btn:hover,
+    .dark .fi-pagination-nav-btn:hover {
+        background: #193240 !important;
+        color: #ffffff !important;
+    }
+
+    .dark .fi-pagination-item-btn.fi-active,
+    .dark [aria-current="page"].fi-pagination-item-btn {
+        background: #0d9488 !important;
+        color: #ffffff !important;
+        border-color: #0d9488 !important;
+    }
+
+    .dark .fi-ta-pagination select,
+    .dark .fi-pagination select {
+        background: #11222c !important;
+        border: 1px solid #243c49 !important;
+        color: #f1f5f9 !important;
+    }
 </style>
 
 <script>
     (() => {
+        // Enforce viewport-fit=cover on panel loads
+        const ensureViewportMeta = () => {
+            let meta = document.querySelector('meta[name="viewport"]');
+            if (meta) {
+                if (!meta.content.includes('viewport-fit=cover')) {
+                    meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover';
+                }
+            } else {
+                meta = document.createElement('meta');
+                meta.name = 'viewport';
+                meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover';
+                document.head.appendChild(meta);
+            }
+        };
+        ensureViewportMeta();
+
         const closeMobileSidebar = () => {
             if (window.innerWidth < 1024) {
                 try {
@@ -3548,12 +4030,14 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            ensureViewportMeta();
             if (window.innerWidth < 1024) {
                 closeMobileSidebar();
             }
         });
 
         document.addEventListener('livewire:navigated', () => {
+            ensureViewportMeta();
             if (window.innerWidth < 1024) {
                 closeMobileSidebar();
             }
@@ -3579,3 +4063,4 @@
 </script>
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
+

@@ -44,36 +44,36 @@
             @endauth
         </div>
 
-        <button class="text-2xl text-slate-700 md:hidden" @click="mobileMenu = !mobileMenu" aria-label="Toggle menu">
+        <button class="text-2xl text-slate-700 md:hidden p-2.5 rounded-lg hover:bg-slate-100 touch-target active:scale-95" @click="mobileMenu = !mobileMenu" aria-label="Toggle menu">
             <i class="fa-solid" :class="mobileMenu ? 'fa-xmark' : 'fa-bars-staggered'"></i>
         </button>
     </div>
 
-    <div class="border-t border-slate-200/80 bg-white/95 md:hidden" x-show="mobileMenu" x-cloak x-transition>
-        <nav class="hub-public-nav flex flex-col gap-3 p-6 font-semibold text-slate-700">
+    <div class="border-t border-slate-200/80 bg-white/98 backdrop-blur-md md:hidden max-h-[calc(100dvh-5rem)] overflow-y-auto safe-pb" x-show="mobileMenu" x-cloak x-transition>
+        <nav class="hub-public-nav flex flex-col gap-1.5 p-4 font-semibold text-slate-700">
             @foreach ($navItems as $item)
                 <a
                     href="{{ route($item['route']) }}"
-                    class="{{ request()->routeIs($item['route']) ? 'bg-teal-100/80 text-teal-700 p-2 rounded-lg' : 'p-2' }}"
+                    class="min-h-[44px] flex items-center px-4 py-2.5 rounded-xl transition text-sm {{ request()->routeIs($item['route']) ? 'bg-teal-100/80 text-teal-800 font-bold' : 'hover:bg-slate-100' }}"
                 >{{ $item['label'] }}</a>
             @endforeach
 
             @auth
-                <div class="pt-4 border-t border-slate-100 flex flex-col gap-2">
-                    <a href="{{ route('dashboard') }}" class="w-full rounded-xl bg-[#0a2d27] py-3 text-center text-xs font-bold text-white shadow-sm">
-                        <i class="fa-solid fa-gauge mr-1"></i> Dashboard ({{ auth()->user()->name }})
+                <div class="pt-3 mt-1 border-t border-slate-100 flex flex-col gap-2">
+                    <a href="{{ route('dashboard') }}" class="w-full min-h-[46px] flex items-center justify-center rounded-xl bg-[#0a2d27] py-3 text-center text-xs font-bold text-white shadow-xs active:scale-98">
+                        <i class="fa-solid fa-gauge mr-2"></i> Dashboard ({{ auth()->user()->name }})
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="w-full rounded-xl border border-slate-200 py-2.5 text-center text-xs font-bold text-rose-600 hover:bg-rose-50 transition">
+                        <button type="submit" class="w-full min-h-[44px] rounded-xl border border-slate-200 py-2.5 text-center text-xs font-bold text-rose-600 hover:bg-rose-50 active:scale-98 transition">
                             Log Out
                         </button>
                     </form>
                 </div>
             @else
-                <div class="pt-4 flex gap-4 border-t border-slate-100">
-                    <a href="{{ route('login') }}" class="hub-public-auth-link flex-1 rounded-xl border border-slate-200 py-3 text-center text-slate-700 transition-colors">Login</a>
-                    <a href="{{ route('register') }}" class="hub-public-cta flex-1 rounded-xl py-3 text-center font-bold transition duration-300 ease-out">Join</a>
+                <div class="pt-3 mt-1 flex gap-3 border-t border-slate-100">
+                    <a href="{{ route('login') }}" class="hub-public-auth-link flex-1 min-h-[46px] flex items-center justify-center rounded-xl border border-slate-200 py-2.5 text-center text-xs font-bold text-slate-700 transition active:scale-98">Login</a>
+                    <a href="{{ route('register') }}" class="hub-public-cta flex-1 min-h-[46px] flex items-center justify-center rounded-xl py-2.5 text-center text-xs font-bold text-white transition duration-300 ease-out active:scale-98">Join</a>
                 </div>
             @endauth
         </nav>

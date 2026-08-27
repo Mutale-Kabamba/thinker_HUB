@@ -22,21 +22,21 @@
         </div>
 
         @if ($decisionNotificationId)
-            <div style="position:fixed;inset:0;background:rgba(15,23,42,0.45);display:flex;align-items:center;justify-content:center;padding:1rem;z-index:60;">
-                <div style="width:min(100%,680px);max-height:90vh;overflow:auto;background:var(--hub-surface);border:1px solid var(--hub-border);border-radius:14px;padding:1rem;box-shadow:0 20px 45px rgba(2,6,23,0.28);">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
+            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+                <div class="w-full sm:max-w-2xl max-h-[90dvh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-2xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl safe-pb">
+                    <div class="flex justify-between items-start gap-4">
                         <div>
-                            <p class="hub-eyebrow">Reschedule Decision Wizard</p>
-                            <h3 class="hub-title" style="font-size:1rem;">Request From {{ $decisionStudentName }}</h3>
+                            <p class="text-[11px] uppercase tracking-wider font-bold text-teal-600 dark:text-teal-400">Reschedule Decision Wizard</p>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-0.5">Request From {{ $decisionStudentName }}</h3>
                         </div>
-                        <button wire:click="closeDecisionWizard" class="hub-btn hub-btn-muted" style="font-size:0.72rem;padding:0.3rem 0.6rem;">Close</button>
+                        <button wire:click="closeDecisionWizard" class="min-h-[40px] px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition active:scale-95">Close</button>
                     </div>
 
                     @if ($decisionStep === 'review')
-                        <div style="margin-top:0.75rem;border:1px solid var(--hub-border);border-radius:10px;padding:0.7rem;background:var(--hub-surface-soft);">
-                            <p style="font-size:0.74rem;color:var(--hub-muted);">Session ID: {{ $decisionSessionId }}</p>
-                            <p style="font-size:0.8rem;color:var(--hub-ink);margin-top:0.3rem;"><strong>Reason:</strong> {{ $decisionReason ?: 'No reason provided.' }}</p>
-                            <p style="font-size:0.78rem;color:var(--hub-ink);margin-top:0.35rem;"><strong>Preferred:</strong>
+                        <div class="mt-4 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Session ID: <span class="font-mono font-medium text-slate-700 dark:text-slate-300">{{ $decisionSessionId }}</span></p>
+                            <p class="text-sm text-slate-800 dark:text-slate-200 mt-2"><strong>Reason:</strong> {{ $decisionReason ?: 'No reason provided.' }}</p>
+                            <p class="text-xs sm:text-sm text-slate-800 dark:text-slate-200 mt-2"><strong>Preferred:</strong>
                                 {{ $decisionPreferredDate ?: 'No preferred date' }}
                                 @if ($decisionPreferredTime)
                                     at {{ $decisionPreferredTime }}
@@ -44,47 +44,47 @@
                             </p>
                         </div>
 
-                        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
-                            <button wire:click="setDecisionStep('accept')" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Accept Request</button>
-                            <button wire:click="setDecisionStep('decline')" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Decline Request</button>
+                        <div class="mt-4 flex flex-col sm:flex-row gap-2.5">
+                            <button wire:click="setDecisionStep('accept')" class="min-h-[44px] px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs sm:text-sm font-bold shadow-md transition active:scale-95">Accept Request</button>
+                            <button wire:click="setDecisionStep('decline')" class="min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition active:scale-95">Decline Request</button>
                         </div>
                     @endif
 
                     @if ($decisionStep === 'accept')
-                        <div style="margin-top:0.75rem;border:1px solid var(--hub-border);border-radius:10px;padding:0.7rem;background:var(--hub-surface-soft);">
-                            <p style="font-weight:700;font-size:0.82rem;color:var(--hub-ink);">Accept and Apply New Time</p>
-                            <div style="margin-top:0.55rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        <div class="mt-4 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50">
+                            <p class="font-bold text-sm text-slate-900 dark:text-white">Accept and Apply New Time</p>
+                            <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
-                                    <label style="font-size:0.7rem;font-weight:600;color:var(--hub-muted);">Rescheduled Date</label>
-                                    <input type="date" wire:model="decisionDate" style="display:block;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
+                                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Rescheduled Date</label>
+                                    <input type="date" wire:model="decisionDate" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500">
                                 </div>
                                 <div>
-                                    <label style="font-size:0.7rem;font-weight:600;color:var(--hub-muted);">Start Time</label>
-                                    <input type="time" wire:model="decisionStartTime" style="display:block;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
+                                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Start Time</label>
+                                    <input type="time" wire:model="decisionStartTime" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500">
                                 </div>
                                 <div>
-                                    <label style="font-size:0.7rem;font-weight:600;color:var(--hub-muted);">End Time</label>
-                                    <input type="time" wire:model="decisionEndTime" style="display:block;padding:0.35rem 0.5rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);">
+                                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">End Time</label>
+                                    <input type="time" wire:model="decisionEndTime" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500">
                                 </div>
                             </div>
                         </div>
 
-                        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
-                            <button wire:click="acceptRequest" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Confirm Accept</button>
-                            <button wire:click="setDecisionStep('review')" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Back</button>
+                        <div class="mt-4 flex flex-col sm:flex-row gap-2.5">
+                            <button wire:click="acceptRequest" class="min-h-[44px] px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs sm:text-sm font-bold shadow-md transition active:scale-95">Confirm Accept</button>
+                            <button wire:click="setDecisionStep('review')" class="min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition active:scale-95">Back</button>
                         </div>
                     @endif
 
                     @if ($decisionStep === 'decline')
-                        <div style="margin-top:0.75rem;border:1px solid var(--hub-border);border-radius:10px;padding:0.7rem;background:var(--hub-surface-soft);">
-                            <p style="font-weight:700;font-size:0.82rem;color:var(--hub-ink);">Decline Request</p>
-                            <label style="display:block;font-size:0.7rem;font-weight:600;color:var(--hub-muted);margin-top:0.45rem;">Optional message to student</label>
-                            <textarea wire:model="declineReason" rows="3" style="display:block;width:100%;margin-top:0.2rem;padding:0.45rem 0.55rem;border:1px solid var(--hub-border);border-radius:6px;font-size:0.8rem;background:var(--hub-surface);color:var(--hub-ink);resize:vertical;" placeholder="Add context for the student"></textarea>
+                        <div class="mt-4 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50">
+                            <p class="font-bold text-sm text-slate-900 dark:text-white">Decline Request</p>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mt-2 mb-1">Optional message to student</label>
+                            <textarea wire:model="declineReason" rows="3" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 resize-y" placeholder="Add context for the student"></textarea>
                         </div>
 
-                        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
-                            <button wire:click="declineRequest" class="hub-btn hub-btn-primary" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Confirm Decline</button>
-                            <button wire:click="setDecisionStep('review')" class="hub-btn hub-btn-muted" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Back</button>
+                        <div class="mt-4 flex flex-col sm:flex-row gap-2.5">
+                            <button wire:click="declineRequest" class="min-h-[44px] px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-bold shadow-md transition active:scale-95">Confirm Decline</button>
+                            <button wire:click="setDecisionStep('review')" class="min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition active:scale-95">Back</button>
                         </div>
                     @endif
                 </div>

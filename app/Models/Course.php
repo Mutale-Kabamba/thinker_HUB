@@ -460,8 +460,19 @@ class Course extends Model
     /**
      * Get numeric fee for exact level and mode combination.
      */
+    public function isFreeCourse(): bool
+    {
+        $rawFees = strtolower(trim((string) $this->fees));
+
+        return $rawFees === '0' || $rawFees === '0.00' || $rawFees === '0.0' || $rawFees === 'free';
+    }
+
     public function getNumericFeeForOption(?string $level = null, ?string $mode = null): float
     {
+        if ($this->isFreeCourse()) {
+            return 0.0;
+        }
+
         $options = $this->getFeeOptions();
 
         if (empty($options)) {
@@ -523,6 +534,10 @@ class Course extends Model
 
     public function isPayable(?string $level = null, ?string $mode = null): bool
     {
+        if ($this->isFreeCourse()) {
+            return false;
+        }
+
         return $this->getNumericFeeForOption($level, $mode) > 0 || $this->getNumericFee() > 0;
     }
 

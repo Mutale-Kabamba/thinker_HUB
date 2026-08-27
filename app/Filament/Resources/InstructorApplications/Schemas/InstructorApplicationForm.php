@@ -16,7 +16,7 @@ class InstructorApplicationForm
         return $schema
             ->components([
                 Section::make('Applicant Information')
-                    ->columns(2)
+                    ->columns(['default' => 1, 'md' => 2])
                     ->schema([
                         TextInput::make('name')
                             ->disabled(),
@@ -71,7 +71,7 @@ class InstructorApplicationForm
                     ]),
 
                 Section::make('Course Proposal')
-                    ->columns(2)
+                    ->columns(['default' => 1, 'md' => 2])
                     ->schema([
                         TextInput::make('proposal_type')
                             ->label('Proposal Type')

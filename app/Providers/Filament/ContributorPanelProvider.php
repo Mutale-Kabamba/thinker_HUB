@@ -40,7 +40,13 @@ class ContributorPanelProvider extends PanelProvider
             ->login(SharedLogin::class)
             ->colors([
                 'primary' => Color::Teal,
+                'gray' => Color::Slate,
+                'info' => Color::Sky,
+                'success' => Color::Emerald,
+                'warning' => Color::Amber,
+                'danger' => Color::Rose,
             ])
+            ->font('Plus Jakarta Sans', url: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap')
             ->sidebarCollapsibleOnDesktop()
             ->databaseNotifications()
             ->databaseNotificationsPolling(null)

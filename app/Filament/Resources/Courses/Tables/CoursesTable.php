@@ -86,21 +86,25 @@ class CoursesTable
                     }),
             ])
             ->recordActions([
-                Action::make('viewDetails')
-                    ->label('View Details')
-                    ->icon('heroicon-o-eye')
-                    ->color('info')
-                    ->tooltip('Open structured course details')
-                    ->modalHeading('Course Details')
-                    ->modalWidth('4xl')
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Close')
-                    ->modalContent(fn (Course $record): View => view('filament.partials.course-view-details', [
-                        'record' => $record,
-                        'feeSections' => self::feeSections($record->fees),
-                        'progressionCards' => self::levelProgressionCards($record->level_progression),
-                    ])),
-                EditAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    Action::make('viewDetails')
+                        ->label('View Details')
+                        ->icon('heroicon-m-eye')
+                        ->color('info')
+                        ->tooltip('Open structured course details')
+                        ->modalHeading('Course Details')
+                        ->modalWidth('4xl')
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Close')
+                        ->modalContent(fn (Course $record): View => view('filament.partials.course-view-details', [
+                            'record' => $record,
+                            'feeSections' => self::feeSections($record->fees),
+                            'progressionCards' => self::levelProgressionCards($record->level_progression),
+                        ])),
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

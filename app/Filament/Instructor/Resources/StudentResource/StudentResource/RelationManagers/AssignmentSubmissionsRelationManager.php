@@ -48,28 +48,32 @@ class AssignmentSubmissionsRelationManager extends RelationManager
                     ->sortable(),
             ])
             ->recordActions([
-                \Filament\Actions\Action::make('grantRetake')
-                    ->label('Grant 2nd Try')
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('success')
-                    ->visible(fn ($record) => ! $record->retake_allowed)
-                    ->requiresConfirmation()
-                    ->modalHeading('Grant Second Chance')
-                    ->modalDescription('Allow the student to submit a second attempt. Any recorded grade above 50% will be capped at the 50% passing mark.')
-                    ->action(function ($record) {
-                        $record->grantRetake(auth()->user());
-                        \Filament\Notifications\Notification::make()->title('Second chance granted.')->success()->send();
-                    }),
-                \Filament\Actions\Action::make('revokeRetake')
-                    ->label('Revoke 2nd Try')
-                    ->icon('heroicon-o-x-mark')
-                    ->color('danger')
-                    ->visible(fn ($record) => (bool) $record->retake_allowed)
-                    ->requiresConfirmation()
-                    ->action(function ($record) {
-                        $record->revokeRetake();
-                        \Filament\Notifications\Notification::make()->title('Second chance revoked.')->info()->send();
-                    }),
+                \Filament\Actions\ActionGroup::make([
+                    \Filament\Actions\Action::make('grantRetake')
+                        ->label('Grant 2nd Try')
+                        ->icon('heroicon-m-arrow-path')
+                        ->color('success')
+                        ->visible(fn ($record) => ! $record->retake_allowed)
+                        ->requiresConfirmation()
+                        ->modalHeading('Grant Second Chance')
+                        ->modalDescription('Allow the student to submit a second attempt. Any recorded grade above 50% will be capped at the 50% passing mark.')
+                        ->action(function ($record) {
+                            $record->grantRetake(auth()->user());
+                            \Filament\Notifications\Notification::make()->title('Second chance granted.')->success()->send();
+                        }),
+                    \Filament\Actions\Action::make('revokeRetake')
+                        ->label('Revoke 2nd Try')
+                        ->icon('heroicon-m-x-mark')
+                        ->color('danger')
+                        ->visible(fn ($record) => (bool) $record->retake_allowed)
+                        ->requiresConfirmation()
+                        ->action(function ($record) {
+                            $record->revokeRetake();
+                            \Filament\Notifications\Notification::make()->title('Second chance revoked.')->info()->send();
+                        }),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->modifyQueryUsing(
                 fn (Builder $query) => $query->whereHas(

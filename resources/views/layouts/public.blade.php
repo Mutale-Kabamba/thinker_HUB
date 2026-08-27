@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @include('partials.seo-meta', [
@@ -16,7 +16,7 @@
     @include('partials.pwa-register')
     @livewireStyles
 </head>
-<body class="hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
+<body class="hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased overflow-x-hidden min-h-dvh" x-data="{ mobileMenu: false }">
     {{ $slot }}
     @livewireScripts
 </body>

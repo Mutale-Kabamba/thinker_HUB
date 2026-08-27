@@ -919,13 +919,18 @@
                     .community-chat-layout { grid-template-columns:1fr; gap:0.55rem; }
                     .community-chat-layout[data-room-open="true"] .community-room-list { display:none; }
                     .community-chat-layout[data-room-open="false"] .community-thread { display:none; }
-                    .community-room-list, .community-thread { height:calc(100vh - var(--community-mobile-offset)); max-height:none; min-height:var(--community-mobile-min-height); }
+                    .community-room-list, .community-thread {
+                        height: calc(100vh - var(--community-mobile-offset));
+                        height: calc(100dvh - var(--community-mobile-offset));
+                        max-height: none;
+                        min-height: var(--community-mobile-min-height);
+                    }
                     .community-thread-head { position:sticky; top:0; z-index:5; padding:0.72rem 0.75rem; }
                     .community-bubble { max-width:calc(100% - 3.8rem); }
                     .community-msg-actions {
-                        opacity: 0.45;
+                        opacity: 0.65;
                         pointer-events: auto;
-                        padding: 0.1rem 0.18rem;
+                        padding: 0.15rem 0.22rem;
                     }
                     .community-msg-row:hover .community-msg-actions,
                     .community-msg-row:focus-within .community-msg-actions,
@@ -936,17 +941,32 @@
                         opacity: 1;
                     }
                     .community-action-btn {
-                        width: 1.35rem;
-                        height: 1.35rem;
+                        width: 1.65rem;
+                        height: 1.65rem;
                     }
-                    .community-back-btn { display:inline-flex; width:2rem; height:2rem; align-items:center; justify-content:center; border:1px solid var(--hub-border); border-radius:999px; background:var(--hub-surface); color:var(--hub-ink); cursor:pointer; flex:0 0 auto; }
-                    .community-composer-wrap { gap:0.36rem; padding:0.26rem 0.3rem; }
-                    .community-attach-btn { width:34px !important; height:34px !important; padding:0 !important; }
-                    .community-composer-wrap .community-message-input { font-size:14px; min-width:0 !important; flex:1 1 auto !important; padding:0.4rem 0.45rem !important; }
+                    .community-back-btn { display:inline-flex; width:2.5rem; height:2.5rem; min-width:44px; min-height:44px; align-items:center; justify-content:center; border:1px solid var(--hub-border); border-radius:999px; background:var(--hub-surface); color:var(--hub-ink); cursor:pointer; flex:0 0 auto; }
+                    .community-composer-wrap {
+                        gap: 0.4rem;
+                        padding: 0.35rem 0.45rem;
+                        margin-bottom: max(0.25rem, env(safe-area-inset-bottom));
+                    }
+                    .community-attach-btn {
+                        width: 44px !important;
+                        height: 44px !important;
+                        min-width: 44px !important;
+                        min-height: 44px !important;
+                        padding: 0 !important;
+                    }
+                    .community-composer-wrap .community-message-input {
+                        font-size: 16px !important; /* Prevents auto-zoom on mobile virtual keyboard */
+                        min-width: 0 !important;
+                        flex: 1 1 auto !important;
+                        padding: 0.5rem 0.6rem !important;
+                    }
                     .community-send-btn {
-                        padding: 0.45rem 1rem !important;
-                        min-height: 36px !important;
-                        font-size: 0.8rem !important;
+                        padding: 0.5rem 1.25rem !important;
+                        min-height: 44px !important;
+                        font-size: 0.85rem !important;
                     }
                 }
             </style>

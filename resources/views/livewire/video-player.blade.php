@@ -12,24 +12,24 @@
     <!-- Video Header & Gamification Badge -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
-            <div class="flex items-center gap-2">
-                <a href="javascript:history.back()" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Back">
+            <div class="flex items-center gap-2.5">
+                <a href="javascript:history.back()" class="inline-flex items-center justify-center w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition active:scale-95 flex-shrink-0" title="Back">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 </a>
-                <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-teal-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/></svg>
-                    <span>{{ $title }}</span>
+                <h3 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2 min-w-0">
+                    <svg class="w-5 h-5 text-teal-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/></svg>
+                    <span class="truncate">{{ $title }}</span>
                 </h3>
             </div>
             @if ($courseTitle)
-                <p class="text-xs text-slate-400 mt-1 ml-10">
+                <p class="text-xs text-slate-400 mt-1 sm:ml-12 truncate">
                     Course: <span class="text-slate-300 font-medium">{{ $courseTitle }}</span>
                 </p>
             @endif
         </div>
 
         <!-- Claim / Reward Badge -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
             <template x-if="pointsClaimed">
                 <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm animate-pulse">
                     <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
@@ -81,9 +81,9 @@
 
     <!-- Real-time Watch Progress Tracking -->
     @if ($youtubeId || $fileUrl)
-        <div class="mt-4 bg-slate-950/60 rounded-xl p-4 border border-slate-800/80">
-            <div class="flex items-center justify-between text-xs mb-2">
-                <div class="flex items-center gap-2">
+        <div class="mt-4 bg-slate-950/60 rounded-xl p-3.5 sm:p-4 border border-slate-800/80">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2 mb-2">
+                <div class="flex items-center gap-2 flex-wrap">
                     <span class="font-semibold text-slate-300">Watch Progress:</span>
                     <span class="font-bold text-teal-400" x-text="progressPercent + '%'">0%</span>
                     <span

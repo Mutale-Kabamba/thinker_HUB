@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CourseIntakes\RelationManagers;
 
 use App\Models\CourseIntake;
 use App\Models\Quiz;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -80,22 +81,27 @@ class QuizzesRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->form([
-                        TextInput::make('title')
-                            ->label('Quiz Title')
-                            ->required()
-                            ->maxLength(255),
+                ActionGroup::make([
+                    EditAction::make()
+                        ->icon('heroicon-m-pencil-square')
+                        ->form([
+                            TextInput::make('title')
+                                ->label('Quiz Title')
+                                ->required()
+                                ->maxLength(255),
 
-                        TextInput::make('time_limit')
-                            ->label('Time Limit (Minutes)')
-                            ->numeric()
-                            ->minValue(1),
+                            TextInput::make('time_limit')
+                                ->label('Time Limit (Minutes)')
+                                ->numeric()
+                                ->minValue(1),
 
-                        Toggle::make('is_active')
-                            ->label('Active'),
-                    ]),
-                DeleteAction::make(),
+                            Toggle::make('is_active')
+                                ->label('Active'),
+                        ]),
+                    DeleteAction::make()->icon('heroicon-m-trash'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

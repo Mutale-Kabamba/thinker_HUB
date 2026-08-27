@@ -143,78 +143,82 @@ class ClaimRequestResource extends Resource
                     ),
             ])
             ->recordActions([
-                Action::make('fulfill')
-                    ->label('Fulfill & Complete')
-                    ->icon('heroicon-o-check-badge')
-                    ->color('success')
-                    ->visible(fn (ClaimRequest $record): bool => ! in_array($record->status, [ClaimRequest::STATUS_FULFILLED, ClaimRequest::STATUS_REJECTED], true))
-                    ->form([
-                        TextInput::make('admin_remarks')
-                            ->label('Fulfillment Reference / Airtime TXN ID')
-                            ->placeholder('e.g. Sent via MTN Mobile Money TXN #984321 / Handed merch to student')
-                            ->maxLength(255),
-                    ])
-                    ->action(function (ClaimRequest $record, array $data): void {
-                        $record->update([
-                            'status' => ClaimRequest::STATUS_FULFILLED,
-                            'fulfilled_at' => now(),
-                            'admin_remarks' => $data['admin_remarks'] ?? $record->admin_remarks,
-                        ]);
-
-                        Notification::make()
-                            ->title('Claim Fulfilled')
-                            ->body("The claim for {$record->claimItem->title} has been marked as fulfilled.")
-                            ->success()
-                            ->send();
-                    }),
-
-                Action::make('reject')
-                    ->label('Reject & Refund')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->visible(fn (ClaimRequest $record): bool => ! in_array($record->status, [ClaimRequest::STATUS_FULFILLED, ClaimRequest::STATUS_REJECTED], true))
-                    ->requiresConfirmation()
-                    ->modalHeading('Reject Claim and Refund Thinker Coins')
-                    ->modalDescription('This will refund the student their spent Thinker Coins and restore 1 stock quantity back to the reward item.')
-                    ->form([
-                        Textarea::make('admin_remarks')
-                            ->label('Reason for Rejection')
-                            ->required()
-                            ->placeholder('e.g. Invalid phone number provided / Item temporarily unavailable')
-                            ->rows(3),
-                    ])
-                    ->action(function (ClaimRequest $record, array $data): void {
-                        DB::transaction(function () use ($record, $data): void {
-                            /** @var User $student */
-                            $student = User::query()->where('id', $record->user_id)->lockForUpdate()->first();
-                            /** @var ClaimItem $item */
-                            $item = ClaimItem::query()->where('id', $record->claim_item_id)->lockForUpdate()->first();
-
-                            // Refund coins
-                            if ($student) {
-                                $student->increment('spendable_coins', $record->coins_spent);
-                            }
-
-                            // Restore stock
-                            if ($item && ! $item->isUnlimited()) {
-                                $item->increment('stock_quantity');
-                            }
-
-                            // Update request
+                \Filament\Actions\ActionGroup::make([
+                    Action::make('fulfill')
+                        ->label('Fulfill & Complete')
+                        ->icon('heroicon-m-check-badge')
+                        ->color('success')
+                        ->visible(fn (ClaimRequest $record): bool => ! in_array($record->status, [ClaimRequest::STATUS_FULFILLED, ClaimRequest::STATUS_REJECTED], true))
+                        ->form([
+                            TextInput::make('admin_remarks')
+                                ->label('Fulfillment Reference / Airtime TXN ID')
+                                ->placeholder('e.g. Sent via MTN Mobile Money TXN #984321 / Handed merch to student')
+                                ->maxLength(255),
+                        ])
+                        ->action(function (ClaimRequest $record, array $data): void {
                             $record->update([
-                                'status' => ClaimRequest::STATUS_REJECTED,
-                                'admin_remarks' => $data['admin_remarks'],
+                                'status' => ClaimRequest::STATUS_FULFILLED,
+                                'fulfilled_at' => now(),
+                                'admin_remarks' => $data['admin_remarks'] ?? $record->admin_remarks,
                             ]);
-                        });
 
-                        Notification::make()
-                            ->title('Claim Rejected & Coins Refunded')
-                            ->body("Refunded {$record->coins_spent} TC to {$record->user->name}.")
-                            ->warning()
-                            ->send();
-                    }),
+                            Notification::make()
+                                ->title('Claim Fulfilled')
+                                ->body("The claim for {$record->claimItem->title} has been marked as fulfilled.")
+                                ->success()
+                                ->send();
+                        }),
 
-                ViewAction::make(),
+                    Action::make('reject')
+                        ->label('Reject & Refund')
+                        ->icon('heroicon-m-x-circle')
+                        ->color('danger')
+                        ->visible(fn (ClaimRequest $record): bool => ! in_array($record->status, [ClaimRequest::STATUS_FULFILLED, ClaimRequest::STATUS_REJECTED], true))
+                        ->requiresConfirmation()
+                        ->modalHeading('Reject Claim and Refund Thinker Coins')
+                        ->modalDescription('This will refund the student their spent Thinker Coins and restore 1 stock quantity back to the reward item.')
+                        ->form([
+                            Textarea::make('admin_remarks')
+                                ->label('Reason for Rejection')
+                                ->required()
+                                ->placeholder('e.g. Invalid phone number provided / Item temporarily unavailable')
+                                ->rows(3),
+                        ])
+                        ->action(function (ClaimRequest $record, array $data): void {
+                            DB::transaction(function () use ($record, $data): void {
+                                /** @var User $student */
+                                $student = User::query()->where('id', $record->user_id)->lockForUpdate()->first();
+                                /** @var ClaimItem $item */
+                                $item = ClaimItem::query()->where('id', $record->claim_item_id)->lockForUpdate()->first();
+
+                                // Refund coins
+                                if ($student) {
+                                    $student->increment('spendable_coins', $record->coins_spent);
+                                }
+
+                                // Restore stock
+                                if ($item && ! $item->isUnlimited()) {
+                                    $item->increment('stock_quantity');
+                                }
+
+                                // Update request
+                                $record->update([
+                                    'status' => ClaimRequest::STATUS_REJECTED,
+                                    'admin_remarks' => $data['admin_remarks'],
+                                ]);
+                            });
+
+                            Notification::make()
+                                ->title('Claim Rejected & Coins Refunded')
+                                ->body("Refunded {$record->coins_spent} TC to {$record->user->name}.")
+                                ->warning()
+                                ->send();
+                        }),
+
+                    ViewAction::make()->icon('heroicon-m-eye'),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('claimItem', fn (Builder $q) => $q->whereIn('course_id', static::instructorCourseIds())));
     }

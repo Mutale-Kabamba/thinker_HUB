@@ -142,25 +142,29 @@ class AssignmentSubmissionsTable
                     }),
             ])
             ->recordActions([
-                EditAction::make(),
-                \Filament\Actions\Action::make('download')
-                    ->label('Download')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('primary')
-                    ->action(function ($record) {
-                        $service = app(\App\Services\SubmissionZipService::class);
+                \Filament\Actions\ActionGroup::make([
+                    EditAction::make()->icon('heroicon-m-pencil-square'),
+                    \Filament\Actions\Action::make('download')
+                        ->label('Download')
+                        ->icon('heroicon-m-arrow-down-tray')
+                        ->color('primary')
+                        ->action(function ($record) {
+                            $service = app(\App\Services\SubmissionZipService::class);
 
-                        return $service->downloadSingleAssignmentSubmission($record);
-                    }),
-                \Filament\Actions\Action::make('markViewed')
-                    ->label('Mark Viewed')
-                    ->icon('heroicon-o-eye')
-                    ->color('gray')
-                    ->visible(fn ($record): bool => $record->viewed_at === null && ! in_array($record->status, ['Graded', 'Checked']))
-                    ->action(function ($record): void {
-                        $record->markAsViewed();
-                        \Filament\Notifications\Notification::make()->title('Marked as viewed.')->success()->send();
-                    }),
+                            return $service->downloadSingleAssignmentSubmission($record);
+                        }),
+                    \Filament\Actions\Action::make('markViewed')
+                        ->label('Mark Viewed')
+                        ->icon('heroicon-m-eye')
+                        ->color('gray')
+                        ->visible(fn ($record): bool => $record->viewed_at === null && ! in_array($record->status, ['Graded', 'Checked']))
+                        ->action(function ($record): void {
+                            $record->markAsViewed();
+                            \Filament\Notifications\Notification::make()->title('Marked as viewed.')->success()->send();
+                        }),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
