@@ -35,6 +35,9 @@ class Assignments extends Page
         }
 
         try {
+            $lastViewed = session('last_viewed_assignments_at_' . $user->id)
+                ?? \Illuminate\Support\Facades\Cache::get('user_' . $user->id . '_last_viewed_assignments_at');
+
             $submittedIds = AssignmentSubmission::query()
                 ->where('user_id', $user->id)
                 ->where(function ($q) {
@@ -47,11 +50,16 @@ class Assignments extends Page
                 })
                 ->pluck('assignment_id');
 
-            $pendingCount = Assignment::query()
+            $query = Assignment::query()
                 ->visibleTo($user)
                 ->released()
-                ->whereNotIn('id', $submittedIds)
-                ->count();
+                ->whereNotIn('id', $submittedIds);
+
+            if ($lastViewed) {
+                $query->where('created_at', '>', $lastViewed);
+            }
+
+            $pendingCount = $query->count();
 
             return $pendingCount > 0 ? (string) $pendingCount : null;
         } catch (\Throwable) {
@@ -77,6 +85,12 @@ class Assignments extends Page
 
     public function mount(): void
     {
+        $user = auth()->user();
+        if ($user) {
+            session(['last_viewed_assignments_at_' . $user->id => now()]);
+            \Illuminate\Support\Facades\Cache::put('user_' . $user->id . '_last_viewed_assignments_at', now(), now()->addDays(60));
+        }
+
         $this->refreshAssignments();
     }
 

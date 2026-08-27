@@ -33,6 +33,9 @@ class Assessments extends Page
         }
 
         try {
+            $lastViewed = session('last_viewed_assessments_at_' . $user->id)
+                ?? \Illuminate\Support\Facades\Cache::get('user_' . $user->id . '_last_viewed_assessments_at');
+
             $submittedIds = AssessmentSubmission::query()
                 ->where('user_id', $user->id)
                 ->where(function ($q) {
@@ -46,11 +49,16 @@ class Assessments extends Page
                 })
                 ->pluck('assessment_id');
 
-            $pendingCount = Assessment::query()
+            $query = Assessment::query()
                 ->visibleTo($user)
                 ->released()
-                ->whereNotIn('id', $submittedIds)
-                ->count();
+                ->whereNotIn('id', $submittedIds);
+
+            if ($lastViewed) {
+                $query->where('created_at', '>', $lastViewed);
+            }
+
+            $pendingCount = $query->count();
 
             return $pendingCount > 0 ? (string) $pendingCount : null;
         } catch (\Throwable) {
@@ -76,6 +84,12 @@ class Assessments extends Page
 
     public function mount(): void
     {
+        $user = auth()->user();
+        if ($user) {
+            session(['last_viewed_assessments_at_' . $user->id => now()]);
+            \Illuminate\Support\Facades\Cache::put('user_' . $user->id . '_last_viewed_assessments_at', now(), now()->addDays(60));
+        }
+
         $this->refreshAssessments();
     }
 

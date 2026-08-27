@@ -23,39 +23,28 @@ class Quizzes extends Page
 
         try {
             if ($user->isAdmin()) {
-                $enrolledCourseIds = \App\Models\Course::query()->pluck('id')->all();
-            } elseif ($user->isInstructor()) {
-                $enrolledCourseIds = \App\Models\Course::query()
-                    ->where('course_by', (string) $user->id)
-                    ->orWhere('course_by', (string) $user->name)
-                    ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $user->id))
-                    ->pluck('id')
-                    ->merge($user->courses()->pluck('courses.id'))
-                    ->unique()
-                    ->all();
+                $enrolledCourseIds = \App\Models\Course::query()->pluck('id');
             } else {
-                $enrolledCourseIds = $user->courses()->pluck('courses.id')->all();
+                $enrolledCourseIds = $user->enrollments()->pluck('course_id');
             }
 
-            if (empty($enrolledCourseIds)) {
+            if ($enrolledCourseIds->isEmpty()) {
                 return null;
             }
 
-            $attemptedQuizIds = QuizAttempt::query()
-                ->where('user_id', $user->id)
-                ->pluck('quiz_id')
-                ->unique();
-
-            $pendingCount = Quiz::query()
+            // Count only active quizzes that the student hasn't completed yet
+            $activeCount = Quiz::query()
                 ->whereIn('course_id', $enrolledCourseIds)
-                ->where(function ($query) {
-                    $query->where('is_active', true)
-                        ->orWhereNotNull('publish_at');
+                ->where('is_active', true)
+                ->where(function ($q) {
+                    $q->whereNull('publish_at')->orWhere('publish_at', '<=', now());
                 })
-                ->whereNotIn('id', $attemptedQuizIds)
+                ->whereDoesntHave('attempts', function ($q) use ($user) {
+                    $q->where('user_id', $user->id)->whereNotNull('completed_at');
+                })
                 ->count();
 
-            return $pendingCount > 0 ? (string) $pendingCount : null;
+            return $activeCount > 0 ? (string) $activeCount : null;
         } catch (\Throwable) {
             return null;
         }

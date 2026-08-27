@@ -31,11 +31,20 @@ class LearningResources extends Page
         }
 
         try {
-            $newCount = ResourceVideo::query()
-                ->where('created_at', '>=', now()->subDays(3))
-                ->count();
+            $lastViewed = session('last_viewed_resources_at_' . $user->id)
+                ?? \Illuminate\Support\Facades\Cache::get('user_' . $user->id . '_last_viewed_resources_at');
 
-            return $newCount > 0 ? '●' : null;
+            $query = ResourceVideo::query()->where('is_published', true);
+
+            if ($lastViewed) {
+                $query->where('created_at', '>', $lastViewed);
+            } else {
+                $query->where('created_at', '>=', now()->subDays(3));
+            }
+
+            $newCount = $query->count();
+
+            return $newCount > 0 ? (string) $newCount : null;
         } catch (\Throwable) {
             return null;
         }
@@ -48,7 +57,7 @@ class LearningResources extends Page
 
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return 'New video resources available';
+        return 'New video resources';
     }
 
     protected string $view = 'filament.student.pages.learning-resources';
@@ -103,6 +112,12 @@ class LearningResources extends Page
 
     public function mount(): void
     {
+        $user = auth()->user();
+        if ($user) {
+            session(['last_viewed_resources_at_' . $user->id => now()]);
+            \Illuminate\Support\Facades\Cache::put('user_' . $user->id . '_last_viewed_resources_at', now(), now()->addDays(60));
+        }
+
         $this->loadVideos();
     }
 
