@@ -1,45 +1,67 @@
 <x-filament-panels::page>
 
+    @if ($tab === 'chats' && $selectedRoomId)
+        <style>
+            .fi-header,
+            header.fi-header,
+            .fi-page-header {
+                display: none !important;
+            }
+            .fi-main-ctn,
+            .fi-page,
+            .fi-main {
+                padding-top: 0.25rem !important;
+                padding-bottom: 0.25rem !important;
+            }
+            .hub-shell {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+        </style>
+    @endif
+
     <div class="hub-shell">
 
-        {{-- My XP summary chip --}}
-        <section style="padding:0.15rem 0 0;display:flex;justify-content:center;">
-            <button type="button" wire:click="$set('tab','leaderboard')"
-                style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.28rem 0.8rem;border-radius:999px;border:1px solid var(--hub-border);background:rgba(255,255,255,.5);backdrop-filter:blur(8px);box-shadow:0 6px 16px rgba(15,23,42,.06);cursor:pointer;font-size:0.76rem;font-weight:600;color:var(--hub-ink);">
-                <x-heroicon-s-bolt style="width:0.95rem;height:0.95rem;color:#eab308;" />
-                <span>{{ number_format($this->myXp['xp']) }} XP</span>
-                <span style="color:var(--hub-muted);">·</span>
-                <x-heroicon-s-star style="width:0.9rem;height:0.9rem;color:#f59e0b;" />
-                <span>{{ $this->myXp['badge_count'] }} {{ Str::plural('badge', $this->myXp['badge_count']) }}</span>
-                @if (count($this->myXp['badge_icons']) > 0)
-                    <span style="letter-spacing:0.1em;">{{ implode('', $this->myXp['badge_icons']) }}</span>
-                @endif
-            </button>
-        </section>
+        @if (! ($tab === 'chats' && $selectedRoomId))
+            {{-- My XP summary chip --}}
+            <section style="padding:0.15rem 0 0;display:flex;justify-content:center;">
+                <button type="button" wire:click="$set('tab','leaderboard')"
+                    style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.28rem 0.8rem;border-radius:999px;border:1px solid var(--hub-border);background:rgba(255,255,255,.5);backdrop-filter:blur(8px);box-shadow:0 6px 16px rgba(15,23,42,.06);cursor:pointer;font-size:0.76rem;font-weight:600;color:var(--hub-ink);">
+                    <x-heroicon-s-bolt style="width:0.95rem;height:0.95rem;color:#eab308;" />
+                    <span>{{ number_format($this->myXp['xp']) }} XP</span>
+                    <span style="color:var(--hub-muted);">·</span>
+                    <x-heroicon-s-star style="width:0.9rem;height:0.9rem;color:#f59e0b;" />
+                    <span>{{ $this->myXp['badge_count'] }} {{ Str::plural('badge', $this->myXp['badge_count']) }}</span>
+                    @if (count($this->myXp['badge_icons']) > 0)
+                        <span style="letter-spacing:0.1em;">{{ implode('', $this->myXp['badge_icons']) }}</span>
+                    @endif
+                </button>
+            </section>
 
-        {{-- Tabs --}}
-        <section class="py-2 px-1">
-            <div class="flex justify-center">
-                <div class="flex gap-1 max-w-md w-full p-1 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm">
-                    <button type="button" wire:click="$set('tab','chats')"
-                        class="flex-1 py-2 px-1.5 xs:px-2.5 sm:px-3 rounded-xl text-[11px] xs:text-xs font-bold whitespace-nowrap transition-all flex items-center justify-center {{ $tab === 'chats' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
-                        Chats
-                    </button>
-                    <button type="button" wire:click="$set('tab','friends')"
-                        class="flex-1 py-2 px-1.5 xs:px-2.5 sm:px-3 rounded-xl text-[11px] xs:text-xs font-bold whitespace-nowrap transition-all flex items-center justify-center gap-1 {{ $tab === 'friends' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
-                        <span>Friends</span>
-                        @if ($this->pendingRequests->count() > 0)
-                            <span class="bg-rose-600 text-white rounded-full text-[9px] sm:text-[10px] px-1.5 py-0.5 leading-none shrink-0">{{ $this->pendingRequests->count() }}</span>
-                        @endif
-                    </button>
-                    <button type="button" wire:click="$set('tab','leaderboard')"
-                        class="flex-1 py-2 px-1.5 xs:px-2.5 sm:px-3 rounded-xl text-[11px] xs:text-xs font-bold whitespace-nowrap transition-all inline-flex items-center justify-center gap-1 sm:gap-1.5 {{ $tab === 'leaderboard' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
-                        <x-heroicon-o-trophy class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                        <span>Leaderboard</span>
-                    </button>
+            {{-- Tabs --}}
+            <section class="py-2 px-1">
+                <div class="flex justify-center">
+                    <div class="flex gap-1 max-w-md w-full p-1 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <button type="button" wire:click="$set('tab','chats')"
+                            class="flex-1 py-2 px-1.5 xs:px-2.5 sm:px-3 rounded-xl text-[11px] xs:text-xs font-bold whitespace-nowrap transition-all flex items-center justify-center {{ $tab === 'chats' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
+                            Chats
+                        </button>
+                        <button type="button" wire:click="$set('tab','friends')"
+                            class="flex-1 py-2 px-1.5 xs:px-2.5 sm:px-3 rounded-xl text-[11px] xs:text-xs font-bold whitespace-nowrap transition-all flex items-center justify-center gap-1 {{ $tab === 'friends' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
+                            <span>Friends</span>
+                            @if ($this->pendingRequests->count() > 0)
+                                <span class="bg-rose-600 text-white rounded-full text-[9px] sm:text-[10px] px-1.5 py-0.5 leading-none shrink-0">{{ $this->pendingRequests->count() }}</span>
+                            @endif
+                        </button>
+                        <button type="button" wire:click="$set('tab','leaderboard')"
+                            class="flex-1 py-2 px-1.5 xs:px-2.5 sm:px-3 rounded-xl text-[11px] xs:text-xs font-bold whitespace-nowrap transition-all inline-flex items-center justify-center gap-1 sm:gap-1.5 {{ $tab === 'leaderboard' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
+                            <x-heroicon-o-trophy class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                            <span>Leaderboard</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        @endif
 
         {{-- ===================== FRIENDS TAB ===================== --}}
         @if ($tab === 'friends')
@@ -700,355 +722,510 @@
         @if ($tab === 'chats')
             <style>
                 .community-chat-layout {
-                    /* 14rem approximates top nav, page title, and tab switcher stack on small screens. */
-                    --community-mobile-base-offset: 14rem;
-                    --community-mobile-offset: calc(var(--community-mobile-base-offset) + env(safe-area-inset-bottom, 0px));
-                    --community-desktop-height: 70vh;
-                    --community-mobile-min-height: 24rem;
+                    --community-full-height: calc(100dvh - 4.5rem);
+                    --community-mobile-height: calc(100dvh - 3.8rem);
                     --community-deep-bg: #0f172a;
                     --community-active-text: #e2e8f0;
                     --community-head-surface-ratio: 88%;
                     --community-head-ink-ratio: 12%;
-                    --community-composer-bg: #f8fafc;
-                    --community-composer-border: #cbd5e1;
-                    --community-composer-input: #0f172a;
-                    --community-composer-placeholder: #64748b;
-                    --community-composer-attach-bg: #ffffff;
-                    --community-composer-attach-icon: #475569;
+                    --community-composer-bg: #f0f2f5;
+                    --community-composer-border: #e9edef;
+                    --community-composer-input: #111b21;
+                    --community-composer-placeholder: #667781;
+                    --community-composer-attach-bg: transparent;
+                    --community-composer-attach-icon: #54656f;
                 }
                 .dark .community-chat-layout {
-                    --community-composer-bg: color-mix(in oklab, var(--hub-card) 70%, #0f172a 30%);
-                    --community-composer-border: color-mix(in oklab, var(--hub-border) 75%, #334155 25%);
-                    --community-composer-input: var(--hub-ink);
-                    --community-composer-placeholder: #94a3b8;
-                    --community-composer-attach-bg: color-mix(in oklab, var(--hub-card) 82%, #111827 18%);
-                    --community-composer-attach-icon: var(--hub-muted);
+                    --community-composer-bg: #202c33;
+                    --community-composer-border: #2a3942;
+                    --community-composer-input: #e9edef;
+                    --community-composer-placeholder: #8696a0;
+                    --community-composer-attach-bg: transparent;
+                    --community-composer-attach-icon: #8696a0;
                 }
-                .community-chat-layout { display:grid; grid-template-columns:minmax(210px,300px) 1fr; gap:0.75rem; align-items:start; }
-                .community-room-list { padding:0.5rem; max-height:var(--community-desktop-height); overflow-y:auto; border-radius:1rem; }
-                .community-thread { padding:0; display:flex; flex-direction:column; height:var(--community-desktop-height); border-radius:1rem; overflow:hidden; }
-                .community-thread-head { padding:0.62rem 0.85rem; border-bottom:1px solid var(--hub-border); background:color-mix(in oklab, var(--hub-card) var(--community-head-surface-ratio), var(--community-deep-bg) var(--community-head-ink-ratio)); }
-                .community-room-item { width:100%; text-align:left; padding:0.65rem 0.72rem; border:none; border-radius:0.85rem; cursor:pointer; margin-bottom:0.25rem; transition:all .12s ease; }
-                .community-room-item-active { background:var(--community-deep-bg); color:var(--community-active-text); box-shadow:0 10px 22px rgba(2,6,23,.22); }
-                .community-msg-bundle { display:inline-flex; align-items:flex-end; gap:0.35rem; width:fit-content; max-width:100%; }
-                .community-msg-bundle-mine { flex-direction:row-reverse; align-self:flex-end; }
-                .community-msg-bundle-theirs { flex-direction:row; align-self:flex-start; }
+                .community-chat-layout {
+                    display: grid;
+                    grid-template-columns: minmax(240px, 320px) 1fr;
+                    gap: 0.75rem;
+                    align-items: start;
+                    width: 100%;
+                }
+                .community-chat-fullscreen-open {
+                    grid-template-columns: 1fr !important;
+                }
+                .community-room-list {
+                    padding: 0.5rem;
+                    height: var(--community-full-height);
+                    max-height: var(--community-full-height);
+                    overflow-y: auto;
+                    border-radius: 0.85rem;
+                    background: var(--hub-card);
+                    border: 1px solid var(--hub-border);
+                }
+                .community-thread {
+                    padding: 0;
+                    display: flex;
+                    flex-direction: column;
+                    height: var(--community-full-height);
+                    max-height: var(--community-full-height);
+                    border-radius: 0.85rem;
+                    overflow: hidden;
+                    position: relative;
+                    background-color: #efeae2;
+                    background-image: radial-gradient(#d1d7db 0.8px, transparent 0.8px);
+                    background-size: 16px 16px;
+                    border: 1px solid var(--hub-border);
+                    box-shadow: 0 4px 20px -2px rgba(0,0,0,0.08);
+                }
+                .dark .community-thread {
+                    background-color: #0b141a;
+                    background-image: radial-gradient(#1f2c34 0.8px, transparent 0.8px);
+                }
+                .community-thread-head {
+                    flex-shrink: 0;
+                    position: sticky;
+                    top: 0;
+                    z-index: 20;
+                    padding: 0.65rem 0.85rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    border-bottom: 1px solid #e9edef;
+                    background-color: #f0f2f5;
+                }
+                .dark .community-thread-head {
+                    border-bottom-color: #2a3942;
+                    background-color: #202c33;
+                }
+                .community-room-item {
+                    width: 100%;
+                    text-align: left;
+                    padding: 0.65rem 0.72rem;
+                    border: none;
+                    border-radius: 0.85rem;
+                    cursor: pointer;
+                    margin-bottom: 0.25rem;
+                    transition: all .12s ease;
+                    background: transparent;
+                }
+                .community-room-item:hover {
+                    background: var(--hub-surface);
+                }
+                .community-room-item-active {
+                    background: var(--community-deep-bg) !important;
+                    color: var(--community-active-text) !important;
+                    box-shadow: 0 10px 22px rgba(2,6,23,.22);
+                }
+                .community-msg-bundle {
+                    display: inline-flex;
+                    align-items: flex-end;
+                    gap: 0.35rem;
+                    width: fit-content;
+                    max-width: 100%;
+                }
+                .community-msg-bundle-mine {
+                    flex-direction: row-reverse;
+                    align-self: flex-end;
+                }
+                .community-msg-bundle-theirs {
+                    flex-direction: row;
+                    align-self: flex-start;
+                }
                 .community-bubble {
-                    width:fit-content;
-                    min-width:68px;
-                    max-width:min(78vw, 560px);
-                    position:relative;
-                    box-sizing:border-box;
-                    display:flex;
-                    flex-direction:column;
+                    width: fit-content !important;
+                    min-width: 0 !important;
+                    max-width: min(85vw, 500px) !important;
+                    position: relative;
+                    box-sizing: border-box;
+                    display: block !important;
+                    text-align: left !important;
+                    word-break: break-word !important;
+                    overflow-wrap: anywhere !important;
+                    padding: 0.38rem 0.65rem 0.35rem 0.65rem !important;
+                    border-radius: 0.65rem !important;
+                    box-shadow: 0 1px 1.5px rgba(11,20,26,.13) !important;
+                }
+                .community-bubble-mine {
+                    background-color: #d9fdd3 !important;
+                    color: #111b21 !important;
+                    border-bottom-right-radius: 0.18rem !important;
+                }
+                .dark .community-bubble-mine {
+                    background-color: #005c4b !important;
+                    color: #e9edef !important;
+                }
+                .community-bubble-theirs {
+                    background-color: #ffffff !important;
+                    color: #111b21 !important;
+                    border-bottom-left-radius: 0.18rem !important;
+                }
+                .dark .community-bubble-theirs {
+                    background-color: #202c33 !important;
+                    color: #e9edef !important;
                 }
                 .community-msg-text {
-                    margin:0;
-                    font-size:13px;
-                    line-height:1.36;
-                    white-space:pre-wrap;
-                    word-break:normal;
-                    overflow-wrap:break-word;
-                    min-width:min(100%, 150px);
+                    margin: 0;
+                    font-size: 13.5px;
+                    line-height: 1.38;
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                    overflow-wrap: anywhere;
+                    text-align: left !important;
+                    display: inline;
                 }
                 .community-msg-author {
-                    margin:0 0 0.14rem;
-                    font-size:0.75rem;
-                    font-weight:700;
-                    display:flex;
-                    align-items:center;
-                    gap:0.25rem;
-                    white-space:nowrap;
-                    word-break:keep-all;
-                    overflow:hidden;
-                    text-overflow:ellipsis;
+                    margin: 0 0 0.15rem;
+                    font-size: 11.5px;
+                    font-weight: 700;
+                    text-align: left !important;
+                    line-height: 1.2;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
-                .community-msg-row { position:relative; width:100%; display:flex; flex-direction:column; margin-top:0.24rem; }
+                .community-msg-row {
+                    position: relative;
+                    width: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    margin-top: 0.25rem;
+                }
                 .community-msg-actions {
-                    opacity:0;
-                    transition:opacity .15s ease, transform .15s ease;
-                    pointer-events:none;
-                    display:inline-flex;
-                    align-items:center;
-                    gap:0.12rem;
-                    background:color-mix(in oklab, var(--hub-card) 92%, transparent);
-                    backdrop-filter:blur(8px);
-                    -webkit-backdrop-filter:blur(8px);
-                    border:1px solid color-mix(in oklab, var(--hub-border) 75%, transparent);
-                    border-radius:999px;
-                    padding:0.12rem 0.22rem;
-                    box-shadow:0 2px 8px rgba(0,0,0,.08);
-                    flex-shrink:0;
+                    opacity: 0;
+                    transition: opacity .15s ease, transform .15s ease;
+                    pointer-events: none;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.12rem;
+                    background: color-mix(in oklab, var(--hub-card) 92%, transparent);
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    border: 1px solid color-mix(in oklab, var(--hub-border) 75%, transparent);
+                    border-radius: 999px;
+                    padding: 0.12rem 0.22rem;
+                    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+                    flex-shrink: 0;
                 }
                 .community-msg-row:hover .community-msg-actions,
                 .community-msg-row:focus-within .community-msg-actions,
                 .community-msg-actions[data-active="true"] {
-                    opacity:1;
-                    pointer-events:auto;
+                    opacity: 1;
+                    pointer-events: auto;
                 }
                 .community-action-btn {
-                    background:none;
-                    border:none;
-                    padding:0;
-                    width:1.45rem;
-                    height:1.45rem;
-                    border-radius:999px;
-                    cursor:pointer;
-                    color:var(--hub-muted);
-                    display:inline-flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-size:12px;
-                    line-height:1;
-                    transition:all .12s ease;
+                    background: none;
+                    border: none;
+                    padding: 0;
+                    width: 1.45rem;
+                    height: 1.45rem;
+                    border-radius: 999px;
+                    cursor: pointer;
+                    color: var(--hub-muted);
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 12px;
+                    line-height: 1;
+                    transition: all .12s ease;
                 }
                 .community-action-btn:hover {
-                    color:var(--hub-ink);
-                    background:var(--hub-surface);
-                    transform:scale(1.1);
+                    color: var(--hub-ink);
+                    background: var(--hub-surface);
+                    transform: scale(1.1);
                 }
                 .community-emoji-picker {
-                    display:grid;
-                    grid-template-columns:repeat(5, 1fr);
-                    gap:0.25rem;
-                    padding:0.35rem 0.4rem;
-                    background:color-mix(in oklab, var(--hub-card) 96%, transparent);
-                    backdrop-filter:blur(16px);
-                    -webkit-backdrop-filter:blur(16px);
-                    border:1px solid var(--hub-border);
-                    border-radius:0.85rem;
-                    box-shadow:0 10px 28px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.1);
-                    position:absolute;
-                    bottom:calc(100% + 6px);
-                    z-index:40;
-                    width:max-content;
+                    display: grid;
+                    grid-template-columns: repeat(5, 1fr);
+                    gap: 0.25rem;
+                    padding: 0.35rem 0.4rem;
+                    background: color-mix(in oklab, var(--hub-card) 96%, transparent);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
+                    border: 1px solid var(--hub-border);
+                    border-radius: 0.85rem;
+                    box-shadow: 0 10px 28px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.1);
+                    position: absolute;
+                    bottom: calc(100% + 6px);
+                    z-index: 40;
+                    width: max-content;
                 }
                 .community-emoji-btn {
-                    background:none;
-                    border:none;
-                    cursor:pointer;
-                    font-size:15px;
-                    padding:0.2rem 0.25rem;
-                    border-radius:0.4rem;
-                    line-height:1;
-                    display:inline-flex;
-                    align-items:center;
-                    justify-content:center;
-                    transition:transform .1s ease, background .1s ease;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 15px;
+                    padding: 0.2rem 0.25rem;
+                    border-radius: 0.4rem;
+                    line-height: 1;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: transform .1s ease, background .1s ease;
                 }
                 .community-emoji-btn:hover {
-                    transform:scale(1.25);
-                    background:var(--hub-surface);
+                    transform: scale(1.25);
+                    background: var(--hub-surface);
                 }
                 .community-action-menu {
-                    position:absolute;
-                    bottom:calc(100% + 6px);
-                    min-width:125px;
-                    padding:0.25rem;
-                    background:color-mix(in oklab, var(--hub-card) 96%, transparent);
-                    backdrop-filter:blur(16px);
-                    -webkit-backdrop-filter:blur(16px);
-                    border:1px solid var(--hub-border);
-                    border-radius:0.75rem;
-                    box-shadow:0 10px 28px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.08);
-                    z-index:40;
-                    display:flex;
-                    flex-direction:column;
+                    position: absolute;
+                    bottom: calc(100% + 6px);
+                    min-width: 125px;
+                    padding: 0.25rem;
+                    background: color-mix(in oklab, var(--hub-card) 96%, transparent);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
+                    border: 1px solid var(--hub-border);
+                    border-radius: 0.75rem;
+                    box-shadow: 0 10px 28px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.08);
+                    z-index: 40;
+                    display: flex;
+                    flex-direction: column;
                 }
                 .community-menu-item {
-                    display:flex;
-                    align-items:center;
-                    justify-content:space-between;
-                    gap:0.65rem;
-                    width:100%;
-                    padding:0.42rem 0.65rem;
-                    border:none;
-                    background:transparent;
-                    border-radius:0.5rem;
-                    font-size:12.5px;
-                    font-weight:500;
-                    color:var(--hub-ink);
-                    cursor:pointer;
-                    transition:background .1s ease, color .1s ease;
-                    text-align:left;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 0.65rem;
+                    width: 100%;
+                    padding: 0.42rem 0.65rem;
+                    border: none;
+                    background: transparent;
+                    border-radius: 0.5rem;
+                    font-size: 12.5px;
+                    font-weight: 500;
+                    color: var(--hub-ink);
+                    cursor: pointer;
+                    transition: background .1s ease, color .1s ease;
+                    text-align: left;
                 }
                 .community-menu-item:hover {
-                    background:var(--hub-surface);
-                    color:var(--hub-primary, #0d9488);
+                    background: var(--hub-surface);
+                    color: var(--hub-primary, #0d9488);
                 }
                 .community-menu-divider {
-                    height:1px;
-                    background:var(--hub-border);
-                    margin:0.15rem 0.25rem;
-                    opacity:0.6;
+                    height: 1px;
+                    background: var(--hub-border);
+                    margin: 0.15rem 0.25rem;
+                    opacity: 0.6;
                 }
-                .community-composer-wrap { display:flex; gap:0.5rem; align-items:center; padding:0.34rem 0.4rem; border:1px solid var(--community-composer-border); border-radius:999px; background:var(--community-composer-bg); backdrop-filter:blur(10px); box-shadow:0 12px 28px rgba(2,6,23,.15); }
-                .community-message-input { flex:1 1 auto; min-width:0; color:var(--community-composer-input) !important; }
-                .community-message-input::placeholder { color:var(--community-composer-placeholder); opacity:1; }
-                .community-attach-btn { flex-shrink:0; width:38px; height:38px; border-color: var(--community-composer-border) !important; color: var(--community-composer-attach-icon) !important; background: var(--community-composer-attach-bg) !important; }
+                .community-composer-wrap {
+                    display: flex;
+                    gap: 0.45rem;
+                    align-items: center;
+                    padding: 0.35rem 0.55rem;
+                    border-radius: 999px;
+                    background: #ffffff;
+                    border: 1px solid #e9edef;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+                }
+                .dark .community-composer-wrap {
+                    background: #2a3942;
+                    border-color: #2a3942;
+                }
+                .community-message-input {
+                    flex: 1 1 auto;
+                    min-width: 0;
+                    color: #111b21 !important;
+                    font-size: 14px;
+                    padding: 0.35rem 0.5rem;
+                    border: none;
+                    outline: none;
+                    background: transparent;
+                }
+                .dark .community-message-input {
+                    color: #e9edef !important;
+                }
+                .community-message-input::placeholder {
+                    color: #667781;
+                    opacity: 1;
+                }
+                .dark .community-message-input::placeholder {
+                    color: #8696a0;
+                }
+                .community-attach-btn {
+                    flex-shrink: 0;
+                    width: 34px;
+                    height: 34px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: none;
+                    background: transparent;
+                    color: #54656f;
+                    cursor: pointer;
+                    border-radius: 999px;
+                    transition: background .12s ease;
+                }
+                .dark .community-attach-btn {
+                    color: #8696a0;
+                }
+                .community-attach-btn:hover {
+                    background: rgba(0,0,0,0.05);
+                }
+                .dark .community-attach-btn:hover {
+                    background: rgba(255,255,255,0.08);
+                }
                 .community-send-btn {
                     flex-shrink: 0 !important;
-                    white-space: nowrap !important;
                     display: inline-flex !important;
                     align-items: center !important;
                     justify-content: center !important;
-                    gap: 0.35rem !important;
-                    padding: 0.5rem 1.15rem !important;
-                    min-height: 38px !important;
+                    width: 38px !important;
+                    height: 38px !important;
                     border: none !important;
                     border-radius: 999px !important;
                     cursor: pointer !important;
-                    font-size: 0.84rem !important;
-                    font-weight: 700 !important;
                     color: #ffffff !important;
-                    background: linear-gradient(135deg, #0f766e, #0ea5e9) !important;
-                    box-shadow: 0 8px 20px rgba(14, 116, 144, .28) !important;
-                    transition: transform 0.15s ease, opacity 0.15s ease;
+                    background: #00a884 !important;
+                    box-shadow: 0 2px 6px rgba(0, 168, 132, .35) !important;
+                    transition: transform 0.15s ease, background 0.15s ease;
+                }
+                .community-send-btn:hover {
+                    background: #008f6f !important;
                 }
                 .community-send-btn:active {
-                    transform: scale(0.96);
+                    transform: scale(0.94);
                 }
                 .community-send-btn:disabled {
-                    opacity: 0.6;
+                    opacity: 0.5;
                     cursor: not-allowed;
                 }
-                .community-back-btn { display:none; }
-                .community-back-btn:focus-visible { outline:2px solid #22d3ee; outline-offset:2px; }
+                .community-back-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 2rem;
+                    height: 2rem;
+                    border-radius: 999px;
+                    border: none;
+                    background: transparent;
+                    color: #54656f;
+                    cursor: pointer;
+                    transition: background .12s ease;
+                }
+                .dark .community-back-btn {
+                    color: #8696a0;
+                }
+                .community-back-btn:hover {
+                    background: rgba(0,0,0,0.06);
+                }
+                .dark .community-back-btn:hover {
+                    background: rgba(255,255,255,0.08);
+                }
 
                 @media (max-width: 768px) {
-                    .community-chat-layout { grid-template-columns:1fr; gap:0.55rem; }
-                    .community-chat-layout[data-room-open="true"] .community-room-list { display:none; }
-                    .community-chat-layout[data-room-open="false"] .community-thread { display:none; }
+                    .community-chat-layout {
+                        grid-template-columns: 1fr;
+                        gap: 0;
+                    }
+                    .community-chat-layout[data-room-open="true"] .community-room-list {
+                        display: none;
+                    }
+                    .community-chat-layout[data-room-open="false"] .community-thread {
+                        display: none;
+                    }
                     .community-room-list, .community-thread {
-                        height: calc(100vh - var(--community-mobile-offset));
-                        height: calc(100dvh - var(--community-mobile-offset));
-                        max-height: none;
-                        min-height: var(--community-mobile-min-height);
+                        height: var(--community-mobile-height);
+                        max-height: var(--community-mobile-height);
+                        border-radius: 0.5rem;
                     }
-                    .community-thread-head { position:sticky; top:0; z-index:5; padding:0.72rem 0.75rem; }
-                    .community-bubble { max-width:calc(100% - 3.8rem); }
+                    .community-thread-head {
+                        padding: 0.5rem 0.65rem;
+                    }
+                    .community-bubble {
+                        max-width: 85vw !important;
+                    }
                     .community-msg-actions {
-                        opacity: 0.65;
+                        opacity: 0.75;
                         pointer-events: auto;
-                        padding: 0.15rem 0.22rem;
-                    }
-                    .community-msg-row:hover .community-msg-actions,
-                    .community-msg-row:focus-within .community-msg-actions,
-                    .community-msg-row:active .community-msg-actions,
-                    .community-msg-actions:hover,
-                    .community-msg-actions:focus-within,
-                    .community-msg-actions[data-active="true"] {
-                        opacity: 1;
-                    }
-                    .community-action-btn {
-                        width: 1.65rem;
-                        height: 1.65rem;
-                    }
-                    .community-back-btn { display:inline-flex; width:2.5rem; height:2.5rem; min-width:44px; min-height:44px; align-items:center; justify-content:center; border:1px solid var(--hub-border); border-radius:999px; background:var(--hub-surface); color:var(--hub-ink); cursor:pointer; flex:0 0 auto; }
-                    .community-composer-wrap {
-                        gap: 0.4rem;
-                        padding: 0.35rem 0.45rem;
-                        margin-bottom: max(0.25rem, env(safe-area-inset-bottom));
-                    }
-                    .community-attach-btn {
-                        width: 44px !important;
-                        height: 44px !important;
-                        min-width: 44px !important;
-                        min-height: 44px !important;
-                        padding: 0 !important;
                     }
                     .community-composer-wrap .community-message-input {
-                        font-size: 16px !important; /* Prevents auto-zoom on mobile virtual keyboard */
-                        min-width: 0 !important;
-                        flex: 1 1 auto !important;
-                        padding: 0.5rem 0.6rem !important;
-                    }
-                    .community-send-btn {
-                        padding: 0.5rem 1.25rem !important;
-                        min-height: 44px !important;
-                        font-size: 0.85rem !important;
+                        font-size: 16px !important;
                     }
                 }
             </style>
 
-            <div class="community-chat-layout" data-room-open="{{ $this->activeRoom ? 'true' : 'false' }}">
+            <div class="community-chat-layout {{ $this->activeRoom ? 'community-chat-fullscreen-open' : '' }}" data-room-open="{{ $this->activeRoom ? 'true' : 'false' }}">
 
-                {{-- Room list --}}
-                <section class="hub-card community-room-list">
-                    @if ($this->rooms->count() === 0)
-                        <p class="hub-copy" style="color:var(--hub-muted);font-size:0.8rem;padding:0.5rem;">No conversations yet. Message a friend from the Friends tab.</p>
-                    @else
-                        @foreach ($this->rooms as $room)
-                            @php
-                                $roomAvatar = $room->avatarUrlFor(auth()->user());
-                                $roomInitial = strtoupper(substr($room->displayNameFor(auth()->user()), 0, 1));
-                            @endphp
-                            <button type="button" wire:click="openRoom({{ $room->id }})"
-                                @class([
-                                    'community-room-item',
-                                    'community-room-item-active' => $selectedRoomId === $room->id,
-                                ])
-                                onmouseover="if(!this.dataset.active){this.style.background='var(--hub-surface)'}"
-                                onmouseout="if(!this.dataset.active){this.style.background='transparent'}"
-                                @if ($selectedRoomId === $room->id)
-                                    data-active="1"
-                                @endif
-                            >
-                                <div style="display:flex;align-items:center;gap:0.4rem;">
-                                    @if ($roomAvatar)
-                                        <img src="{{ $roomAvatar }}" alt="{{ $room->displayNameFor(auth()->user()) }}"
-                                            style="width:1.75rem;height:1.75rem;border-radius:999px;object-fit:cover;border:1px solid {{ $selectedRoomId === $room->id ? 'rgba(148,163,184,.45)' : 'var(--hub-border)' }};">
-                                    @else
-                                        <span style="width:1.75rem;height:1.75rem;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-size:0.72rem;font-weight:700;{{ $room->type === 'course' ? 'background:#0369a1;color:#e0f2fe;' : 'background:#0f766e;color:#ccfbf1;' }}">{{ $roomInitial }}</span>
-                                    @endif
-                                    <span style="font-size:0.83rem;font-weight:600;{{ $selectedRoomId === $room->id ? 'color:#e2e8f0;' : 'color:var(--hub-ink);' }}">{{ $room->displayNameFor(auth()->user()) }}</span>
-                                </div>
-                                @if ($room->latestMessage)
-                                    <p style="margin:0.2rem 0 0;font-size:0.72rem;{{ $selectedRoomId === $room->id ? 'color:#94a3b8;' : 'color:var(--hub-muted);' }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ \Illuminate\Support\Str::limit($room->latestMessage->body, 34) }}</p>
-                                @endif
-                            </button>
-                        @endforeach
-                    @endif
-                </section>
-
-                {{-- Message thread --}}
-                <section class="hub-card community-thread">
-                    @if (! $this->activeRoom)
-                        <div style="flex:1;display:flex;align-items:center;justify-content:center;">
-                            <p class="hub-copy" style="color:var(--hub-muted);font-size:0.85rem;">Select a conversation to start chatting.</p>
+                {{-- Room list (Shown when no room is selected or on wide screens when no room is open) --}}
+                @if (! $this->activeRoom)
+                    <section class="community-room-list">
+                        <div style="padding:0.4rem 0.5rem 0.6rem;border-bottom:1px solid var(--hub-border);margin-bottom:0.4rem;">
+                            <h3 class="hub-title" style="font-size:0.95rem;margin:0;">Conversations</h3>
                         </div>
-                    @else
+                        @if ($this->rooms->count() === 0)
+                            <p class="hub-copy" style="color:var(--hub-muted);font-size:0.8rem;padding:0.5rem;">No conversations yet. Message a friend from the Friends tab.</p>
+                        @else
+                            @foreach ($this->rooms as $room)
+                                @php
+                                    $roomAvatar = $room->avatarUrlFor(auth()->user());
+                                    $roomInitial = strtoupper(substr($room->displayNameFor(auth()->user()), 0, 1));
+                                @endphp
+                                <button type="button" wire:click="openRoom({{ $room->id }})"
+                                    class="community-room-item">
+                                    <div style="display:flex;align-items:center;gap:0.55rem;">
+                                        @if ($roomAvatar)
+                                            <img src="{{ $roomAvatar }}" alt="{{ $room->displayNameFor(auth()->user()) }}"
+                                                style="width:2.2rem;height:2.2rem;border-radius:999px;object-fit:cover;border:1px solid var(--hub-border);flex-shrink:0;">
+                                        @else
+                                            <span style="width:2.2rem;height:2.2rem;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-size:0.8rem;font-weight:700;flex-shrink:0;{{ $room->type === 'course' ? 'background:#0369a1;color:#e0f2fe;' : 'background:#0f766e;color:#ccfbf1;' }}">{{ $roomInitial }}</span>
+                                        @endif
+                                        <div style="min-width:0;flex:1;">
+                                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                                <span style="font-size:0.88rem;font-weight:600;color:var(--hub-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $room->displayNameFor(auth()->user()) }}</span>
+                                                @if ($room->latestMessage)
+                                                    <span style="font-size:0.7rem;color:var(--hub-muted);flex-shrink:0;">{{ $room->latestMessage->created_at?->shortRelativeDiffForHumans() }}</span>
+                                                @endif
+                                            </div>
+                                            @if ($room->latestMessage)
+                                                <p style="margin:0.15rem 0 0;font-size:0.75rem;color:var(--hub-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ \Illuminate\Support\Str::limit($room->latestMessage->body, 38) }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </button>
+                            @endforeach
+                        @endif
+                    </section>
+                @endif
+
+                {{-- Message thread (When room is open, fills 100% full screen floating) --}}
+                @if ($this->activeRoom)
+                    <section class="community-thread">
                         @php
                             $activeAvatar = $this->activeRoom->avatarUrlFor(auth()->user());
                             $activeInitial = strtoupper(substr($this->activeRoom->displayNameFor(auth()->user()), 0, 1));
                         @endphp
+                        {{-- Sticky Top Header Bar --}}
                         <div class="community-thread-head">
-                            <div style="display:flex;align-items:center;gap:0.55rem;">
-                                <button type="button" wire:click="$set('selectedRoomId', null)" class="community-back-btn" aria-label="Back to chat rooms">
-                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                            <div style="display:flex;align-items:center;gap:0.55rem;min-width:0;">
+                                <button type="button" wire:click="closeRoom" class="community-back-btn" aria-label="Back to chat rooms" title="Back to conversations">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
                                 </button>
                                 @if ($activeAvatar)
                                     <img src="{{ $activeAvatar }}" alt="{{ $this->activeRoom->displayNameFor(auth()->user()) }}"
-                                        style="width:2rem;height:2rem;border-radius:999px;object-fit:cover;border:1px solid var(--hub-border);">
+                                        style="width:2.2rem;height:2.2rem;border-radius:999px;object-fit:cover;border:1px solid rgba(0,0,0,0.08);flex-shrink:0;">
                                 @else
-                                    <span style="width:2rem;height:2rem;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-size:0.78rem;font-weight:700;{{ $this->activeRoom->type === 'course' ? 'background:#0369a1;color:#e0f2fe;' : 'background:#0f766e;color:#ccfbf1;' }}">{{ $activeInitial }}</span>
+                                    <span style="width:2.2rem;height:2.2rem;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-size:0.82rem;font-weight:700;flex-shrink:0;{{ $this->activeRoom->type === 'course' ? 'background:#0369a1;color:#e0f2fe;' : 'background:#0f766e;color:#ccfbf1;' }}">{{ $activeInitial }}</span>
                                 @endif
-                                <div>
-                                    <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.9rem;">{{ $this->activeRoom->displayNameFor(auth()->user()) }}</p>
+                                <div style="min-width:0;">
+                                    <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;">{{ $this->activeRoom->displayNameFor(auth()->user()) }}</p>
                                     @if ($this->activeRoom->type === 'course')
-                                        <p style="margin:0;font-size:0.72rem;color:var(--hub-muted);">{{ $this->activeRoom->members->count() }} members</p>
+                                        <p style="margin:0.1rem 0 0;font-size:0.72rem;color:var(--hub-muted);line-height:1;">{{ $this->activeRoom->members->count() }} members</p>
+                                    @else
+                                        <p style="margin:0.1rem 0 0;font-size:0.72rem;color:#00a884;line-height:1;font-weight:500;">online</p>
                                     @endif
                                 </div>
                             </div>
                         </div>
 
-                        <div wire:poll.4s style="flex:1;overflow-y:auto;padding:0.75rem 0.85rem 1.1rem;display:flex;flex-direction:column;gap:0.75rem;"
+                        {{-- Message feed (ONLY this scrolls) --}}
+                        <div wire:poll.4s style="flex:1 1 0%;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0.75rem 0.85rem 1rem;display:flex;flex-direction:column;gap:0.45rem;"
                             x-data x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)"
                             x-on:scroll-bottom.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
                             @if ($this->hasMoreMessages)
-                                <div style="text-align:center;padding:0.3rem 0;">
+                                <div style="text-align:center;padding:0.2rem 0;">
                                     <button type="button" wire:click="loadMoreMessages" wire:loading.attr="disabled"
-                                        style="font-size:0.78rem;padding:0.35rem 1rem;background:var(--hub-surface);color:var(--hub-muted);border:1px solid var(--hub-border);border-radius:999px;cursor:pointer;">
+                                        style="font-size:0.75rem;padding:0.3rem 0.9rem;background:rgba(255,255,255,0.7);backdrop-filter:blur(4px);color:var(--hub-muted);border:1px solid var(--hub-border);border-radius:999px;cursor:pointer;">
                                         <span wire:loading.remove wire:target="loadMoreMessages">Load older messages</span>
                                         <span wire:loading wire:target="loadMoreMessages">Loading…</span>
                                     </button>
@@ -1075,14 +1252,13 @@
                                     <div class="community-msg-bundle {{ $mine ? 'community-msg-bundle-mine' : 'community-msg-bundle-theirs' }}">
 
                                         {{-- Message Bubble --}}
-                                        <div class="community-bubble"
-                                            style="padding:0.32rem 0.58rem;border-radius:0.85rem;font-size:13px;line-height:1.35;{{ $mine ? 'background:linear-gradient(135deg,#0f766e,#0ea5e9);color:#fff;border-bottom-right-radius:0.22rem;box-shadow:0 6px 16px rgba(15,118,110,.18);' : 'background:color-mix(in oklab, var(--hub-surface) 92%, ' . $palette['accent'] . ' 8%);color:var(--hub-ink);border:1px solid color-mix(in oklab, var(--hub-border) 70%, ' . $palette['accent'] . ' 30%);border-left:3.5px solid ' . $palette['accent'] . ';border-bottom-left-radius:0.22rem;box-shadow:0 2px 8px rgba(2,6,23,.05);' }}">
+                                        <div class="community-bubble {{ $mine ? 'community-bubble-mine' : 'community-bubble-theirs' }}">
 
                                             {{-- Author Name in course/group rooms --}}
                                             @if (! $mine && $this->activeRoom->type === 'course')
-                                                <p class="community-msg-author" style="color:{{ $palette['name_color'] }};">
-                                                    <span style="white-space:nowrap;word-break:keep-all;">{{ $author?->first_name ?? 'Student' }}</span>
-                                                </p>
+                                                <div class="community-msg-author" style="color:{{ $palette['name_color'] ?? '#0f766e' }};">
+                                                    {{ $author?->first_name ?? 'Student' }}
+                                                </div>
                                             @endif
 
                                             {{-- Quoted Parent Reply (if this message is a reply) --}}
@@ -1094,12 +1270,12 @@
                                                 @endphp
                                                 <div onclick="const target = document.getElementById('chat-msg-{{ $message->reply_to_id }}'); if(target){ target.scrollIntoView({behavior:'smooth', block:'center'}); target.style.transition='filter 0.4s ease'; target.style.filter='brightness(1.25)'; setTimeout(() => target.style.filter='', 1200); }"
                                                     title="Jump to quoted message"
-                                                    style="cursor:pointer;margin-bottom:0.22rem;padding:0.18rem 0.42rem;border-radius:0.35rem;font-size:11px;border-left:2.5px solid {{ $quotedMine ? '#22d3ee' : ($quotedPalette['accent'] ?? '#0d9488') }};background:{{ $mine ? 'rgba(0,0,0,0.22)' : 'color-mix(in oklab, var(--hub-card) 75%, rgba(15,23,42,0.08) 25%)' }};max-width:100%;overflow:hidden;">
-                                                    <div style="font-weight:700;font-size:10px;color:{{ $mine ? '#e0f2fe' : ($quotedPalette['name_color'] ?? 'var(--hub-primary)') }};display:flex;align-items:center;gap:0.2rem;margin-bottom:0.04rem;white-space:nowrap;word-break:keep-all;">
+                                                    style="cursor:pointer;margin-bottom:0.25rem;padding:0.2rem 0.45rem;border-radius:0.35rem;font-size:11px;text-align:left;border-left:3px solid {{ $quotedMine ? '#00a884' : ($quotedPalette['accent'] ?? '#0d9488') }};background:rgba(0,0,0,0.06);max-width:100%;overflow:hidden;">
+                                                    <div style="font-weight:700;font-size:10.5px;color:{{ $quotedMine ? '#008069' : ($quotedPalette['name_color'] ?? 'var(--hub-primary)') }};display:flex;align-items:center;gap:0.2rem;margin-bottom:0.04rem;white-space:nowrap;">
                                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
-                                                        <span style="white-space:nowrap;word-break:keep-all;">{{ $quotedMine ? 'You' : ($quotedAuthor?->first_name ?? 'Student') }}</span>
+                                                        <span>{{ $quotedMine ? 'You' : ($quotedAuthor?->first_name ?? 'Student') }}</span>
                                                     </div>
-                                                    <p style="margin:0;color:{{ $mine ? 'rgba(255,255,255,0.88)' : 'var(--hub-muted)' }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10.5px;">
+                                                    <p style="margin:0;color:var(--hub-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;text-align:left;">
                                                         {{ $message->replyTo->body ?: ($message->replyTo->attachment_name ? '📎 '.$message->replyTo->attachment_name : 'Message') }}
                                                     </p>
                                                 </div>
@@ -1115,23 +1291,32 @@
                                                         @if ($att['type'] === 'image')
                                                             <a href="{{ $att['url'] }}" target="_blank" rel="noopener noreferrer" style="display:block;">
                                                                 <img src="{{ $att['url'] }}" alt="{{ $att['name'] }}"
-                                                                    style="max-width:220px;max-height:220px;border-radius:0.45rem;display:block;object-fit:cover;">
+                                                                    style="max-width:240px;max-height:240px;border-radius:0.45rem;display:block;object-fit:cover;">
                                                             </a>
                                                         @else
                                                             <a href="{{ $att['url'] }}" target="_blank" rel="noopener noreferrer" download="{{ $att['name'] }}"
-                                                                style="display:flex;align-items:center;gap:0.35rem;padding:0.3rem 0.5rem;border-radius:0.45rem;text-decoration:none;{{ $mine ? 'background:rgba(255,255,255,.2);color:#fff;' : 'background:var(--hub-card);color:var(--hub-ink);border:1px solid var(--hub-border);' }}">
-                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                                                <span style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{{ $att['name'] }}</span>
+                                                                style="display:flex;align-items:center;gap:0.35rem;padding:0.35rem 0.55rem;border-radius:0.45rem;text-decoration:none;background:rgba(0,0,0,0.06);color:inherit;font-size:12px;">
+                                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                                                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{{ $att['name'] }}</span>
                                                             </a>
                                                         @endif
                                                     @endforeach
                                                 </div>
                                             @endif
 
-                                            {{-- Body Text --}}
-                                            @if ($message->body)
-                                                <p class="community-msg-text">{{ trim($message->body) }}</p>
-                                            @endif
+                                            {{-- Body Text + Snug Floating Timestamp --}}
+                                            <div style="display:inline;text-align:left;">
+                                                @if ($message->body)
+                                                    <span class="community-msg-text">{{ trim($message->body) }}</span>
+                                                @endif
+
+                                                <span style="float:right;margin-left:0.55rem;margin-top:0.25rem;font-size:10px;color:{{ $mine ? '#54656f' : '#667781' }};white-space:nowrap;display:inline-flex;align-items:center;gap:2px;line-height:1;user-select:none;vertical-align:baseline;">
+                                                    {{ $message->created_at?->format('H:i') }}
+                                                    @if ($mine)
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#53bdeb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><polyline points="20 6 9 17 4 12"/><polyline points="20 12 13 19 11 17"/></svg>
+                                                    @endif
+                                                </span>
+                                            </div>
                                         </div>
 
                                         {{-- Action toolbar beside the bubble (Emoji + Three Dots) --}}
@@ -1260,20 +1445,19 @@
                                             @endforeach
                                         </div>
                                     @endif
-
-                                    {{-- Timestamp --}}
-                                    <span style="font-size:10.5px;color:#94a3b8;margin-top:0.12rem;">{{ $message->created_at?->format('M d, H:i') }}</span>
                                 </div>
                             @empty
-                                <p class="hub-copy" style="color:var(--hub-muted);font-size:0.82rem;text-align:center;margin:auto;">No messages yet. Say hi!</p>
+                                <div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:140px;">
+                                    <p class="hub-copy" style="color:var(--hub-muted);font-size:0.85rem;text-align:center;background:rgba(255,255,255,0.7);backdrop-filter:blur(4px);padding:0.4rem 0.9rem;border-radius:999px;">No messages yet. Say hi!</p>
+                                </div>
                             @endforelse
                         </div>
 
-                        {{-- Composer Area --}}
+                        {{-- Sticky Bottom Composer Area --}}
                         <form wire:submit.prevent="sendMessage"
                             x-data
                             x-on:focus-chat-input.window="$nextTick(() => { const input = $el.querySelector('input[type=text]'); if (input) input.focus(); })"
-                            style="display:flex;flex-direction:column;gap:0.4rem;padding:0.68rem 0.75rem;border-top:1px solid var(--hub-border);background:linear-gradient(180deg,rgba(148,163,184,.05),rgba(15,23,42,.12));">
+                            style="flex-shrink:0;position:sticky;bottom:0;z-index:20;display:flex;flex-direction:column;gap:0.35rem;padding:0.5rem 0.65rem;border-top:1px solid #e9edef;background-color:#f0f2f5;">
 
                             {{-- Replying to Banner Preview --}}
                             @if ($this->replyingToMessage)
@@ -1282,9 +1466,9 @@
                                     $repPalette = $repUser?->chatColorPalette();
                                     $repMine = $this->replyingToMessage->user_id === auth()->id();
                                 @endphp
-                                <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:0.35rem 0.65rem;background:color-mix(in oklab, var(--hub-surface) 90%, {{ $repPalette['accent'] ?? '#0d9488' }} 10%);border-left:3.5px solid {{ $repPalette['accent'] ?? '#0d9488' }};border-radius:0.45rem;font-size:12px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:0.35rem 0.65rem;background:#ffffff;border-left:3.5px solid #00a884;border-radius:0.45rem;font-size:12px;">
                                     <div style="min-width:0;flex:1;">
-                                        <div style="display:flex;align-items:center;gap:0.3rem;font-weight:700;color:{{ $repPalette['name_color'] ?? 'var(--hub-primary)' }};font-size:11.5px;">
+                                        <div style="display:flex;align-items:center;gap:0.3rem;font-weight:700;color:#00a884;font-size:11.5px;">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
                                             <span>Replying to {{ $repMine ? 'yourself' : ($repUser?->first_name ?? 'Student') }}</span>
                                         </div>
@@ -1304,7 +1488,7 @@
                                 $previewFiles = !empty($attachments) ? $attachments : ($attachment ? [$attachment] : []);
                             @endphp
                             @if (!empty($previewFiles))
-                                <div style="display:flex;flex-wrap:wrap;gap:0.35rem;padding:0.35rem 0.55rem;background:var(--hub-surface);border-radius:0.45rem;">
+                                <div style="display:flex;flex-wrap:wrap;gap:0.35rem;padding:0.35rem 0.55rem;background:#ffffff;border-radius:0.45rem;">
                                     @foreach ($previewFiles as $pIdx => $pFile)
                                         <div style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.2rem 0.45rem;background:var(--hub-card);border:1px solid var(--hub-border);border-radius:0.35rem;max-width:100%;">
                                             @if (method_exists($pFile, 'temporaryUrl') && str_starts_with($pFile->getMimeType() ?? '', 'image/'))
@@ -1331,23 +1515,23 @@
 
                             <div wire:loading wire:target="attachments,attachment" style="font-size:0.72rem;color:var(--hub-muted);">Uploading attachments…</div>
 
-                            <div class="community-composer-wrap">
-                                <label class="community-attach-btn" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;border:1px solid color-mix(in oklab, var(--hub-border) 70%, #475569 30%);border-radius:999px;color:var(--hub-muted);background:color-mix(in oklab, var(--hub-card) 82%, #111827 18%);flex-shrink:0;" title="Attach file(s)">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                                    <input type="file" wire:model="attachments" multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip" style="display:none;">
-                                </label>
-                                <input type="text" wire:model="messageBody" placeholder="Type a message…" autocomplete="off"
-                                    class="community-message-input"
-                                    style="flex:1 1 auto;min-width:0;font-size:14px;padding:0.45rem 0.5rem;border:0;outline:0;background:transparent;box-shadow:none;color:var(--hub-ink);-webkit-appearance:none;appearance:none;">
+                            <div style="display:flex;align-items:center;gap:0.45rem;">
+                                <div class="community-composer-wrap" style="flex:1;">
+                                    <label class="community-attach-btn" title="Attach file(s)">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                                        <input type="file" wire:model="attachments" multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip" style="display:none;">
+                                    </label>
+                                    <input type="text" wire:model="messageBody" placeholder="Type a message…" autocomplete="off"
+                                        class="community-message-input">
+                                </div>
                                 <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachments,attachment"
                                     class="community-send-btn" title="Send message">
-                                    <span>Send</span>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg); margin-top:-1px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                                 </button>
                             </div>
                         </form>
-                    @endif
-                </section>
+                    </section>
+                @endif
             </div>
         @endif
 
