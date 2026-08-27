@@ -41,15 +41,18 @@ Updated `resources/views/filament/partials/panel-theme.blade.php`:
 
 ---
 
-### 2. WhatsApp-Inspired Full-Screen Active Chat Room
+### 2. WhatsApp-Inspired Full-Screen Active Chat Room & Compact Bubbles
 - **Locked Full-Screen Viewport**:
   - Implemented `fixed inset-0 top-0 sm:top-[64px] z-50 flex flex-col bg-[#efeae2] dark:bg-[#0b141a] overflow-hidden` when a chat room is active.
 - **Fixed Header & Composer**:
   - Pinned header with Back button, Avatar, Title, Cohort count, and Refresh action.
   - Pinned bottom composer with attachment trigger, pill input, and emerald circular send button.
-- **Message Bubbles**:
-  - Sent: Right-aligned (`flex justify-end`), tail bubble (`bg-[#d9fdd3] dark:bg-[#005c4b] rounded-2xl rounded-tr-none`), left-aligned message text, timestamp + blue dual checkmarks (`✓✓ text-sky-500`).
-  - Received: Left-aligned (`flex justify-start`), tail bubble (`bg-white dark:bg-[#202c33] rounded-2xl rounded-tl-none`), sender name on top (`text-amber-600 dark:text-amber-400 font-bold mb-0.5`), timestamp.
+- **Compact Message Bubble Design**:
+  - **Sender Display**: Rendered sender name on both outgoing ("You" in `text-emerald-800 dark:text-emerald-300 font-bold text-[11px]`) and incoming messages (`text-teal-600 dark:text-teal-400 font-bold text-[11px]`).
+  - **Tight Vertical Spacing**: Message feed set to `space-y-1.5` with minimal bottom margin `mb-0.5` between sender name and text.
+  - **Compact Padding**: Bubble padding refined to `px-2.5 py-1` with `leading-snug text-[13px] sm:text-sm` for optimal text density.
+  - **Inline Timestamps & Receipts**: Timestamp and dual checkmarks (`✓✓ text-sky-500`) neatly aligned with `mt-0.5`.
+  - **Compact Attachment Chips**: Document attachments render inside compact chip rows with inline download triggers.
 
 ---
 

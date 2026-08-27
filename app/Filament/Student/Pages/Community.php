@@ -77,11 +77,29 @@ class Community extends Page
 
     public function getHeading(): ?string
     {
-        if ($this->tab === 'chats') {
-            return '';
+        return '';
+    }
+
+    public function setTab(string $tab): void
+    {
+        if ($tab === 'scores') {
+            $tab = 'results';
+        } elseif ($tab === 'ranks') {
+            $tab = 'leaderboard';
         }
 
-        return 'Community';
+        $this->tab = $tab;
+        $this->selectedRoomId = null;
+        $this->replyingToMessageId = null;
+    }
+
+    public function updatedTab($value): void
+    {
+        if ($value === 'scores') {
+            $this->tab = 'results';
+        } elseif ($value === 'ranks') {
+            $this->tab = 'leaderboard';
+        }
     }
 
     public function closeRoom(): void
@@ -1219,6 +1237,7 @@ class Community extends Page
             $this->replyingToMessageId = null;
             $this->messagesLimit = 30;
             $this->hasMoreMessages = false;
+            $this->tab = 'chats';
         }
     }
 
