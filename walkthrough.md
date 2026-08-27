@@ -29,11 +29,10 @@ Updated `resources/views/filament/partials/panel-theme.blade.php`:
   - Enclosed the entire chat list viewport in `<div class="w-full h-[calc(100dvh-64px)] flex flex-col overflow-hidden bg-slate-50 dark:bg-[#0b141a]">`.
   - Pinned the top section (`flex-shrink-0 px-4 pt-3 pb-2 space-y-3 bg-slate-50 dark:bg-[#0b141a] border-b border-gray-200/60 dark:border-gray-800/60`) containing:
     - Community title & XP / Badge pill (`⚡ 500 XP • ⭐ 2 badges 💯`)
-    - Navigation tabs (`💬 Chats`, `📊 Scores`, `👥 Friends`, `🏆 Ranks`)
-    - Card header (`💻 Community Chats / Thinker HUB`)
-    - Search field (`Search or start new chat` with debounced search)
-    - Filter pills (`All`, `Cohorts / Groups`, `Direct DMs`)
-- **Independently Scrollable Chat Feed**:
+- **Zero-Scroll 4-Column Responsive Grid Navigation Tabs**:
+  - The 4 navigation pills (`Chats`, `Score Board`, `Friends`, `Ranks`) use a 4-column grid (`grid grid-cols-4 gap-1 xs:gap-1.5 sm:gap-2.5 w-full max-w-xl mx-auto`), ensuring all 4 tabs fit 100% of mobile screens (from 320px up to desktop) without horizontal scrolling.
+  - **High-Contrast Active State**: Guaranteed rich emerald surface (`bg-[#008069] text-white shadow-xs border border-[#008069]`) with high-contrast `#ffffff` text and icon.
+  - **Inactive State**: Refined surface container (`bg-white dark:bg-[#111b21] text-gray-700 dark:text-gray-200 border border-gray-200/90 dark:border-gray-800 shadow-2xs`) featuring distinct system icon accent colors (`text-emerald-600`, `text-teal-600`, `text-sky-600`, `text-amber-600`).
   - The conversation feed container occupies the remaining height with `flex-1 overflow-y-auto overscroll-contain bg-white dark:bg-[#111b21] divide-y divide-gray-100 dark:divide-gray-800/60 px-2 pb-[env(safe-area-inset-bottom,1.5rem)]`.
   - Only the list of chats scrolls vertically; header and navigation remain completely static.
 - **Safe Area & Dynamic Viewport Height**:
@@ -63,6 +62,7 @@ Updated `resources/views/filament/partials/panel-theme.blade.php`:
   - Leaderboard evaluations accurately incorporate only the latest score per task.
 - In [`resources/views/filament/student/pages/community.blade.php`](file:///c:/Users/mukuk/Documents/GitHub/thinker_HUB/resources/views/filament/student/pages/community.blade.php):
   - Candidate names on the Score Board use `break-words leading-tight` for natural multi-line wrapping.
+  - **Collapsible Personal Evaluation Records**: Wrapped in an Alpine.js collapsible card (`x-data="{ showPersonalRecords: false }"`, `x-show="showPersonalRecords"`, `x-collapse`) with dynamic count badge and rotating chevron toggle.
 
 ---
 
