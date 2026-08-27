@@ -3796,7 +3796,7 @@
             padding-right: max(0.75rem, env(safe-area-inset-right)) !important;
             padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
             max-width: 100vw !important;
-            overflow-x: hidden !important;
+            overflow-x: clip !important;
         }
 
         /* Mobile full-width / bottom-sheet modals */

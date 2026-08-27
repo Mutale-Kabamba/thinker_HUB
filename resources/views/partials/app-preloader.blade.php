@@ -33,20 +33,22 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         opacity: 1;
         transform: scale(1);
-        transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1), transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: all;
+        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
         user-select: none;
         -webkit-user-select: none;
     }
 
     .thinker-preloader-root.preloader-active {
         display: flex !important;
+        pointer-events: auto !important;
     }
 
     .thinker-preloader-root.preloader-hidden {
-        opacity: 0;
-        transform: scale(1.025);
-        pointer-events: none;
+        opacity: 0 !important;
+        transform: scale(1.025) !important;
+        pointer-events: none !important;
+        display: none !important;
     }
 
     .preloader-ambient {
@@ -146,7 +148,7 @@
         background: linear-gradient(90deg, #006a67, #2dd4bf, #008884);
         border-radius: 999px;
         box-shadow: 0 0 12px #2dd4bf;
-        transition: width 3.0s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .preloader-status {
@@ -163,53 +165,46 @@
     const preloader = document.getElementById('thinker-app-preloader');
     if (!preloader) return;
 
-    // Check if on a mobile device / PWA standalone app
-    const isMobileApp = window.matchMedia('(display-mode: standalone)').matches 
-        || window.navigator.standalone === true 
-        || window.innerWidth <= 768 
-        || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-
-    const path = window.location.pathname.toLowerCase();
-    const isLoginPage = path.includes('/login') 
-        || path.includes('/register') 
-        || path.includes('/auth') 
-        || path === '/' 
-        || document.body.classList.contains('fi-body-guest');
-
-    const alreadyPreloaded = sessionStorage.getItem('thinker_login_preloaded');
-
-    // ONLY run on mobile app at login for initial launch in session
-    if (isMobileApp && isLoginPage && !alreadyPreloaded) {
-        sessionStorage.setItem('thinker_login_preloaded', 'true');
-        preloader.classList.add('preloader-active');
-
-        const bar = document.getElementById('preloader-bar');
-        const statusText = document.getElementById('preloader-status-text');
-
-        requestAnimationFrame(function () {
-            if (bar) {
-                bar.style.width = '100%';
-            }
-        });
-
-        setTimeout(function () {
-            if (statusText) statusText.textContent = 'Preparing secure session...';
-        }, 1100);
-
-        setTimeout(function () {
-            if (statusText) statusText.textContent = 'Welcome to think.er HUB!';
-        }, 2300);
-
-        setTimeout(function () {
-            preloader.classList.add('preloader-hidden');
-            setTimeout(function () {
-                preloader.classList.remove('preloader-active');
-                preloader.style.display = 'none';
-            }, 600);
-        }, 3000);
-    } else {
-        // Instant pass-through for page switching and normal browsing
+    function dismissPreloader() {
+        preloader.classList.add('preloader-hidden');
+        preloader.classList.remove('preloader-active');
+        preloader.style.pointerEvents = 'none';
         preloader.style.display = 'none';
+    }
+
+    try {
+        const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches 
+            || window.navigator.standalone === true;
+
+        const path = window.location.pathname.toLowerCase();
+        const isAuthPage = path.includes('/login') || path.includes('/register') || path.includes('/auth');
+        let alreadyPreloaded = false;
+
+        try {
+            alreadyPreloaded = sessionStorage.getItem('thinker_pwa_preloaded') === 'true';
+        } catch (e) {
+            alreadyPreloaded = true; // Fallback if storage access is restricted
+        }
+
+        // ONLY trigger on standalone PWA launch at auth screen
+        if (isStandalonePWA && isAuthPage && !alreadyPreloaded) {
+            try {
+                sessionStorage.setItem('thinker_pwa_preloaded', 'true');
+            } catch (e) {}
+
+            preloader.classList.add('preloader-active');
+
+            const bar = document.getElementById('preloader-bar');
+            requestAnimationFrame(function () {
+                if (bar) bar.style.width = '100%';
+            });
+
+            setTimeout(dismissPreloader, 1200);
+        } else {
+            dismissPreloader();
+        }
+    } catch (err) {
+        dismissPreloader();
     }
 })();
 </script>

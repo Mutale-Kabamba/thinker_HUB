@@ -425,18 +425,31 @@ a.fi-dropdown-list-item svg {
 
 html {
 	-webkit-text-size-adjust: 100%;
-	touch-action: manipulation;
-	overflow-x: hidden;
+	overflow-x: clip;
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+	touch-action: pan-y pinch-zoom;
+}
+
+@supports not (overflow: clip) {
+	html {
+		overflow-x: hidden;
+	}
 }
 
 body {
-	overflow-x: hidden;
+	overflow-x: clip;
+	overflow-y: visible;
 	min-height: 100vh;
 	min-height: 100dvh;
-	padding-top: var(--sat);
-	padding-bottom: var(--sab);
-	padding-left: var(--sal);
-	padding-right: var(--sar);
+	-webkit-overflow-scrolling: touch;
+	touch-action: pan-y pinch-zoom;
+}
+
+@supports not (overflow: clip) {
+	body {
+		overflow-x: hidden;
+	}
 }
 
 /* Dynamic Viewport Heights */
@@ -490,8 +503,14 @@ body {
 /* Zero Horizontal Overflow Guard */
 .prevent-overflow {
 	max-width: 100%;
-	overflow-x: hidden;
+	overflow-x: clip;
 	box-sizing: border-box;
+}
+
+@supports not (overflow: clip) {
+	.prevent-overflow {
+		overflow-x: hidden;
+	}
 }
 
 .touch-scroll-x {
@@ -511,11 +530,17 @@ body {
 }
 
 @media (pointer: coarse) {
-	button,
-	a.inline-flex,
-	input[type="button"],
-	input[type="submit"],
-	.fi-btn {
+	.touch-target,
+	.btn-touch,
+	.fi-btn,
+	.btn-primary,
+	.btn-secondary,
+	.edtech-btn,
+	.edtech-btn-primary,
+	.edtech-btn-secondary,
+	.hub-public-nav a,
+	.hub-public-auth-link,
+	.hub-public-cta {
 		min-height: 44px;
 	}
 	
@@ -530,6 +555,30 @@ body {
 	textarea {
 		font-size: 16px !important; /* Prevents auto-zoom on iOS */
 	}
+}
+
+/* Compact Carousel Navigation Elements */
+.carousel-indicator-dot {
+	height: 6px !important;
+	min-height: 6px !important;
+	max-height: 6px !important;
+	min-width: 6px !important;
+	padding: 0 !important;
+	border: none !important;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.carousel-ctrl-btn {
+	width: 28px !important;
+	height: 28px !important;
+	min-height: 28px !important;
+	min-width: 28px !important;
+	max-height: 28px !important;
+	max-width: 28px !important;
+	padding: 0 !important;
+	flex-shrink: 0;
+	cursor: pointer;
 }
 
 /* Touch Active Feedback */

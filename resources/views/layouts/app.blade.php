@@ -18,7 +18,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
 </head>
-<body class="font-sans antialiased bg-slate-100 text-slate-900 overflow-x-hidden min-h-dvh safe-p" x-data="{ sidebarOpen: false }">
+<body class="font-sans antialiased bg-slate-100 text-slate-900 min-h-dvh safe-p" x-data="{ sidebarOpen: false }">
     @php
         $resolvedSection = $section ?? (auth()->user()?->isAdmin() ? 'admin' : 'student');
         $links = $resolvedSection === 'admin'
