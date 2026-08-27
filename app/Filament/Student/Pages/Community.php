@@ -77,7 +77,7 @@ class Community extends Page
 
     public function getHeading(): ?string
     {
-        if ($this->tab === 'chats' && $this->selectedRoomId) {
+        if ($this->tab === 'chats') {
             return '';
         }
 

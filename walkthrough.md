@@ -20,52 +20,50 @@ Created a modular suite of Blade components in `resources/views/components/edtec
 Updated `resources/views/filament/partials/panel-theme.blade.php`:
 - Defined `--color-canvas` (`#F8FAFC` / `#0F172A`), `--color-surface` (`#FFFFFF` / `#1E293B`), `--color-primary` (`#0D9488` / `#0F766E`), `--color-accent` (`#6366F1`), `--color-border` (`#E2E8F0` / `#334155`).
 - Added responsive 2-column grid utilities (`.edtech-dashboard-grid`), floating card surfaces (`.edtech-card`), and pill buttons.
-# Community Chat WhatsApp-Inspired UI & Assessment Scoring Refactor
+# Community Chat WhatsApp-Inspired UI & Sticky Header Refactor
 
 ## Summary of Accomplishments
 
-### 1. WhatsApp-Inspired Full-Screen Active Chat Room
+### 1. Sticky / Fixed Top Header & Isolated Scrollable Chat List
+- **Fixed / Static Top Header Section (No Page Scrolling)**:
+  - Enclosed the entire chat list viewport in `<div class="w-full h-[calc(100dvh-64px)] flex flex-col overflow-hidden bg-slate-50 dark:bg-[#0b141a]">`.
+  - Pinned the top section (`flex-shrink-0 px-4 pt-3 pb-2 space-y-3 bg-slate-50 dark:bg-[#0b141a] border-b border-gray-200/60 dark:border-gray-800/60`) containing:
+    - Community title & XP / Badge pill (`⚡ 500 XP • ⭐ 2 badges 💯`)
+    - Navigation tabs (`💬 Chats`, `📊 Scores`, `👥 Friends`, `🏆 Ranks`)
+    - Card header (`💻 Community Chats / Thinker HUB`)
+    - Search field (`Search or start new chat` with debounced search)
+    - Filter pills (`All`, `Cohorts / Groups`, `Direct DMs`)
+- **Independently Scrollable Chat Feed**:
+  - The conversation feed container occupies the remaining height with `flex-1 overflow-y-auto overscroll-contain bg-white dark:bg-[#111b21] divide-y divide-gray-100 dark:divide-gray-800/60 px-2 pb-[env(safe-area-inset-bottom,1.5rem)]`.
+  - Only the list of chats scrolls vertically; header and navigation remain completely static.
+- **Safe Area & Dynamic Viewport Height**:
+  - Added dynamic safe-area bottom padding to ensure the last conversation item remains completely accessible on iOS and Android devices.
+
+---
+
+### 2. WhatsApp-Inspired Full-Screen Active Chat Room
 - **Locked Full-Screen Viewport**:
   - Implemented `fixed inset-0 top-0 sm:top-[64px] z-50 flex flex-col bg-[#efeae2] dark:bg-[#0b141a] overflow-hidden` when a chat room is active.
-  - Eliminated unwanted outer page scrolling, moving layout artifacts, and redundant headings.
-- **Fixed Top Header**:
-  - Pinned WhatsApp header with a back button, chat avatar, room title, cohort/member count, and refresh button.
-- **Scrollable Message Feed**:
-  - Isolated scrolling strictly to the message stream container (`flex-1 overflow-y-auto p-3 sm:p-4 space-y-3`) with auto-scroll to the latest message.
-- **WhatsApp Message Bubble Design**:
-  - **Sent Messages (Current User)**:
-    - Right-aligned (`flex justify-end`)
-    - Tail styling with `bg-[#d9fdd3] dark:bg-[#005c4b] text-gray-900 dark:text-gray-100 rounded-2xl rounded-tr-none shadow-xs px-3.5 py-2 max-w-[85%] sm:max-w-[70%]`
-    - Left-aligned text inside bubble, wrapping naturally with `break-words whitespace-pre-line`
-    - Timestamp + blue dual checkmarks (`✓✓ text-sky-500`)
-  - **Received Messages (Other Members)**:
-    - Left-aligned (`flex justify-start`)
-    - Tail styling with `bg-white dark:bg-[#202c33] text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-none shadow-xs px-3.5 py-2 max-w-[85%] sm:max-w-[70%]`
-    - Prominently styled sender name at the top (`text-amber-600 dark:text-amber-400 font-bold mb-0.5`)
-    - Right-aligned timestamp at bottom
-- **Attachments & Documents**:
-  - Clean card chips for document files with download actions and embedded preview for images.
-- **Pinned Bottom Input Bar**:
-  - Input field with attachment trigger and emerald circular send button (`w-10 h-10 rounded-full bg-[#00a884] text-white`).
-  - Safe-area bottom padding for mobile devices.
+- **Fixed Header & Composer**:
+  - Pinned header with Back button, Avatar, Title, Cohort count, and Refresh action.
+  - Pinned bottom composer with attachment trigger, pill input, and emerald circular send button.
+- **Message Bubbles**:
+  - Sent: Right-aligned (`flex justify-end`), tail bubble (`bg-[#d9fdd3] dark:bg-[#005c4b] rounded-2xl rounded-tr-none`), left-aligned message text, timestamp + blue dual checkmarks (`✓✓ text-sky-500`).
+  - Received: Left-aligned (`flex justify-start`), tail bubble (`bg-white dark:bg-[#202c33] rounded-2xl rounded-tl-none`), sender name on top (`text-amber-600 dark:text-amber-400 font-bold mb-0.5`), timestamp.
 
 ---
 
-### 2. Deduplicated Quiz Attempts and Current Scores
-- In `app/Filament/Student/Pages/Community.php`:
-  - Deduplicated quiz attempts, keeping only the current/latest attempt per student. Retried quizzes no longer duplicate records in candidate lists or cohort score averages.
-  - Deduplicated assignment and assessment submissions to the current graded submission per student.
-  - Leaderboard calculations accurately group by task ID so retried tasks only contribute their latest score.
-
----
-
-### 3. Responsive Candidate Full Name Wrapping
-- In `resources/views/filament/student/pages/community.blade.php`:
-  - Candidate names on the Score Board now use `break-words leading-tight` instead of truncate, allowing long names to wrap cleanly onto subsequent lines.
+### 3. Deduplicated Quiz Attempts & Latest Scores
+- In [`app/Filament/Student/Pages/Community.php`](file:///c:/Users/mukuk/Documents/GitHub/thinker_HUB/app/Filament/Student/Pages/Community.php):
+  - Deduplicated quiz attempts to keep only the latest/current attempt per student.
+  - Deduplicated assignment and assessment submissions to the current graded attempt.
+  - Leaderboard evaluations accurately incorporate only the latest score per task.
+- In [`resources/views/filament/student/pages/community.blade.php`](file:///c:/Users/mukuk/Documents/GitHub/thinker_HUB/resources/views/filament/student/pages/community.blade.php):
+  - Candidate names on the Score Board use `break-words leading-tight` for natural multi-line wrapping.
 
 ---
 
 ## Verification Results
-- **PHP Syntax and Autoload**: `php artisan package:discover --ansi` passed with exit code `0`.
 - **Vite Build**: `npm run build` compiled all CSS and JS bundles cleanly.
-- **Full Test Suite**: `php artisan test` ran 287 tests and **100% passed (287 passed, 1554 assertions)** with 0 failures.
+- **Feature Test Suites**: All Community and Chat tests passed (**14 passed, 95 assertions**).
+- **Full Test Suite**: `php artisan test` passed with 0 failures.

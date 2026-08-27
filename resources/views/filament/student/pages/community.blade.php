@@ -1,6 +1,6 @@
 <x-filament-panels::page>
 
-    @if ($tab === 'chats' && $selectedRoomId)
+    @if ($tab === 'chats')
         <style>
             .fi-header,
             header.fi-header,
@@ -10,8 +10,8 @@
             .fi-main-ctn,
             .fi-page,
             .fi-main {
-                padding-top: 0.25rem !important;
-                padding-bottom: 0.25rem !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
             }
             .hub-shell {
                 padding: 0 !important;
@@ -22,7 +22,7 @@
 
     <div class="hub-shell">
 
-    @if (! ($tab === 'chats' && $selectedRoomId))
+    @if ($tab !== 'chats')
         {{-- My XP summary chip --}}
         <section style="padding:0.15rem 0 0;display:flex;justify-content:center;">
             <button type="button" wire:click="$set('tab','leaderboard')"
@@ -1208,164 +1208,148 @@
 
                 </div>
             @else
-                {{-- Standard WhatsApp Rooms List (when browsing rooms) --}}
-                <div class="whatsapp-container w-full min-w-0 h-[calc(100vh-175px)] min-h-[calc(100vh-175px)] sm:h-[calc(100vh-185px)] sm:min-h-[calc(100vh-185px)] rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#111b21] shadow-xl flex overflow-hidden relative mb-2">
-                    
-                    {{-- LEFT SIDEBAR: CHAT LIST --}}
-                    <div class="w-full md:w-80 lg:w-96 flex-shrink-0 bg-white dark:bg-[#111b21] border-r border-gray-200 dark:border-gray-800 flex flex-col h-full overflow-hidden flex">
-                        
-                        {{-- WhatsApp Header --}}
-                        <div class="whatsapp-header-bar bg-[#f0f2f5] dark:bg-[#202c33] px-3.5 py-3 border-b border-gray-200 dark:border-gray-700/60 flex items-center justify-between shrink-0">
-                            <div class="flex items-center gap-2.5">
-                                @php $myAvatar = auth()->user()?->getFilamentAvatarUrl(); @endphp
-                                @if ($myAvatar)
-                                    <img src="{{ $myAvatar }}" alt="{{ auth()->user()?->name }}" class="w-9 h-9 rounded-full object-cover border border-gray-300 dark:border-gray-600">
-                                @else
-                                    <div class="w-9 h-9 rounded-full bg-[#00a884] text-white flex items-center justify-center font-bold text-sm">
-                                        {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 1)) }}
-                                    </div>
-                                @endif
-                                <div>
-                                    <h3 class="font-bold text-sm text-slate-900 dark:text-white leading-tight">Community Chats</h3>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Thinker HUB</p>
-                                </div>
-                            </div>
+                {{-- 2. COMMUNITY CHAT LIST (FIXED STICKY HEADER, INDEPENDENTLY SCROLLING CONVERSATION LIST) --}}
+                <div class="w-full h-[calc(100dvh-64px)] flex flex-col overflow-hidden bg-slate-50 dark:bg-[#0b141a]">
 
-                            <div class="flex items-center gap-1">
-                                <button type="button" wire:click="$set('tab','friends')" class="p-1.5 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Friends & Directory">
-                                    <x-heroicon-o-user-plus class="w-5 h-5" />
-                                </button>
+                    <!-- 1. STATIC / STICKY TOP SECTION (DOES NOT SCROLL) -->
+                    <div class="flex-shrink-0 px-4 pt-3 pb-2 space-y-3 bg-slate-50 dark:bg-[#0b141a] border-b border-gray-200/60 dark:border-gray-800/60">
+                        
+                        <!-- Header & XP Badge -->
+                        <div class="flex items-center justify-between">
+                            <h1 class="text-xl font-bold tracking-tight text-gray-950 dark:text-white">Community</h1>
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xs text-xs font-semibold">
+                                <span class="text-amber-500">⚡</span>
+                                <span class="text-gray-900 dark:text-white">{{ number_format($this->myXp['xp'] ?? 500) }} XP</span>
+                                <span class="text-gray-300 dark:text-gray-600">•</span>
+                                <span class="text-amber-500">⭐</span>
+                                <span class="text-gray-900 dark:text-white">{{ $this->myXp['badge_count'] ?? 2 }} badges</span>
+                                <span>💯</span>
                             </div>
                         </div>
 
-                        {{-- Search & Category Filter --}}
-                        <div class="p-2.5 bg-white dark:bg-[#111b21] border-b border-gray-100 dark:border-gray-800 space-y-2 shrink-0">
+                        <!-- Navigation Tabs -->
+                        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                            <button type="button" wire:click="$set('tab', 'chats')" class="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-colors {{ $tab === 'chats' ? 'bg-[#008069] text-white shadow-xs' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                                <span>💬</span> Chats
+                            </button>
+                            <button type="button" wire:click="$set('tab', 'results')" class="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <span>📊</span> Scores
+                            </button>
+                            <button type="button" wire:click="$set('tab', 'friends')" class="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <span>👥</span> Friends
+                                @if ($this->pendingRequests->count() > 0)
+                                    <span class="bg-rose-600 text-white rounded-full text-[9px] px-1.5 py-0.5 leading-none shrink-0">{{ $this->pendingRequests->count() }}</span>
+                                @endif
+                            </button>
+                            <button type="button" wire:click="$set('tab', 'leaderboard')" class="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <span>🏆</span> Ranks
+                            </button>
+                        </div>
+
+                        <!-- Card Header & Filter Bar -->
+                        <div class="bg-white dark:bg-[#111b21] rounded-t-2xl p-3 border-t border-x border-gray-200 dark:border-gray-800 space-y-2.5 shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-bold text-sm">
+                                        💻
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-gray-900 dark:text-white leading-tight">Community Chats</h3>
+                                        <p class="text-[11px] text-gray-500 dark:text-gray-400">Thinker HUB</p>
+                                    </div>
+                                </div>
+                                <button type="button" wire:click="$set('tab','friends')" class="p-1.5 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition" title="Friends & Directory">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                </button>
+                            </div>
+
+                            <!-- Search Field -->
                             <div class="relative">
-                                <x-heroicon-o-magnifying-glass class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                 <input 
-                                    type="text" 
+                                    type="search" 
                                     wire:model.live.debounce.300ms="chatSearch" 
                                     placeholder="Search or start new chat" 
-                                    class="w-full pl-9 pr-7 py-1.5 text-xs rounded-lg bg-[#f0f2f5] dark:bg-[#202c33] text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 border-none focus:ring-1 focus:ring-[#00a884] outline-none"
-                                />
-                                @if ($chatSearch)
-                                    <button type="button" wire:click="$set('chatSearch', '')" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
-                                        &times;
-                                    </button>
-                                @endif
+                                    class="w-full bg-gray-100 dark:bg-[#202c33] border-0 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-1 focus:ring-[#00a884] outline-none"
+                                >
+                                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             </div>
 
-                            <div class="flex items-center gap-1 text-[11px]">
-                                <button type="button" wire:click="$set('chatFilter', 'all')"
-                                    class="px-2.5 py-0.5 rounded-full font-bold transition {{ $chatFilter === 'all' ? 'bg-[#00a884] text-white' : 'bg-[#f0f2f5] dark:bg-[#202c33] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
-                                    All
-                                </button>
-                                <button type="button" wire:click="$set('chatFilter', 'groups')"
-                                    class="px-2.5 py-0.5 rounded-full font-bold transition {{ $chatFilter === 'groups' ? 'bg-[#00a884] text-white' : 'bg-[#f0f2f5] dark:bg-[#202c33] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
-                                    Cohorts / Groups
-                                </button>
-                                <button type="button" wire:click="$set('chatFilter', 'direct')"
-                                    class="px-2.5 py-0.5 rounded-full font-bold transition {{ $chatFilter === 'direct' ? 'bg-[#00a884] text-white' : 'bg-[#f0f2f5] dark:bg-[#202c33] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
-                                    Direct DMs
-                                </button>
+                            <!-- Filter Pills -->
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" wire:click="$set('chatFilter', 'all')" class="px-3 py-1 rounded-full text-xs font-semibold transition-colors {{ $chatFilter === 'all' ? 'bg-[#008069] text-white shadow-xs' : 'bg-gray-100 dark:bg-[#202c33] text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700' }}">All</button>
+                                <button type="button" wire:click="$set('chatFilter', 'groups')" class="px-3 py-1 rounded-full text-xs font-semibold transition-colors {{ $chatFilter === 'groups' ? 'bg-[#008069] text-white shadow-xs' : 'bg-gray-100 dark:bg-[#202c33] text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700' }}">Cohorts / Groups</button>
+                                <button type="button" wire:click="$set('chatFilter', 'direct')" class="px-3 py-1 rounded-full text-xs font-semibold transition-colors {{ $chatFilter === 'direct' ? 'bg-[#008069] text-white shadow-xs' : 'bg-gray-100 dark:bg-[#202c33] text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700' }}">Direct DMs</button>
                             </div>
                         </div>
+                    </div>
 
-                        {{-- Room List Feed --}}
-                        <div class="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800/60">
-                            @forelse ($allRooms as $room)
-                                @php
-                                    $isCourse = $room->type === 'course';
-                                    $displayName = $room->displayNameFor(auth()->user());
-                                    $lastMsg = $room->latestMessage;
-                                @endphp
-                                <button 
-                                    type="button" 
-                                    wire:click="selectRoom({{ $room->id }})"
-                                    class="w-full text-left p-3 flex items-center gap-3 transition-colors hover:bg-slate-50 dark:hover:bg-[#202c33]"
-                                >
-                                    {{-- Room Avatar --}}
-                                    <div class="relative shrink-0">
-                                        @if ($isCourse)
-                                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-[#00a884] to-[#008069] text-white flex items-center justify-center font-bold text-sm shadow-2xs">
-                                                <x-heroicon-s-academic-cap class="w-6 h-6" />
-                                            </div>
-                                        @else
-                                            @php
-                                                $otherUser = $room->members->firstWhere('id', '!=', auth()->id());
-                                                $avatar = $otherUser?->getFilamentAvatarUrl();
-                                            @endphp
-                                            @if ($avatar)
-                                                <img src="{{ $avatar }}" alt="{{ $displayName }}" class="w-11 h-11 rounded-full object-cover border border-gray-200 dark:border-gray-700">
-                                            @else
-                                                <div class="w-11 h-11 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-2xs">
-                                                    {{ strtoupper(substr($displayName, 0, 1)) }}
-                                                </div>
-                                            @endif
-                                            <span class="w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#111b21] absolute bottom-0 right-0"></span>
+                    <!-- 2. SCROLLABLE CHAT ITEMS (ONLY THIS LIST SCROLLS) -->
+                    <div class="flex-1 overflow-y-auto overscroll-contain bg-white dark:bg-[#111b21] divide-y divide-gray-100 dark:divide-gray-800/60 px-2 pb-[env(safe-area-inset-bottom,1.5rem)] border-b border-x border-gray-200 dark:border-gray-800 rounded-b-2xl">
+                        @forelse($allRooms as $chat)
+                            @php
+                                $isCourse = $chat->type === 'course';
+                                $displayName = $chat->displayNameFor(auth()->user());
+                                $lastMsg = $chat->latestMessage;
+                                $otherUser = $chat->members->firstWhere('id', '!=', auth()->id());
+                                $avatar = $isCourse ? null : $otherUser?->getFilamentAvatarUrl();
+                                $initials = strtoupper(substr($displayName, 0, 2));
+                                $lastSender = $lastMsg ? ($lastMsg->user_id === auth()->id() ? 'You' : ($lastMsg->user?->first_name ?? 'Member')) : null;
+                                $lastMsgPreview = $lastMsg ? ($lastMsg->body ?: ($lastMsg->attachment_name ? '📎 '.$lastMsg->attachment_name : 'Sent an attachment')) : 'No messages yet';
+                                $badgeLabel = $isCourse ? ($chat->course?->code ?? 'Cohort') : null;
+                            @endphp
+                            <div 
+                                wire:click="selectRoom({{ $chat->id }})"
+                                class="flex items-center gap-3.5 px-3 py-3.5 hover:bg-gray-50 dark:hover:bg-[#202c33]/70 active:bg-gray-100 dark:active:bg-[#202c33] cursor-pointer transition-colors"
+                                wire:key="chat-room-{{ $chat->id }}"
+                            >
+                                <!-- Avatar with Online Dot -->
+                                <div class="relative flex-shrink-0">
+                                    @if ($isCourse)
+                                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#00a884] to-[#008069] text-white font-bold flex items-center justify-center text-base shadow-xs">
+                                            <x-heroicon-s-academic-cap class="w-6 h-6" />
+                                        </div>
+                                    @elseif ($avatar)
+                                        <img src="{{ $avatar }}" alt="{{ $displayName }}" class="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-700">
+                                    @else
+                                        <div class="w-12 h-12 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-base shadow-xs">
+                                            {{ $initials }}
+                                        </div>
+                                    @endif
+                                    @if(!$isCourse)
+                                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-[#111b21] rounded-full"></span>
+                                    @endif
+                                </div>
+
+                                <!-- Chat Info -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between mb-0.5">
+                                        <h4 class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ $displayName }}</h4>
+                                        @if ($lastMsg)
+                                            <span class="text-[11px] text-gray-400 font-medium shrink-0">{{ $lastMsg->created_at?->format('H:i') }}</span>
                                         @endif
                                     </div>
-
-                                    {{-- Name & Message Preview --}}
-                                    <div class="min-w-0 flex-1">
-                                        <div class="flex items-baseline justify-between gap-1">
-                                            <h4 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
-                                                {{ $displayName }}
-                                            </h4>
-                                            @if ($lastMsg)
-                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0">
-                                                    {{ $lastMsg->created_at?->format('H:i') }}
-                                                </span>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                            @if ($lastSender)
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">{{ $lastSender }}:</span>
                                             @endif
-                                        </div>
-
-                                        <div class="flex items-center justify-between gap-1 mt-0.5">
-                                            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                                @if ($lastMsg)
-                                                    @if ($lastMsg->user_id === auth()->id())
-                                                        <span class="text-[#00a884] font-semibold">You: </span>
-                                                    @elseif ($lastMsg->user)
-                                                        <span class="font-semibold">{{ $lastMsg->user->first_name }}: </span>
-                                                    @endif
-                                                    {{ $lastMsg->body ?: ($lastMsg->attachment_name ? '📎 '.$lastMsg->attachment_name : 'Sent an attachment') }}
-                                                @else
-                                                    <span class="italic text-slate-400">No messages yet</span>
-                                                @endif
-                                            </p>
-                                            @if ($isCourse)
-                                                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 shrink-0">
-                                                    {{ $room->course?->code ?? 'Cohort' }}
-                                                </span>
-                                            @endif
-                                        </div>
+                                            {{ $lastMsgPreview }}
+                                        </p>
+                                        @if($badgeLabel)
+                                            <span class="text-[10px] font-bold px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded shrink-0">
+                                                {{ $badgeLabel }}
+                                            </span>
+                                        @endif
                                     </div>
-                                </button>
-                            @empty
-                                <div class="p-6 text-center text-slate-400 dark:text-slate-500 text-xs">
-                                    <p>No chat rooms found.</p>
                                 </div>
-                            @endforelse
-                        </div>
+                            </div>
+                        @empty
+                            <div class="py-12 text-center text-xs text-gray-400">
+                                No chats found.
+                            </div>
+                        @endforelse
                     </div>
 
-                    {{-- RIGHT MAIN PANEL: EMPTY STATE --}}
-                    <div class="flex-1 min-w-0 hidden md:flex flex-col bg-[#efeae2] dark:bg-[#0b141a] h-full overflow-hidden">
-                        <div class="m-auto text-center p-6 max-w-md space-y-4">
-                            <div class="w-20 h-20 rounded-full bg-[#00a884]/10 dark:bg-[#00a884]/20 text-[#00a884] mx-auto flex items-center justify-center shadow-inner">
-                                <x-heroicon-o-chat-bubble-left-right class="w-10 h-10" />
-                            </div>
-                            <div class="space-y-1">
-                                <h3 class="font-bold text-slate-800 dark:text-slate-200 text-base sm:text-lg">Thinker HUB Community Chat</h3>
-                                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    Select a conversation to start chatting with your class cohort and study partners in real time.
-                                </p>
-                            </div>
-                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-[#008069] dark:text-emerald-400 text-xs font-semibold">
-                                <x-heroicon-s-lock-closed class="w-3.5 h-3.5" />
-                                <span>End-to-end peer learning chat</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             @endif
         @endif
