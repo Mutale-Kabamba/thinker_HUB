@@ -40,26 +40,53 @@
                     </button>
                 </div>
 
-                <!-- Unified Pill Tabs (All with #008069 Emerald Active State) -->
-                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                    <button type="button" wire:click="setTab('chats')" class="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer {{ $tab === 'chats' ? 'bg-[#008069] text-white shadow-xs' : 'bg-white dark:bg-[#111b21] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
-                        <x-heroicon-s-chat-bubble-left-right class="w-3.5 h-3.5 shrink-0" />
-                        <span>Chats</span>
+                <!-- Unified Pill Tabs (4-Column Fit Grid, Zero Horizontal Scrolling on Mobile) -->
+                <div class="grid grid-cols-4 gap-1 xs:gap-1.5 sm:gap-2.5 py-1 w-full max-w-xl mx-auto">
+                    @php $isChats = ($tab === 'chats'); @endphp
+                    <button 
+                        type="button" 
+                        wire:click="setTab('chats')" 
+                        class="w-full flex items-center justify-center gap-1 sm:gap-1.5 px-1 xs:px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-[11px] xs:text-xs sm:text-sm font-bold transition-all cursor-pointer {{ $isChats ? 'bg-[#008069] text-white shadow-xs border border-[#008069]' : 'bg-white dark:bg-[#111b21] text-gray-700 dark:text-gray-200 border border-gray-200/90 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/80 shadow-2xs' }}"
+                        @if($isChats) style="background-color: #008069 !important; color: #ffffff !important; border-color: #008069 !important;" @endif
+                    >
+                        <x-heroicon-s-chat-bubble-left-right class="w-3.5 h-3.5 shrink-0 {{ $isChats ? 'text-white' : 'text-emerald-600 dark:text-emerald-400' }}" />
+                        <span class="truncate">Chats</span>
                     </button>
-                    <button type="button" wire:click="setTab('results')" class="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer {{ ($tab === 'results' || $tab === 'scores') ? 'bg-[#008069] text-white shadow-xs' : 'bg-white dark:bg-[#111b21] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
-                        <x-heroicon-s-chart-bar class="w-3.5 h-3.5 shrink-0" />
-                        <span>Score Board</span>
+
+                    @php $isResults = ($tab === 'results' || $tab === 'scores'); @endphp
+                    <button 
+                        type="button" 
+                        wire:click="setTab('results')" 
+                        class="w-full flex items-center justify-center gap-1 sm:gap-1.5 px-1 xs:px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-[11px] xs:text-xs sm:text-sm font-bold transition-all cursor-pointer {{ $isResults ? 'bg-[#008069] text-white shadow-xs border border-[#008069]' : 'bg-white dark:bg-[#111b21] text-gray-700 dark:text-gray-200 border border-gray-200/90 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/80 shadow-2xs' }}"
+                        @if($isResults) style="background-color: #008069 !important; color: #ffffff !important; border-color: #008069 !important;" @endif
+                    >
+                        <x-heroicon-s-chart-bar class="w-3.5 h-3.5 shrink-0 {{ $isResults ? 'text-white' : 'text-teal-600 dark:text-teal-400' }}" />
+                        <span class="truncate">Score Board</span>
                     </button>
-                    <button type="button" wire:click="setTab('friends')" class="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer {{ $tab === 'friends' ? 'bg-[#008069] text-white shadow-xs' : 'bg-white dark:bg-[#111b21] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
-                        <x-heroicon-s-user-group class="w-3.5 h-3.5 shrink-0" />
-                        <span>Friends</span>
+
+                    @php $isFriends = ($tab === 'friends'); @endphp
+                    <button 
+                        type="button" 
+                        wire:click="setTab('friends')" 
+                        class="w-full flex items-center justify-center gap-1 sm:gap-1.5 px-1 xs:px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-[11px] xs:text-xs sm:text-sm font-bold transition-all cursor-pointer {{ $isFriends ? 'bg-[#008069] text-white shadow-xs border border-[#008069]' : 'bg-white dark:bg-[#111b21] text-gray-700 dark:text-gray-200 border border-gray-200/90 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/80 shadow-2xs' }}"
+                        @if($isFriends) style="background-color: #008069 !important; color: #ffffff !important; border-color: #008069 !important;" @endif
+                    >
+                        <x-heroicon-s-user-group class="w-3.5 h-3.5 shrink-0 {{ $isFriends ? 'text-white' : 'text-sky-600 dark:text-sky-400' }}" />
+                        <span class="truncate">Friends</span>
                         @if ($this->pendingRequests->count() > 0)
-                            <span class="bg-rose-600 text-white rounded-full text-[9px] px-1.5 py-0.5 leading-none shrink-0">{{ $this->pendingRequests->count() }}</span>
+                            <span class="bg-rose-600 text-white rounded-full text-[8px] xs:text-[9px] px-1 py-0.2 leading-none shrink-0 font-extrabold">{{ $this->pendingRequests->count() }}</span>
                         @endif
                     </button>
-                    <button type="button" wire:click="setTab('leaderboard')" class="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer {{ ($tab === 'leaderboard' || $tab === 'ranks') ? 'bg-[#008069] text-white shadow-xs' : 'bg-white dark:bg-[#111b21] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
-                        <x-heroicon-s-trophy class="w-3.5 h-3.5 shrink-0" />
-                        <span>Ranks</span>
+
+                    @php $isLeaderboard = ($tab === 'leaderboard' || $tab === 'ranks'); @endphp
+                    <button 
+                        type="button" 
+                        wire:click="setTab('leaderboard')" 
+                        class="w-full flex items-center justify-center gap-1 sm:gap-1.5 px-1 xs:px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-[11px] xs:text-xs sm:text-sm font-bold transition-all cursor-pointer {{ $isLeaderboard ? 'bg-[#008069] text-white shadow-xs border border-[#008069]' : 'bg-white dark:bg-[#111b21] text-gray-700 dark:text-gray-200 border border-gray-200/90 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/80 shadow-2xs' }}"
+                        @if($isLeaderboard) style="background-color: #008069 !important; color: #ffffff !important; border-color: #008069 !important;" @endif
+                    >
+                        <x-heroicon-s-trophy class="w-3.5 h-3.5 shrink-0 {{ $isLeaderboard ? 'text-white' : 'text-amber-600 dark:text-amber-400' }}" />
+                        <span class="truncate">Ranks</span>
                     </button>
                 </div>
             </header>
@@ -637,66 +664,87 @@
                         </div>
                     @endif
 
-                    {{-- Personal Evaluation Records List --}}
+                    {{-- Personal Evaluation Records Collapsible Section --}}
                     @if ($resItems->isNotEmpty())
-                        <div class="space-y-3 pt-2">
-                            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 px-0.5">
-                                <span class="font-bold uppercase tracking-wider text-gray-900 dark:text-white">Personal Evaluation Records ({{ $resItems->count() }})</span>
+                        <div class="bg-white dark:bg-[#111b21] p-3.5 sm:p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs" x-data="{ showPersonalRecords: false }">
+                            <div @click="showPersonalRecords = !showPersonalRecords" class="flex items-center justify-between cursor-pointer select-none gap-2">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-[#008069] dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                        <x-heroicon-s-clipboard-document-check class="w-4.5 h-4.5" />
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <h3 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5 flex-wrap">
+                                            <span>Personal Evaluation Records</span>
+                                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                                {{ $resItems->count() }} records
+                                            </span>
+                                        </h3>
+                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                                            Your individual completed grades and feedback across evaluations.
+                                        </p>
+                                    </div>
+                                </div>
+                                <button type="button" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-transform duration-200" :class="showPersonalRecords ? 'rotate-180' : ''">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                @foreach ($resItems as $item)
-                                    <div class="p-3.5 rounded-2xl bg-white dark:bg-[#111b21] border border-gray-200 dark:border-gray-800 shadow-xs flex flex-col justify-between gap-2.5">
-                                        <div class="flex items-start justify-between gap-3">
-                                            <div class="flex items-start gap-2.5 min-w-0 flex-1">
-                                                <div class="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-black text-xs {{ 
-                                                    $item['type'] === 'quiz' 
-                                                        ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50' 
-                                                        : ($item['type'] === 'assignment' 
-                                                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50' 
-                                                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50') 
-                                                }}">
-                                                    {{ $item['type_badge'] }}
-                                                </div>
-
-                                                <div class="min-w-0 flex-1">
-                                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                                        <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded {{ 
-                                                            $item['type'] === 'quiz' 
-                                                                ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300' 
-                                                                : ($item['type'] === 'assignment' 
-                                                                    ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300' 
-                                                                    : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300') 
-                                                        }}">
-                                                            {{ $item['type_label'] }}
-                                                        </span>
-                                                        <span class="text-[10px] text-gray-400 dark:text-gray-500 truncate">{{ $item['date_formatted'] }}</span>
+                            {{-- Collapsible Content --}}
+                            <div x-show="showPersonalRecords" x-collapse class="mt-3.5 pt-3.5 border-t border-gray-100 dark:border-gray-800 space-y-3">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    @foreach ($resItems as $item)
+                                        <div class="p-3.5 rounded-2xl bg-gray-50/70 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800/80 shadow-2xs flex flex-col justify-between gap-2.5">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <div class="flex items-start gap-2.5 min-w-0 flex-1">
+                                                    <div class="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-black text-xs {{ 
+                                                        $item['type'] === 'quiz' 
+                                                            ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50' 
+                                                            : ($item['type'] === 'assignment' 
+                                                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50' 
+                                                                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50') 
+                                                    }}">
+                                                        {{ $item['type_badge'] }}
                                                     </div>
 
-                                                    <h4 class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white leading-snug break-words mt-1">
-                                                        {{ $item['title'] }}
-                                                    </h4>
-                                                    <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">{{ $item['course'] }}</p>
-                                                </div>
-                                            </div>
+                                                    <div class="min-w-0 flex-1">
+                                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                                            <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded {{ 
+                                                                $item['type'] === 'quiz' 
+                                                                    ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300' 
+                                                                    : ($item['type'] === 'assignment' 
+                                                                        ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300' 
+                                                                        : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300') 
+                                                            }}">
+                                                                {{ $item['type_label'] }}
+                                                            </span>
+                                                            <span class="text-[10px] text-gray-400 dark:text-gray-500 truncate">{{ $item['date_formatted'] }}</span>
+                                                        </div>
 
-                                            <div class="flex flex-col items-end shrink-0 gap-1 text-right">
-                                                <div class="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">
-                                                    {{ $item['score_display'] }}
+                                                        <h4 class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white leading-snug break-words mt-1">
+                                                            {{ $item['title'] }}
+                                                        </h4>
+                                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">{{ $item['course'] }}</p>
+                                                    </div>
                                                 </div>
-                                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {{ 
-                                                    $item['status_color'] === 'success' 
-                                                        ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' 
-                                                        : ($item['status_color'] === 'warning' 
-                                                            ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300' 
-                                                            : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300') 
-                                                }}">
-                                                    {{ $item['status'] }}
-                                                </span>
+
+                                                <div class="flex flex-col items-end shrink-0 gap-1 text-right">
+                                                    <div class="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">
+                                                        {{ $item['score_display'] }}
+                                                    </div>
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {{ 
+                                                        $item['status_color'] === 'success' 
+                                                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' 
+                                                            : ($item['status_color'] === 'warning' 
+                                                                ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300' 
+                                                                : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300') 
+                                                    }}">
+                                                        {{ $item['status'] }}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                @endforeach
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     @endif
