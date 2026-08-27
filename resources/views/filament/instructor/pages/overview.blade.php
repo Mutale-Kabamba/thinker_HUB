@@ -123,38 +123,41 @@
                 </div>
 
                 {{-- Carousel Indicator Dots & Controls --}}
-                <div class="flex items-center justify-between px-1">
+                <div class="flex items-center justify-between px-1 py-1">
                     <div class="flex items-center gap-1.5">
                         @foreach ($heroBanners as $idx => $banner)
                             <button
                                 type="button"
                                 x-on:click="goToSlide({{ $idx }})"
-                                class="h-2 rounded-full transition-all duration-300 focus:outline-none"
-                                :class="currentSlide === {{ $idx }} ? 'w-8 bg-[#7C3AED] dark:bg-purple-400' : 'w-2.5 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'"
+                                class="carousel-indicator-dot rounded-full transition-all duration-300 focus:outline-none !min-h-0 !min-w-0"
+                                :class="currentSlide === {{ $idx }} ? '!w-6 bg-[#7C3AED] dark:bg-purple-400 shadow-xs' : '!w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'"
+                                style="height: 5px !important; min-height: 5px !important; max-height: 5px !important; padding: 0 !important; border: none !important;"
                                 aria-label="Go to slide {{ $idx + 1 }}"
                             ></button>
                         @endforeach
                     </div>
 
-                    <div class="flex items-center gap-1">
+                    <div class="flex items-center gap-1.5">
                         <button
                             type="button"
                             x-on:click="prevSlide()"
-                            class="w-6 h-6 rounded-full bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-colors"
+                            class="carousel-ctrl-btn rounded-full bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-colors !min-h-0 !min-w-0"
+                            style="width: 28px !important; height: 28px !important; min-height: 28px !important; min-width: 28px !important;"
                             aria-label="Previous slide"
                         >
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
                         <button
                             type="button"
                             x-on:click="nextSlide()"
-                            class="w-6 h-6 rounded-full bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-colors"
+                            class="carousel-ctrl-btn rounded-full bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-colors !min-h-0 !min-w-0"
+                            style="width: 28px !important; height: 28px !important; min-height: 28px !important; min-width: 28px !important;"
                             aria-label="Next slide"
                         >
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
                     </div>
