@@ -35,18 +35,18 @@
     }
 
     .dark {
-        --color-canvas: #09181f;
-        --color-surface: #102028;
-        --color-surface-hover: #162c36;
-        --color-border: #233842;
+        --color-canvas: #0b141a;
+        --color-surface: #111b21;
+        --color-surface-hover: #202c33;
+        --color-border: #1f2c34;
         --color-text-main: #f1f5f9;
         --color-text-muted: #94a3b8;
 
-        --hub-bg: #09181f;
-        --hub-card: #102028;
-        --hub-surface: #102028;
-        --hub-surface-soft: #112831;
-        --hub-border: #233842;
+        --hub-bg: #0b141a;
+        --hub-card: #111b21;
+        --hub-surface: #111b21;
+        --hub-surface-soft: #202c33;
+        --hub-border: #1f2c34;
         --hub-ink: #f1f5f9;
         --hub-muted: #94a3b8;
         --hub-primary-soft: #134e48;
@@ -54,9 +54,15 @@
 
     .fi-layout {
         background-color: var(--color-canvas) !important;
-        background-image: 
-            radial-gradient(at 0% 0%, rgba(13, 148, 136, 0.05) 0px, transparent 50%),
-            radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.04) 0px, transparent 50%) !important;
+        background-image: none !important;
+        min-height: 100dvh !important;
+    }
+
+    .fi-main,
+    .fi-page,
+    .fi-content {
+        background-color: transparent !important;
+        background-image: none !important;
     }
 
     .fi-section,
@@ -73,14 +79,14 @@
     .dark .fi-ta-ctn,
     .dark .fi-wi-stats-overview-stat,
     .dark .hub-card:not(.hub-card-dark) {
-        background: #102028 !important;
-        border-color: #233842 !important;
+        background: #111b21 !important;
+        border-color: #1f2c34 !important;
         box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.4) !important;
     }
 
     .hub-card-dark {
         border-radius: 16px !important;
-        background: linear-gradient(135deg, #0f766e, #0d9488) !important;
+        background: #0f766e !important;
         border: 1px solid #0f766e !important;
         box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.3) !important;
         color: #ffffff !important;
@@ -452,19 +458,85 @@
         .hub-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
 
-    .hub-card {
-        border: 1px solid #e2e8f0;
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 1rem 1.25rem;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
-        box-sizing: border-box;
+    /* WhatsApp Full-Screen UI Theme */
+    .whatsapp-container {
+        width: 100%;
         max-width: 100%;
-        transition: all 0.2s ease;
+        box-sizing: border-box;
+        border-radius: 1rem;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        background-color: #ffffff;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+        display: flex;
+        position: relative;
     }
-    .dark .hub-card {
-        border-color: #233842;
-        background: #102028;
+    .dark .whatsapp-container {
+        border-color: #1f2c34;
+        background-color: #111b21;
+    }
+    .whatsapp-chat-pane {
+        background-color: #efeae2 !important;
+        background-image: radial-gradient(#d1d7db 0.8px, transparent 0.8px) !important;
+        background-size: 16px 16px !important;
+    }
+    .dark .whatsapp-chat-pane {
+        background-color: #0b141a !important;
+        background-image: radial-gradient(#1f2c34 0.8px, transparent 0.8px) !important;
+        background-size: 16px 16px !important;
+    }
+    .whatsapp-bubble-mine {
+        background-color: #d9fdd3 !important;
+        color: #111b21 !important;
+        border-radius: 0.75rem 0.75rem 0.2rem 0.75rem !important;
+        box-shadow: 0 1px 1.5px rgba(11,20,26,.13) !important;
+    }
+    .dark .whatsapp-bubble-mine {
+        background-color: #005c4b !important;
+        color: #e9edef !important;
+        box-shadow: 0 1px 1.5px rgba(0,0,0,.3) !important;
+    }
+    .whatsapp-bubble-other {
+        background-color: #ffffff !important;
+        color: #111b21 !important;
+        border-radius: 0.75rem 0.75rem 0.75rem 0.2rem !important;
+        box-shadow: 0 1px 1.5px rgba(11,20,26,.13) !important;
+    }
+    .dark .whatsapp-bubble-other {
+        background-color: #202c33 !important;
+        color: #e9edef !important;
+        box-shadow: 0 1px 1.5px rgba(0,0,0,.3) !important;
+    }
+    .whatsapp-header-bar {
+        background-color: #f0f2f5 !important;
+        border-color: #e9edef !important;
+    }
+    .dark .whatsapp-header-bar {
+        background-color: #202c33 !important;
+        border-color: #2a3942 !important;
+    }
+    .whatsapp-composer-bar {
+        background-color: #f0f2f5 !important;
+        border-color: #e9edef !important;
+    }
+    .dark .whatsapp-composer-bar {
+        background-color: #202c33 !important;
+        border-color: #2a3942 !important;
+    }
+    .whatsapp-send-btn {
+        background-color: #00a884 !important;
+        color: #ffffff !important;
+    }
+    .whatsapp-send-btn:hover {
+        background-color: #008069 !important;
+    }
+    .hub-tab-chats-active {
+        background-color: #008069 !important;
+        color: #ffffff !important;
+    }
+    .dark .hub-tab-chats-active {
+        background-color: #00a884 !important;
+        color: #ffffff !important;
     }
 
     .hub-card-dark {

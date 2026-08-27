@@ -23,18 +23,21 @@
             <div class="flex justify-center">
                 <div class="grid grid-cols-4 gap-1 max-w-xl w-full p-1 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm">
                     <button type="button" wire:click="$set('tab','chats')"
-                        class="py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 {{ $tab === 'chats' ? 'bg-[#008069] dark:bg-[#00a884] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
+                        class="py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 {{ $tab === 'chats' ? 'hub-tab-chats-active text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}"
+                        style="{{ $tab === 'chats' ? 'background-color:#008069;color:#ffffff;' : '' }}">
                         <x-heroicon-s-chat-bubble-left-right class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                         <span>Chats</span>
                     </button>
                     <button type="button" wire:click="$set('tab','results')"
-                        class="py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 {{ $tab === 'results' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
+                        class="py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 {{ $tab === 'results' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}"
+                        style="{{ $tab === 'results' ? 'background-color:#7C3AED;color:#ffffff;' : '' }}">
                         <x-heroicon-s-chart-bar class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                         <span class="hidden xs:inline">Score Board</span>
                         <span class="xs:hidden">Scores</span>
                     </button>
                     <button type="button" wire:click="$set('tab','friends')"
-                        class="py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 {{ $tab === 'friends' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
+                        class="py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 {{ $tab === 'friends' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}"
+                        style="{{ $tab === 'friends' ? 'background-color:#7C3AED;color:#ffffff;' : '' }}">
                         <x-heroicon-s-user-group class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                         <span>Friends</span>
                         @if ($this->pendingRequests->count() > 0)
@@ -42,7 +45,8 @@
                         @endif
                     </button>
                     <button type="button" wire:click="$set('tab','leaderboard')"
-                        class="py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 {{ $tab === 'leaderboard' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}">
+                        class="py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 {{ $tab === 'leaderboard' ? 'bg-[#7C3AED] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white' }}"
+                        style="{{ $tab === 'leaderboard' ? 'background-color:#7C3AED;color:#ffffff;' : '' }}">
                         <x-heroicon-s-trophy class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                         <span class="hidden xs:inline">Leaderboard</span>
                         <span class="xs:hidden">Ranks</span>
@@ -715,54 +719,7 @@
                 $activeTask = $resultsData['active_task'] ?? $resTasks->first();
             @endphp
             <div class="space-y-4" x-data="{ showMyRecords: false }">
-                {{-- Results Summary Metrics Cards (2x2 on mobile, 4-col on desktop) --}}
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-                    <div class="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-purple-500/10 to-indigo-500/10 dark:from-purple-950/40 dark:to-indigo-950/40 border border-purple-200/60 dark:border-purple-800/40 shadow-xs">
-                        <div class="flex items-center justify-between text-purple-600 dark:text-purple-400 mb-1">
-                            <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">Average Score</span>
-                            <x-heroicon-s-sparkles class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        </div>
-                        <div class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
-                            {{ $resStats['average_score'] }}%
-                        </div>
-                        <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Across all evaluations</p>
-                    </div>
-
-                    <div class="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200/60 dark:border-emerald-800/40 shadow-xs">
-                        <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-1">
-                            <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">Pass Rate</span>
-                            <x-heroicon-s-check-badge class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        </div>
-                        <div class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
-                            {{ $resStats['pass_rate'] }}%
-                        </div>
-                        <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">{{ $resStats['passed_count'] }} of {{ $resStats['total_completed'] }} passed</p>
-                    </div>
-
-                    <div class="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 dark:from-blue-950/40 dark:to-cyan-950/40 border border-blue-200/60 dark:border-blue-800/40 shadow-xs">
-                        <div class="flex items-center justify-between text-blue-600 dark:text-blue-400 mb-1">
-                            <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">Completed</span>
-                            <x-heroicon-s-academic-cap class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        </div>
-                        <div class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
-                            {{ $resStats['total_completed'] }}
-                        </div>
-                        <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Total submissions</p>
-                    </div>
-
-                    <div class="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 to-yellow-500/10 dark:from-amber-950/40 dark:to-yellow-950/40 border border-amber-200/60 dark:border-amber-800/40 shadow-xs">
-                        <div class="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-1">
-                            <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">Academic Rank</span>
-                            <x-heroicon-s-trophy class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        </div>
-                        <div class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
-                            #{{ $resStats['my_rank'] }}
-                        </div>
-                        <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Out of {{ $resStats['total_ranked_students'] }} students</p>
-                    </div>
-                </div>
-
-                {{-- Recent Graded Tasks Filter Selector (No search bar) --}}
+                {{-- Recent Graded Tasks Filter Selector (Mobile-first, no search bar) --}}
                 @if ($resTasks->isNotEmpty())
                     <div class="p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#111b21] border border-slate-200 dark:border-slate-800 shadow-xs">
                         <div class="flex items-center gap-2.5">
@@ -791,42 +748,42 @@
                     @if ($activeTask)
                         <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111b21] shadow-xs overflow-hidden">
                             {{-- Task Header Banner --}}
-                            <div class="p-3.5 sm:p-4 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/60 dark:to-[#111b21] border-b border-slate-200 dark:border-slate-800 flex flex-col xs:flex-row xs:items-center justify-between gap-2.5">
+                            <div class="p-3 sm:p-4 bg-slate-50 dark:bg-[#111b21] border-b border-slate-200/80 dark:border-slate-800/80 flex flex-col xs:flex-row xs:items-center justify-between gap-2">
                                 <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-1.5 mb-1">
+                                    <div class="flex items-center gap-1.5 mb-1 flex-wrap">
                                         <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase {{
                                             $activeTask['type'] === 'quiz' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300' :
-                                            ($activeTask['type'] === 'assignment' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300')
+                                             ($activeTask['type'] === 'assignment' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300')
                                         }}">
                                             {{ $activeTask['short_title'] }}
                                         </span>
                                         <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">{{ $activeTask['course'] }}</span>
                                     </div>
-                                    <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-snug truncate">
+                                    <h3 class="text-xs sm:text-sm md:text-base font-black text-slate-900 dark:text-white leading-snug truncate">
                                         {{ $activeTask['title'] }}
                                     </h3>
                                 </div>
 
-                                <div class="flex items-center gap-3 shrink-0 pt-1.5 xs:pt-0 border-t xs:border-t-0 border-slate-100 dark:border-slate-800/60">
+                                <div class="flex items-center gap-3 shrink-0 pt-1 xs:pt-0 border-t xs:border-t-0 border-slate-100 dark:border-slate-800/60 text-right">
                                     <div>
-                                        <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Candidates</span>
+                                        <span class="text-[8px] xs:text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Candidates</span>
                                         <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">{{ $activeTask['candidates_count'] }} graded</span>
                                     </div>
-                                    <div class="border-l border-slate-200 dark:border-slate-700 pl-3">
-                                        <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Class Avg</span>
+                                    <div class="border-l border-slate-200 dark:border-slate-700 pl-2.5">
+                                        <span class="text-[8px] xs:text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Class Avg</span>
                                         <span class="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400">{{ $activeTask['average_score'] }}%</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Candidates Score List --}}
-                            <div class="p-2 sm:p-3 divide-y divide-slate-100 dark:divide-slate-800/60">
+                            {{-- Candidates Score List (Mobile-safe fit, no clipping) --}}
+                            <div class="p-1.5 sm:p-3 divide-y divide-slate-100 dark:divide-slate-800/60">
                                 @if (!empty($activeTask['candidates']) && count($activeTask['candidates']) > 0)
                                     @foreach ($activeTask['candidates'] as $candidate)
-                                        <div class="py-2.5 px-2 flex items-center justify-between gap-2 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 rounded-xl transition {{ $candidate['is_self'] ? 'bg-purple-50/40 dark:bg-purple-950/20' : '' }}">
-                                            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                        <div class="py-2 px-1.5 sm:px-2.5 flex items-center justify-between gap-1.5 xs:gap-2 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 rounded-xl transition {{ $candidate['is_self'] ? 'bg-purple-50/40 dark:bg-purple-950/20' : '' }}">
+                                            <div class="flex items-center gap-1.5 xs:gap-2 min-w-0 flex-1">
                                                 {{-- Candidate Rank Badge --}}
-                                                <div class="w-6 h-6 rounded-lg shrink-0 flex items-center justify-center font-black text-[11px] {{
+                                                <div class="w-5 h-5 xs:w-6 xs:h-6 rounded-md xs:rounded-lg shrink-0 flex items-center justify-center font-black text-[10px] xs:text-[11px] {{
                                                     $candidate['rank'] === 1 ? 'bg-amber-400 text-white shadow-xs' :
                                                     ($candidate['rank'] === 2 ? 'bg-slate-300 dark:bg-slate-600 text-slate-800 dark:text-white' :
                                                     ($candidate['rank'] === 3 ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'))
@@ -834,27 +791,23 @@
                                                     #{{ $candidate['rank'] }}
                                                 </div>
 
-                                                <img src="{{ $candidate['candidate_avatar'] }}" alt="{{ $candidate['candidate_name'] }}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
+                                                <img src="{{ $candidate['candidate_avatar'] }}" alt="{{ $candidate['candidate_name'] }}" class="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
 
                                                 <div class="min-w-0 flex-1">
-                                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                                        <span class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate max-w-[120px] xs:max-w-[180px] sm:max-w-none">
+                                                    <div class="flex items-center gap-1 flex-wrap">
+                                                        <span class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
                                                             {{ $candidate['candidate_name'] }}
                                                         </span>
                                                         @if ($candidate['is_self'])
-                                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-[#7C3AED] text-white shrink-0">YOU</span>
+                                                            <span class="px-1 py-0.1 rounded text-[8px] xs:text-[9px] font-extrabold bg-[#7C3AED] text-white shrink-0">YOU</span>
                                                         @endif
                                                     </div>
-                                                    <span class="text-[10px] text-slate-400 dark:text-slate-500 block truncate">Graded {{ $candidate['graded_at'] }}</span>
-
-                                                    @if (!empty($candidate['feedback']))
-                                                        <p class="text-[10px] sm:text-[11px] italic text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-1">"{{ $candidate['feedback'] }}"</p>
-                                                    @endif
+                                                    <span class="text-[9px] xs:text-[10px] text-slate-400 dark:text-slate-500 block truncate">Graded {{ $candidate['graded_at'] }}</span>
                                                 </div>
                                             </div>
 
-                                            <div class="flex items-center gap-2 shrink-0 text-right">
-                                                <span class="px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold {{ 
+                                            <div class="flex items-center gap-1 xs:gap-1.5 shrink-0 text-right">
+                                                <span class="px-1 xs:px-1.5 py-0.5 rounded text-[8px] xs:text-[9px] sm:text-[10px] font-bold {{ 
                                                     $candidate['status_color'] === 'success' 
                                                         ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' 
                                                         : ($candidate['status_color'] === 'warning' 
@@ -863,7 +816,7 @@
                                                 }}">
                                                     {{ $candidate['status'] }}
                                                 </span>
-                                                <div class="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 min-w-[42px] text-right">
+                                                <div class="text-xs xs:text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 min-w-[34px] xs:min-w-[40px] text-right">
                                                     {{ $candidate['score'] }}
                                                 </div>
                                             </div>
@@ -951,12 +904,6 @@
                                                 </span>
                                             </div>
                                         </div>
-
-                                        @if (!empty($item['feedback']))
-                                            <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] text-slate-600 dark:text-slate-300 italic line-clamp-1">
-                                                "{{ $item['feedback'] }}"
-                                            </div>
-                                        @endif
                                     </div>
                                 @endforeach
                             </div>
@@ -972,13 +919,13 @@
                 $allRooms = $this->rooms;
                 $activeRoom = $this->activeRoom;
             @endphp
-            <div class="w-full min-w-0 {{ $selectedRoomId ? 'h-[calc(100vh-90px)] min-h-[calc(100vh-90px)] sm:h-[calc(100vh-100px)] sm:min-h-[calc(100vh-100px)]' : 'h-[calc(100vh-175px)] min-h-[calc(100vh-175px)] sm:h-[calc(100vh-185px)] sm:min-h-[calc(100vh-185px)]' }} rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#111b21] shadow-xl flex overflow-hidden relative mb-2">
+            <div class="whatsapp-container w-full min-w-0 {{ $selectedRoomId ? 'h-[calc(100vh-90px)] min-h-[calc(100vh-90px)] sm:h-[calc(100vh-100px)] sm:min-h-[calc(100vh-100px)]' : 'h-[calc(100vh-175px)] min-h-[calc(100vh-175px)] sm:h-[calc(100vh-185px)] sm:min-h-[calc(100vh-185px)]' }} rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#111b21] shadow-xl flex overflow-hidden relative mb-2">
                 
                 {{-- LEFT SIDEBAR: CHAT LIST --}}
                 <div class="w-full md:w-80 lg:w-96 flex-shrink-0 bg-white dark:bg-[#111b21] border-r border-gray-200 dark:border-gray-800 flex flex-col h-full overflow-hidden {{ $selectedRoomId ? 'hidden md:flex' : 'flex' }}">
                     
                     {{-- WhatsApp Header --}}
-                    <div class="bg-[#f0f2f5] dark:bg-[#202c33] px-3.5 py-3 border-b border-gray-200 dark:border-gray-700/60 flex items-center justify-between shrink-0">
+                    <div class="whatsapp-header-bar bg-[#f0f2f5] dark:bg-[#202c33] px-3.5 py-3 border-b border-gray-200 dark:border-gray-700/60 flex items-center justify-between shrink-0">
                         <div class="flex items-center gap-2.5">
                             @php $myAvatar = auth()->user()?->getFilamentAvatarUrl(); @endphp
                             @if ($myAvatar)
@@ -1133,7 +1080,7 @@
                         </div>
                     @else
                         {{-- Active Chat Header --}}
-                        <div class="bg-[#f0f2f5] dark:bg-[#202c33] px-3 sm:px-4 py-2 border-b border-gray-200 dark:border-gray-700/80 flex items-center justify-between shrink-0 z-10">
+                        <div class="whatsapp-header-bar bg-[#f0f2f5] dark:bg-[#202c33] px-3 sm:px-4 py-2 border-b border-gray-200 dark:border-gray-700/80 flex items-center justify-between shrink-0 z-10">
                             <div class="flex items-center gap-2 min-w-0 flex-1">
                                 {{-- Back Button (Returns to Chat List / Community Page) --}}
                                 <button 
@@ -1192,7 +1139,8 @@
 
                         {{-- WhatsApp Message Feed Area --}}
                         <div 
-                            class="flex-1 overflow-y-auto overflow-x-hidden p-2.5 sm:p-3 space-y-1.5 w-full min-w-0"
+                            class="whatsapp-chat-pane flex-1 overflow-y-auto overflow-x-hidden p-2.5 sm:p-3 space-y-1.5 w-full min-w-0"
+                            style="background-color:#efeae2;"
                             x-data="{
                                 scrollToBottom() {
                                     $el.scrollTop = $el.scrollHeight;
@@ -1223,9 +1171,10 @@
                                     <div 
                                         class="group relative max-w-[78%] sm:max-w-[62%] rounded-xl px-2.5 py-1.5 shadow-2xs text-xs sm:text-[13px] leading-snug {{ 
                                             $mine 
-                                                ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-slate-900 dark:text-slate-100 rounded-tr-xs ml-auto mr-0.5' 
-                                                : 'bg-white dark:bg-[#202c33] text-slate-900 dark:text-slate-100 rounded-tl-xs mr-auto ml-0.5' 
+                                                ? 'whatsapp-bubble-mine rounded-tr-xs ml-auto mr-0.5' 
+                                                : 'whatsapp-bubble-other rounded-tl-xs mr-auto ml-0.5' 
                                         }}"
+                                        style="{{ $mine ? 'background-color:#d9fdd3;color:#111b21;' : 'background-color:#ffffff;color:#111b21;' }}"
                                         x-data="{ showMenu: false, showPicker: false, copied: false }"
                                     >
                                         {{-- Author Name (Group chats / other members) --}}
@@ -1241,7 +1190,7 @@
                                                 $repUser = $message->replyTo->user;
                                                 $repMine = $message->replyTo->user_id === auth()->id();
                                             @endphp
-                                            <div class="p-1 px-1.5 mb-1 rounded bg-black/5 dark:bg-white/10 border-l-2 border-[#00a884] text-[10px] space-y-0.2">
+                                            <div class="p-1 px-1.5 mb-1 rounded bg-black/5 dark:bg-white/10 border-l-2 text-[10px] space-y-0.2" style="border-left-color:#00a884;">
                                                 <span class="font-bold text-[#00a884] block leading-tight">
                                                     {{ $repMine ? 'You' : ($repUser?->first_name ?? 'Student') }}
                                                 </span>
@@ -1399,7 +1348,7 @@
                                 $repUser = $this->replyingToMessage->user;
                                 $repMine = $this->replyingToMessage->user_id === auth()->id();
                             @endphp
-                            <div class="bg-[#f0f2f5] dark:bg-[#202c33] px-3.5 py-2 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2 shrink-0">
+                            <div class="whatsapp-header-bar bg-[#f0f2f5] dark:bg-[#202c33] px-3.5 py-2 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2 shrink-0">
                                 <div class="border-l-3 border-[#00a884] pl-2 min-w-0 flex-1">
                                     <span class="text-[11px] font-bold text-[#00a884] block">
                                         Replying to {{ $repMine ? 'yourself' : ($repUser?->first_name ?? 'Student') }}
@@ -1417,7 +1366,7 @@
                         {{-- Composer Input Bar --}}
                         <form 
                             wire:submit.prevent="sendMessage" 
-                            class="bg-[#f0f2f5] dark:bg-[#202c33] p-2 sm:p-2.5 border-t border-gray-200/80 dark:border-gray-700/80 flex items-center gap-1.5 sm:gap-2 pb-[calc(env(safe-area-inset-bottom,0.5rem)+0.25rem)] z-10 shrink-0 w-full min-w-0 box-border"
+                            class="whatsapp-composer-bar bg-[#f0f2f5] dark:bg-[#202c33] p-2 sm:p-2.5 border-t border-gray-200/80 dark:border-gray-700/80 flex items-center gap-1.5 sm:gap-2 pb-[calc(env(safe-area-inset-bottom,0.5rem)+0.25rem)] z-10 shrink-0 w-full min-w-0 box-border"
                         >
                             {{-- Attachment Trigger --}}
                             <label class="p-1.5 sm:p-2 rounded-full text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer transition shrink-0" title="Attach file">
@@ -1440,10 +1389,11 @@
                             <button 
                                 type="submit" 
                                 wire:loading.attr="disabled"
-                                class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#00a884] hover:bg-[#008069] text-white flex items-center justify-center shadow-md transition shrink-0 disabled:opacity-50"
+                                class="w-9 h-9 sm:w-10 sm:h-10 rounded-full whatsapp-send-btn text-white flex items-center justify-center shadow-md transition shrink-0 disabled:opacity-50"
+                                style="background-color:#00a884;color:#ffffff;"
                                 title="Send"
                             >
-                                <x-heroicon-s-paper-airplane class="w-4 h-4 sm:w-5 sm:h-5 -rotate-45 -mr-0.5" />
+                                <x-heroicon-s-paper-airplane class="w-4 h-4 sm:w-5 sm:h-5 -rotate-45 -mr-0.5" style="color:#ffffff;" />
                             </button>
                         </form>
                     @endif
@@ -1460,7 +1410,7 @@
                     style="width:100%;max-width:540px;max-height:90vh;margin:auto;background:var(--hub-card);border:1px solid var(--hub-border);border-radius:1rem;overflow:hidden;box-shadow:0 25px 60px -15px rgba(0,0,0,0.5);display:flex;flex-direction:column;">
                     
                     {{-- Modal Header --}}
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.1rem;border-bottom:1px solid var(--hub-border);background:linear-gradient(180deg,rgba(15,118,110,0.08),transparent);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.1rem;border-bottom:1px solid var(--hub-border);background:var(--hub-surface);">
                         <div style="display:inline-flex;align-items:center;gap:0.45rem;">
                             <span style="display:inline-flex;align-items:center;justify-content:center;width:1.8rem;height:1.8rem;border-radius:9999px;background:rgba(245,158,11,0.15);color:#f59e0b;">
                                 <x-heroicon-s-trophy style="width:1rem;height:1rem;" />
@@ -1485,13 +1435,13 @@
                     <div style="padding:1.1rem;overflow-y:auto;display:flex;flex-direction:column;gap:0.95rem;max-height:calc(90vh - 4.5rem);">
                         
                         {{-- Hero Section --}}
-                        <div style="display:flex;align-items:center;gap:0.85rem;padding:0.85rem 1rem;background:linear-gradient(135deg,color-mix(in oklab, var(--hub-surface) 90%, #0f766e 10%),var(--hub-surface));border:1px solid var(--hub-border);border-radius:0.75rem;">
+                        <div style="display:flex;align-items:center;gap:0.85rem;padding:0.85rem 1rem;background:var(--hub-surface-soft);border:1px solid var(--hub-border);border-radius:0.75rem;">
                             <div style="position:relative;flex-shrink:0;">
                                 @if ($profileUser['avatar'])
                                     <img src="{{ $profileUser['avatar'] }}" alt="{{ $profileUser['name'] }}"
                                         style="width:3.6rem;height:3.6rem;border-radius:999px;object-fit:cover;border:2px solid #0f766e;box-shadow:0 0 12px rgba(15,118,110,0.25);">
                                 @else
-                                    <span style="width:3.6rem;height:3.6rem;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:linear-gradient(135deg,#0f766e,#14b8a6);color:#ffffff;font-size:1.3rem;font-weight:800;border:2px solid rgba(255,255,255,0.2);box-shadow:0 0 12px rgba(15,118,110,0.25);">
+                                    <span style="width:3.6rem;height:3.6rem;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:#0f766e;color:#ffffff;font-size:1.3rem;font-weight:800;border:2px solid rgba(255,255,255,0.2);box-shadow:0 0 12px rgba(15,118,110,0.25);">
                                         {{ strtoupper(substr($profileUser['name'], 0, 1)) }}
                                     </span>
                                 @endif
