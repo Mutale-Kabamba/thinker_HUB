@@ -624,12 +624,17 @@ class Community extends Page
             ];
         }
 
-        // 1. Quizzes (QuizAttempt)
+        // 1. Quizzes (QuizAttempt - Latest attempt per quiz only)
         $quizzes = QuizAttempt::query()
             ->with(['quiz.course'])
             ->where('user_id', $user->id)
             ->whereNotNull('completed_at')
+            ->orderByDesc('completed_at')
+            ->orderByDesc('id')
             ->get()
+            ->groupBy('quiz_id')
+            ->map(fn ($attempts) => $attempts->first())
+            ->values()
             ->map(function (QuizAttempt $attempt): array {
                 $percentage = $attempt->percentage !== null
                     ? (float) $attempt->percentage
@@ -656,12 +661,17 @@ class Community extends Page
                 ];
             });
 
-        // 2. Assignments (AssignmentSubmission)
+        // 2. Assignments (AssignmentSubmission - Latest submission per assignment only)
         $assignments = AssignmentSubmission::query()
             ->with(['assignment.course'])
             ->where('user_id', $user->id)
             ->whereNotNull('grade')
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
             ->get()
+            ->groupBy('assignment_id')
+            ->map(fn ($subs) => $subs->first())
+            ->values()
             ->map(function (AssignmentSubmission $sub): array {
                 $numericGrade = is_numeric($sub->grade) ? (float) $sub->grade : 0.0;
                 $passed = $numericGrade >= 50.0;
@@ -687,14 +697,19 @@ class Community extends Page
                 ];
             });
 
-        // 3. Assessments (AssessmentSubmission)
+        // 3. Assessments (AssessmentSubmission - Latest submission per assessment only)
         $assessments = AssessmentSubmission::query()
             ->with(['assessment.course'])
             ->where('user_id', $user->id)
             ->where(function ($q): void {
                 $q->whereNotNull('score')->orWhereNotNull('raw_score');
             })
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
             ->get()
+            ->groupBy('assessment_id')
+            ->map(fn ($subs) => $subs->first())
+            ->values()
             ->map(function (AssessmentSubmission $sub): array {
                 $gradeVal = $sub->score ?? $sub->raw_score;
                 $numericScore = is_numeric($gradeVal) ? (float) $gradeVal : 0.0;
@@ -748,9 +763,15 @@ class Community extends Page
             ->groupBy('user_id');
 
         $leaderboardRows = $allStudents->map(function (User $s) use ($quizScoresByUser, $assignmentScoresByUser, $assessmentScoresByUser, $user): array {
-            $sQuizzes = $quizScoresByUser->get($s->id, collect());
-            $sAssignments = $assignmentScoresByUser->get($s->id, collect());
-            $sAssessments = $assessmentScoresByUser->get($s->id, collect());
+            $sQuizzes = $quizScoresByUser->get($s->id, collect())
+                ->groupBy('quiz_id')
+                ->map(fn ($atts) => $atts->sortByDesc(fn ($a) => $a->completed_at ?? $a->created_at)->first());
+            $sAssignments = $assignmentScoresByUser->get($s->id, collect())
+                ->groupBy('assignment_id')
+                ->map(fn ($subs) => $subs->sortByDesc(fn ($a) => $a->updated_at ?? $a->submitted_at ?? $a->created_at)->first());
+            $sAssessments = $assessmentScoresByUser->get($s->id, collect())
+                ->groupBy('assessment_id')
+                ->map(fn ($subs) => $subs->sortByDesc(fn ($as) => $as->updated_at ?? $as->submitted_at ?? $as->created_at)->first());
 
             $scores = [];
             $passedCount = 0;
@@ -855,10 +876,12 @@ class Community extends Page
         // 5. Recent Graded Tasks & Candidate Scores for the Score Board
         $tasksList = collect();
 
-        // A. Quizzes
+        // A. Quizzes (Only latest / current attempt per student)
         $allQuizzesWithAttempts = QuizAttempt::query()
             ->with(['quiz.course', 'user'])
             ->whereNotNull('completed_at')
+            ->orderByDesc('completed_at')
+            ->orderByDesc('id')
             ->get()
             ->groupBy('quiz_id');
 
@@ -869,7 +892,12 @@ class Community extends Page
                 continue;
             }
 
-            $candidates = $attempts->map(function (QuizAttempt $att) use ($user): array {
+            $uniqueCandidates = $attempts
+                ->groupBy('user_id')
+                ->map(fn ($userAttempts) => $userAttempts->sortByDesc(fn ($att) => $att->completed_at ?? $att->created_at)->first())
+                ->values();
+
+            $candidates = $uniqueCandidates->map(function (QuizAttempt $att) use ($user): array {
                 $percentage = $att->percentage !== null
                     ? (float) $att->percentage
                     : ($att->total_points > 0 ? round(($att->score / $att->total_points) * 100, 1) : (float) ($att->score ?? 0));
@@ -914,10 +942,12 @@ class Community extends Page
             ]);
         }
 
-        // B. Assignments
+        // B. Assignments (Only latest / current submission per student)
         $allAssignmentsWithSubmissions = AssignmentSubmission::query()
             ->with(['assignment.course', 'user'])
             ->whereNotNull('grade')
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
             ->get()
             ->groupBy('assignment_id');
 
@@ -928,7 +958,12 @@ class Community extends Page
                 continue;
             }
 
-            $candidates = $submissions->map(function (AssignmentSubmission $sub) use ($user): array {
+            $uniqueCandidates = $submissions
+                ->groupBy('user_id')
+                ->map(fn ($userSubs) => $userSubs->sortByDesc(fn ($sub) => $sub->updated_at ?? $sub->submitted_at ?? $sub->created_at)->first())
+                ->values();
+
+            $candidates = $uniqueCandidates->map(function (AssignmentSubmission $sub) use ($user): array {
                 $numericGrade = is_numeric($sub->grade) ? (float) $sub->grade : 0.0;
                 $passed = $numericGrade >= 50.0;
 
@@ -972,10 +1007,12 @@ class Community extends Page
             ]);
         }
 
-        // C. Assessments
+        // C. Assessments (Only latest / current submission per student)
         $allAssessmentsWithSubmissions = AssessmentSubmission::query()
             ->with(['assessment.course', 'user'])
             ->where(fn ($q) => $q->whereNotNull('score')->orWhereNotNull('raw_score'))
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
             ->get()
             ->groupBy('assessment_id');
 
@@ -986,7 +1023,12 @@ class Community extends Page
                 continue;
             }
 
-            $candidates = $submissions->map(function (AssessmentSubmission $sub) use ($user): array {
+            $uniqueCandidates = $submissions
+                ->groupBy('user_id')
+                ->map(fn ($userSubs) => $userSubs->sortByDesc(fn ($sub) => $sub->updated_at ?? $sub->submitted_at ?? $sub->created_at)->first())
+                ->values();
+
+            $candidates = $uniqueCandidates->map(function (AssessmentSubmission $sub) use ($user): array {
                 $gradeVal = $sub->score ?? $sub->raw_score;
                 $numericScore = is_numeric($gradeVal) ? (float) $gradeVal : 0.0;
                 $passed = $numericScore >= 50.0;

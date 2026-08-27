@@ -779,7 +779,7 @@
                                         </span>
                                         <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">{{ $activeTask['course'] }}</span>
                                     </div>
-                                    <h3 class="text-xs sm:text-sm md:text-base font-black text-slate-900 dark:text-white leading-snug truncate">
+                                    <h3 class="text-xs sm:text-sm md:text-base font-black text-slate-900 dark:text-white leading-snug break-words">
                                         {{ $activeTask['title'] }}
                                     </h3>
                                 </div>
@@ -815,7 +815,7 @@
 
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex items-center gap-1 flex-wrap">
-                                                        <span class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
+                                                        <span class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white break-words leading-tight">
                                                             {{ $candidate['candidate_name'] }}
                                                         </span>
                                                         @if ($candidate['is_self'])
@@ -902,7 +902,7 @@
                                                         <span class="text-[10px] text-slate-400 dark:text-slate-500 truncate">{{ $item['date_formatted'] }}</span>
                                                     </div>
 
-                                                    <h4 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug truncate mt-1">
+                                                    <h4 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug break-words mt-1">
                                                         {{ $item['title'] }}
                                                     </h4>
                                                     <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $item['course'] }}</p>
