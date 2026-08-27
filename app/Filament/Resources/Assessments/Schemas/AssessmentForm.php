@@ -19,9 +19,10 @@ class AssessmentForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(['default' => 1, 'lg' => 3])
             ->components([
-                Section::make('Assessment Information')
-                    ->description('Specify the evaluation title, description, and cohort targeting.')
+                Section::make('Assessment Details & Papers')
+                    ->description('Specify the evaluation title, instructions, and attach question papers.')
                     ->schema([
                         TextInput::make('name')
                             ->label('Name of Assessment')
@@ -33,9 +34,37 @@ class AssessmentForm
                         Textarea::make('description')
                             ->label('Description & Instructions')
                             ->placeholder('Provide assessment instructions, test breakdown, and grading criteria...')
-                            ->rows(4)
+                            ->rows(5)
                             ->columnSpanFull(),
 
+                        FileUpload::make('file_paths')
+                            ->label('Assessment Document(s)')
+                            ->disk('public')
+                            ->directory('assessments')
+                            ->multiple()
+                            ->reorderable()
+                            ->maxSize(10240)
+                            ->acceptedFileTypes([
+                                'application/pdf',
+                                'application/msword',
+                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                'application/vnd.ms-powerpoint',
+                                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                                'application/vnd.ms-excel',
+                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                'text/plain',
+                                'text/csv',
+                                'image/*',
+                                'application/zip',
+                            ])
+                            ->helperText('Attach one or more assessment files, question papers, or briefs (up to 10MB per file).')
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpan(['default' => 1, 'lg' => 2]),
+
+                Section::make('Targeting & Schedule')
+                    ->description('Set cohort distribution and submission deadlines.')
+                    ->schema([
                         Select::make('course_id')
                             ->label('Course')
                             ->required()
@@ -106,39 +135,7 @@ class AssessmentForm
                             ->default('all')
                             ->dehydrateStateUsing(fn (mixed $state): mixed => $state === 'all' ? null : $state)
                             ->helperText('Choose All Students to distribute to all learners in the selected level.'),
-                    ])
-                    ->columns(['default' => 1, 'sm' => 1, 'md' => 2]),
 
-                Section::make('Question Papers & Files')
-                    ->description('Upload test papers, rubric guides, datasets, or reference briefs.')
-                    ->schema([
-                        FileUpload::make('file_paths')
-                            ->label('Assessment Document(s)')
-                            ->disk('public')
-                            ->directory('assessments')
-                            ->multiple()
-                            ->reorderable()
-                            ->maxSize(10240)
-                            ->acceptedFileTypes([
-                                'application/pdf',
-                                'application/msword',
-                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                                'application/vnd.ms-powerpoint',
-                                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                                'application/vnd.ms-excel',
-                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                'text/plain',
-                                'text/csv',
-                                'image/*',
-                                'application/zip',
-                            ])
-                            ->helperText('Attach one or more assessment files, question papers, or briefs (up to 10MB per file).')
-                            ->columnSpanFull(),
-                    ]),
-
-                Section::make('Schedule & Deadlines')
-                    ->description('Set when the assessment is assigned, published, and due for submission.')
-                    ->schema([
                         DatePicker::make('date_given')
                             ->label('Date Given')
                             ->native(false)
@@ -148,14 +145,14 @@ class AssessmentForm
                         DateTimePicker::make('publish_at')
                             ->label('Publish At')
                             ->native(false)
-                            ->helperText('Leave empty to publish immediately, or set a future date/time.'),
+                            ->helperText('Leave empty for immediate release.'),
 
                         DatePicker::make('due_date')
                             ->label('Due Date')
                             ->native(false)
                             ->required(),
                     ])
-                    ->columns(['default' => 1, 'sm' => 2, 'md' => 3]),
+                    ->columnSpan(['default' => 1, 'lg' => 1]),
             ]);
     }
 }

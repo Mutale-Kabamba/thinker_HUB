@@ -15,16 +15,19 @@ class AssignmentsTable
     {
         return $table
             ->columns([
+                TextColumn::make('name')
+                    ->label('Assignment')
+                    ->searchable()
+                    ->grow()
+                    ->wrap()
+                    ->weight('bold'),
                 TextColumn::make('course.title')
                     ->label('Course')
                     ->badge()
                     ->color('info')
                     ->searchable()
-                    ->sortable(),
-                TextColumn::make('name')
-                    ->label('Assignment')
-                    ->searchable()
-                    ->weight('bold'),
+                    ->sortable()
+                    ->visibleFrom('sm'),
                 TextColumn::make('target_level')
                     ->label('Track')
                     ->badge()
@@ -34,20 +37,24 @@ class AssignmentsTable
                         'Advanced' => 'danger',
                         default => 'gray',
                     })
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
                 TextColumn::make('targetUser.name')
                     ->label('Target')
                     ->placeholder('All Learners')
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('lg'),
                 TextColumn::make('date_given')
                     ->label('Assigned')
                     ->date('M d, Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('lg'),
                 TextColumn::make('publish_at')
                     ->label('Publish At')
                     ->dateTime('M d, Y H:i')
                     ->placeholder('Immediate')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('xl'),
                 TextColumn::make('due_date')
                     ->label('Due Date')
                     ->date('M d, Y')
@@ -57,10 +64,12 @@ class AssignmentsTable
                 TextColumn::make('created_at')
                     ->dateTime('M d, Y')
                     ->sortable()
+                    ->visibleFrom('xl')
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
                     ->dateTime('M d, Y')
                     ->sortable()
+                    ->visibleFrom('xl')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

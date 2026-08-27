@@ -20,7 +20,9 @@ class HubPostsTable
             ->columns([
                 TextColumn::make('title')
                     ->searchable()
-                    ->limit(45)
+                    ->grow()
+                    ->wrap()
+                    ->weight('bold')
                     ->sortable(),
 
                 TextColumn::make('type')
@@ -39,7 +41,8 @@ class HubPostsTable
                     ->badge()
                     ->color('gray')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('sm'),
 
                 IconColumn::make('is_published')
                     ->label('Published')
@@ -49,7 +52,8 @@ class HubPostsTable
                 TextColumn::make('created_at')
                     ->label('Created')
                     ->dateTime('M j, Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
