@@ -75,6 +75,21 @@ class Community extends Page
 
     public array $attachments = [];
 
+    public function getHeading(): ?string
+    {
+        if ($this->tab === 'chats' && $this->selectedRoomId) {
+            return '';
+        }
+
+        return 'Community';
+    }
+
+    public function closeRoom(): void
+    {
+        $this->selectedRoomId = null;
+        $this->replyingToMessageId = null;
+    }
+
     public function removeAttachment(int $index): void
     {
         if (is_array($this->attachments) && isset($this->attachments[$index])) {

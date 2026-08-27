@@ -1,5 +1,25 @@
 <x-filament-panels::page>
 
+    @if ($tab === 'chats' && $selectedRoomId)
+        <style>
+            .fi-header,
+            header.fi-header,
+            .fi-page-header {
+                display: none !important;
+            }
+            .fi-main-ctn,
+            .fi-page,
+            .fi-main {
+                padding-top: 0.25rem !important;
+                padding-bottom: 0.25rem !important;
+            }
+            .hub-shell {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+        </style>
+    @endif
+
     <div class="hub-shell">
 
     @if (! ($tab === 'chats' && $selectedRoomId))
