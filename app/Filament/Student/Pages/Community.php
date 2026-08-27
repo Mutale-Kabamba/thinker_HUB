@@ -103,12 +103,6 @@ class Community extends Page
         $this->openRoom($id);
     }
 
-    public function closeRoom(): void
-    {
-        $this->selectedRoomId = null;
-        $this->replyingToMessageId = null;
-    }
-
     public function mount(): void
     {
         $this->ensureCourseRooms();
