@@ -19,9 +19,10 @@ class AssignmentForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(['default' => 1, 'lg' => 3])
             ->components([
-                Section::make('Assignment Information')
-                    ->description('Specify the coursework title, description, and cohort targeting.')
+                Section::make('Assignment Details & Briefs')
+                    ->description('Specify the coursework title, description, and attached project documentation.')
                     ->schema([
                         TextInput::make('name')
                             ->label('Name of Assignment')
@@ -33,9 +34,37 @@ class AssignmentForm
                         Textarea::make('description')
                             ->label('Description & Instructions')
                             ->placeholder('Provide instructions, requirements, and evaluation guidelines for learners...')
-                            ->rows(4)
+                            ->rows(5)
                             ->columnSpanFull(),
 
+                        FileUpload::make('file_paths')
+                            ->label('Assignment Document(s)')
+                            ->disk('public')
+                            ->directory('assignments')
+                            ->multiple()
+                            ->reorderable()
+                            ->maxSize(10240)
+                            ->acceptedFileTypes([
+                                'application/pdf',
+                                'application/msword',
+                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                'application/vnd.ms-powerpoint',
+                                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                                'application/vnd.ms-excel',
+                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                'text/plain',
+                                'text/csv',
+                                'image/*',
+                                'application/zip',
+                            ])
+                            ->helperText('Attach one or more assignment files, briefs, or resources (up to 10MB per file).')
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpan(['default' => 1, 'lg' => 2]),
+
+                Section::make('Targeting & Schedule')
+                    ->description('Set cohort distribution and submission deadlines.')
+                    ->schema([
                         Select::make('course_id')
                             ->label('Course')
                             ->required()
@@ -106,39 +135,7 @@ class AssignmentForm
                             ->required()
                             ->dehydrateStateUsing(fn (mixed $state): mixed => $state === 'all' ? null : $state)
                             ->helperText('Choose All Students to distribute to all learners in the selected level.'),
-                    ])
-                    ->columns(['default' => 1, 'sm' => 1, 'md' => 2]),
 
-                Section::make('Documents & Briefs')
-                    ->description('Upload project briefs, starter code, problem sets, or reference documentation.')
-                    ->schema([
-                        FileUpload::make('file_paths')
-                            ->label('Assignment Document(s)')
-                            ->disk('public')
-                            ->directory('assignments')
-                            ->multiple()
-                            ->reorderable()
-                            ->maxSize(10240)
-                            ->acceptedFileTypes([
-                                'application/pdf',
-                                'application/msword',
-                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                                'application/vnd.ms-powerpoint',
-                                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                                'application/vnd.ms-excel',
-                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                'text/plain',
-                                'text/csv',
-                                'image/*',
-                                'application/zip',
-                            ])
-                            ->helperText('Attach one or more assignment files, briefs, or resources (up to 10MB per file).')
-                            ->columnSpanFull(),
-                    ]),
-
-                Section::make('Schedule & Deadlines')
-                    ->description('Set when the assignment is assigned, published, and due for submission.')
-                    ->schema([
                         DatePicker::make('date_given')
                             ->label('Date Given')
                             ->native(false)
@@ -148,14 +145,14 @@ class AssignmentForm
                         DateTimePicker::make('publish_at')
                             ->label('Publish At')
                             ->native(false)
-                            ->helperText('Leave empty to publish immediately, or set a future date/time.'),
+                            ->helperText('Leave empty for immediate release.'),
 
                         DatePicker::make('due_date')
                             ->label('Due Date')
                             ->native(false)
                             ->required(),
                     ])
-                    ->columns(['default' => 1, 'sm' => 2, 'md' => 3]),
+                    ->columnSpan(['default' => 1, 'lg' => 1]),
             ]);
     }
 }

@@ -19,11 +19,13 @@ class UsersTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
+                    ->grow()
                     ->weight('bold'),
                 TextColumn::make('email')
                     ->label('Email address')
                     ->searchable()
-                    ->copyable(),
+                    ->copyable()
+                    ->visibleFrom('sm'),
                 TextColumn::make('role')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -40,7 +42,8 @@ class UsersTable
                     ->badge()
                     ->color('gray')
                     ->placeholder('N/A')
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean()
@@ -50,15 +53,18 @@ class UsersTable
                     ->dateTime('M d, Y')
                     ->placeholder('Unverified')
                     ->sortable()
+                    ->visibleFrom('lg')
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->label('Joined')
                     ->dateTime('M d, Y')
                     ->sortable()
+                    ->visibleFrom('xl')
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
                     ->dateTime('M d, Y')
                     ->sortable()
+                    ->visibleFrom('xl')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

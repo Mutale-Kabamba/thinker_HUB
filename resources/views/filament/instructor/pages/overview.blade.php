@@ -381,12 +381,12 @@
         {{-- ============================================================ --}}
         {{-- 3. QUICK ACTIONS SHORTCUTS BAR                               --}}
         {{-- ============================================================ --}}
-        <div class="edtech-card bg-white dark:bg-[#102028] p-3.5 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm">
-            <div class="flex items-center justify-between gap-3 overflow-x-auto pb-1 sm:pb-0">
-                <span class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-2 hidden sm:inline-block">
+        <div class="edtech-card bg-white dark:bg-[#102028] p-3 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm">
+            <div class="flex items-center justify-start gap-3 overflow-x-auto pb-1 sm:pb-0">
+                <span class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-2 shrink-0 hidden sm:inline-block">
                     Quick Actions:
                 </span>
-                <div class="flex items-center gap-2.5 flex-1 justify-start sm:justify-end flex-nowrap">
+                <div class="flex items-center gap-2.5 justify-start flex-nowrap">
                     @foreach ($quickActions as $action)
                         <a
                             href="{{ $action['url'] }}"
@@ -646,12 +646,14 @@
                                 Sessions on <strong x-text="selectedDate"></strong>:
                             </span>
                             <template x-for="item in events[selectedDate]" :key="item.title + item.start_time">
-                                <div class="p-2.5 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200/50 dark:border-purple-800/40 text-left space-y-0.5">
-                                    <div class="flex items-center justify-between gap-1">
-                                        <span class="font-bold text-xs text-purple-950 dark:text-purple-200" x-text="item.title"></span>
-                                        <span class="text-[10px] font-black text-[#7C3AED] dark:text-purple-300" x-text="item.start_time"></span>
+                                <div class="p-2.5 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200/50 dark:border-purple-800/40 text-left space-y-1">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex-1 min-w-0">
+                                            <span class="font-bold text-xs text-purple-950 dark:text-purple-200 leading-snug break-words block" x-text="item.title"></span>
+                                            <p class="text-[11px] text-purple-700 dark:text-purple-400 leading-tight mt-0.5" x-text="item.course_title"></p>
+                                        </div>
+                                        <span class="text-[10px] font-black text-[#7C3AED] dark:text-purple-300 shrink-0 whitespace-nowrap" x-text="item.start_time"></span>
                                     </div>
-                                    <p class="text-[11px] text-purple-700 dark:text-purple-400" x-text="item.course_title"></p>
                                 </div>
                             </template>
                         </div>
@@ -672,20 +674,26 @@
                         </a>
                     </div>
 
-                    <div class="space-y-2">
+                    <div class="space-y-2.5">
                         @forelse ($upcomingSessions as $session)
-                            <div class="p-3 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/60 dark:bg-slate-800/40 hover:bg-purple-50/40 dark:hover:bg-slate-800 transition space-y-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <span class="font-black text-xs text-slate-900 dark:text-white truncate">
-                                        {{ $session['title'] }}
-                                    </span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $session['is_today'] ? 'bg-[#7C3AED] text-white font-black' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' }}">
-                                        {{ $session['date'] }}
-                                    </span>
-                                </div>
-                                <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                                    <span class="truncate">{{ $session['course'] }}</span>
-                                    <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $session['time'] }}</span>
+                            <div class="p-3 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/60 dark:bg-slate-800/40 hover:bg-purple-50/40 dark:hover:bg-slate-800 transition">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex-1 min-w-0 space-y-1">
+                                        <h3 class="font-bold text-xs text-slate-900 dark:text-white leading-snug break-words">
+                                            {{ $session['title'] }}
+                                        </h3>
+                                        <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">
+                                            {{ $session['course'] }}
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col items-end shrink-0 gap-1 text-right">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap {{ $session['is_today'] ? 'bg-[#7C3AED] text-white font-black shadow-2xs' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' }}">
+                                            {{ $session['date'] }}
+                                        </span>
+                                        <span class="text-[11px] font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                                            {{ $session['time'] }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         @empty

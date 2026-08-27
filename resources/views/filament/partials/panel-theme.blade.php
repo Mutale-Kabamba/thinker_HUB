@@ -923,10 +923,55 @@
         }
     }
 
-    /* Desktop: centre the group in the topbar */
+    /* Desktop: centre the group in the topbar, show logo in top navigation, remove collapse toggle */
     @media (min-width: 1024px) {
         .fi-topbar {
             position: relative;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+        }
+
+        .fi-topbar-start {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+            min-width: fit-content !important;
+        }
+
+        .fi-topbar-start > a,
+        .fi-topbar-start a.fi-topbar-brand,
+        .fi-topbar-start .fi-topbar-brand,
+        .fi-topbar-start .fi-topbar-logo {
+            display: inline-flex !important;
+            align-items: center !important;
+        }
+
+        /* Hide the sidebar header & logo on desktop since the logo is placed in the top navigation bar */
+        .fi-sidebar-header,
+        .fi-sidebar header,
+        .fi-sidebar .fi-logo,
+        .fi-sidebar a.fi-logo {
+            display: none !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            visibility: hidden !important;
+        }
+
+        /* Remove hide/unhide sidebar collapse toggle on desktop view */
+        .fi-topbar-open-sidebar-btn,
+        .fi-topbar-close-sidebar-btn,
+        .fi-sidebar-close-btn,
+        .fi-sidebar-trigger,
+        .fi-topbar-start button,
+        button[title*="sidebar" i],
+        button[aria-label*="sidebar" i],
+        button[title*="collapse" i],
+        button[title*="expand" i] {
+            display: none !important;
         }
 
         .hub-top-bar-group {
@@ -3253,18 +3298,20 @@
         background: rgba(148, 163, 184, 0.38) !important;
     }
 
-    /* 3. Header & Brand Logo Area */
-    .fi-sidebar-header {
-        height: 4.25rem !important;
-        min-height: 4.25rem !important;
-        padding: 0 1.25rem !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        border-bottom: 1px solid rgba(241, 245, 249, 0.9) !important;
-    }
-    .dark .fi-sidebar-header {
-        border-bottom: 1px solid rgba(30, 41, 59, 0.7) !important;
+    /* 3. Header & Brand Logo Area (Mobile Drawer Only) */
+    @media (max-width: 1023px) {
+        .fi-sidebar-header {
+            height: 4.25rem !important;
+            min-height: 4.25rem !important;
+            padding: 0 1.25rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            border-bottom: 1px solid rgba(241, 245, 249, 0.9) !important;
+        }
+        .dark .fi-sidebar-header {
+            border-bottom: 1px solid rgba(30, 41, 59, 0.7) !important;
+        }
     }
 
     /* 4. Navigation Group Headers */
@@ -3512,33 +3559,63 @@
         color: #c084fc !important;
     }
 
-    /* Brand Logo Light / Dark Mode Toggle */
-    .fi-logo-dark {
-        display: none !important;
-    }
-    .fi-logo-light {
-        display: block;
-    }
-    .dark .fi-logo-light {
-        display: none !important;
-    }
-    .dark .fi-logo-dark {
-        display: block;
-    }
-
-    /* Prevent duplicate topbar logo across all screen sizes (logo belongs in sidebar header) */
-    .fi-topbar .fi-logo,
-    .fi-topbar-start a.fi-logo,
+    /* Brand Logo Container */
+    a.fi-logo,
+    a.fi-topbar-brand,
     .fi-topbar-brand,
     .fi-topbar-logo {
+        display: inline-flex !important;
+        align-items: center !important;
+        text-decoration: none !important;
+    }
+
+    /* Light Theme: strictly show light logo, hide dark logo */
+    .fi-logo-light,
+    img.fi-logo-light,
+    .fi-topbar-start img.fi-logo-light,
+    .fi-topbar img.fi-logo-light,
+    img.fi-logo.dark\:hidden,
+    .fi-logo img.dark\:hidden,
+    img.fi-logo:first-child:not(.dark\:block) {
+        display: inline-block !important;
+        max-height: 38px !important;
+        height: 38px !important;
+        width: auto !important;
+        object-fit: contain !important;
+        transition: transform 0.2s ease;
+    }
+
+    .fi-logo-dark,
+    img.fi-logo-dark,
+    .fi-topbar-start img.fi-logo-dark,
+    .fi-topbar img.fi-logo-dark,
+    img.fi-logo.hidden,
+    img.fi-logo.dark\:block,
+    .fi-logo img.hidden,
+    .fi-logo img.dark\:block {
         display: none !important;
     }
 
-    /* Brand Logo Size Across All Panels */
-    .fi-logo,
-    .fi-sidebar-header img,
-    .fi-topbar-brand img,
-    .fi-topbar img {
+    /* Dark Theme: strictly hide light logo, show dark logo */
+    .dark .fi-logo-light,
+    .dark img.fi-logo-light,
+    .dark .fi-topbar-start img.fi-logo-light,
+    .dark .fi-topbar img.fi-logo-light,
+    .dark img.fi-logo.dark\:hidden,
+    .dark .fi-logo img.dark\:hidden,
+    .dark img.fi-logo:first-child:not(.dark\:block) {
+        display: none !important;
+    }
+
+    .dark .fi-logo-dark,
+    .dark img.fi-logo-dark,
+    .dark .fi-topbar-start img.fi-logo-dark,
+    .dark .fi-topbar img.fi-logo-dark,
+    .dark img.fi-logo.hidden.dark\:block,
+    .dark img.fi-logo.dark\:block,
+    .dark .fi-logo img.hidden.dark\:block,
+    .dark .fi-logo img.dark\:block {
+        display: inline-block !important;
         max-height: 38px !important;
         height: 38px !important;
         width: auto !important;
@@ -3852,9 +3929,37 @@
             width: 100% !important;
         }
 
-        /* Form grids stack cleanly */
-        .fi-fo-field-wrp {
+    /* ==========================================================================
+       DESKTOP & ULTRA-WIDE CONTAINER CONSTRAINTS (1024px, 1440px, 1920px, 4K)
+       ========================================================================== */
+    @media (min-width: 1024px) {
+        .fi-main-ctn {
+            max-width: 1680px !important;
+            margin-inline: auto !important;
+            padding-inline: clamp(1.25rem, 2.5vw, 2.5rem) !important;
+            padding-top: 1.5rem !important;
+            padding-bottom: 2.5rem !important;
+        }
+
+        .fi-page {
+            max-width: 100% !important;
+        }
+
+        /* Proportional Desktop Modals */
+        .fi-modal-window {
+            margin: auto !important;
+            border-radius: 18px !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        /* Ensure tables fill desktop space cleanly without forced horizontal scroll */
+        .fi-ta-ctn {
+            border-radius: 16px !important;
+        }
+
+        .fi-ta-table {
             width: 100% !important;
+            table-layout: auto !important;
         }
     }
 

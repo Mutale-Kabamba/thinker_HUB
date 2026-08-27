@@ -25,19 +25,27 @@ class CoursesTable
                     ->disk('public')
                     ->circular(),
                 TextColumn::make('title')
-                    ->searchable(),
+                    ->searchable()
+                    ->grow()
+                    ->wrap()
+                    ->weight('bold'),
                 TextColumn::make('code')
-                    ->searchable(),
+                    ->searchable()
+                    ->badge()
+                    ->color('gray')
+                    ->visibleFrom('sm'),
                 TextColumn::make('offering_mode')
                     ->label('Structure')
                     ->badge()
                     ->formatStateUsing(fn (?string $state): string => ($state ?? 'once_off') === 'ongoing' ? 'Ongoing (Intakes)' : 'Once-off')
-                    ->color(fn (?string $state): string => ($state ?? 'once_off') === 'ongoing' ? 'info' : 'gray'),
+                    ->color(fn (?string $state): string => ($state ?? 'once_off') === 'ongoing' ? 'info' : 'gray')
+                    ->visibleFrom('md'),
                 TextColumn::make('activeIntake.name')
                     ->label('Active Intake')
                     ->placeholder('None active')
                     ->badge()
-                    ->color('success'),
+                    ->color('success')
+                    ->visibleFrom('lg'),
                 TextColumn::make('is_open_enrollment')
                     ->label('Enrollment')
                     ->badge()
@@ -46,12 +54,16 @@ class CoursesTable
                 IconColumn::make('is_active')
                     ->boolean(),
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Created')
+                    ->date('M j, Y')
                     ->sortable()
+                    ->visibleFrom('xl')
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Updated')
+                    ->date('M j, Y')
                     ->sortable()
+                    ->visibleFrom('xl')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

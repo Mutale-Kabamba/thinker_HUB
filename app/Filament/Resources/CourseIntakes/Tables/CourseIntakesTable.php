@@ -40,6 +40,7 @@ class CourseIntakesTable
                     ->label('Course')
                     ->searchable()
                     ->sortable()
+                    ->grow()
                     ->wrap(),
 
                 TextColumn::make('name')
@@ -51,18 +52,21 @@ class CourseIntakesTable
                 TextColumn::make('start_date')
                     ->label('Start Date')
                     ->date('M j, Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('sm'),
 
                 TextColumn::make('end_date')
                     ->label('End Date')
                     ->date('M j, Y')
                     ->sortable()
-                    ->placeholder('Ongoing'),
+                    ->placeholder('Ongoing')
+                    ->visibleFrom('md'),
 
                 TextColumn::make('next_intake_start_date')
                     ->label('Next Intake')
                     ->date('M j, Y')
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->visibleFrom('lg'),
 
                 TextColumn::make('status')
                     ->label('Status')
@@ -78,14 +82,16 @@ class CourseIntakesTable
 
                 IconColumn::make('is_active')
                     ->label('Active')
-                    ->boolean(),
+                    ->boolean()
+                    ->sortable(),
 
                 TextColumn::make('enrollments_count')
                     ->label('Students')
                     ->counts('enrollments')
                     ->badge()
                     ->color('primary')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('sm'),
             ])
             ->defaultSort('start_date', 'desc')
             ->filters([
