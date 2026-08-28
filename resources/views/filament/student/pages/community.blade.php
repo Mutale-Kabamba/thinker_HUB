@@ -793,6 +793,7 @@
                                                         <span class="px-2 py-0.5 rounded-md {{ $cil['color']['badge_bg'] ?? 'bg-purple-100 text-purple-700' }} font-bold text-[10px] inline-flex items-center gap-1">
                                                             <x-heroicon-o-academic-cap class="w-3 h-3" />
                                                             <span>{{ $cil['label'] }}</span>
+                                                            <span class="font-extrabold opacity-90">({{ number_format($cil['xp']) }} XP)</span>
                                                         </span>
                                                     @endforeach
                                                 @endif
@@ -871,7 +872,10 @@
                                             @if (!empty($reqLabels))
                                                 <div class="flex items-center gap-1 mt-0.5 flex-wrap">
                                                     @foreach ($reqLabels as $rl)
-                                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold {{ $rl['color']['badge_bg'] ?? 'bg-purple-100 text-purple-700' }}">{{ $rl['label'] }}</span>
+                                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {{ $rl['color']['badge_bg'] ?? 'bg-purple-100 text-purple-700' }} inline-flex items-center gap-1">
+                                                            <span>{{ $rl['label'] }}</span>
+                                                            <span class="font-extrabold opacity-90">({{ number_format($rl['xp']) }} XP)</span>
+                                                        </span>
                                                     @endforeach
                                                 </div>
                                             @endif
@@ -925,7 +929,10 @@
                                                 @if (!empty($friendLabels))
                                                     <div class="flex items-center gap-1 mt-0.5 flex-wrap">
                                                         @foreach ($friendLabels as $fl)
-                                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold {{ $fl['color']['badge_bg'] ?? 'bg-purple-100 text-purple-700' }}">{{ $fl['label'] }}</span>
+                                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {{ $fl['color']['badge_bg'] ?? 'bg-purple-100 text-purple-700' }} inline-flex items-center gap-1">
+                                                                <span>{{ $fl['label'] }}</span>
+                                                                <span class="font-extrabold opacity-90">({{ number_format($fl['xp']) }} XP)</span>
+                                                            </span>
                                                         @endforeach
                                                     </div>
                                                 @else
@@ -966,12 +973,47 @@
                 @endphp
                 <div class="flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 space-y-3 bg-slate-50 dark:bg-[#0b141a] pb-[env(safe-area-inset-bottom,1.5rem)]">
                     
+                    {{-- Class Selector Switch (if enrolled in multiple classes) --}}
+                    @if ($leaderboard['enrolled_classes']->count() > 1)
+                        <div class="bg-white dark:bg-[#111b21] p-3 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs space-y-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                                    <x-heroicon-m-arrows-right-left class="w-3.5 h-3.5 text-[#008069]" />
+                                    <span>Switch Class Leaderboard:</span>
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2 overflow-x-auto pb-1">
+                                @foreach ($leaderboard['enrolled_classes'] as $cOption)
+                                    @php
+                                        $isSelected = ($leaderboard['selected_course_id'] === $cOption['course_id']) && ($leaderboard['selected_intake_id'] === $cOption['intake_id']);
+                                    @endphp
+                                    <button
+                                        type="button"
+                                        wire:click="selectLeaderboardClass({{ $cOption['course_id'] }}, {{ $cOption['intake_id'] ?? 'null' }})"
+                                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer {{ $isSelected ? 'bg-[#008069] text-white shadow-sm ring-2 ring-[#008069]/30' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700' }}"
+                                    >
+                                        <x-heroicon-o-academic-cap class="w-3.5 h-3.5 shrink-0" />
+                                        <span>{{ $cOption['label'] }}</span>
+                                        <span class="px-1.5 py-0.2 rounded-md text-[10px] {{ $isSelected ? 'bg-white/20 text-white font-extrabold' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-semibold' }}">
+                                            {{ number_format($cOption['xp']) }} XP
+                                        </span>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- 1. TOP STUDENTS LEADERBOARD (TOP 5 WITH EXPAND/COLLAPSE) --}}
                     <div class="bg-white dark:bg-[#111b21] p-3.5 sm:p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs" x-data="{ showAllLeaderboard: false }">
                         <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
                             <div class="flex items-center gap-2">
                                 <x-heroicon-s-trophy class="w-5 h-5 text-amber-500" />
-                                <h3 class="text-sm font-bold text-gray-900 dark:text-white">Leaderboard</h3>
+                                <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5 flex-wrap">
+                                    <span>Leaderboard</span>
+                                    @if ($leaderboard['active_class_label'])
+                                        <span class="text-xs font-semibold text-[#008069] dark:text-emerald-400">({{ $leaderboard['active_class_label'] }})</span>
+                                    @endif
+                                </h3>
                             </div>
                             @if ($allRows->count() > 0)
                                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
@@ -979,7 +1021,9 @@
                                 </span>
                             @endif
                         </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Ranked by lifetime XP earned from quizzes, attendance, streaks, and course completions.</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                            Ranked by points accumulated in {{ $leaderboard['active_class_label'] ?? 'this course/class' }}.
+                        </p>
 
                         @if ($allRows->count() === 0)
                             <div class="p-6 text-center text-xs text-gray-400">
@@ -1014,7 +1058,7 @@
                                                 <span class="font-semibold">{{ $row['badge_count'] }}</span>
                                             </div>
 
-                                            {{-- Lifetime XP --}}
+                                            {{-- Course-specific XP --}}
                                             <div class="flex items-center gap-1 text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400 min-w-[65px] justify-end">
                                                 <x-heroicon-s-bolt class="w-3.5 h-3.5 text-amber-500" />
                                                 <span>{{ number_format($row['xp']) }}</span>
@@ -1230,6 +1274,7 @@
                                             <span class="px-2 py-0.5 rounded-md {{ $cil['color']['badge_bg'] ?? 'bg-purple-100 text-purple-700' }} font-bold text-[10px] inline-flex items-center gap-1">
                                                 <x-heroicon-o-academic-cap class="w-3 h-3" />
                                                 <span>{{ $cil['label'] }}</span>
+                                                <span class="font-extrabold opacity-90">({{ number_format($cil['xp']) }} XP)</span>
                                             </span>
                                         @endforeach
                                     </div>

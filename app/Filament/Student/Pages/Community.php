@@ -44,6 +44,12 @@ class Community extends Page
     #[Url(as: 'tab')]
     public string $tab = 'chats'; // chats | results | friends | leaderboard
 
+    #[Url(as: 'course_id')]
+    public ?int $selectedLeaderboardCourseId = null;
+
+    #[Url(as: 'intake_id')]
+    public ?int $selectedLeaderboardIntakeId = null;
+
     public string $directorySearch = '';
 
     public string $resultsSearch = '';
@@ -66,6 +72,22 @@ class Community extends Page
     public function selectTask(?string $taskId): void
     {
         $this->selectedTaskId = $taskId;
+    }
+
+    public function selectLeaderboardClass(?int $courseId, ?int $intakeId = null): void
+    {
+        $this->selectedLeaderboardCourseId = $courseId;
+        $this->selectedLeaderboardIntakeId = $intakeId;
+    }
+
+    public function getEnrolledClassesProperty(): Collection
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return collect();
+        }
+
+        return collect($user->getCourseIntakeLabels());
     }
 
     public int $messagesLimit = 30;
@@ -146,16 +168,36 @@ class Community extends Page
     // ------------------------------------------------------------- Gamification
 
     /**
-     * Top 20 students by XP. When the viewer falls outside the top 20
+     * Top 20 students by XP within active course/class. When the viewer falls outside the top 20
      * (including students with no XP yet), their row is appended with their
      * overall rank so they always see where they stand.
      *
-     * @return array{rows: Collection<int, array<string, mixed>>, viewer: array<string, mixed>|null}
+     * @return array{
+     *   rows: Collection<int, array<string, mixed>>,
+     *   viewer: array<string, mixed>|null,
+     *   active_class_label: string|null,
+     *   selected_course_id: int|null,
+     *   selected_intake_id: int|null,
+     *   enrolled_classes: Collection<int, array<string, mixed>>
+     * }
      */
     public function getLeaderboardProperty(): array
     {
         $user = auth()->user();
-        $ranked = app(GamificationService::class)->leaderboard($user);
+        $enrolledClasses = $this->enrolledClasses;
+
+        $courseId = $this->selectedLeaderboardCourseId;
+        $intakeId = $this->selectedLeaderboardIntakeId;
+
+        // Default to first enrolled class if not selected yet
+        if ($courseId === null && $enrolledClasses->isNotEmpty()) {
+            $firstClass = $enrolledClasses->first();
+            $courseId = (int) $firstClass['course_id'];
+            $intakeId = $firstClass['intake_id'];
+        }
+
+        $service = app(GamificationService::class);
+        $ranked = $service->leaderboard($user, $courseId, $intakeId);
         $top = $ranked->take(20)->values();
         $viewer = null;
 
@@ -165,18 +207,33 @@ class Community extends Page
             if ($mine && $mine['rank'] > 20) {
                 $viewer = $mine;
             } elseif (! $mine) {
+                $viewerCourseXp = $courseId ? $user->getXpForCourse($courseId, $intakeId) : (int) ($user->lifetime_xp ?? 0);
                 $viewer = [
                     'rank' => $ranked->count() + 1,
                     'user_id' => $user->id,
                     'name' => $user->name,
-                    'xp' => 0,
+                    'xp' => $viewerCourseXp,
+                    'total_lifetime_xp' => (int) ($user->lifetime_xp ?? 0),
                     'badge_count' => $user->badges()->count(),
                     'badge_icons' => $user->badges()->orderBy('user_badge.earned_at')->limit(5)->pluck('icon')->filter()->values()->all(),
                 ];
             }
         }
 
-        return ['rows' => $top, 'viewer' => $viewer];
+        $activeClassLabel = null;
+        if ($courseId !== null) {
+            $matched = $enrolledClasses->firstWhere('course_id', $courseId);
+            $activeClassLabel = $matched['label'] ?? 'Class Leaderboard';
+        }
+
+        return [
+            'rows' => $top,
+            'viewer' => $viewer,
+            'active_class_label' => $activeClassLabel,
+            'selected_course_id' => $courseId,
+            'selected_intake_id' => $intakeId,
+            'enrolled_classes' => $enrolledClasses,
+        ];
     }
 
     /**
@@ -386,31 +443,13 @@ class Community extends Page
         // Collection is name-sorted; sortByDesc is stable, so classmates
         // come first (shared DESC) and ties stay alphabetical.
         $rows = $students
-            ->map(function (User $s) use ($sharedByStudent, $xpByUser, $badgeIcons, $friendshipByUser, $enrollmentsByStudent): array {
-                $sEnrollments = $enrollmentsByStudent->get($s->id, collect());
-                $courseIntakeLabels = $sEnrollments->map(function (Enrollment $e): array {
-                    $courseCode = $e->course?->code;
-                    $courseTitle = $e->course?->title ?? 'Course';
-                    $displayCourse = $courseCode ?: $courseTitle;
-                    $intakeName = $e->intake?->name;
-
-                    return [
-                        'course_id' => $e->course_id,
-                        'course_title' => $courseTitle,
-                        'course_code' => $courseCode,
-                        'intake_id' => $e->course_intake_id,
-                        'intake_name' => $intakeName,
-                        'label' => $intakeName ? "{$displayCourse} • {$intakeName}" : $displayCourse,
-                        'color' => $e->course ? $e->course->getColorScheme() : \App\Models\Course::getColorSchemeFor(null, $courseTitle, $courseCode ?? ''),
-                    ];
-                })->values()->all();
-
+            ->map(function (User $s) use ($sharedByStudent, $xpByUser, $badgeIcons, $friendshipByUser): array {
                 return [
                     'id' => $s->id,
                     'name' => $s->name,
                     'shared_count' => $sharedByStudent[$s->id]['count'] ?? 0,
                     'shared_courses' => $sharedByStudent[$s->id]['courses'] ?? [],
-                    'course_intake_labels' => $courseIntakeLabels,
+                    'course_intake_labels' => $s->getCourseIntakeLabels(),
                     'xp' => (int) ($xpByUser[$s->id] ?? 0),
                     'badge_icons' => $badgeIcons[$s->id] ?? [],
                     'friendship' => $friendshipByUser[$s->id] ?? ['state' => 'none', 'friendship_id' => null],
