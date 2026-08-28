@@ -3,6 +3,7 @@
 namespace App\Filament\Actions;
 
 use App\Models\Course;
+use App\Models\CourseIntake;
 use App\Models\CourseSession;
 use App\Models\User;
 use Filament\Actions\Action;
@@ -193,9 +194,13 @@ class ImportSessionsAction
         $rawStatus = static::pickString($row, ['status']);
         $status = static::normalizeStatus($rawStatus);
 
+        // --- Intake / Class ---
+        $intakeId = static::resolveIntake($row, $course);
+
         // --- Build payload ---
         $payload = [
             'course_id' => $course->id,
+            'course_intake_id' => $intakeId,
             'instructor_id' => $instructorId,
             'type' => $type,
             'student_id' => $studentId,
@@ -207,14 +212,22 @@ class ImportSessionsAction
             'notes' => static::nullableString(Arr::get($row, 'notes')),
         ];
 
-        // --- Upsert (match on course + date + start_time + type) ---
-        return DB::transaction(function () use ($course, $sessionDate, $startTime, $type, $payload): string {
-            $existing = CourseSession::query()
+        // --- Upsert (match on course + intake + date + start_time + type) ---
+        return DB::transaction(function () use ($course, $intakeId, $sessionDate, $startTime, $type, $payload): string {
+            $query = CourseSession::query()
                 ->where('course_id', $course->id)
                 ->where('session_date', $sessionDate)
                 ->where('start_time', $startTime)
-                ->where('type', $type)
-                ->first();
+                ->where('type', $type);
+
+            if ($intakeId !== null) {
+                $query->where(function ($q) use ($intakeId) {
+                    $q->where('course_intake_id', $intakeId)
+                      ->orWhereNull('course_intake_id');
+                });
+            }
+
+            $existing = $query->first();
 
             if ($existing) {
                 $existing->fill($payload)->save();
@@ -226,12 +239,56 @@ class ImportSessionsAction
 
             Log::info('Session import: created session.', [
                 'course' => $course->code,
+                'intake_id' => $intakeId,
                 'date' => $sessionDate,
                 'start' => $startTime,
             ]);
 
             return 'created';
         });
+    }
+
+    // ---------------------------------------------------------------
+    //  Intake resolution
+    // ---------------------------------------------------------------
+
+    private static function resolveIntake(array $row, Course $course): ?int
+    {
+        $intakeId = Arr::get($row, 'course_intake_id') ?? Arr::get($row, 'intake_id');
+        if (! empty($intakeId) && is_numeric($intakeId)) {
+            $intake = CourseIntake::query()
+                ->where('course_id', $course->id)
+                ->where('id', (int) $intakeId)
+                ->first();
+
+            if ($intake) {
+                return $intake->id;
+            }
+        }
+
+        $intakeName = static::pickString($row, ['intake', 'intake_name', 'intakeName', 'class', 'cohort', 'cohort_name']);
+        if ($intakeName !== '') {
+            $intake = CourseIntake::query()
+                ->where('course_id', $course->id)
+                ->where(function ($q) use ($intakeName) {
+                    $q->whereRaw('LOWER(name) = ?', [mb_strtolower($intakeName)])
+                      ->orWhere('name', 'LIKE', "%{$intakeName}%");
+                })
+                ->first();
+
+            if (! $intake) {
+                $intake = CourseIntake::create([
+                    'course_id' => $course->id,
+                    'name' => $intakeName,
+                    'status' => CourseIntake::STATUS_ACTIVE,
+                    'is_active' => true,
+                ]);
+            }
+
+            return $intake->id;
+        }
+
+        return null;
     }
 
     // ---------------------------------------------------------------

@@ -1,6 +1,7 @@
 [
   {
     "course_code": "WEB-101",
+    "intake": "Class One",
     "title": "Module 1: Semantic HTML5 & Modern CSS Layouts (Flexbox/Grid)",
     "session_date": "2026-09-02",
     "start_time": "09:00",
@@ -11,6 +12,7 @@
   },
   {
     "course_code": "WEB-101",
+    "intake": "Class One",
     "title": "Module 2: JavaScript ES6+ Fundamentals & DOM Manipulation",
     "session_date": "2026-09-04",
     "start_time": "09:00",
@@ -21,6 +23,7 @@
   },
   {
     "course_code": "WEB-101",
+    "intake": "Class One",
     "title": "1-on-1 Code Review & Portfolio Mentorship",
     "session_date": "2026-09-05",
     "start_time": "14:00",
@@ -32,6 +35,7 @@
   },
   {
     "course_code": "PY-201",
+    "intake": "Cohort Alpha",
     "title": "Session 1: Python Environment Setup & Core Data Structures",
     "session_date": "2026-09-03",
     "start_time": "11:00",
@@ -42,6 +46,7 @@
   },
   {
     "course_code": "PY-201",
+    "intake": "Cohort Alpha",
     "title": "Session 2: Data Cleaning and Exploration with Pandas",
     "session_date": "2026-09-10",
     "start_time": "11:00",
