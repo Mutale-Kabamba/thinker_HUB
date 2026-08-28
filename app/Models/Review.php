@@ -60,4 +60,9 @@ class Review extends Model
         return $query->where('reviewable_type', get_class($model))
             ->where('reviewable_id', $model->getKey());
     }
+
+    public function scopeHasComment(Builder $query): Builder
+    {
+        return $query->whereNotNull('comment')->where('comment', '!=', '');
+    }
 }

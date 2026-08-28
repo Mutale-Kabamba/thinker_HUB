@@ -247,16 +247,30 @@ class UnifiedReviewsAndRatingsTest extends TestCase
             'is_approved' => true,
         ]);
 
+        $student3 = User::factory()->create(['role' => 'student', 'name' => 'Silent Rater']);
+        Review::create([
+            'user_id' => $student3->id,
+            'reviewable_type' => Course::class,
+            'reviewable_id' => $course->id,
+            'rating' => 5,
+            'title' => null,
+            'comment' => null,
+            'is_approved' => true,
+        ]);
+
         Livewire::test(ReviewList::class, [
             'targetType' => 'course',
             'targetId' => $course->id,
             'targetTitle' => $course->title,
         ])
-            ->assertSee('4.5')
+            ->assertSee('4.7')
+            ->assertSee('Based on 3 verified ratings')
+            ->assertSee('Verified Testimonials (2)')
             ->assertSee('Amazing Course')
             ->assertSee('Alice Walker')
             ->assertSee('Great Pace')
             ->assertSee('Bob Builder')
+            ->assertDontSee('Silent Rater')
             ->call('setFilterRating', 5)
             ->assertSee('Amazing Course')
             ->assertDontSee('Great Pace');

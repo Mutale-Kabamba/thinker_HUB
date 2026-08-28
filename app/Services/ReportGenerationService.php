@@ -90,7 +90,8 @@ class ReportGenerationService
 
             foreach ($sessions as $session) {
                 $att = $attendances->get($session->id);
-                $status = $att?->status ?? ($session->session_date?->isPast() ? 'Absent' : 'Upcoming');
+                $sessionDate = $session->session_date ? Carbon::parse($session->session_date) : null;
+                $status = $att?->status ?? ($sessionDate && $sessionDate->isPast() ? 'Absent' : 'Upcoming');
 
                 if ($status === 'Present') {
                     $presentCount++;
@@ -105,11 +106,11 @@ class ReportGenerationService
                 $sessionLog[] = [
                     'session_id' => $session->id,
                     'title' => $session->title ?: "Session #{$session->id}",
-                    'session_date' => $session->session_date ? Carbon::parse($session->session_date)->format('M d, Y') : 'TBD',
+                    'session_date' => $sessionDate ? $sessionDate->format('M d, Y') : 'TBD',
                     'time' => $session->start_time ? Carbon::parse($session->start_time)->format('H:i') : null,
                     'status' => $status,
                     'remarks' => $att?->remarks,
-                    'is_past' => $session->session_date ? Carbon::parse($session->session_date)->isPast() : false,
+                    'is_past' => $sessionDate ? $sessionDate->isPast() : false,
                 ];
             }
 
@@ -141,16 +142,18 @@ class ReportGenerationService
                 $grade = $sub?->grade !== null ? (float) $sub->grade : null;
                 $isSubmitted = $sub !== null && in_array($sub->status, ['Submitted', 'Graded', 'Checked', 'Returned']);
                 
+                $dueDate = $assignment->due_date ? Carbon::parse($assignment->due_date) : null;
                 $onTimeStatus = 'Not Submitted';
                 if ($isSubmitted) {
                     $overallStats['total_assignments_submitted']++;
                     $submittedAt = $sub->submitted_at ?? $sub->created_at;
-                    if ($assignment->due_date && $submittedAt) {
-                        $onTimeStatus = $submittedAt->lte($assignment->due_date->endOfDay()) ? 'On Time' : 'Late';
+                    if ($dueDate && $submittedAt) {
+                        $subDate = Carbon::parse($submittedAt);
+                        $onTimeStatus = $subDate->lte($dueDate->copy()->endOfDay()) ? 'On Time' : 'Late';
                     } else {
                         $onTimeStatus = 'Submitted';
                     }
-                } elseif ($assignment->due_date && $assignment->due_date->isPast()) {
+                } elseif ($dueDate && $dueDate->isPast()) {
                     $onTimeStatus = 'Overdue';
                 } else {
                     $onTimeStatus = 'Pending';
@@ -167,8 +170,8 @@ class ReportGenerationService
                 $assignmentsLog[] = [
                     'assignment_id' => $assignment->id,
                     'name' => $assignment->name,
-                    'due_date' => $assignment->due_date ? Carbon::parse($assignment->due_date)->format('M d, Y') : 'No Due Date',
-                    'status' => $sub?->status ?? ($assignment->due_date?->isPast() ? 'Missing' : 'Pending'),
+                    'due_date' => $dueDate ? $dueDate->format('M d, Y') : 'No Due Date',
+                    'status' => $sub?->status ?? ($dueDate && $dueDate->isPast() ? 'Missing' : 'Pending'),
                     'on_time_status' => $onTimeStatus,
                     'submitted_at' => $sub?->submitted_at ? Carbon::parse($sub->submitted_at)->format('M d, Y H:i') : ($sub?->created_at ? Carbon::parse($sub->created_at)->format('M d, Y H:i') : '-'),
                     'grade' => $grade,
@@ -475,16 +478,20 @@ class ReportGenerationService
             $stQuizzesPassed = $quizAttempts->where('user_id', $student->id)->where('passed', true)->pluck('quiz_id')->unique()->count();
 
             $studentRoster[] = [
+                'student' => $student,
                 'student_id' => $student->id,
                 'name' => $student->name,
                 'email' => $student->email,
                 'track' => $student->track ?? 'Beginner',
                 'enrolled_at' => $enrollment->created_at ? Carbon::parse($enrollment->created_at)->format('M d, Y') : '-',
                 'completed' => $enrollment->completed_at !== null,
+                'is_completed' => $enrollment->completed_at !== null,
                 'completed_at' => $enrollment->completed_at ? Carbon::parse($enrollment->completed_at)->format('M d, Y') : null,
                 'attendance_rate' => $stAttRate,
                 'attended_sessions' => $stAttended,
+                'sessions_attended' => $stAttended,
                 'total_sessions' => $stTotalSessions,
+                'sessions_total' => $stTotalSessions,
                 'assignments_submitted' => $stSubs->count(),
                 'avg_assignment_grade' => $stAvgGrade,
                 'quizzes_passed' => $stQuizzesPassed,
@@ -563,7 +570,7 @@ class ReportGenerationService
      */
     public function renderIntakeReportPdf(CourseIntake $intake, array $options = []): DomPDF
     {
-        $course = $intake->course;
+        $course = $intake->course ?: Course::find($intake->course_id) ?: new Course(['title' => 'Cohort Course', 'code' => 'COURSE']);
         $data = $this->getCourseAnalyticsData($course, $intake->id, $options);
         $data['intake'] = $intake;
 
