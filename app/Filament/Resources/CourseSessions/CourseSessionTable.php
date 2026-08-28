@@ -17,7 +17,8 @@ use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TimePicker;
-use Filament\Notifications\Notification;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -28,30 +29,83 @@ class CourseSessionTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->contentGrid([
+                'default' => 1,
+                'md' => null,
+            ])
             ->columns([
+                // Mobile Card View Structure (Stacked & Clean)
+                Stack::make([
+                    Split::make([
+                        Stack::make([
+                            TextColumn::make('title')
+                                ->label('Session')
+                                ->weight('bold')
+                                ->size('sm')
+                                ->placeholder(fn ($record) => 'Session #' . $record->id)
+                                ->searchable(),
+                            TextColumn::make('course.title')
+                                ->size('xs')
+                                ->color('gray')
+                                ->searchable(),
+                        ]),
+                        TextColumn::make('status')
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'completed' => 'success',
+                                'rescheduled' => 'warning',
+                                'cancelled' => 'danger',
+                                default => 'gray',
+                            })
+                            ->grow(false),
+                    ]),
+                    Split::make([
+                        TextColumn::make('session_date')
+                            ->date('D, M j, Y')
+                            ->size('xs')
+                            ->color('gray'),
+                        TextColumn::make('type')
+                            ->badge()
+                            ->formatStateUsing(fn (string $state): string => $state === 'one_on_one' ? '1-on-1' : 'Group')
+                            ->color(fn (string $state): string => $state === 'group' ? 'success' : 'info')
+                            ->size('xs'),
+                    ])->extraAttributes(['class' => 'pt-2 border-t border-gray-100 dark:border-gray-800']),
+                ])
+                ->extraAttributes([
+                    'class' => 'p-4 bg-white dark:bg-[#111b21] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm space-y-2 md:hidden',
+                ]),
+
+                // Desktop Table Columns (Hidden on Mobile)
                 TextColumn::make('course.title')
                     ->label('Course')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 TextColumn::make('type')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => $state === 'one_on_one' ? 'One-On-One' : 'Group')
-                    ->color(fn (string $state): string => $state === 'group' ? 'success' : 'info'),
+                    ->color(fn (string $state): string => $state === 'group' ? 'success' : 'info')
+                    ->visibleFrom('md'),
                 TextColumn::make('student.name')
                     ->label('Student')
                     ->placeholder('All enrolled')
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
                 TextColumn::make('title')
                     ->label('Session')
                     ->placeholder('—')
-                    ->limit(30),
+                    ->limit(30)
+                    ->visibleFrom('md'),
                 TextColumn::make('session_date')
                     ->date('D, M j, Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 TextColumn::make('start_time')
-                    ->time('g:i A'),
+                    ->time('g:i A')
+                    ->visibleFrom('md'),
                 TextColumn::make('end_time')
-                    ->time('g:i A'),
+                    ->time('g:i A')
+                    ->visibleFrom('md'),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -59,10 +113,12 @@ class CourseSessionTable
                         'rescheduled' => 'warning',
                         'cancelled' => 'danger',
                         default => 'gray',
-                    }),
+                    })
+                    ->visibleFrom('md'),
                 TextColumn::make('instructor.name')
                     ->label('Instructor')
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->visibleFrom('md'),
             ])
             ->defaultSort('session_date', 'asc')
             ->filters([

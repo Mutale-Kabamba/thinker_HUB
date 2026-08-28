@@ -10,6 +10,8 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -21,23 +23,75 @@ class ClaimRequestsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->contentGrid([
+                'default' => 1,
+                'md' => null,
+            ])
             ->columns([
+                // Mobile Card View Structure (Stacked & Clean)
+                Stack::make([
+                    Split::make([
+                        Stack::make([
+                            TextColumn::make('claimItem.title')
+                                ->label('Reward Item')
+                                ->weight('bold')
+                                ->size('sm')
+                                ->searchable(),
+                            TextColumn::make('user.name')
+                                ->label('Student')
+                                ->size('xs')
+                                ->color('gray')
+                                ->searchable(),
+                        ]),
+                        TextColumn::make('status')
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'pending' => 'warning',
+                                'approved' => 'info',
+                                'fulfilled' => 'success',
+                                'rejected' => 'danger',
+                                default => 'gray',
+                            })
+                            ->grow(false),
+                    ]),
+                    Split::make([
+                        TextColumn::make('coins_spent')
+                            ->label('Coins')
+                            ->formatStateUsing(fn ($state): string => '🪙 '.number_format((int) $state).' TC')
+                            ->badge()
+                            ->color('warning')
+                            ->size('xs'),
+                        TextColumn::make('created_at')
+                            ->label('Requested')
+                            ->dateTime('M d, Y')
+                            ->size('xs')
+                            ->color('gray'),
+                    ])->extraAttributes(['class' => 'pt-2 border-t border-gray-100 dark:border-gray-800']),
+                ])
+                ->extraAttributes([
+                    'class' => 'p-4 bg-white dark:bg-[#111b21] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm space-y-2 md:hidden',
+                ]),
+
+                // Desktop Table Columns (Hidden on Mobile)
                 TextColumn::make('user.name')
                     ->label('Student')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('claimItem.title')
                     ->label('Reward Item')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('coins_spent')
                     ->label('Coins Spent')
                     ->formatStateUsing(fn ($state): string => '🪙 '.number_format((int) $state).' TC')
                     ->badge()
                     ->color('warning')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('claimItem.category')
                     ->label('Category')
@@ -56,7 +110,8 @@ class ClaimRequestsTable
                         'perk' => '🚀 Perk',
                         default => $state ?? '—',
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('claimItem.course.title')
                     ->label('Course')
@@ -64,12 +119,14 @@ class ClaimRequestsTable
                     ->badge()
                     ->color('gray')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('phone_number')
                     ->label('Phone / WhatsApp')
                     ->searchable()
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->visibleFrom('md'),
 
                 TextColumn::make('status')
                     ->badge()
@@ -80,19 +137,22 @@ class ClaimRequestsTable
                         'rejected' => 'danger',
                         default => 'gray',
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('created_at')
                     ->label('Requested')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('fulfilled_at')
                     ->label('Fulfilled')
                     ->dateTime()
                     ->placeholder('—')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->visibleFrom('md'),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([

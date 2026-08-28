@@ -229,4 +229,33 @@ class AdminReportGenerationTest extends TestCase
         $response = $this->actingAs($instructor)->get('/teach/reports');
         $response->assertOk();
     }
+
+    public function test_admin_can_download_intake_report_endpoint(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $student = User::factory()->create(['role' => 'student', 'name' => 'Cohort Student']);
+        $course = Course::create([
+            'title' => 'Python for AI',
+            'code' => 'AI101',
+            'is_active' => true,
+        ]);
+        $intake = \App\Models\CourseIntake::create([
+            'course_id' => $course->id,
+            'name' => 'Batch 2026-A',
+            'is_active' => true,
+        ]);
+
+        Enrollment::create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+            'course_intake_id' => $intake->id,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('reports.intake', [
+            'intake' => $intake->id,
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
 }

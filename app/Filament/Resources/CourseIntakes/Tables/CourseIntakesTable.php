@@ -16,6 +16,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -35,25 +37,76 @@ class CourseIntakesTable
             ->toArray();
 
         return $table
+            ->contentGrid([
+                'default' => 1,
+                'md' => null,
+            ])
             ->columns([
+                // Mobile Card View Structure (Stacked & Clean)
+                Stack::make([
+                    Split::make([
+                        Stack::make([
+                            TextColumn::make('name')
+                                ->label('Class / Intake')
+                                ->weight('bold')
+                                ->size('sm')
+                                ->searchable(),
+                            TextColumn::make('course.title')
+                                ->size('xs')
+                                ->color('gray')
+                                ->searchable(),
+                        ]),
+                        TextColumn::make('status')
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                CourseIntake::STATUS_ACTIVE => 'success',
+                                CourseIntake::STATUS_UPCOMING => 'warning',
+                                CourseIntake::STATUS_COMPLETED => 'info',
+                                CourseIntake::STATUS_ARCHIVED => 'gray',
+                                default => 'gray',
+                            })
+                            ->formatStateUsing(fn (string $state): string => CourseIntake::STATUSES[$state] ?? ucfirst($state))
+                            ->grow(false),
+                    ]),
+                    Split::make([
+                        TextColumn::make('start_date')
+                            ->label('Start')
+                            ->date('M j, Y')
+                            ->size('xs')
+                            ->color('gray'),
+                        TextColumn::make('enrollments_count')
+                            ->label('Students')
+                            ->counts('enrollments')
+                            ->badge()
+                            ->color('primary')
+                            ->size('xs'),
+                    ])->extraAttributes(['class' => 'pt-2 border-t border-gray-100 dark:border-gray-800']),
+                ])
+                ->extraAttributes([
+                    'class' => 'p-4 bg-white dark:bg-[#111b21] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm space-y-2 md:hidden',
+                ]),
+
+                // Desktop Table Columns (Hidden on Mobile)
                 TextColumn::make('course.title')
                     ->label('Course')
                     ->searchable()
                     ->sortable()
                     ->grow()
-                    ->wrap(),
+                    ->wrap()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('name')
                     ->label('Class / Intake')
                     ->searchable()
                     ->sortable()
-                    ->weight('bold'),
+                    ->weight('bold')
+                    ->visibleFrom('md'),
 
                 TextColumn::make('start_date')
                     ->label('Start Date')
                     ->date('M j, Y')
                     ->sortable()
-                    ->visibleFrom('sm'),
+                    ->visibleFrom('md'),
 
                 TextColumn::make('end_date')
                     ->label('End Date')
@@ -78,12 +131,14 @@ class CourseIntakesTable
                         CourseIntake::STATUS_ARCHIVED => 'gray',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state): string => CourseIntake::STATUSES[$state] ?? ucfirst($state)),
+                    ->formatStateUsing(fn (string $state): string => CourseIntake::STATUSES[$state] ?? ucfirst($state))
+                    ->visibleFrom('md'),
 
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('enrollments_count')
                     ->label('Students')
@@ -91,7 +146,7 @@ class CourseIntakesTable
                     ->badge()
                     ->color('primary')
                     ->sortable()
-                    ->visibleFrom('sm'),
+                    ->visibleFrom('md'),
             ])
             ->defaultSort('start_date', 'desc')
             ->filters([

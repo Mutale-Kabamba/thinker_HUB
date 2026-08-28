@@ -123,20 +123,31 @@ class GenerateReports extends Page
         $targetCourseId = $courseId !== null ? $courseId : $this->selectedCourseId;
         $course = $targetCourseId ? Course::find($targetCourseId) : null;
 
-        $service = app(ReportGenerationService::class);
-        $options = [
-            'include_answer_sheets' => $this->includeAnswerSheets,
-            'include_attendance_log' => $this->includeAttendanceLog,
-        ];
+        try {
+            $service = app(ReportGenerationService::class);
+            $options = [
+                'include_answer_sheets' => $this->includeAnswerSheets,
+                'include_attendance_log' => $this->includeAttendanceLog,
+            ];
 
-        $pdf = $service->renderStudentReportPdf($student, $course, $options);
-        $filename = 'Student_Report_' . str_replace(' ', '_', $student->name) . '_' . date('Ymd') . '.pdf';
+            $pdf = $service->renderStudentReportPdf($student, $course, $options);
+            $filename = 'Student_Report_' . str_replace(' ', '_', $student->name) . '_' . date('Ymd') . '.pdf';
 
-        return response()->streamDownload(
-            fn () => print($pdf->output()),
-            $filename,
-            ['Content-Type' => 'application/pdf']
-        );
+            return response()->streamDownload(
+                fn () => print($pdf->output()),
+                $filename,
+                ['Content-Type' => 'application/pdf']
+            );
+        } catch (\Throwable $e) {
+            report($e);
+            Notification::make()
+                ->title('Failed to generate Student Report')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+
+            return null;
+        }
     }
 
     public function downloadCoursePdf(?int $courseId = null, ?int $intakeId = null): ?Response
@@ -161,16 +172,27 @@ class GenerateReports extends Page
             return null;
         }
 
-        $targetIntakeId = $intakeId !== null ? $intakeId : $this->selectedIntakeId;
-        $service = app(ReportGenerationService::class);
-        $pdf = $service->renderCourseReportPdf($course, $targetIntakeId);
+        try {
+            $targetIntakeId = $intakeId !== null ? $intakeId : $this->selectedIntakeId;
+            $service = app(ReportGenerationService::class);
+            $pdf = $service->renderCourseReportPdf($course, $targetIntakeId);
 
-        $filename = 'Course_Analytics_' . ($course->code ?: 'Course') . '_' . date('Ymd') . '.pdf';
+            $filename = 'Course_Analytics_' . ($course->code ?: 'Course') . '_' . date('Ymd') . '.pdf';
 
-        return response()->streamDownload(
-            fn () => print($pdf->output()),
-            $filename,
-            ['Content-Type' => 'application/pdf']
-        );
+            return response()->streamDownload(
+                fn () => print($pdf->output()),
+                $filename,
+                ['Content-Type' => 'application/pdf']
+            );
+        } catch (\Throwable $e) {
+            report($e);
+            Notification::make()
+                ->title('Failed to generate Course Analytics Report')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+
+            return null;
+        }
     }
 }

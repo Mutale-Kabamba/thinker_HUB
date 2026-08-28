@@ -9,6 +9,8 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -18,16 +20,72 @@ class ClaimItemsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->contentGrid([
+                'default' => 1,
+                'md' => null,
+            ])
             ->columns([
+                // Mobile Card View Structure (Stacked & Clean)
+                Stack::make([
+                    Split::make([
+                        ImageColumn::make('image_path')
+                            ->disk('public')
+                            ->circular()
+                            ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->title) . '&background=f59e0b&color=ffffff')
+                            ->grow(false),
+                        Stack::make([
+                            TextColumn::make('title')
+                                ->weight('bold')
+                                ->size('sm')
+                                ->searchable(),
+                            TextColumn::make('category')
+                                ->badge()
+                                ->color(fn (string $state): string => match ($state) {
+                                    'data' => 'info',
+                                    'merch' => 'success',
+                                    'voucher' => 'warning',
+                                    'perk' => 'primary',
+                                    default => 'gray',
+                                })
+                                ->formatStateUsing(fn (string $state): string => ClaimItem::CATEGORIES[$state] ?? $state)
+                                ->size('xs'),
+                        ]),
+                        TextColumn::make('coin_cost')
+                            ->label('Cost')
+                            ->formatStateUsing(fn ($state): string => '🪙 '.number_format((int) $state).' TC')
+                            ->badge()
+                            ->color('warning')
+                            ->grow(false),
+                    ]),
+                    Split::make([
+                        TextColumn::make('stock_quantity')
+                            ->label('Stock')
+                            ->formatStateUsing(fn ($state): string => (int) $state < 0 ? 'Unlimited' : ((int) $state === 0 ? 'Out of Stock' : "Stock: {$state}"))
+                            ->badge()
+                            ->color(fn ($state): string => (int) $state === 0 ? 'danger' : ((int) $state < 0 ? 'success' : 'info'))
+                            ->size('xs'),
+                        TextColumn::make('course.title')
+                            ->placeholder('General')
+                            ->size('xs')
+                            ->color('gray'),
+                    ])->extraAttributes(['class' => 'pt-2 border-t border-gray-100 dark:border-gray-800']),
+                ])
+                ->extraAttributes([
+                    'class' => 'p-4 bg-white dark:bg-[#111b21] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm space-y-2 md:hidden',
+                ]),
+
+                // Desktop Table Columns (Hidden on Mobile)
                 ImageColumn::make('image_path')
                     ->label('Image')
                     ->disk('public')
-                    ->circular(),
+                    ->circular()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('title')
                     ->searchable()
                     ->sortable()
-                    ->weight('bold'),
+                    ->weight('bold')
+                    ->visibleFrom('md'),
 
                 TextColumn::make('category')
                     ->badge()
@@ -39,21 +97,24 @@ class ClaimItemsTable
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => ClaimItem::CATEGORIES[$state] ?? $state)
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('coin_cost')
                     ->label('Cost')
                     ->formatStateUsing(fn ($state): string => '🪙 '.number_format((int) $state).' TC')
                     ->badge()
                     ->color('warning')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('stock_quantity')
                     ->label('Stock')
                     ->formatStateUsing(fn ($state): string => (int) $state < 0 ? 'Unlimited' : ((int) $state === 0 ? 'Out of Stock' : (string) $state))
                     ->badge()
                     ->color(fn ($state): string => (int) $state === 0 ? 'danger' : ((int) $state < 0 ? 'success' : 'info'))
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('course.title')
                     ->label('Course')
@@ -61,18 +122,21 @@ class ClaimItemsTable
                     ->badge()
                     ->color('gray')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
 
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('created_at')
                     ->label('Created')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->visibleFrom('md'),
             ])
             ->defaultSort('coin_cost', 'asc')
             ->filters([

@@ -21,6 +21,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -158,34 +160,89 @@ class AssessmentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->contentGrid([
+                'default' => 1,
+                'md' => null,
+            ])
             ->columns([
+                // Mobile Card View Structure (Stacked & Clean)
+                Stack::make([
+                    Split::make([
+                        Stack::make([
+                            TextColumn::make('name')
+                                ->label('Assessment')
+                                ->weight('bold')
+                                ->size('sm')
+                                ->searchable(),
+                            TextColumn::make('course.title')
+                                ->size('xs')
+                                ->color('gray')
+                                ->searchable(),
+                        ]),
+                        TextColumn::make('target_level')
+                            ->label('Level')
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'Beginner' => 'success',
+                                'Intermediate' => 'warning',
+                                'Advanced' => 'danger',
+                                default => 'gray',
+                            })
+                            ->grow(false),
+                    ]),
+                    Split::make([
+                        TextColumn::make('due_date')
+                            ->label('Due')
+                            ->date('M d, Y')
+                            ->badge()
+                            ->color(fn ($record): string => $record->due_date && $record->due_date->isPast() ? 'danger' : 'gray')
+                            ->size('xs'),
+                        TextColumn::make('user.name')
+                            ->placeholder('All Learners')
+                            ->size('xs')
+                            ->color('gray'),
+                    ])->extraAttributes(['class' => 'pt-2 border-t border-gray-100 dark:border-gray-800']),
+                ])
+                ->extraAttributes([
+                    'class' => 'p-4 bg-white dark:bg-[#111b21] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm space-y-2 md:hidden',
+                ]),
+
+                // Desktop Table Columns (Hidden on Mobile)
                 TextColumn::make('course.title')
                     ->label('Course')
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
                 TextColumn::make('target_level')
                     ->label('Level')
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
                 TextColumn::make('user.name')
                     ->label('Target User')
                     ->placeholder('All in course + level')
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
                 TextColumn::make('date_given')
                     ->date()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 TextColumn::make('publish_at')
                     ->label('Publish At')
                     ->dateTime()
                     ->placeholder('Immediate')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 TextColumn::make('due_date')
                     ->date()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->visibleFrom('md'),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('course_id', static::instructorCourseIds()))
             ->recordActions([

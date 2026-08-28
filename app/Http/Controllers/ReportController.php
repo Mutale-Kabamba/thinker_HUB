@@ -7,8 +7,8 @@ use App\Models\CourseIntake;
 use App\Models\User;
 use App\Services\ReportGenerationService;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 class ReportController extends Controller
 {
@@ -40,17 +40,22 @@ class ReportController extends Controller
             'include_attendance_log' => $request->boolean('include_attendance_log', true),
         ];
 
-        $pdf = $this->reportService->renderStudentReportPdf($student, $course, $options);
-        
-        $studentSlug = Str::slug($student->name, '_');
-        $courseSlug = $course ? '_' . Str::slug($course->code ?? $course->title, '_') : '';
-        $filename = "ThinkerHUB_Student_Report_{$studentSlug}{$courseSlug}_" . date('Ymd') . ".pdf";
+        try {
+            $pdf = $this->reportService->renderStudentReportPdf($student, $course, $options);
+            
+            $studentSlug = Str::slug($student->name, '_');
+            $courseSlug = $course ? '_' . Str::slug($course->code ?? $course->title, '_') : '';
+            $filename = "ThinkerHUB_Student_Report_{$studentSlug}{$courseSlug}_" . date('Ymd') . ".pdf";
 
-        if ($request->boolean('stream')) {
-            return $pdf->stream($filename);
+            if ($request->boolean('stream')) {
+                return $pdf->stream($filename);
+            }
+
+            return $pdf->download($filename);
+        } catch (\Throwable $e) {
+            report($e);
+            abort(500, 'Unable to generate student academic report: ' . $e->getMessage());
         }
-
-        return $pdf->download($filename);
     }
 
     /**
@@ -63,17 +68,22 @@ class ReportController extends Controller
         $intakeId = $request->query('intake_id');
         $intakeId = $intakeId ? (int) $intakeId : null;
 
-        $pdf = $this->reportService->renderCourseReportPdf($course, $intakeId);
+        try {
+            $pdf = $this->reportService->renderCourseReportPdf($course, $intakeId);
 
-        $courseSlug = Str::slug($course->code ?? $course->title, '_');
-        $intakeSlug = $intakeId ? '_Intake_' . $intakeId : '';
-        $filename = "ThinkerHUB_Course_Analytics_{$courseSlug}{$intakeSlug}_" . date('Ymd') . ".pdf";
+            $courseSlug = Str::slug($course->code ?? $course->title, '_');
+            $intakeSlug = $intakeId ? '_Intake_' . $intakeId : '';
+            $filename = "ThinkerHUB_Course_Analytics_{$courseSlug}{$intakeSlug}_" . date('Ymd') . ".pdf";
 
-        if ($request->boolean('stream')) {
-            return $pdf->stream($filename);
+            if ($request->boolean('stream')) {
+                return $pdf->stream($filename);
+            }
+
+            return $pdf->download($filename);
+        } catch (\Throwable $e) {
+            report($e);
+            abort(500, 'Unable to generate course analytics report: ' . $e->getMessage());
         }
-
-        return $pdf->download($filename);
     }
 
     /**
@@ -83,15 +93,20 @@ class ReportController extends Controller
     {
         $this->authorizeReportAccess($request);
 
-        $pdf = $this->reportService->renderIntakeReportPdf($intake);
+        try {
+            $pdf = $this->reportService->renderIntakeReportPdf($intake);
 
-        $intakeSlug = Str::slug($intake->name, '_');
-        $filename = "ThinkerHUB_Cohort_Report_{$intakeSlug}_" . date('Ymd') . ".pdf";
+            $intakeSlug = Str::slug($intake->name, '_');
+            $filename = "ThinkerHUB_Cohort_Report_{$intakeSlug}_" . date('Ymd') . ".pdf";
 
-        if ($request->boolean('stream')) {
-            return $pdf->stream($filename);
+            if ($request->boolean('stream')) {
+                return $pdf->stream($filename);
+            }
+
+            return $pdf->download($filename);
+        } catch (\Throwable $e) {
+            report($e);
+            abort(500, 'Unable to generate cohort performance report: ' . $e->getMessage());
         }
-
-        return $pdf->download($filename);
     }
 }

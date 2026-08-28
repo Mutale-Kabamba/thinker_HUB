@@ -79,28 +79,28 @@
                     @forelse ($roster as $s)
                         <tr>
                             <td>
-                                <strong>{{ $s['student']->name }}</strong>
-                                <div class="text-muted" style="font-size: 6.5pt;">{{ $s['student']->email }}</div>
+                                <strong>{{ is_array($s) ? ($s['name'] ?? $s['student']?->name ?? 'Student') : ($s->name ?? 'Student') }}</strong>
+                                <div class="text-muted" style="font-size: 6.5pt;">{{ is_array($s) ? ($s['email'] ?? $s['student']?->email ?? '') : ($s->email ?? '') }}</div>
                             </td>
                             <td>
-                                <span class="badge badge-gray">{{ strtoupper($s['student']->track ?? 'LEARNER') }}</span>
+                                <span class="badge badge-gray">{{ strtoupper(is_array($s) ? ($s['track'] ?? $s['student']?->track ?? 'LEARNER') : ($s->track ?? 'LEARNER')) }}</span>
                             </td>
                             <td class="text-center">
-                                <strong>{{ $s['attendance_rate'] }}%</strong>
-                                <div class="text-muted" style="font-size: 6pt;">{{ $s['sessions_attended'] }}/{{ $s['sessions_total'] }}</div>
+                                <strong>{{ $s['attendance_rate'] ?? 0 }}%</strong>
+                                <div class="text-muted" style="font-size: 6pt;">{{ $s['sessions_attended'] ?? $s['attended_sessions'] ?? 0 }}/{{ $s['sessions_total'] ?? $s['total_sessions'] ?? 0 }}</div>
                             </td>
                             <td class="text-center">
-                                @if ($s['avg_assignment_grade'] !== null)
+                                @if (isset($s['avg_assignment_grade']) && $s['avg_assignment_grade'] !== null)
                                     <strong>{{ $s['avg_assignment_grade'] }}%</strong>
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
                             </td>
                             <td class="text-center">
-                                <strong>{{ $s['quizzes_passed'] }}</strong> / {{ $s['total_quizzes'] }}
+                                <strong>{{ $s['quizzes_passed'] ?? 0 }}</strong> / {{ $s['total_quizzes'] ?? 0 }}
                             </td>
                             <td class="text-center">
-                                @if ($s['is_completed'])
+                                @if (!empty($s['is_completed']) || !empty($s['completed']))
                                     <span class="badge badge-success">Completed</span>
                                 @else
                                     <span class="badge badge-warning">Active</span>
