@@ -21,9 +21,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\Layout\Split;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -47,7 +44,7 @@ class InstructorResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'PEOPLE & ROLES';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {
@@ -68,14 +65,6 @@ class InstructorResource extends Resource
                     ->required(fn (string $operation): bool => $operation === 'create')
                     ->dehydrated(fn (?string $state): bool => filled($state))
                     ->minLength(8),
-
-                Select::make('role')
-                    ->options([
-                        'instructor' => 'Instructor',
-                        'admin' => 'Admin (with Instructor Access)',
-                    ])
-                    ->required()
-                    ->default('instructor'),
 
                 Select::make('instructorCourses')
                     ->label('Assigned Courses')
@@ -132,68 +121,18 @@ class InstructorResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->contentGrid([
-                'default' => 1,
-                'md' => null,
-            ])
             ->columns([
-                // Mobile Card View Structure (Stacked & Clean)
-                Stack::make([
-                    Split::make([
-                        ImageColumn::make('profile_picture')
-                            ->circular()
-                            ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&background=0d9488&color=ffffff')
-                            ->grow(false),
-                        Stack::make([
-                            TextColumn::make('name')
-                                ->weight('bold')
-                                ->size('sm')
-                                ->searchable(),
-                            TextColumn::make('email')
-                                ->size('xs')
-                                ->color('gray')
-                                ->searchable(),
-                        ]),
-                        TextColumn::make('role')
-                            ->label('Role')
-                            ->badge()
-                            ->getStateUsing(fn (User $record): string => $record->isAdmin() ? 'Admin' : 'Instructor')
-                            ->color(fn (string $state): string => $state === 'Admin' ? 'success' : 'info')
-                            ->grow(false),
-                    ]),
-                    Split::make([
-                        TextColumn::make('created_at')
-                            ->label('Joined')
-                            ->dateTime('M d, Y')
-                            ->size('xs')
-                            ->color('gray'),
-                        TextColumn::make('instructor_courses_count')
-                            ->label('Courses')
-                            ->counts('instructorCourses')
-                            ->badge()
-                            ->color('primary')
-                            ->size('xs'),
-                    ])->extraAttributes(['class' => 'pt-2 border-t border-gray-100 dark:border-gray-800']),
-                ])
-                ->extraAttributes([
-                    'class' => 'p-4 bg-white dark:bg-[#111b21] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm space-y-2 md:hidden',
-                ]),
-
-                // Desktop Table Columns (Hidden on Mobile)
                 TextColumn::make('name')
                     ->searchable()
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('email')
                     ->searchable()
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('role')
                     ->label('Role')
                     ->badge()
                     ->getStateUsing(fn (User $record): string => $record->isAdmin() ? 'Admin & Instructor' : 'Instructor')
-                    ->color(fn (string $state): string => $state === 'Admin & Instructor' ? 'success' : 'info')
-                    ->visibleFrom('md'),
+                    ->color(fn (string $state): string => $state === 'Admin & Instructor' ? 'success' : 'info'),
                 TextColumn::make('instructor_courses_count')
                     ->label('Courses')
                     ->counts('instructorCourses')
@@ -204,8 +143,7 @@ class InstructorResource extends Resource
                     })
                     ->badge()
                     ->color('primary')
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('instructorApplication.status')
                     ->label('Application')
                     ->badge()
@@ -215,26 +153,22 @@ class InstructorResource extends Resource
                         'rejected' => 'danger',
                         default => 'gray',
                     })
-                    ->placeholder('None')
-                    ->visibleFrom('md'),
+                    ->placeholder('None'),
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean()
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('email_verified_at')
                     ->label('Verified')
                     ->dateTime()
                     ->sortable()
                     ->placeholder('Not verified')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->visibleFrom('md'),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->label('Joined')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->visibleFrom('md'),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->where(fn (Builder $q) => $q->where('role', 'instructor')->orWhere(fn (Builder $sub) => $sub->where('role', 'admin')->whereHas('instructorCourses'))))
             ->filters([

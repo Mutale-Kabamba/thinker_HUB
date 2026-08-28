@@ -24,9 +24,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\Layout\Split;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -98,65 +95,13 @@ class StudentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->contentGrid([
-                'default' => 1,
-                'md' => null,
-            ])
             ->columns([
-                // Mobile Card View Structure (Stacked & Clean)
-                Stack::make([
-                    Split::make([
-                        ImageColumn::make('profile_picture')
-                            ->circular()
-                            ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&background=0d9488&color=ffffff')
-                            ->grow(false),
-                        Stack::make([
-                            TextColumn::make('name')
-                                ->weight('bold')
-                                ->size('sm')
-                                ->searchable(),
-                            TextColumn::make('email')
-                                ->size('xs')
-                                ->color('gray')
-                                ->searchable(),
-                        ]),
-                        TextColumn::make('track')
-                            ->label('Level')
-                            ->badge()
-                            ->color(fn (?string $state): string => match ($state) {
-                                'Beginner' => 'info',
-                                'Intermediate' => 'warning',
-                                'Advanced' => 'success',
-                                default => 'gray',
-                            })
-                            ->grow(false),
-                    ]),
-                    Split::make([
-                        TextColumn::make('created_at')
-                            ->label('Joined')
-                            ->dateTime('M d, Y')
-                            ->size('xs')
-                            ->color('gray'),
-                        TextColumn::make('is_active')
-                            ->badge()
-                            ->state(fn ($record) => $record->is_active ? 'Active' : 'Inactive')
-                            ->color(fn ($record) => $record->is_active ? 'success' : 'danger')
-                            ->size('xs'),
-                    ])->extraAttributes(['class' => 'pt-2 border-t border-gray-100 dark:border-gray-800']),
-                ])
-                ->extraAttributes([
-                    'class' => 'p-4 bg-white dark:bg-[#111b21] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm space-y-2 md:hidden',
-                ]),
-
-                // Desktop Table Columns (Hidden on Mobile)
                 TextColumn::make('name')
                     ->searchable()
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('email')
                     ->searchable()
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('track')
                     ->label('Level')
                     ->badge()
@@ -166,8 +111,7 @@ class StudentResource extends Resource
                         'Advanced' => 'success',
                         default => 'gray',
                     })
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('courses_count')
                     ->label('Courses')
                     ->counts('courses')
@@ -178,32 +122,27 @@ class StudentResource extends Resource
                     })
                     ->badge()
                     ->color('primary')
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('assignment_submissions_count')
                     ->label('Submissions')
                     ->counts('assignmentSubmissions')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->visibleFrom('md'),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean()
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('email_verified_at')
                     ->label('Verified')
                     ->dateTime()
                     ->sortable()
                     ->placeholder('Not verified')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->visibleFrom('md'),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->label('Joined')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->visibleFrom('md'),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->where('role', 'student'))
             ->filters([

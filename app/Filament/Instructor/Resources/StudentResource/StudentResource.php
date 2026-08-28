@@ -19,9 +19,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\Layout\Split;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -142,69 +139,14 @@ class StudentResource extends Resource
         $courseIds = static::instructorCourseIds();
 
         return $table
-            ->contentGrid([
-                'default' => 1,
-                'md' => null,
-            ])
             ->columns([
-                // Mobile Card View Structure (Stacked & Clean)
-                Stack::make([
-                    Split::make([
-                        ImageColumn::make('profile_picture')
-                            ->circular()
-                            ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&background=0d9488&color=ffffff')
-                            ->grow(false),
-                        Stack::make([
-                            TextColumn::make('name')
-                                ->weight('bold')
-                                ->size('sm')
-                                ->searchable(),
-                            TextColumn::make('email')
-                                ->size('xs')
-                                ->color('gray')
-                                ->searchable(),
-                        ]),
-                        TextColumn::make('track')
-                            ->label('Level')
-                            ->badge()
-                            ->color(fn (?string $state): string => match ($state) {
-                                'Beginner' => 'info',
-                                'Intermediate' => 'warning',
-                                'Advanced' => 'success',
-                                default => 'gray',
-                            })
-                            ->grow(false),
-                    ]),
-                    Split::make([
-                        TextColumn::make('created_at')
-                            ->label('Joined')
-                            ->date()
-                            ->size('xs')
-                            ->color('gray'),
-                        TextColumn::make('enrolled_courses')
-                            ->label('Courses')
-                            ->getStateUsing(function (User $record) use ($courseIds): string {
-                                return (string) $record->courses()->whereIn('courses.id', $courseIds)->count() . ' Courses';
-                            })
-                            ->badge()
-                            ->color('primary')
-                            ->size('xs'),
-                    ])->extraAttributes(['class' => 'pt-2 border-t border-gray-100 dark:border-gray-800']),
-                ])
-                ->extraAttributes([
-                    'class' => 'p-4 bg-white dark:bg-[#111b21] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm space-y-2 md:hidden',
-                ]),
-
-                // Desktop Table Columns (Hidden on Mobile)
                 TextColumn::make('name')
                     ->searchable()
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('email')
                     ->searchable()
                     ->sortable()
-                    ->toggleable()
-                    ->visibleFrom('md'),
+                    ->toggleable(),
                 TextColumn::make('track')
                     ->label('Level')
                     ->badge()
@@ -214,8 +156,7 @@ class StudentResource extends Resource
                         'Advanced' => 'success',
                         default => 'gray',
                     })
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('enrolled_courses')
                     ->label('Enrolled Courses')
                     ->getStateUsing(function (User $record) use ($courseIds): string {
@@ -224,8 +165,7 @@ class StudentResource extends Resource
                             ->count();
                     })
                     ->badge()
-                    ->color('primary')
-                    ->visibleFrom('md'),
+                    ->color('primary'),
                 TextColumn::make('assignment_submissions_avg')
                     ->label('Avg Assignment Grade')
                     ->getStateUsing(function (User $record) use ($courseIds): string {
@@ -236,8 +176,7 @@ class StudentResource extends Resource
 
                         return $avg !== null ? round($avg, 1) . '%' : '—';
                     })
-                    ->alignCenter()
-                    ->visibleFrom('md'),
+                    ->alignCenter(),
                 TextColumn::make('assessment_submissions_avg')
                     ->label('Avg Assessment Score')
                     ->getStateUsing(function (User $record) use ($courseIds): string {
@@ -248,19 +187,16 @@ class StudentResource extends Resource
 
                         return $avg !== null ? round($avg, 1) . '%' : '—';
                     })
-                    ->alignCenter()
-                    ->visibleFrom('md'),
+                    ->alignCenter(),
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->visibleFrom('md'),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->label('Joined')
                     ->date()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->visibleFrom('md'),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->modifyQueryUsing(function (Builder $query) use ($courseIds): Builder {
                 return $query

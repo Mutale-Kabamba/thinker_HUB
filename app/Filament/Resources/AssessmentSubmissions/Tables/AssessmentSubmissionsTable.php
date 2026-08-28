@@ -9,8 +9,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
-use Filament\Tables\Columns\Layout\Split;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -22,80 +20,21 @@ class AssessmentSubmissionsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->contentGrid([
-                'default' => 1,
-                'md' => null,
-            ])
             ->columns([
-                // Mobile Card View Structure (Stacked & Clean)
-                Stack::make([
-                    Split::make([
-                        Stack::make([
-                            TextColumn::make('assessment.name')
-                                ->label('Assessment')
-                                ->weight('bold')
-                                ->size('sm')
-                                ->placeholder(fn ($record) => 'Assessment #' . $record->assessment_id)
-                                ->searchable(),
-                            TextColumn::make('user.name')
-                                ->label('Student')
-                                ->size('xs')
-                                ->color('gray')
-                                ->searchable(),
-                        ]),
-                        TextColumn::make('status')
-                            ->badge()
-                            ->grow(false),
-                    ]),
-                    Split::make([
-                        TextColumn::make('review_indicator')
-                            ->label('Review')
-                            ->badge()
-                            ->getStateUsing(function ($record): string {
-                                if ($record->status !== 'Submitted') {
-                                    return 'Reviewed';
-                                }
-                                if ($record->submitted_at && $record->submitted_at->lt(now()->subDays(7))) {
-                                    return 'Overdue';
-                                }
-                                return 'Pending';
-                            })
-                            ->color(fn (string $state): string => match ($state) {
-                                'Overdue' => 'danger',
-                                'Pending' => 'warning',
-                                default => 'success',
-                            })
-                            ->size('xs'),
-                        TextColumn::make('score')
-                            ->formatStateUsing(fn ($state) => $state !== null ? "Score: {$state}%" : 'Ungraded')
-                            ->badge()
-                            ->color(fn ($state) => $state !== null ? 'success' : 'gray')
-                            ->size('xs'),
-                    ])->extraAttributes(['class' => 'pt-2 border-t border-gray-100 dark:border-gray-800']),
-                ])
-                ->extraAttributes([
-                    'class' => 'p-4 bg-white dark:bg-[#111b21] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm space-y-2 md:hidden',
-                ]),
-
-                // Desktop Table Columns (Hidden on Mobile)
                 TextColumn::make('assessment.id')
                     ->label('Assessment')
                     ->formatStateUsing(fn ($state): string => 'Assessment #'.(string) $state)
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('assessment.course.title')
                     ->label('Course')
                     ->placeholder('Unassigned')
-                    ->searchable()
-                    ->visibleFrom('md'),
+                    ->searchable(),
                 TextColumn::make('user.name')
                     ->label('Student')
-                    ->searchable()
-                    ->visibleFrom('md'),
+                    ->searchable(),
                 TextColumn::make('status')
                     ->searchable()
-                    ->badge()
-                    ->visibleFrom('md'),
+                    ->badge(),
                 TextColumn::make('review_indicator')
                     ->label('Review')
                     ->badge()
@@ -116,8 +55,7 @@ class AssessmentSubmissionsTable
                             'Pending review' => 'warning',
                             default => 'success',
                         };
-                    })
-                    ->visibleFrom('md'),
+                    }),
                 TextColumn::make('attachments_indicator')
                     ->label('Attachments')
                     ->getStateUsing(function ($record): string {
@@ -132,27 +70,22 @@ class AssessmentSubmissionsTable
                         if ($record->video_url) { $parts[] = 'Video'; }
                         return $parts ? implode(', ', $parts) : '-';
                     })
-                    ->toggleable()
-                    ->visibleFrom('md'),
+                    ->toggleable(),
                 TextColumn::make('score')
                     ->numeric()
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('view_status')
                     ->label('Read')
                     ->badge()
                     ->getStateUsing(fn ($record): string => $record->viewed_at !== null || in_array($record->status, ['Graded', 'Checked']) ? 'Viewed' : 'New')
-                    ->color(fn (string $state): string => $state === 'New' ? 'warning' : 'gray')
-                    ->visibleFrom('md'),
+                    ->color(fn (string $state): string => $state === 'New' ? 'warning' : 'gray'),
                 TextColumn::make('submitted_at')
                     ->dateTime()
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->visibleFrom('md'),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('view_status')

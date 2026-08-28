@@ -20,8 +20,6 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\Layout\Split;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -41,7 +39,7 @@ class AssessmentSubmissionResource extends Resource
 
     protected static ?string $navigationLabel = 'Assessment Submissions';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 9;
 
     public static function getNavigationBadge(): ?string
     {
@@ -81,7 +79,7 @@ class AssessmentSubmissionResource extends Resource
     {
         return $schema
             ->components([
-                Grid::make(1)
+                Grid::make(2)
                     ->schema([
                         Section::make('Submission Details')
                             ->icon(Heroicon::OutlinedInformationCircle)
@@ -100,35 +98,54 @@ class AssessmentSubmissionResource extends Resource
                                         ->content(fn ($record): string => (string) ($record?->user?->name ?? '-')),
                                     Placeholder::make('submitted_at')
                                         ->label('Submitted At')
-                                        ->content(fn ($record): string => (string) ($record?->submitted_at?->toDayDateTimeString() ?? '-')),
+                                        ->content(fn ($record): HtmlString|string => $record?->submitted_at
+                                            ? new HtmlString('<span style="color:#059669;font-weight:500;">' . e($record->submitted_at->format('M d, Y \a\t h:i A')) . '</span>')
+                                            : new HtmlString('<span style="color:#dc2626;">Not submitted</span>')),
                                 ]),
-                            ]),
-                        Section::make('Submission Content')
-                            ->icon(Heroicon::OutlinedDocumentText)
-                            ->schema([
-                                Placeholder::make('notes')
-                                    ->label('Student Notes / Text')
-                                    ->content(fn ($record): string => (string) ($record?->notes ?? 'None provided.')),
-                                Placeholder::make('link')
-                                    ->label('External Project Link')
-                                    ->content(fn ($record): HtmlString => new HtmlString(
-                                        $record?->link
-                                            ? '<a href="' . e($record->link) . '" target="_blank" class="text-teal-600 dark:text-teal-400 underline font-medium break-all">' . e($record->link) . ' &rarr;</a>'
-                                            : '<span class="text-gray-400">None provided</span>'
-                                    )),
-                                Placeholder::make('video_url')
-                                    ->label('Loom / Video Walkthrough')
-                                    ->content(fn ($record): HtmlString => new HtmlString(
-                                        $record?->video_url
-                                            ? '<a href="' . e($record->video_url) . '" target="_blank" class="text-teal-600 dark:text-teal-400 underline font-medium break-all">' . e($record->video_url) . ' &rarr;</a>'
-                                            : '<span class="text-gray-400">None provided</span>'
-                                    )),
-                            ]),
-                    ])
-                    ->columnSpanFull(),
+                                Textarea::make('content')
+                                    ->label('Written Response')
+                                    ->rows(5)
+                                    ->disabled()
+                                    ->columnSpanFull(),
+                            ])
+                            ->columnSpan(1),
 
-                Section::make('Grading & Evaluation')
-                    ->icon(Heroicon::OutlinedCheckBadge)
+                        Section::make('Attachments')
+                            ->icon(Heroicon::OutlinedPaperClip)
+                            ->schema([
+                                Placeholder::make('submission_file')
+                                    ->label('Uploaded File(s)')
+                                    ->content(function ($record): HtmlString {
+                                        $paths = $record?->all_file_paths ?? [];
+                                        if (empty($paths)) {
+                                            return new HtmlString('<span style="color:#9ca3af;">No file uploaded</span>');
+                                        }
+
+                                        $html = '<div style="display:flex;flex-direction:column;gap:0.4rem;">';
+                                        foreach ($paths as $idx => $filePath) {
+                                            $html .= '<a href="' . e(route('file.view', ['type' => 'assessment-submission', 'id' => $record->id, 'index' => $idx])) . '" target="_blank" style="color:#0e7490;text-decoration:underline;display:inline-flex;align-items:center;gap:0.3rem;"><svg style="width:1rem;height:1rem;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ' . e(basename($filePath)) . '</a>';
+                                        }
+                                        $html .= '</div>';
+
+                                        return new HtmlString($html);
+                                    }),
+                                Placeholder::make('submission_link')
+                                    ->label('Link')
+                                    ->content(fn ($record): HtmlString => $record?->link
+                                        ? new HtmlString('<a href="' . e($record->link) . '" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;display:inline-flex;align-items:center;gap:0.3rem;"><svg style="width:1rem;height:1rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> ' . e(\Illuminate\Support\Str::limit($record->link, 50)) . '</a>')
+                                        : new HtmlString('<span style="color:#9ca3af;">No link provided</span>')),
+                                Placeholder::make('submission_video')
+                                    ->label('Video URL')
+                                    ->content(fn ($record): HtmlString => $record?->video_url
+                                        ? new HtmlString('<a href="' . e($record->video_url) . '" target="_blank" rel="noopener" style="color:#0e7490;text-decoration:underline;display:inline-flex;align-items:center;gap:0.3rem;"><svg style="width:1rem;height:1rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> ' . e(\Illuminate\Support\Str::limit($record->video_url, 50)) . '</a>')
+                                        : new HtmlString('<span style="color:#9ca3af;">No video provided</span>')),
+                            ])
+                            ->columnSpan(1),
+                    ]),
+
+                Section::make('Grading')
+                    ->icon(Heroicon::OutlinedAcademicCap)
+                    ->description('Update the submission status, score, and provide feedback')
                     ->schema([
                         Grid::make(2)->schema([
                             Select::make('status')
@@ -158,85 +175,36 @@ class AssessmentSubmissionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->contentGrid([
-                'default' => 1,
-                'md' => null,
-            ])
             ->columns([
-                // Mobile Card View Structure (Stacked & Clean)
-                Stack::make([
-                    Split::make([
-                        Stack::make([
-                            TextColumn::make('assessment.name')
-                                ->label('Assessment')
-                                ->weight('bold')
-                                ->size('sm')
-                                ->placeholder(fn ($record) => 'Assessment #' . $record->assessment_id)
-                                ->searchable(),
-                            TextColumn::make('user.name')
-                                ->label('Student')
-                                ->size('xs')
-                                ->color('gray')
-                                ->searchable(),
-                        ]),
-                        TextColumn::make('status')
-                            ->badge()
-                            ->grow(false),
-                    ]),
-                    Split::make([
-                        TextColumn::make('score')
-                            ->formatStateUsing(fn ($state) => $state !== null ? "Score: {$state}%" : 'Ungraded')
-                            ->badge()
-                            ->color(fn ($state) => $state !== null ? 'success' : 'gray')
-                            ->size('xs'),
-                        TextColumn::make('submitted_at')
-                            ->dateTime('M j, Y')
-                            ->size('xs')
-                            ->color('gray'),
-                    ])->extraAttributes(['class' => 'pt-2 border-t border-gray-100 dark:border-gray-800']),
-                ])
-                ->extraAttributes([
-                    'class' => 'p-4 bg-white dark:bg-[#111b21] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm space-y-2 md:hidden',
-                ]),
-
-                // Desktop Table Columns (Hidden on Mobile)
                 TextColumn::make('assessment.name')
                     ->label('Assessment')
-                    ->searchable()
-                    ->visibleFrom('md'),
+                    ->searchable(),
                 TextColumn::make('assessment.course.title')
                     ->label('Course')
                     ->placeholder('Unassigned')
-                    ->searchable()
-                    ->visibleFrom('md'),
+                    ->searchable(),
                 TextColumn::make('user.name')
                     ->label('Student')
-                    ->searchable()
-                    ->visibleFrom('md'),
+                    ->searchable(),
                 TextColumn::make('status')
                     ->badge()
-                    ->searchable()
-                    ->visibleFrom('md'),
+                    ->searchable(),
                 TextColumn::make('score')
                     ->numeric()
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('view_status')
                     ->label('Read')
                     ->badge()
                     ->getStateUsing(fn ($record): string => $record->viewed_at !== null || in_array($record->status, ['Graded', 'Checked']) ? 'Viewed' : 'New')
-                    ->color(fn (string $state): string => $state === 'New' ? 'warning' : 'gray')
-                    ->visibleFrom('md'),
+                    ->color(fn (string $state): string => $state === 'New' ? 'warning' : 'gray'),
                 TextColumn::make('is_retake')
                     ->label('Attempt')
                     ->badge()
                     ->getStateUsing(fn ($record) => $record->is_retake ? '2nd Try' : ($record->retake_allowed ? '2nd Try Open' : '1st Try'))
-                    ->color(fn ($record) => $record->is_retake ? 'info' : ($record->retake_allowed ? 'success' : 'gray'))
-                    ->visibleFrom('md'),
+                    ->color(fn ($record) => $record->is_retake ? 'info' : ($record->retake_allowed ? 'success' : 'gray')),
                 TextColumn::make('submitted_at')
                     ->dateTime()
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
             ])
             ->defaultSort('submitted_at', 'desc')
             ->modifyQueryUsing(
