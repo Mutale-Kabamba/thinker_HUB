@@ -22,19 +22,9 @@ class Quizzes extends Page
         }
 
         try {
-            if ($user->isAdmin()) {
-                $enrolledCourseIds = \App\Models\Course::query()->pluck('id');
-            } else {
-                $enrolledCourseIds = $user->enrollments()->pluck('course_id');
-            }
-
-            if ($enrolledCourseIds->isEmpty()) {
-                return null;
-            }
-
             // Count only active quizzes that the student hasn't completed yet
             $activeCount = Quiz::query()
-                ->whereIn('course_id', $enrolledCourseIds)
+                ->visibleTo($user)
                 ->where('is_active', true)
                 ->where(function ($q) {
                     $q->whereNull('publish_at')->orWhere('publish_at', '<=', now());
@@ -77,29 +67,14 @@ class Quizzes extends Page
             return;
         }
 
-        if ($user->isAdmin()) {
-            $enrolledCourseIds = \App\Models\Course::query()->pluck('id')->all();
-        } elseif ($user->isInstructor()) {
-            $enrolledCourseIds = \App\Models\Course::query()
-                ->where('course_by', (string) $user->id)
-                ->orWhere('course_by', (string) $user->name)
-                ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $user->id))
-                ->pluck('id')
-                ->merge($user->courses()->pluck('courses.id'))
-                ->unique()
-                ->all();
-        } else {
-            $enrolledCourseIds = $user->courses()->pluck('courses.id')->all();
-        }
-
         $attempts = QuizAttempt::query()
             ->where('user_id', $user->id)
             ->get()
             ->groupBy('quiz_id');
 
         $rawQuizzes = Quiz::query()
+            ->visibleTo($user)
             ->with(['course', 'questions'])
-            ->whereIn('course_id', $enrolledCourseIds)
             ->where(function ($query) {
                 $query->where('is_active', true)
                     ->orWhereNotNull('publish_at');

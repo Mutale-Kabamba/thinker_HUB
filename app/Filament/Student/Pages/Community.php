@@ -3,7 +3,9 @@
 namespace App\Filament\Student\Pages;
 
 use App\Events\ChatMessageSent;
+use App\Models\Assessment;
 use App\Models\AssessmentSubmission;
+use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\ChatMessage;
 use App\Models\ChatMessageReaction;
@@ -11,6 +13,7 @@ use App\Models\ChatRoom;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Friendship;
+use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Models\XpTransaction;
@@ -151,10 +154,10 @@ class Community extends Page
      */
     public function getLeaderboardProperty(): array
     {
-        $ranked = app(GamificationService::class)->leaderboard();
+        $user = auth()->user();
+        $ranked = app(GamificationService::class)->leaderboard($user);
         $top = $ranked->take(20)->values();
         $viewer = null;
-        $user = auth()->user();
 
         if ($user) {
             $mine = $ranked->firstWhere('user_id', $user->id);
@@ -285,7 +288,13 @@ class Community extends Page
 
     public function getFriendsProperty(): Collection
     {
-        return auth()->user()?->friends() ?? collect();
+        $user = auth()->user();
+
+        if (! $user) {
+            return collect();
+        }
+
+        return $user->friends()->load(['enrollments.course', 'enrollments.intake']);
     }
 
     public function getPendingRequestsProperty(): Collection
@@ -297,7 +306,7 @@ class Community extends Page
         }
 
         return Friendship::query()
-            ->with('requester')
+            ->with(['requester.enrollments.course', 'requester.enrollments.intake'])
             ->where('friend_id', $user->id)
             ->where('status', 'pending')
             ->latest()
@@ -347,6 +356,12 @@ class Community extends Page
 
         $studentIds = $students->pluck('id')->all();
 
+        $enrollmentsByStudent = Enrollment::query()
+            ->with(['course', 'intake'])
+            ->whereIn('user_id', $studentIds)
+            ->get()
+            ->groupBy('user_id');
+
         $xpByUser = XpTransaction::query()
             ->whereIn('user_id', $studentIds)
             ->groupBy('user_id')
@@ -371,15 +386,36 @@ class Community extends Page
         // Collection is name-sorted; sortByDesc is stable, so classmates
         // come first (shared DESC) and ties stay alphabetical.
         $rows = $students
-            ->map(fn (User $s): array => [
-                'id' => $s->id,
-                'name' => $s->name,
-                'shared_count' => $sharedByStudent[$s->id]['count'] ?? 0,
-                'shared_courses' => $sharedByStudent[$s->id]['courses'] ?? [],
-                'xp' => (int) ($xpByUser[$s->id] ?? 0),
-                'badge_icons' => $badgeIcons[$s->id] ?? [],
-                'friendship' => $friendshipByUser[$s->id] ?? ['state' => 'none', 'friendship_id' => null],
-            ])
+            ->map(function (User $s) use ($sharedByStudent, $xpByUser, $badgeIcons, $friendshipByUser, $enrollmentsByStudent): array {
+                $sEnrollments = $enrollmentsByStudent->get($s->id, collect());
+                $courseIntakeLabels = $sEnrollments->map(function (Enrollment $e): array {
+                    $courseCode = $e->course?->code;
+                    $courseTitle = $e->course?->title ?? 'Course';
+                    $displayCourse = $courseCode ?: $courseTitle;
+                    $intakeName = $e->intake?->name;
+
+                    return [
+                        'course_id' => $e->course_id,
+                        'course_title' => $courseTitle,
+                        'course_code' => $courseCode,
+                        'intake_id' => $e->course_intake_id,
+                        'intake_name' => $intakeName,
+                        'label' => $intakeName ? "{$displayCourse} • {$intakeName}" : $displayCourse,
+                        'color' => $e->course ? $e->course->getColorScheme() : \App\Models\Course::getColorSchemeFor(null, $courseTitle, $courseCode ?? ''),
+                    ];
+                })->values()->all();
+
+                return [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'shared_count' => $sharedByStudent[$s->id]['count'] ?? 0,
+                    'shared_courses' => $sharedByStudent[$s->id]['courses'] ?? [],
+                    'course_intake_labels' => $courseIntakeLabels,
+                    'xp' => (int) ($xpByUser[$s->id] ?? 0),
+                    'badge_icons' => $badgeIcons[$s->id] ?? [],
+                    'friendship' => $friendshipByUser[$s->id] ?? ['state' => 'none', 'friendship_id' => null],
+                ];
+            })
             ->sortByDesc('shared_count')
             ->values();
 
@@ -435,8 +471,8 @@ class Community extends Page
         $service = app(GamificationService::class);
         $rankTier = $service->calculateUserRank((int) ($target->lifetime_xp ?? 0));
 
-        // Get rank on the leaderboard
-        $allLeaderboard = $service->leaderboard();
+        // Get rank on the leaderboard (scoped to viewer's class peers if classmates, or target's class)
+        $allLeaderboard = $service->leaderboard($viewer);
         $leaderboardRow = $allLeaderboard->firstWhere('user_id', $target->id);
         $rankPosition = $leaderboardRow ? $leaderboardRow['rank'] : (
             User::query()
@@ -462,6 +498,7 @@ class Community extends Page
             'role_label' => 'Student',
             'bio' => $target->bio,
             'avatar' => $target->getFilamentAvatarUrl(),
+            'course_intake_labels' => $target->getCourseIntakeLabels(),
             'xp' => (int) ($target->lifetime_xp ?? $target->xpTotal()),
             'coins' => (int) ($target->spendable_coins ?? 0),
             'streak' => (int) ($target->current_streak ?? 0),
@@ -754,10 +791,13 @@ class Community extends Page
                 ];
             });
 
-        // 4. Cohort Academic Performance Leaderboard calculation
+        // 4. Cohort Academic Performance Leaderboard calculation (scoped to student's class peers)
+        $peerIds = $user->getClassPeerIds();
+
         $allStudents = User::query()
             ->where('role', 'student')
             ->where('is_active', true)
+            ->whereIn('id', $peerIds)
             ->get(['id', 'name']);
 
         $studentIds = $allStudents->pluck('id')->all();
@@ -891,12 +931,15 @@ class Community extends Page
             })->values();
         }
 
-        // 5. Recent Graded Tasks & Candidate Scores for the Score Board
+        // 5. Recent Graded Tasks & Candidate Scores for the Score Board (scoped to user's visible tasks and class peers)
         $tasksList = collect();
 
         // A. Quizzes (Only latest / current attempt per student)
+        $visibleQuizIds = Quiz::query()->visibleTo($user)->pluck('id');
         $allQuizzesWithAttempts = QuizAttempt::query()
             ->with(['quiz.course', 'user'])
+            ->whereIn('quiz_id', $visibleQuizIds)
+            ->whereIn('user_id', $peerIds)
             ->whereNotNull('completed_at')
             ->orderByDesc('completed_at')
             ->orderByDesc('id')
@@ -961,8 +1004,11 @@ class Community extends Page
         }
 
         // B. Assignments (Only latest / current submission per student)
+        $visibleAssignmentIds = Assignment::query()->visibleTo($user)->pluck('id');
         $allAssignmentsWithSubmissions = AssignmentSubmission::query()
             ->with(['assignment.course', 'user'])
+            ->whereIn('assignment_id', $visibleAssignmentIds)
+            ->whereIn('user_id', $peerIds)
             ->whereNotNull('grade')
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
@@ -1026,8 +1072,11 @@ class Community extends Page
         }
 
         // C. Assessments (Only latest / current submission per student)
+        $visibleAssessmentIds = Assessment::query()->visibleTo($user)->pluck('id');
         $allAssessmentsWithSubmissions = AssessmentSubmission::query()
             ->with(['assessment.course', 'user'])
+            ->whereIn('assessment_id', $visibleAssessmentIds)
+            ->whereIn('user_id', $peerIds)
             ->where(fn ($q) => $q->whereNotNull('score')->orWhereNotNull('raw_score'))
             ->orderByDesc('updated_at')
             ->orderByDesc('id')

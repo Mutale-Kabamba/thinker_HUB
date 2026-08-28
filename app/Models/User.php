@@ -982,4 +982,71 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
         return $palettes[$index];
     }
+
+    /**
+     * Get student IDs who are in the same course and intake/class as this user.
+     *
+     * @return array<int, int>
+     */
+    public function getClassPeerIds(): array
+    {
+        if ($this->isAdmin()) {
+            return self::query()->where('role', 'student')->pluck('id')->all();
+        }
+
+        $enrollments = $this->enrollments()->with(['course', 'intake'])->get();
+
+        if ($enrollments->isEmpty()) {
+            return [(int) $this->id];
+        }
+
+        $peerIds = collect([(int) $this->id]);
+
+        foreach ($enrollments as $enrollment) {
+            $query = Enrollment::query()->where('course_id', $enrollment->course_id);
+
+            if ($enrollment->course_intake_id !== null) {
+                $query->where('course_intake_id', $enrollment->course_intake_id);
+            }
+
+            $matchedStudentIds = $query->pluck('user_id');
+            $peerIds = $peerIds->merge($matchedStudentIds);
+        }
+
+        return $peerIds->unique()->filter()->values()->map(fn ($id) => (int) $id)->all();
+    }
+
+    /**
+     * Formatted course and intake labels for display across friend directory and profiles.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getCourseIntakeLabels(): array
+    {
+        $enrollments = $this->enrollments()->with(['course', 'intake'])->get();
+
+        if ($enrollments->isEmpty()) {
+            return [];
+        }
+
+        $labels = [];
+        foreach ($enrollments as $enrollment) {
+            $courseCode = $enrollment->course?->code;
+            $courseTitle = $enrollment->course?->title ?? 'Course';
+            $displayCourse = $courseCode ?: $courseTitle;
+            $intakeName = $enrollment->intake?->name;
+
+            $labels[] = [
+                'course_id' => $enrollment->course_id,
+                'course_title' => $courseTitle,
+                'course_code' => $courseCode,
+                'intake_id' => $enrollment->course_intake_id,
+                'intake_name' => $intakeName,
+                'label' => $intakeName ? "{$displayCourse} • {$intakeName}" : $displayCourse,
+                'color' => $enrollment->course ? $enrollment->course->getColorScheme() : Course::getColorSchemeFor(null, $courseTitle, $courseCode ?? ''),
+            ];
+        }
+
+        return $labels;
+    }
 }

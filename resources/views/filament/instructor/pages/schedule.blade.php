@@ -87,6 +87,24 @@
                         <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500">Click class for details &amp; actions</span>
                     </div>
 
+                    {{-- Course Color Palette Legend --}}
+                    @if (!empty($courseLegend) && count($courseLegend) > 0)
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-100 dark:border-[#233842] overflow-x-auto">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-slate-400"></span> Courses:
+                            </span>
+                            <div class="flex items-center gap-2 flex-wrap min-w-0">
+                                @foreach ($courseLegend as $cLeg)
+                                    <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold {{ $cLeg['color']['pill_bg'] }} shadow-2xs whitespace-nowrap">
+                                        <span class="w-2 h-2 rounded-full {{ $cLeg['color']['dot'] }}"></span>
+                                        <span class="font-extrabold">{{ $cLeg['code'] }}</span>
+                                        <span class="font-medium opacity-90 hidden sm:inline">&bull; {{ \Illuminate\Support\Str::limit($cLeg['title'], 22) }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Custom Date Bounds Toolbar (When rangeMode === 'custom') --}}
                     @if ($rangeMode === 'custom')
                         <div class="flex flex-wrap items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-[#233842]">
@@ -136,15 +154,20 @@
 
                                                 <div class="space-y-1 mt-1">
                                                     @foreach ($day['sessions'] as $s)
+                                                        @php
+                                                            $col = $s['color'] ?? \App\Models\Course::getColorSchemeFor($s['course_id'] ?? null, $s['title'] ?? '', $s['course_code'] ?? '');
+                                                        @endphp
                                                         <button 
                                                             type="button" 
                                                             wire:click.stop="openSessionDetails({{ $s['id'] }})"
-                                                            class="w-full text-left p-1 rounded-md text-[10px] font-bold truncate block transition-colors
-                                                                {{ $s['status'] === 'completed' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 hover:bg-purple-100' }}"
+                                                            class="w-full text-left p-1 rounded-md text-[10px] font-bold truncate block transition-all shadow-2xs {{ $col['pill_bg'] }}"
                                                             title="{{ $s['course_code'] ? $s['course_code'].' · ' : '' }}{{ $s['title'] }} ({{ $s['start_time'] }})"
                                                         >
                                                             <span class="font-extrabold">{{ $s['start_time'] }}</span>
                                                             <span class="font-normal">{{ $s['course_code'] ? $s['course_code'] : $s['title'] }}</span>
+                                                            @if ($s['status'] === 'completed')
+                                                                <span class="inline-block ml-0.5 text-emerald-600 dark:text-emerald-400 font-extrabold">&check;</span>
+                                                            @endif
                                                         </button>
                                                     @endforeach
                                                 </div>
@@ -170,17 +193,26 @@
 
                                     <div class="space-y-1.5 min-h-[140px]">
                                         @forelse ($day['sessions'] as $s)
+                                            @php
+                                                $col = $s['color'] ?? \App\Models\Course::getColorSchemeFor($s['course_id'] ?? null, $s['title'] ?? '', $s['course_code'] ?? '');
+                                            @endphp
                                             <div 
                                                 wire:click="openSessionDetails({{ $s['id'] }})"
-                                                class="p-2 rounded-lg border border-slate-100 dark:border-slate-700/60 bg-slate-50/80 dark:bg-slate-800/60 hover:border-purple-300 dark:hover:border-purple-700 cursor-pointer space-y-1 transition-all"
+                                                class="p-2 rounded-lg border {{ $col['card_border'] }} {{ $col['card_bg'] }} hover:shadow-xs cursor-pointer space-y-1 transition-all relative overflow-hidden"
                                             >
-                                                <div class="flex items-center justify-between text-[9px] font-bold">
-                                                    <span class="text-[#7C3AED] dark:text-purple-400">{{ $s['start_time'] }}</span>
-                                                    <span class="px-1 rounded text-[8px] {{ $s['status'] === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300' }}">{{ ucfirst($s['status']) }}</span>
+                                                <div class="absolute left-0 top-0 bottom-0 w-1 {{ $col['bar'] }}"></div>
+                                                <div class="flex items-center justify-between text-[9px] font-bold pl-1">
+                                                    <span class="{{ $col['accent_text'] }}">{{ $s['start_time'] }}</span>
+                                                    <span class="px-1 rounded text-[8px] {{ $col['badge_bg'] }}">{{ ucfirst($s['status']) }}</span>
                                                 </div>
-                                                <h5 class="text-[11px] font-extrabold text-slate-900 dark:text-slate-100 line-clamp-2 leading-snug">{{ $s['title'] }}</h5>
+                                                <h5 class="text-[11px] font-extrabold text-slate-900 dark:text-slate-100 line-clamp-2 leading-snug pl-1">
+                                                    @if (!empty($s['course_code']))
+                                                        <span class="{{ $col['accent_text'] }} font-black">{{ $s['course_code'] }}</span> &bull;
+                                                    @endif
+                                                    {{ $s['title'] }}
+                                                </h5>
                                                 @if (!empty($s['student_name']))
-                                                    <p class="text-[10px] text-slate-400 truncate">{{ $s['student_name'] }}</p>
+                                                    <p class="text-[10px] text-slate-400 truncate pl-1">{{ $s['student_name'] }}</p>
                                                 @endif
                                             </div>
                                         @empty
@@ -207,19 +239,23 @@
 
                             <div class="space-y-2.5">
                                 @forelse ($dayViewData['sessions'] ?? [] as $s)
+                                    @php
+                                        $col = $s['color'] ?? \App\Models\Course::getColorSchemeFor($s['course_id'] ?? null, $s['title'] ?? '', $s['course_code'] ?? '');
+                                    @endphp
                                     <div 
                                         wire:click="openSessionDetails({{ $s['id'] }})"
-                                        class="p-4 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/70 dark:bg-slate-800/40 hover:border-purple-300 dark:hover:border-purple-800 cursor-pointer flex items-center justify-between gap-4 transition-all"
+                                        class="p-4 rounded-xl border {{ $col['card_border'] }} {{ $col['card_bg'] }} hover:shadow-xs cursor-pointer flex items-center justify-between gap-4 transition-all relative overflow-hidden"
                                     >
-                                        <div class="flex items-center gap-3.5">
-                                            <div class="w-14 text-center py-1.5 px-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-900/50">
-                                                <span class="block text-xs font-black text-[#7C3AED] dark:text-purple-300">{{ $s['start_time'] }}</span>
-                                                <span class="block text-[10px] text-slate-400 font-medium">{{ $s['end_time'] }}</span>
+                                        <div class="absolute left-0 top-0 bottom-0 w-1.5 {{ $col['bar'] }}"></div>
+                                        <div class="flex items-center gap-3.5 pl-1">
+                                            <div class="w-14 text-center py-1.5 px-1 rounded-lg {{ $col['time_badge'] }}">
+                                                <span class="block text-xs font-black">{{ $s['start_time'] }}</span>
+                                                <span class="block text-[10px] opacity-75 font-medium">{{ $s['end_time'] }}</span>
                                             </div>
                                             <div class="space-y-0.5">
                                                 <div class="flex items-center gap-2">
                                                     @if (!empty($s['course_code']))
-                                                        <span class="px-1.5 py-0.2 rounded font-extrabold text-[10px] bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300">{{ $s['course_code'] }}</span>
+                                                        <span class="px-1.5 py-0.2 rounded font-extrabold text-[10px] {{ $col['badge_bg'] }}">{{ $s['course_code'] }}</span>
                                                     @endif
                                                     <span class="text-[10px] font-bold text-slate-400">{{ $s['type_label'] ?? 'Group' }}</span>
                                                 </div>
@@ -228,7 +264,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="flex items-center gap-2 text-xs font-extrabold text-[#7C3AED] dark:text-purple-400">
+                                        <div class="flex items-center gap-2 text-xs font-extrabold {{ $col['accent_text'] }}">
                                             <span>Details</span>
                                             <x-heroicon-o-chevron-right class="w-4 h-4" />
                                         </div>
@@ -255,12 +291,15 @@
                                     </div>
                                     <div class="space-y-1.5">
                                         @forelse ($day['sessions'] as $s)
+                                            @php
+                                                $col = $s['color'] ?? \App\Models\Course::getColorSchemeFor($s['course_id'] ?? null, $s['title'] ?? '', $s['course_code'] ?? '');
+                                            @endphp
                                             <button 
                                                 type="button" 
                                                 wire:click="openSessionDetails({{ $s['id'] }})"
-                                                class="w-full text-left p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-[10px] font-semibold truncate block hover:bg-purple-50 dark:hover:bg-purple-950/40"
+                                                class="w-full text-left p-1.5 rounded-lg {{ $col['pill_bg'] }} text-[10px] font-semibold truncate block transition-all shadow-2xs"
                                             >
-                                                <span class="text-[#7C3AED] font-bold">{{ $s['start_time'] }}</span>
+                                                <span class="font-bold">{{ $s['start_time'] }}</span>
                                                 <span>{{ $s['title'] }}</span>
                                             </button>
                                         @empty
@@ -344,14 +383,18 @@
                     {{-- Scrollable Session Card List --}}
                     <div class="max-h-[520px] overflow-y-auto space-y-2.5 pr-1">
                         @forelse ($filteredSessions as $s)
+                            @php
+                                $col = $s['color'] ?? \App\Models\Course::getColorSchemeFor($s['course_id'] ?? null, $s['title'] ?? '', $s['course_code'] ?? '');
+                            @endphp
                             <div 
                                 wire:click="openSessionDetails({{ $s['id'] }})"
-                                class="p-3.5 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/70 dark:bg-slate-800/40 hover:border-purple-300 dark:hover:border-purple-800 cursor-pointer space-y-2 transition-all"
+                                class="p-3.5 rounded-xl border {{ $col['card_border'] }} bg-slate-50/70 dark:bg-slate-800/40 hover:shadow-xs cursor-pointer space-y-2 transition-all relative overflow-hidden"
                             >
-                                <div class="flex items-center justify-between text-[10px]">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 {{ $col['bar'] }}"></div>
+                                <div class="flex items-center justify-between text-[10px] pl-1">
                                     <div class="flex items-center gap-1.5">
                                         @if ($s['course_code'])
-                                            <span class="px-1.5 py-0.5 rounded font-extrabold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">{{ $s['course_code'] }}</span>
+                                            <span class="px-1.5 py-0.5 rounded font-extrabold {{ $col['badge_bg'] }}">{{ $s['course_code'] }}</span>
                                         @endif
                                         <span class="font-bold text-slate-400">{{ $s['type_label'] ?? 'Group' }}</span>
                                     </div>
@@ -360,9 +403,9 @@
                                     </span>
                                 </div>
 
-                                <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100">{{ $s['title'] }}</h4>
+                                <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 pl-1">{{ $s['title'] }}</h4>
 
-                                <div class="space-y-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                                <div class="space-y-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium pl-1">
                                     <div class="flex items-center gap-1.5">
                                         <x-heroicon-o-calendar class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                                         <span>{{ $s['session_date'] }} · {{ $s['start_time'] }} - {{ $s['end_time'] }}</span>
@@ -441,8 +484,11 @@
                 <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#233842]">
                     <div>
                         <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                            @php
+                                $modalCol = $selectedSessionDetails['color'] ?? \App\Models\Course::getColorSchemeFor($selectedSessionDetails['course_id'] ?? null, $selectedSessionDetails['title'] ?? '', $selectedSessionDetails['course_code'] ?? '');
+                            @endphp
                             @if ($selectedSessionDetails['course_code'])
-                                <span class="px-2 py-0.5 rounded-md bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 text-[10px] font-extrabold border border-purple-200 dark:border-purple-900">
+                                <span class="px-2 py-0.5 rounded-md {{ $modalCol['badge_bg'] }} text-[10px] font-extrabold shadow-2xs">
                                     {{ $selectedSessionDetails['course_code'] }}
                                 </span>
                             @endif
@@ -470,7 +516,7 @@
                 <div class="space-y-3">
                     {{-- Date & Time --}}
                     <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-[#233842]">
-                        <div class="w-9 h-9 rounded-lg bg-purple-100 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 flex items-center justify-center flex-shrink-0">
+                        <div class="w-9 h-9 rounded-lg {{ $modalCol['time_badge'] }} flex items-center justify-center flex-shrink-0">
                             <x-heroicon-o-calendar-days class="w-5 h-5" />
                         </div>
                         <div>

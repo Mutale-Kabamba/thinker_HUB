@@ -70,6 +70,8 @@ class Schedule extends Page
 
     public array $customDays = [];
 
+    public array $courseLegend = [];
+
     public string $calendarMonth = '';
 
     public string $calendarYear = '';
@@ -265,6 +267,8 @@ class Schedule extends Page
         $this->selectedSessionId = $sessionId;
         $this->selectedSessionDetails = [
             'id' => $session->id,
+            'course_id' => $session->course_id,
+            'color' => $session->getColorScheme(),
             'title' => $session->title ?: ($session->course?->title ?? 'Session'),
             'course_title' => $session->course?->title ?? '—',
             'course_code' => $session->course?->code ?? '',
@@ -600,6 +604,20 @@ class Schedule extends Page
             'cancelled' => $allAccessibleSessions->where('status', 'cancelled')->count(),
         ];
 
+        // Build Course Legend
+        $this->courseLegend = $allAccessibleSessions
+            ->pluck('course')
+            ->filter()
+            ->unique('id')
+            ->map(fn (Course $c) => [
+                'id' => $c->id,
+                'title' => $c->title,
+                'code' => $c->code ?: 'CS',
+                'color' => $c->getColorScheme(),
+            ])
+            ->values()
+            ->all();
+
         // Format all sessions
         $this->sessions = $allAccessibleSessions->map(function (CourseSession $s): array {
             $effectiveDate = $s->getEffectiveDate();
@@ -608,6 +626,8 @@ class Schedule extends Page
 
             return [
                 'id' => $s->id,
+                'course_id' => $s->course_id,
+                'color' => $s->getColorScheme(),
                 'course_title' => $s->course?->title ?? '—',
                 'course_code' => $s->course?->code ?? '',
                 'type' => $s->type,
@@ -681,6 +701,8 @@ class Schedule extends Page
 
             return [
                 'id' => $s->id,
+                'course_id' => $s->course_id,
+                'color' => $s->getColorScheme(),
                 'course_title' => $s->course?->title ?? '—',
                 'course_code' => $s->course?->code ?? '',
                 'type' => $s->type,
@@ -707,6 +729,8 @@ class Schedule extends Page
 
             $sessionsByDate[$effectiveDate][] = [
                 'id' => $s->id,
+                'course_id' => $s->course_id,
+                'color' => $s->getColorScheme(),
                 'title' => $s->title ?: ($s->course?->title ?? '—'),
                 'course_code' => $s->course?->code ?? '',
                 'course_title' => $s->course?->title ?? '',

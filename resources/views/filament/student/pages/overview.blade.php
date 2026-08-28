@@ -632,17 +632,23 @@
                         @endphp
                         <div class="space-y-3">
                             @forelse ($selectedEvents as $item)
-                                <div class="p-3 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/70 dark:bg-slate-800/40 space-y-1.5 transition-all hover:border-purple-200 dark:hover:border-purple-800">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold {{ $item['type'] === 'Session' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ($item['type'] === 'Assignment' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300') }}">
+                                @php
+                                    $itemCol = ($item['type'] === 'Session' && !empty($item['color'])) ? $item['color'] : null;
+                                @endphp
+                                <div class="p-3 rounded-xl border {{ $itemCol ? $itemCol['card_border'] : 'border-slate-100 dark:border-[#233842]' }} bg-slate-50/70 dark:bg-slate-800/40 space-y-1.5 transition-all hover:shadow-xs relative overflow-hidden">
+                                    @if ($itemCol)
+                                        <div class="absolute left-0 top-0 bottom-0 w-1 {{ $itemCol['bar'] }}"></div>
+                                    @endif
+                                    <div class="flex items-center justify-between gap-2 {{ $itemCol ? 'pl-1' : '' }}">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold {{ $itemCol ? $itemCol['badge_bg'] : ($item['type'] === 'Session' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ($item['type'] === 'Assignment' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300')) }}">
                                             {{ $item['type'] }}
                                         </span>
                                         @if (!empty($item['time']))
                                             <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">{{ $item['time'] }}</span>
                                         @endif
                                     </div>
-                                    <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100">{{ $item['name'] }}</h4>
-                                    <p class="text-[11px] text-slate-400 dark:text-slate-500">{{ $item['course'] }}</p>
+                                    <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 {{ $itemCol ? 'pl-1' : '' }}">{{ $item['name'] }}</h4>
+                                    <p class="text-[11px] text-slate-400 dark:text-slate-500 {{ $itemCol ? 'pl-1' : '' }}">{{ $item['course'] }}</p>
 
                                     @if ($item['type'] === 'Session' && !empty($item['session_id']))
                                         <div class="pt-1 flex items-center justify-end">

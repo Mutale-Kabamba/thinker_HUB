@@ -787,14 +787,22 @@
                                                 {{ $person['name'] }}
                                             </button>
                                             
-                                            <div class="flex items-center gap-2 mt-1 text-xs flex-wrap">
+                                            <div class="flex items-center gap-1.5 mt-1 text-xs flex-wrap">
+                                                @if (!empty($person['course_intake_labels']))
+                                                    @foreach ($person['course_intake_labels'] as $cil)
+                                                        <span class="px-2 py-0.5 rounded-md {{ $cil['color']['badge_bg'] ?? 'bg-purple-100 text-purple-700' }} font-bold text-[10px] inline-flex items-center gap-1">
+                                                            <x-heroicon-o-academic-cap class="w-3 h-3" />
+                                                            <span>{{ $cil['label'] }}</span>
+                                                        </span>
+                                                    @endforeach
+                                                @endif
                                                 @if ($person['shared_count'] > 0)
-                                                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px] inline-flex items-center gap-1">
+                                                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-[10px] inline-flex items-center gap-1">
                                                         <x-heroicon-o-book-open class="w-3 h-3" />
-                                                        <span>{{ $person['shared_count'] }} {{ Str::plural('course', $person['shared_count']) }} together</span>
+                                                        <span>{{ $person['shared_count'] }} in common</span>
                                                     </span>
                                                 @endif
-                                                <span class="inline-flex items-center gap-1 text-amber-500 font-bold text-[11px]">
+                                                <span class="inline-flex items-center gap-1 text-amber-500 font-bold text-[10px]">
                                                     <x-heroicon-s-bolt class="w-3 h-3 text-amber-500" />
                                                     <span>{{ number_format($person['xp']) }} XP</span>
                                                 </span>
@@ -852,10 +860,22 @@
                             </h3>
                             <div class="space-y-2">
                                 @foreach ($this->pendingRequests as $req)
+                                    @php
+                                        $reqLabels = $req->requester ? $req->requester->getCourseIntakeLabels() : [];
+                                    @endphp
                                     <div class="p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 flex items-center justify-between gap-3">
-                                        <button type="button" wire:click="showProfile({{ $req->requester?->id ?? 0 }})" class="font-bold text-xs text-gray-900 dark:text-white truncate text-left cursor-pointer">
-                                            {{ $req->requester?->name ?? 'Unknown' }}
-                                        </button>
+                                        <div class="min-w-0 flex-1">
+                                            <button type="button" wire:click="showProfile({{ $req->requester?->id ?? 0 }})" class="font-bold text-xs text-gray-900 dark:text-white truncate text-left cursor-pointer block">
+                                                {{ $req->requester?->name ?? 'Unknown' }}
+                                            </button>
+                                            @if (!empty($reqLabels))
+                                                <div class="flex items-center gap-1 mt-0.5 flex-wrap">
+                                                    @foreach ($reqLabels as $rl)
+                                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold {{ $rl['color']['badge_bg'] ?? 'bg-purple-100 text-purple-700' }}">{{ $rl['label'] }}</span>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
                                         <div class="flex items-center gap-1.5 shrink-0">
                                             <button type="button" wire:click="acceptRequest({{ $req->id }})" class="px-3 py-1 rounded-lg text-xs font-semibold bg-[#008069] text-white hover:bg-[#006e5a] cursor-pointer">
                                                 Accept
@@ -886,7 +906,7 @@
                                     @php
                                         $friendAvatar = $friend->getFilamentAvatarUrl();
                                         $friendInitial = strtoupper(substr($friend->name, 0, 1));
-                                        $friendCourseCode = optional($friend->courses()->select('code')->first())->code;
+                                        $friendLabels = $friend->getCourseIntakeLabels();
                                         $friendLevel = $friend->proficiency ?: $friend->track;
                                     @endphp
                                     <div class="p-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/30 flex items-center justify-between gap-3">
@@ -902,9 +922,17 @@
                                                 <button type="button" wire:click="showProfile({{ $friend->id }})" class="font-bold text-xs text-gray-900 dark:text-white truncate block text-left cursor-pointer hover:text-[#008069] transition">
                                                     {{ $friend->name }}
                                                 </button>
-                                                <p class="text-[10px] text-gray-400 truncate mt-0.5">
-                                                    {{ $friendCourseCode ?: 'Enrolled Student' }} {{ $friendLevel ? '• '.$friendLevel : '' }}
-                                                </p>
+                                                @if (!empty($friendLabels))
+                                                    <div class="flex items-center gap-1 mt-0.5 flex-wrap">
+                                                        @foreach ($friendLabels as $fl)
+                                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold {{ $fl['color']['badge_bg'] ?? 'bg-purple-100 text-purple-700' }}">{{ $fl['label'] }}</span>
+                                                        @endforeach
+                                                    </div>
+                                                @else
+                                                    <p class="text-[10px] text-gray-400 truncate mt-0.5">
+                                                        Enrolled Student {{ $friendLevel ? '• '.$friendLevel : '' }}
+                                                    </p>
+                                                @endif
                                             </div>
                                         </div>
 
@@ -1196,6 +1224,16 @@
                                         </span>
                                     @endif
                                 </div>
+                                @if (!empty($profileUser['course_intake_labels']))
+                                    <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                                        @foreach ($profileUser['course_intake_labels'] as $cil)
+                                            <span class="px-2 py-0.5 rounded-md {{ $cil['color']['badge_bg'] ?? 'bg-purple-100 text-purple-700' }} font-bold text-[10px] inline-flex items-center gap-1">
+                                                <x-heroicon-o-academic-cap class="w-3 h-3" />
+                                                <span>{{ $cil['label'] }}</span>
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
                         </div>
 

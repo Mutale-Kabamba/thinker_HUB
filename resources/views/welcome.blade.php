@@ -359,7 +359,8 @@
         <section class="py-20 lg:py-24 bg-[#FDFBF7]">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
                 <div class="mb-10 text-center">
-                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight">Real Reviews</h2>
+                    <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Real Feedback</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight mt-2">Student Reviews &amp; Ratings</h2>
                 </div>
 
                 <livewire:reviews.review-list target-type="platform" target-title="thinker_HUB Community" />
