@@ -20,7 +20,7 @@
                 </div>
 
                 <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                    Based on {{ number_format($totalCount) }} verified {{ Str::plural('rating', $totalCount) }}
+                    Based on {{ number_format($ratingCount) }} verified {{ Str::plural('rating', $ratingCount) }}
                 </p>
 
                 @auth
@@ -41,7 +41,7 @@
                 @foreach ([5, 4, 3, 2, 1] as $star)
                     @php
                         $cnt = $starCounts[$star] ?? 0;
-                        $pct = $totalCount > 0 ? round(($cnt / $totalCount) * 100) : 0;
+                        $pct = $ratingCount > 0 ? round(($cnt / $ratingCount) * 100) : 0;
                         $isActiveFilter = $filterRating === $star;
                     @endphp
                     <button type="button"
@@ -82,9 +82,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                 </svg>
             </div>
-            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">No reviews found</h4>
+            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">No written reviews found</h4>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-                {{ $filterRating ? "There are no {$filterRating}-star reviews yet." : 'Learner reviews will appear here once submitted.' }}
+                {{ $filterRating ? "There are no {$filterRating}-star written reviews yet." : 'Learner written reviews will appear here once submitted.' }}
             </p>
             @auth
                 <a href="{{ route('reviews.create', ['type' => $targetType ?: 'platform', 'id' => $targetId]) }}"

@@ -88,8 +88,8 @@ class ReviewList extends Component
             1 => $ratedReviews->where('rating', 1)->count(),
         ];
 
-        // Filtered list
-        $query = (clone $baseQuery)->with('user')->latest();
+        // Filtered list: strictly typed reviews (with text comment) for Verified Testimonials
+        $query = (clone $baseQuery)->hasComment()->with('user')->latest();
 
         if ($this->filterRating) {
             $query->where('rating', $this->filterRating);
