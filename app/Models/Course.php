@@ -650,4 +650,178 @@ class Course extends Model
 
         return $default > 0 ? $default : 0;
     }
+
+    /**
+     * Get a distinct, beautiful color palette for a course based on its ID / code / title.
+     *
+     * @return array{
+     *     key: string,
+     *     label: string,
+     *     hex: string,
+     *     dot: string,
+     *     dot_ring: string,
+     *     pill_bg: string,
+     *     badge_bg: string,
+     *     card_border: string,
+     *     card_bg: string,
+     *     accent_text: string,
+     *     time_badge: string,
+     *     bar: string
+     * }
+     */
+    public static function getColorSchemeFor(?int $courseId = null, string $title = '', string $code = ''): array
+    {
+        $palettes = [
+            [
+                'key' => 'purple',
+                'label' => 'Purple',
+                'hex' => '#7C3AED',
+                'dot' => 'bg-[#7C3AED]',
+                'dot_ring' => 'ring-purple-400',
+                'pill_bg' => 'bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/80 dark:border-purple-900/60 hover:bg-purple-100 dark:hover:bg-purple-900/50',
+                'badge_bg' => 'bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-200 dark:border-purple-800',
+                'card_border' => 'border-purple-200 dark:border-purple-900/50 hover:border-purple-300 dark:hover:border-purple-700',
+                'card_bg' => 'bg-purple-50/40 dark:bg-purple-950/20',
+                'accent_text' => 'text-[#7C3AED] dark:text-purple-400',
+                'time_badge' => 'bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-900/50',
+                'bar' => 'bg-[#7C3AED]',
+            ],
+            [
+                'key' => 'emerald',
+                'label' => 'Emerald',
+                'hex' => '#059669',
+                'dot' => 'bg-emerald-500',
+                'dot_ring' => 'ring-emerald-400',
+                'pill_bg' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-900/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/50',
+                'badge_bg' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800',
+                'card_border' => 'border-emerald-200 dark:border-emerald-900/50 hover:border-emerald-300 dark:hover:border-emerald-700',
+                'card_bg' => 'bg-emerald-50/40 dark:bg-emerald-950/20',
+                'accent_text' => 'text-emerald-600 dark:text-emerald-400',
+                'time_badge' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50',
+                'bar' => 'bg-emerald-500',
+            ],
+            [
+                'key' => 'blue',
+                'label' => 'Blue',
+                'hex' => '#2563EB',
+                'dot' => 'bg-blue-500',
+                'dot_ring' => 'ring-blue-400',
+                'pill_bg' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/80 dark:border-blue-900/60 hover:bg-blue-100 dark:hover:bg-blue-900/50',
+                'badge_bg' => 'bg-blue-100 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
+                'card_border' => 'border-blue-200 dark:border-blue-900/50 hover:border-blue-300 dark:hover:border-blue-700',
+                'card_bg' => 'bg-blue-50/40 dark:bg-blue-950/20',
+                'accent_text' => 'text-blue-600 dark:text-blue-400',
+                'time_badge' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50',
+                'bar' => 'bg-blue-500',
+            ],
+            [
+                'key' => 'amber',
+                'label' => 'Amber',
+                'hex' => '#D97706',
+                'dot' => 'bg-amber-500',
+                'dot_ring' => 'ring-amber-400',
+                'pill_bg' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/80 dark:border-amber-900/60 hover:bg-amber-100 dark:hover:bg-amber-900/50',
+                'badge_bg' => 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-200 dark:border-amber-800',
+                'card_border' => 'border-amber-200 dark:border-amber-900/50 hover:border-amber-300 dark:hover:border-amber-700',
+                'card_bg' => 'bg-amber-50/40 dark:bg-amber-950/20',
+                'accent_text' => 'text-amber-600 dark:text-amber-400',
+                'time_badge' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50',
+                'bar' => 'bg-amber-500',
+            ],
+            [
+                'key' => 'rose',
+                'label' => 'Rose',
+                'hex' => '#E11D48',
+                'dot' => 'bg-rose-500',
+                'dot_ring' => 'ring-rose-400',
+                'pill_bg' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/80 dark:border-rose-900/60 hover:bg-rose-100 dark:hover:bg-rose-900/50',
+                'badge_bg' => 'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-200 dark:border-rose-800',
+                'card_border' => 'border-rose-200 dark:border-rose-900/50 hover:border-rose-300 dark:hover:border-rose-700',
+                'card_bg' => 'bg-rose-50/40 dark:bg-rose-950/20',
+                'accent_text' => 'text-rose-600 dark:text-rose-400',
+                'time_badge' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50',
+                'bar' => 'bg-rose-500',
+            ],
+            [
+                'key' => 'teal',
+                'label' => 'Teal',
+                'hex' => '#0D9488',
+                'dot' => 'bg-teal-500',
+                'dot_ring' => 'ring-teal-400',
+                'pill_bg' => 'bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200/80 dark:border-teal-900/60 hover:bg-teal-100 dark:hover:bg-teal-900/50',
+                'badge_bg' => 'bg-teal-100 text-teal-700 dark:bg-teal-950/80 dark:text-teal-300 border border-teal-200 dark:border-teal-800',
+                'card_border' => 'border-teal-200 dark:border-teal-900/50 hover:border-teal-300 dark:hover:border-teal-700',
+                'card_bg' => 'bg-teal-50/40 dark:bg-teal-950/20',
+                'accent_text' => 'text-teal-600 dark:text-teal-400',
+                'time_badge' => 'bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200 dark:border-teal-900/50',
+                'bar' => 'bg-teal-500',
+            ],
+            [
+                'key' => 'cyan',
+                'label' => 'Cyan',
+                'hex' => '#0891B2',
+                'dot' => 'bg-cyan-500',
+                'dot_ring' => 'ring-cyan-400',
+                'pill_bg' => 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200/80 dark:border-cyan-900/60 hover:bg-cyan-100 dark:hover:bg-cyan-900/50',
+                'badge_bg' => 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/80 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800',
+                'card_border' => 'border-cyan-200 dark:border-cyan-900/50 hover:border-cyan-300 dark:hover:border-cyan-700',
+                'card_bg' => 'bg-cyan-50/40 dark:bg-cyan-950/20',
+                'accent_text' => 'text-cyan-600 dark:text-cyan-400',
+                'time_badge' => 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-900/50',
+                'bar' => 'bg-cyan-500',
+            ],
+            [
+                'key' => 'pink',
+                'label' => 'Pink',
+                'hex' => '#DB2777',
+                'dot' => 'bg-pink-500',
+                'dot_ring' => 'ring-pink-400',
+                'pill_bg' => 'bg-pink-50 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 border border-pink-200/80 dark:border-pink-900/60 hover:bg-pink-100 dark:hover:bg-pink-900/50',
+                'badge_bg' => 'bg-pink-100 text-pink-700 dark:bg-pink-950/80 dark:text-pink-300 border border-pink-200 dark:border-pink-800',
+                'card_border' => 'border-pink-200 dark:border-pink-900/50 hover:border-pink-300 dark:hover:border-pink-700',
+                'card_bg' => 'bg-pink-50/40 dark:bg-pink-950/20',
+                'accent_text' => 'text-pink-600 dark:text-pink-400',
+                'time_badge' => 'bg-pink-50 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 border border-pink-200 dark:border-pink-900/50',
+                'bar' => 'bg-pink-500',
+            ],
+            [
+                'key' => 'indigo',
+                'label' => 'Indigo',
+                'hex' => '#4F46E5',
+                'dot' => 'bg-indigo-500',
+                'dot_ring' => 'ring-indigo-400',
+                'pill_bg' => 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-900/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/50',
+                'badge_bg' => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800',
+                'card_border' => 'border-indigo-200 dark:border-indigo-900/50 hover:border-indigo-300 dark:hover:border-indigo-700',
+                'card_bg' => 'bg-indigo-50/40 dark:bg-indigo-950/20',
+                'accent_text' => 'text-indigo-600 dark:text-indigo-400',
+                'time_badge' => 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/50',
+                'bar' => 'bg-indigo-500',
+            ],
+            [
+                'key' => 'orange',
+                'label' => 'Orange',
+                'hex' => '#EA580C',
+                'dot' => 'bg-orange-500',
+                'dot_ring' => 'ring-orange-400',
+                'pill_bg' => 'bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300 border border-orange-200/80 dark:border-orange-900/60 hover:bg-orange-100 dark:hover:bg-orange-900/50',
+                'badge_bg' => 'bg-orange-100 text-orange-700 dark:bg-orange-950/80 dark:text-orange-300 border border-orange-200 dark:border-orange-800',
+                'card_border' => 'border-orange-200 dark:border-orange-900/50 hover:border-orange-300 dark:hover:border-orange-700',
+                'card_bg' => 'bg-orange-50/40 dark:bg-orange-950/20',
+                'accent_text' => 'text-orange-600 dark:text-orange-400',
+                'time_badge' => 'bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300 border border-orange-200 dark:border-orange-900/50',
+                'bar' => 'bg-orange-500',
+            ],
+        ];
+
+        $seed = $courseId ?? (crc32($code ?: $title) & 0x7FFFFFFF);
+        $index = abs((int) $seed) % count($palettes);
+
+        return $palettes[$index];
+    }
+
+    public function getColorScheme(): array
+    {
+        return static::getColorSchemeFor($this->id, (string) ($this->title ?? ''), (string) ($this->code ?? ''));
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Student\Pages;
 
+use App\Models\Course;
 use App\Models\CourseSession;
 use App\Models\User;
 use App\Notifications\RescheduleRequestNotification;
@@ -94,6 +95,8 @@ class Schedule extends Page
     public array $calendarWeeks = [];
 
     public array $customDays = [];
+
+    public array $courseLegend = [];
 
     public string $calendarMonth = '';
 
@@ -259,6 +262,8 @@ class Schedule extends Page
         $this->selectedSessionId = $sessionId;
         $this->selectedSessionDetails = [
             'id' => $session->id,
+            'course_id' => $session->course_id,
+            'color' => $session->getColorScheme(),
             'title' => $session->title ?: ($session->course->title ?? 'Class Session'),
             'course_title' => $session->course->title ?? '—',
             'course_code' => $session->course->code ?? '',
@@ -434,6 +439,20 @@ class Schedule extends Page
             'cancelled' => $allAccessibleSessions->where('status', 'cancelled')->count(),
         ];
 
+        // Build Course Legend
+        $this->courseLegend = $allAccessibleSessions
+            ->pluck('course')
+            ->filter()
+            ->unique('id')
+            ->map(fn (Course $c) => [
+                'id' => $c->id,
+                'title' => $c->title,
+                'code' => $c->code ?: 'CS',
+                'color' => $c->getColorScheme(),
+            ])
+            ->values()
+            ->all();
+
         // Format all sessions for structured consumption
         $this->sessions = $allAccessibleSessions->map(function (CourseSession $s): array {
             $canAddToCalendar = in_array($s->status, ['scheduled', 'rescheduled'], true) && $s->effectiveEndAt()->isFuture();
@@ -443,6 +462,8 @@ class Schedule extends Page
 
             return [
                 'id' => $s->id,
+                'course_id' => $s->course_id,
+                'color' => $s->getColorScheme(),
                 'course_title' => $s->course?->title ?? '—',
                 'course_code' => $s->course?->code ?? '',
                 'type' => $s->type,
@@ -522,6 +543,8 @@ class Schedule extends Page
 
             return [
                 'id' => $s->id,
+                'course_id' => $s->course_id,
+                'color' => $s->getColorScheme(),
                 'course_title' => $s->course?->title ?? '—',
                 'course_code' => $s->course?->code ?? '',
                 'type' => $s->type,
@@ -560,6 +583,8 @@ class Schedule extends Page
 
             $sessionsByDate[$effectiveDate][] = [
                 'id' => $s->id,
+                'course_id' => $s->course_id,
+                'color' => $s->getColorScheme(),
                 'title' => $s->title ?: ($s->course?->title ?? '—'),
                 'course_code' => $s->course?->code ?? '',
                 'course_title' => $s->course?->title ?? '',

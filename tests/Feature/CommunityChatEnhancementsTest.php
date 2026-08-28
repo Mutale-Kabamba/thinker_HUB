@@ -305,15 +305,19 @@ class CommunityChatEnhancementsTest extends TestCase
 
     public function test_leaderboard_renders_top_5_with_collapsible_more_and_xp_earned_breakdown(): void
     {
+        $course = \App\Models\Course::query()->create(['title' => 'Physics 101', 'code' => 'PHY-101', 'is_active' => true]);
+
         // Create 8 students with various XP
         $students = collect();
         for ($i = 1; $i <= 8; $i++) {
-            $students->push(User::factory()->create([
+            $student = User::factory()->create([
                 'name' => "Ranked Student {$i}",
                 'role' => 'student',
                 'lifetime_xp' => (10 - $i) * 100, // 900, 800, 700, 600, 500, 400, 300, 200
                 'spendable_coins' => 50,
-            ]));
+            ]);
+            \App\Models\Enrollment::create(['user_id' => $student->id, 'course_id' => $course->id]);
+            $students->push($student);
         }
 
         $viewer = $students->last(); // 8th student (rank #8)
@@ -367,6 +371,8 @@ class CommunityChatEnhancementsTest extends TestCase
 
     public function test_clicking_leaderboard_student_name_shows_xp_and_badge_earnings_modal(): void
     {
+        $course = \App\Models\Course::query()->create(['title' => 'Math 101', 'code' => 'MTH-101', 'is_active' => true]);
+
         $topStudent = User::factory()->create([
             'name' => 'Champion Learner',
             'role' => 'student',
@@ -375,6 +381,7 @@ class CommunityChatEnhancementsTest extends TestCase
             'current_streak' => 14,
             'bio' => 'Passionate about algorithms and mathematics.',
         ]);
+        \App\Models\Enrollment::create(['user_id' => $topStudent->id, 'course_id' => $course->id]);
 
         $badge = \App\Models\Badge::updateOrCreate(
             ['key' => 'mastermind'],
@@ -402,6 +409,7 @@ class CommunityChatEnhancementsTest extends TestCase
             'role' => 'student',
             'lifetime_xp' => 100,
         ]);
+        \App\Models\Enrollment::create(['user_id' => $viewer->id, 'course_id' => $course->id]);
 
         $this->actingAs($viewer);
 

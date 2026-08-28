@@ -168,4 +168,13 @@ class CourseSession extends Model
                 });
             });
     }
+
+    public function getColorScheme(): array
+    {
+        if ($this->relationLoaded('course') && $this->course) {
+            return $this->course->getColorScheme();
+        }
+
+        return Course::getColorSchemeFor($this->course_id, (string) ($this->title ?? ''));
+    }
 }

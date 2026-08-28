@@ -128,6 +128,9 @@ class CommunityResultsBoardAndWhatsAppChatTest extends TestCase
         $secondStudent = User::factory()->create(['name' => 'Bob Second', 'role' => 'student', 'is_active' => true]);
         $course = Course::query()->create(['title' => 'Math 101', 'code' => 'MTH-101', 'is_active' => true]);
 
+        \App\Models\Enrollment::create(['user_id' => $topStudent->id, 'course_id' => $course->id]);
+        \App\Models\Enrollment::create(['user_id' => $secondStudent->id, 'course_id' => $course->id]);
+
         $quiz = Quiz::query()->create(['course_id' => $course->id, 'title' => 'Calculus Quiz', 'is_published' => true]);
         QuizAttempt::query()->create([
             'quiz_id' => $quiz->id,

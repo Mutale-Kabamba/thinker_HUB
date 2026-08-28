@@ -632,7 +632,14 @@
                                 >
                                     <span>{{ $day['date'] }}</span>
                                     @if (!empty($day['sessions']))
-                                        <span class="absolute bottom-1 w-1.5 h-1.5 rounded-full {{ $day['is_today'] ? 'bg-white' : 'bg-[#7C3AED]' }}"></span>
+                                        <div class="absolute bottom-0.5 flex items-center justify-center gap-0.5">
+                                            @foreach (array_slice($day['sessions'], 0, 3) as $s)
+                                                @php
+                                                    $sDot = $s['color'] ?? \App\Models\Course::getColorSchemeFor(null, $s['title'] ?? '', $s['course_code'] ?? '');
+                                                @endphp
+                                                <span class="w-1.5 h-1.5 rounded-full {{ $day['is_today'] ? 'bg-white' : $sDot['dot'] }}"></span>
+                                            @endforeach
+                                        </div>
                                     @endif
                                 </button>
                             @endforeach
@@ -676,12 +683,21 @@
 
                     <div class="space-y-2.5">
                         @forelse ($upcomingSessions as $session)
-                            <div class="p-3 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/60 dark:bg-slate-800/40 hover:bg-purple-50/40 dark:hover:bg-slate-800 transition">
-                                <div class="flex items-start justify-between gap-3">
+                            @php
+                                $uCol = $session['color'] ?? \App\Models\Course::getColorSchemeFor(null, $session['title'] ?? '', $session['course_code'] ?? '');
+                            @endphp
+                            <div class="p-3 rounded-xl border {{ $uCol['card_border'] }} bg-slate-50/60 dark:bg-slate-800/40 hover:shadow-xs transition relative overflow-hidden">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 {{ $uCol['bar'] }}"></div>
+                                <div class="flex items-start justify-between gap-3 pl-1">
                                     <div class="flex-1 min-w-0 space-y-1">
-                                        <h3 class="font-bold text-xs text-slate-900 dark:text-white leading-snug break-words">
-                                            {{ $session['title'] }}
-                                        </h3>
+                                        <div class="flex items-center gap-1.5">
+                                            @if (!empty($session['course_code']))
+                                                <span class="px-1.5 py-0.2 rounded text-[9px] font-black {{ $uCol['badge_bg'] }}">{{ $session['course_code'] }}</span>
+                                            @endif
+                                            <h3 class="font-bold text-xs text-slate-900 dark:text-white leading-snug break-words truncate">
+                                                {{ $session['title'] }}
+                                            </h3>
+                                        </div>
                                         <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">
                                             {{ $session['course'] }}
                                         </p>

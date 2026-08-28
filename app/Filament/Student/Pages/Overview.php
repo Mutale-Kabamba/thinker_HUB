@@ -234,7 +234,7 @@ class Overview extends Page
         };
 
         try {
-            $leaderboard = app(\App\Services\GamificationService::class)->leaderboard();
+            $leaderboard = app(\App\Services\GamificationService::class)->leaderboard($user);
             $userRow = $leaderboard->firstWhere('user_id', $user->id);
             $userRankIndex = $userRow ? (int) $userRow['rank'] : 1;
 
@@ -719,6 +719,7 @@ class Overview extends Page
                         'grade' => null,
                         'time' => Carbon::parse($s->getEffectiveStartTime())->format('g:i A').' – '.Carbon::parse($s->getEffectiveEndTime())->format('g:i A'),
                         'session_type' => $s->type === 'one_on_one' ? 'One-On-One' : 'Group',
+                        'color' => $s->getColorScheme(),
                     ];
                 }
 

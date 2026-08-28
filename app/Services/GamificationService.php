@@ -1293,12 +1293,20 @@ class GamificationService
 
     /**
      * Leaderboard ranked by lifetime XP.
+     * When $scopedUser is provided, only includes classmates in the same course and intake/class.
      */
-    public function leaderboard(): Collection
+    public function leaderboard(?User $scopedUser = null): Collection
     {
-        $students = User::query()
+        $query = User::query()
             ->where('role', 'student')
-            ->where('is_active', true)
+            ->where('is_active', true);
+
+        if ($scopedUser && ! $scopedUser->isAdmin()) {
+            $peerIds = $scopedUser->getClassPeerIds();
+            $query->whereIn('id', $peerIds);
+        }
+
+        $students = $query
             ->orderByDesc('lifetime_xp')
             ->orderBy('id')
             ->get();
