@@ -68,7 +68,12 @@ class InstructorResource extends Resource
 
                 Select::make('instructorCourses')
                     ->label('Assigned Courses')
-                    ->relationship('instructorCourses', 'title')
+                    ->relationship(
+                        name: 'instructorCourses',
+                        titleAttribute: 'title',
+                        modifyQueryUsing: fn (Builder $query) => $query->orderBy('title')
+                    )
+                    ->getOptionLabelFromRecordUsing(fn (Course $record): string => "{$record->code} - {$record->title}")
                     ->multiple()
                     ->searchable()
                     ->preload(),
