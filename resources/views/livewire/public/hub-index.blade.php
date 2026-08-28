@@ -1,4 +1,4 @@
-<div class="hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased min-h-screen">
+<div class="public-layout hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased min-h-screen">
     @include('partials.public-header')
 
     <main>
@@ -20,7 +20,7 @@
                             type="text"
                             wire:model.live.debounce.300ms="search"
                             placeholder="Search by keywords, title, or topic..."
-                            class="w-full rounded-full bg-white/10 text-white placeholder-slate-300 px-6 py-3 border border-white/20 focus:bg-white focus:text-slate-900 focus:placeholder-slate-400 focus:border-transparent focus:ring-2 focus:ring-teal-400/40 focus:outline-none text-sm font-medium transition-all duration-300 shadow-xs"
+                            class="w-full rounded-full bg-white/10 text-white placeholder-slate-300 px-6 py-3 border border-white/20 focus:bg-white focus:text-slate-900 focus:placeholder-slate-400 focus:border-transparent focus:ring-2 focus:ring-teal-400/40 focus:outline-none text-sm font-medium transition-all duration-300"
                         >
                         @if ($search !== '')
                             <button
@@ -41,7 +41,7 @@
                         <button
                             wire:click="openSubmitModal"
                             type="button"
-                            class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-6 py-2.5 text-xs font-bold text-[#0a2d27] shadow-md hover:bg-white transition-all transform hover:-translate-y-0.5"
+                            class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-6 py-2.5 text-xs font-bold text-[#0a2d27] hover:bg-white transition-all transform hover:-translate-y-0.5"
                         >
                             <i class="fa-solid fa-plus"></i> Submit Resource / Opportunity
                         </button>
@@ -49,7 +49,7 @@
                         <button
                             wire:click="openRegisterModal"
                             type="button"
-                            class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-6 py-2.5 text-xs font-bold text-[#0a2d27] shadow-md hover:bg-white transition-all transform hover:-translate-y-0.5"
+                            class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-6 py-2.5 text-xs font-bold text-[#0a2d27] hover:bg-white transition-all transform hover:-translate-y-0.5"
                         >
                             <i class="fa-solid fa-user-plus"></i> Register to Submit (Blogger / Researcher / Employer)
                         </button>
@@ -58,7 +58,7 @@
 
                 {{-- Notice Banner --}}
                 @if ($submitNoticeMessage)
-                    <div class="mx-auto mt-6 max-w-xl p-4 bg-emerald-500/20 border border-emerald-400/40 rounded-2xl text-emerald-200 text-xs font-semibold flex items-center justify-between gap-3 shadow-md">
+                    <div class="mx-auto mt-6 max-w-xl p-4 bg-emerald-500/20 border border-emerald-400/40 rounded-2xl text-emerald-200 text-xs font-semibold flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
                             <span>{{ $submitNoticeMessage }}</span>
@@ -74,42 +74,42 @@
         </section>
 
         {{-- Filters Section --}}
-        <section class="border-b border-slate-200/80 bg-white/95 backdrop-blur-md sticky top-[73px] z-30 shadow-xs">
+        <section class="border-b border-slate-200/80 bg-white/95 backdrop-blur-md sticky top-[73px] z-30">
             <div class="mx-auto max-w-6xl px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 {{-- Type Filter Pills --}}
                 <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
                     <button
                         wire:click="selectType('all')"
                         type="button"
-                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'all' ? 'bg-[#0a2d27] text-white shadow-md' : 'bg-slate-100/90 text-slate-700 hover:bg-slate-200' }}"
+                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'all' ? 'bg-[#0a2d27] text-white' : 'bg-slate-100/90 text-slate-700 hover:bg-slate-200' }}"
                     >
                         <i class="fa-solid fa-border-all text-[11px]"></i> All
                     </button>
                     <button
                         wire:click="selectType('video')"
                         type="button"
-                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'video' ? 'bg-rose-600 text-white shadow-md' : 'bg-slate-100/90 text-slate-700 hover:bg-rose-50 hover:text-rose-700' }}"
+                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'video' ? 'bg-rose-600 text-white' : 'bg-slate-100/90 text-slate-700 hover:bg-rose-50 hover:text-rose-700' }}"
                     >
                         <i class="fa-solid fa-video text-[11px]"></i> Videos
                     </button>
                     <button
                         wire:click="selectType('tip_trick')"
                         type="button"
-                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'tip_trick' ? 'bg-teal-700 text-white shadow-md' : 'bg-slate-100/90 text-slate-700 hover:bg-teal-50 hover:text-teal-700' }}"
+                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'tip_trick' ? 'bg-teal-700 text-white' : 'bg-slate-100/90 text-slate-700 hover:bg-teal-50 hover:text-teal-700' }}"
                     >
                         <i class="fa-solid fa-wand-magic-sparkles text-[11px]"></i> Tips &amp; Tricks
                     </button>
                     <button
                         wire:click="selectType('blog')"
                         type="button"
-                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'blog' ? 'bg-indigo-700 text-white shadow-md' : 'bg-slate-100/90 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700' }}"
+                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'blog' ? 'bg-indigo-700 text-white' : 'bg-slate-100/90 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700' }}"
                     >
                         <i class="fa-solid fa-newspaper text-[11px]"></i> Short Blogs
                     </button>
                     <button
                         wire:click="selectType('opportunity')"
                         type="button"
-                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'opportunity' ? 'bg-emerald-700 text-white shadow-md' : 'bg-slate-100/90 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700' }}"
+                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'opportunity' ? 'bg-emerald-700 text-white' : 'bg-slate-100/90 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700' }}"
                     >
                         <i class="fa-solid fa-briefcase text-[11px]"></i> Opportunities
                     </button>
@@ -119,7 +119,7 @@
                 <div class="flex items-center gap-3 shrink-0">
                     <select
                         wire:model.live="category"
-                        class="rounded-full bg-slate-100 border-none px-4 py-2 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-teal-500 cursor-pointer shadow-2xs"
+                        class="rounded-full bg-slate-100 border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-teal-500 cursor-pointer"
                     >
                         <option value="all">All Categories</option>
                         @foreach ($categories as $cat)
@@ -162,7 +162,7 @@
                         @foreach ($posts as $post)
                             @if ($post->type === 'video')
                                 {{-- 1. Video Tutorial Card --}}
-                                <article class="group bg-white rounded-[2rem] overflow-hidden shadow-xs hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/80 hover:border-rose-300 flex flex-col justify-between">
+                                <article class="group bg-white rounded-[2rem] overflow-hidden hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-rose-300 flex flex-col justify-between">
                                     <div>
                                         <div class="relative aspect-video overflow-hidden bg-slate-900 cursor-pointer" wire:click="openVideoModal({{ $post->id }})">
                                             @if ($post->video_id)
@@ -177,15 +177,15 @@
                                                 </div>
                                             @endif
                                             <div class="absolute inset-0 bg-black/35 group-hover:bg-black/15 transition-colors flex items-center justify-center">
-                                                <div class="w-14 h-14 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                                                <div class="w-14 h-14 rounded-full bg-rose-600 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
                                                     <i class="fa-solid fa-play text-lg ml-1"></i>
                                                 </div>
                                             </div>
-                                            <span class="absolute top-3 left-3 bg-rose-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                                            <span class="absolute top-3 left-3 bg-rose-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
                                                 <i class="fa-solid fa-video mr-1"></i> Video Tutorial
                                             </span>
                                             @if ($post->media->isNotEmpty())
-                                                <span class="absolute bottom-3 left-3 bg-indigo-900/90 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-xs flex items-center gap-1 shadow-sm">
+                                                <span class="absolute bottom-3 left-3 bg-indigo-900/90 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-xs flex items-center gap-1">
                                                     <i class="fa-solid fa-paperclip"></i> {{ $post->media->count() }} Attached
                                                 </span>
                                             @endif
@@ -218,7 +218,7 @@
                                         <button
                                             wire:click="openVideoModal({{ $post->id }})"
                                             type="button"
-                                            class="inline-flex items-center justify-center rounded-full bg-rose-600 px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-rose-700 transition-colors"
+                                            class="inline-flex items-center justify-center rounded-full bg-rose-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
                                         >
                                             Play Video
                                         </button>
@@ -227,7 +227,7 @@
 
                             @elseif ($post->type === 'tip_trick')
                                 {{-- 2. Tips & Tricks Card (Styled with top hero cover image like Video cards) --}}
-                                <article class="group bg-white rounded-[2rem] overflow-hidden shadow-xs hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/80 hover:border-teal-300 flex flex-col justify-between">
+                                <article class="group bg-white rounded-[2rem] overflow-hidden hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-teal-300 flex flex-col justify-between">
                                     <div>
                                         {{-- Top Hero Image / Gradient Cover --}}
                                         <a href="{{ route('hub.show', $post->slug) }}" class="relative block aspect-video overflow-hidden bg-slate-900">
@@ -243,7 +243,7 @@
                                                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                                                     </div>
                                                     <div class="my-auto z-10">
-                                                        <p class="text-white text-base font-extrabold line-clamp-2 leading-tight tracking-tight drop-shadow-sm">
+                                                        <p class="text-white text-base font-extrabold line-clamp-2 leading-tight tracking-tight">
                                                             {{ $post->title }}
                                                         </p>
                                                     </div>
@@ -252,7 +252,7 @@
 
                                             <div class="absolute inset-0 bg-black/20 group-hover:bg-black/5 transition-colors"></div>
 
-                                            <span class="absolute top-3 left-3 bg-teal-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                                            <span class="absolute top-3 left-3 bg-teal-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
                                                 <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Tip &amp; Trick
                                             </span>
 
@@ -261,7 +261,7 @@
                                             </span>
 
                                             @if ($post->media->isNotEmpty())
-                                                <span class="absolute bottom-3 left-3 bg-teal-900/90 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-xs flex items-center gap-1 shadow-sm">
+                                                <span class="absolute bottom-3 left-3 bg-teal-900/90 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-xs flex items-center gap-1">
                                                     <i class="fa-solid fa-paperclip"></i> {{ $post->media->count() }} Attached
                                                 </span>
                                             @endif
@@ -287,14 +287,14 @@
                                             @endif
 
                                             @if ($post->code_snippet)
-                                                <div class="mt-3.5 rounded-xl bg-slate-900 p-3 text-slate-100 text-[11px] font-mono overflow-x-auto border border-slate-800 shadow-inner">
+                                                <div class="mt-3.5 rounded-xl bg-slate-900 p-3 text-slate-100 text-[11px] font-mono overflow-x-auto border border-slate-800">
                                                     <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1 border-b border-slate-800 pb-1">
                                                         <span><i class="fa-solid fa-code text-teal-400 mr-1"></i> Code Preview</span>
                                                     </div>
                                                     <pre class="line-clamp-2 overflow-hidden"><code>{{ $post->code_snippet }}</code></pre>
                                                 </div>
                                             @elseif ($post->pro_tip)
-                                                <div class="mt-3.5 rounded-xl bg-amber-50 p-3 border border-amber-200 text-amber-900 text-xs flex items-start gap-2 shadow-2xs">
+                                                <div class="mt-3.5 rounded-xl bg-amber-50 p-3 border border-amber-200 text-amber-900 text-xs flex items-start gap-2">
                                                     <i class="fa-solid fa-lightbulb text-amber-500 mt-0.5 text-sm shrink-0"></i>
                                                     <p class="leading-tight line-clamp-2">
                                                         <strong class="font-bold">Pro Tip:</strong> {{ $post->pro_tip }}
@@ -309,7 +309,7 @@
                                         <span class="text-xs text-slate-400 font-medium">By {{ $post->author?->name ?: 'Researcher' }}</span>
                                         <a
                                             href="{{ route('hub.show', $post->slug) }}"
-                                            class="inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-teal-800 transition-colors"
+                                            class="inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-4 py-1.5 text-xs font-bold text-white hover:bg-teal-800 transition-colors"
                                         >
                                             Read Tip <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i>
                                         </a>
@@ -318,10 +318,10 @@
 
                             @elseif ($post->type === 'opportunity')
                                 {{-- 3. Opportunity Card --}}
-                                <article class="group bg-white rounded-[2rem] p-6 shadow-xs hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/80 hover:border-emerald-300 flex flex-col justify-between">
+                                <article class="group bg-white rounded-[2rem] p-6 hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-emerald-300 flex flex-col justify-between">
                                     <div>
                                         <div class="flex items-center justify-between gap-2 mb-3">
-                                            <span class="bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
+                                            <span class="bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
                                                 <i class="fa-solid fa-briefcase mr-1"></i> {{ $post->extra['opportunity_type'] ?? 'Opportunity' }}
                                             </span>
                                             @if ($post->opportunity_deadline)
@@ -401,7 +401,7 @@
                                                 href="{{ $post->opportunity_link }}"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                class="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors"
+                                                class="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition-colors"
                                             >
                                                 Apply Now <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
                                             </a>
@@ -418,10 +418,10 @@
 
                             @else
                                 {{-- 4. Short Blog Card --}}
-                                <article class="group bg-white rounded-[2rem] p-6 shadow-xs hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/80 hover:border-indigo-300 flex flex-col justify-between">
+                                <article class="group bg-white rounded-[2rem] p-6 hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-indigo-300 flex flex-col justify-between">
                                     <div>
                                         <div class="flex items-center justify-between gap-2 mb-4">
-                                            <span class="bg-indigo-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
+                                            <span class="bg-indigo-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
                                                 <i class="fa-solid fa-newspaper mr-1"></i> Article
                                             </span>
                                             <div class="flex items-center gap-2">
@@ -491,7 +491,7 @@
                 @else
                     {{-- Empty State --}}
                     <div class="py-20 text-center border-2 border-dashed border-slate-200 rounded-[3rem] bg-white">
-                        <div class="bg-teal-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-sm mb-4">
+                        <div class="bg-teal-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto border border-teal-200 mb-4">
                             <i class="fa-solid fa-folder-open text-teal-600 text-3xl"></i>
                         </div>
                         <h3 class="text-lg font-bold text-slate-900">No resources found</h3>
@@ -519,7 +519,7 @@
             wire:click.self="closeSubmitModal"
             @keydown.escape.window="$wire.closeSubmitModal()"
         >
-            <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden relative max-h-[90vh] flex flex-col border border-slate-100">
+            <div class="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden relative max-h-[90vh] flex flex-col border border-slate-200">
                 <div class="p-6 sm:p-8 bg-[#0a2d27] text-white relative shrink-0">
                     <button
                         wire:click="closeSubmitModal"
@@ -546,7 +546,7 @@
                             <button
                                 type="button"
                                 wire:click="setSubmitType('tip_trick')"
-                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'tip_trick' ? 'bg-teal-500 text-white shadow-md' : 'text-slate-200 hover:text-white' }}"
+                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'tip_trick' ? 'bg-teal-500 text-white' : 'text-slate-200 hover:text-white' }}"
                             >
                                 <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Tip / Trick (Researcher)
                             </button>
@@ -556,7 +556,7 @@
                             <button
                                 type="button"
                                 wire:click="setSubmitType('blog')"
-                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'blog' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-200 hover:text-white' }}"
+                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'blog' ? 'bg-indigo-600 text-white' : 'text-slate-200 hover:text-white' }}"
                             >
                                 <i class="fa-solid fa-newspaper mr-1"></i> Short Blog (Blogger)
                             </button>
@@ -566,7 +566,7 @@
                             <button
                                 type="button"
                                 wire:click="setSubmitType('opportunity')"
-                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'opportunity' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-200 hover:text-white' }}"
+                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'opportunity' ? 'bg-emerald-500 text-white' : 'text-slate-200 hover:text-white' }}"
                             >
                                 <i class="fa-solid fa-briefcase mr-1"></i> Opportunity (Employer)
                             </button>
@@ -576,7 +576,7 @@
                             <button
                                 type="button"
                                 wire:click="setSubmitType('video')"
-                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'video' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-200 hover:text-white' }}"
+                                class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 {{ $submitType === 'video' ? 'bg-rose-600 text-white' : 'text-slate-200 hover:text-white' }}"
                             >
                                 <i class="fa-solid fa-video mr-1"></i> Video
                             </button>
@@ -713,11 +713,11 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Code Snippet (Optional)</label>
                                 <textarea
-                                    wire:model="submitCodeSnippet"
-                                    rows="3"
-                                    placeholder="Paste your code snippet here..."
-                                    class="w-full font-mono text-xs rounded-xl bg-slate-900 text-teal-300 border border-slate-800 px-4 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                                ></textarea>
+                                wire:model="submitCodeSnippet"
+                                rows="3"
+                                placeholder="Paste your code snippet here..."
+                                class="w-full font-mono text-xs rounded-xl bg-slate-900 text-teal-300 border border-slate-800 px-4 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                            ></textarea>
                             </div>
 
                             <div>
@@ -784,7 +784,7 @@
                         </button>
                         <button
                             type="submit"
-                            class="px-6 py-2.5 rounded-full bg-[#0a2d27] text-white text-xs font-bold shadow-md hover:bg-[#11443c] transition flex items-center gap-1.5"
+                            class="px-6 py-2.5 rounded-full bg-[#0a2d27] text-white text-xs font-bold hover:bg-[#11443c] transition flex items-center gap-1.5"
                         >
                             <i class="fa-solid fa-paperplane text-[11px]"></i> Submit Resource
                         </button>
@@ -801,7 +801,7 @@
             wire:click.self="closeRegisterModal"
             @keydown.escape.window="$wire.closeRegisterModal()"
         >
-            <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative border border-slate-100 transform transition-all duration-300">
+            <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden relative border border-slate-200 transform transition-all duration-300">
                 
                 {{-- Header --}}
                 <div class="bg-[#0a2d27] px-6 py-6 sm:px-10 sm:py-8 text-white relative overflow-hidden">
@@ -832,10 +832,10 @@
                 <form wire:submit.prevent="registerContributor" class="p-6 sm:p-10 space-y-6 max-h-[80vh] overflow-y-auto">
                     
                     {{-- 🌟 1. CHECK & PULL EXISTING STUDENT / INSTRUCTOR DETAILS --}}
-                    <div class="rounded-2xl border border-teal-200/90 bg-gradient-to-br from-teal-50/70 via-emerald-50/40 to-slate-50 p-5 sm:p-6 shadow-xs">
+                    <div class="rounded-2xl border border-teal-200/90 bg-gradient-to-br from-teal-50/70 via-emerald-50/40 to-slate-50 p-5 sm:p-6">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-teal-100/90">
                             <div class="flex items-center gap-3">
-                                <span class="w-9 h-9 rounded-xl bg-[#0a2d27] text-yellow-400 flex items-center justify-center text-sm shadow-xs shrink-0">
+                                <span class="w-9 h-9 rounded-xl bg-[#0a2d27] text-yellow-400 flex items-center justify-center text-sm shrink-0">
                                     <i class="fa-solid fa-id-card-clip"></i>
                                 </span>
                                 <div>
@@ -848,7 +848,7 @@
                                 </div>
                             </div>
                             @if ($existingUserRole)
-                                <span class="inline-flex items-center gap-1.5 self-start sm:self-auto text-xs font-bold text-emerald-800 bg-emerald-100/90 px-3 py-1 rounded-full border border-emerald-300 shadow-2xs">
+                                <span class="inline-flex items-center gap-1.5 self-start sm:self-auto text-xs font-bold text-emerald-800 bg-emerald-100/90 px-3 py-1 rounded-full border border-emerald-300">
                                     <i class="fa-solid fa-circle-check text-emerald-600"></i> {{ $existingUserRole }} Account Linked
                                 </span>
                             @endif
@@ -865,13 +865,13 @@
                                         wire:model="lookupEmail"
                                         wire:keydown.enter.prevent="checkAndPullDetails"
                                         placeholder="Enter your registered email address (e.g. thinker.net01@gmail.com)..."
-                                        class="w-full rounded-xl bg-white border border-teal-200/90 pl-11 pr-4 py-2.5 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none transition-all shadow-2xs"
+                                        class="w-full rounded-xl bg-white border border-teal-200/90 pl-11 pr-4 py-2.5 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none transition-all"
                                     >
                                 </div>
                                 <button
                                     type="button"
                                     wire:click="checkAndPullDetails"
-                                    class="px-5 py-2.5 rounded-xl bg-[#0a2d27] hover:bg-[#11443c] text-white text-xs sm:text-sm font-bold shadow-xs transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-98"
+                                    class="px-5 py-2.5 rounded-xl bg-[#0a2d27] hover:bg-[#11443c] text-white text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-98"
                                 >
                                     <span wire:loading.remove wire:target="checkAndPullDetails" class="inline-flex items-center gap-1.5">
                                         <i class="fa-solid fa-magnifying-glass text-xs"></i> Check &amp; Pull Details
@@ -884,7 +884,7 @@
 
                             {{-- Status / Feedback Alert Banner --}}
                             @if ($lookupMessage)
-                                <div class="p-3.5 rounded-xl text-xs font-medium flex items-start gap-2.5 {{ $lookupStatus === 'success' ? 'bg-emerald-50 text-emerald-900 border border-emerald-300 shadow-2xs' : 'bg-rose-50 text-rose-900 border border-rose-200 shadow-2xs' }}">
+                                <div class="p-3.5 rounded-xl text-xs font-medium flex items-start gap-2.5 {{ $lookupStatus === 'success' ? 'bg-emerald-50 text-emerald-900 border border-emerald-300' : 'bg-rose-50 text-rose-900 border border-rose-200' }}">
                                     <div class="w-5 h-5 rounded-full {{ $lookupStatus === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600' }} flex items-center justify-center shrink-0 mt-0.5 text-xs">
                                         <i class="fa-solid {{ $lookupStatus === 'success' ? 'fa-check' : 'fa-exclamation' }}"></i>
                                     </div>
@@ -1078,17 +1078,17 @@
                             </div>
                         </div>
                     @else
-                        <div class="rounded-2xl border border-teal-200/90 bg-gradient-to-br from-teal-50/80 via-emerald-50/50 to-slate-50 p-5 shadow-xs">
+                        <div class="rounded-2xl border border-teal-200/90 bg-gradient-to-br from-teal-50/80 via-emerald-50/50 to-slate-50 p-5">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-teal-100/80">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="w-8 h-8 rounded-lg bg-[#0a2d27] text-yellow-400 flex items-center justify-center text-xs shadow-2xs shrink-0">
+                                    <span class="w-8 h-8 rounded-lg bg-[#0a2d27] text-yellow-400 flex items-center justify-center text-xs shrink-0">
                                         <i class="fa-solid fa-arrows-rotate"></i>
                                     </span>
                                     <h5 class="text-xs sm:text-sm font-bold text-slate-900">
                                         Single Sign-On &amp; Role Switching
                                     </h5>
                                 </div>
-                                <span class="inline-flex items-center gap-1.5 self-start sm:self-auto text-[11px] font-bold text-emerald-800 bg-emerald-100/90 px-2.5 py-0.5 rounded-full border border-emerald-300 shadow-2xs">
+                                <span class="inline-flex items-center gap-1.5 self-start sm:self-auto text-[11px] font-bold text-emerald-800 bg-emerald-100/90 px-2.5 py-0.5 rounded-full border border-emerald-300">
                                     <i class="fa-solid fa-lock text-[10px] text-emerald-600"></i> Same Password Used
                                 </span>
                             </div>
@@ -1113,7 +1113,7 @@
                             </button>
                             <button
                                 type="submit"
-                                class="flex-1 sm:flex-none px-8 py-3 rounded-full bg-[#0a2d27] text-white text-xs font-bold shadow-md hover:bg-[#11443c] hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+                                class="flex-1 sm:flex-none px-8 py-3 rounded-full bg-[#0a2d27] text-white text-xs font-bold hover:bg-[#11443c] transition-all duration-200 flex items-center justify-center gap-2"
                             >
                                 <span wire:loading.remove wire:target="registerContributor">Register</span>
                                 <span wire:loading wire:target="registerContributor" class="flex items-center gap-2">
@@ -1134,7 +1134,7 @@
             wire:click.self="closeVideoModal"
             @keydown.escape.window="$wire.closeVideoModal()"
         >
-            <div class="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden relative border border-slate-800">
+            <div class="bg-white w-full max-w-4xl rounded-[2.5rem] overflow-hidden relative border border-slate-800">
                 <div class="p-4 bg-slate-950 text-white flex items-center justify-between px-6">
                     <div class="flex items-center gap-2 truncate pr-4">
                         <span class="bg-rose-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">

@@ -26,8 +26,7 @@
         .chk-card {
             background-color: #ffffff;
             border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(10, 45, 39, 0.03);
-            border: 1px solid rgba(13, 148, 136, 0.05);
+            border: 1px solid #e2e8f0;
             margin-bottom: 16px;
         }
 
@@ -63,13 +62,13 @@
         }
     </style>
 </head>
-<body class="antialiased min-h-screen py-10 px-4 flex flex-col justify-center">
+<body class="public-layout antialiased min-h-screen py-10 px-4 flex flex-col justify-center">
 
     <div class="receipt-container w-full">
 
         {{-- Top Success Card --}}
         <div class="chk-card p-8 flex flex-col items-center justify-center text-center">
-            <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center mb-5 shadow-sm">
+            <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center mb-5 border border-emerald-200">
                 <i class="fa-solid fa-check text-2xl font-bold"></i>
             </div>
             <h2 class="text-slate-500 font-medium text-sm mb-3">Payment Success!</h2>
@@ -152,7 +151,7 @@
         </a>
 
         {{-- Print Button --}}
-        <button onclick="window.print()" class="no-print w-full py-3.5 rounded-xl bg-white border border-slate-200 text-[#0a2d27] font-bold text-sm shadow-sm hover:bg-slate-50 transition flex items-center justify-center gap-2 cursor-pointer mb-6">
+        <button onclick="window.print()" class="no-print w-full py-3.5 rounded-xl bg-white border border-slate-200 text-[#0a2d27] font-bold text-sm hover:bg-slate-50 transition flex items-center justify-center gap-2 cursor-pointer mb-6">
             <i class="fa-solid fa-download text-slate-400"></i> Get PDF Receipt
         </button>
 

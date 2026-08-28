@@ -13,7 +13,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
 </head>
-<body class="hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
+<body class="public-layout hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
 
     @include('partials.public-header')
 
@@ -76,7 +76,7 @@
                             </div>
                         </div>
 
-                        <div x-show="step === 1" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                        <div x-show="step === 1" class="bg-white rounded-2xl p-6 border border-slate-200">
                             <h2 class="text-lg font-bold text-slate-900 mb-4"><i class="fa-solid fa-user text-teal-600 mr-2"></i>Instructor Profile Information</h2>
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
@@ -122,7 +122,7 @@
                             </div>
                         </div>
 
-                        <div x-show="step === 2" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                        <div x-show="step === 2" class="bg-white rounded-2xl p-6 border border-slate-200">
                             <h2 class="text-lg font-bold text-slate-900 mb-4"><i class="fa-solid fa-graduation-cap text-teal-600 mr-2"></i>Qualifications & Experience</h2>
                             <div class="space-y-4">
                                 <div>
@@ -141,7 +141,7 @@
                             </div>
                         </div>
 
-                        <div x-show="step === 3" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                        <div x-show="step === 3" class="bg-white rounded-2xl p-6 border border-slate-200">
                             <h2 class="text-lg font-bold text-slate-900 mb-4"><i class="fa-solid fa-lightbulb text-teal-600 mr-2"></i>Course Proposal</h2>
 
                             <div class="mb-6">
@@ -281,7 +281,7 @@
                             </div>
                         </div>
 
-                        <div x-show="step === 4" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 text-center">
+                        <div x-show="step === 4" class="bg-white rounded-2xl p-6 border border-slate-200 text-center">
                             <h2 class="text-lg font-bold text-slate-900">Review & Submit</h2>
                             <p class="mt-2 text-sm text-slate-600">Confirm your details across profile, qualifications, and course proposal before submitting.</p>
                             <p class="mt-2 text-xs text-slate-500">On approval, your instructor account will be activated, your profile will be listed publicly, and approved course assignment will be made public.</p>
@@ -310,7 +310,7 @@
                                 <button
                                     type="submit"
                                     x-show="step === 4"
-                                    class="rounded-full bg-[#0a2d27] px-10 py-3.5 text-sm font-bold text-white hover:bg-[#11443c] transition-all shadow-lg"
+                                    class="rounded-full bg-[#0a2d27] px-10 py-3.5 text-sm font-bold text-white hover:bg-[#11443c] transition-all"
                                 >
                                     <i class="fa-solid fa-paper-plane mr-2"></i>Submit Application
                                 </button>
@@ -318,7 +318,7 @@
                         </div>
 
                         <div x-show="showCurriculumGuide" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4" style="display: none;">
-                            <div @click.outside="showCurriculumGuide = false" class="w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
+                            <div @click.outside="showCurriculumGuide = false" class="w-full max-w-2xl rounded-2xl bg-white border border-slate-200">
                                 <div class="flex items-start justify-between border-b border-slate-200 px-6 py-4">
                                     <h3 class="text-lg font-bold text-slate-900">New Course Structure Guide</h3>
                                     <button type="button" @click="showCurriculumGuide = false" class="text-slate-500 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>

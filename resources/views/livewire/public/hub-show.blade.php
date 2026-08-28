@@ -1,4 +1,4 @@
-<div class="hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased min-h-screen">
+<div class="public-layout hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased min-h-screen">
     @include('partials.public-header')
 
     <main>
@@ -14,19 +14,19 @@
 
                 <div class="flex flex-wrap items-center gap-3 mb-4">
                     @if ($post->type === 'video')
-                        <span class="bg-rose-600 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-sm">
+                        <span class="bg-rose-600 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full">
                             <i class="fa-solid fa-video mr-1"></i> Video Tutorial
                         </span>
                     @elseif ($post->type === 'opportunity')
-                        <span class="bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-sm">
+                        <span class="bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full">
                             <i class="fa-solid fa-briefcase mr-1"></i> {{ $post->extra['opportunity_type'] ?? 'Opportunity' }}
                         </span>
                     @elseif ($post->type === 'tip_trick')
-                        <span class="bg-teal-600 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-sm">
+                        <span class="bg-teal-600 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full">
                             <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Tip &amp; Trick
                         </span>
                     @else
-                        <span class="bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-sm">
+                        <span class="bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full">
                             <i class="fa-solid fa-newspaper mr-1"></i> Short Blog
                         </span>
                     @endif
@@ -81,7 +81,7 @@
 
                 {{-- Video Player Container (For Video Posts) --}}
                 @if ($post->type === 'video')
-                    <div class="mb-10 rounded-[2.5rem] overflow-hidden shadow-2xl bg-black border border-slate-800 relative aspect-video">
+                    <div class="mb-10 rounded-[2.5rem] overflow-hidden bg-black border border-slate-800 relative aspect-video">
                         @if ($post->video_id)
                             <iframe
                                 src="https://www.youtube-nocookie.com/embed/{{ $post->video_id }}?autoplay=0"
@@ -103,7 +103,7 @@
 
                 {{-- Opportunity Structured Data Table Header --}}
                 @if ($post->type === 'opportunity')
-                    <div class="mb-10 bg-white rounded-[2rem] p-6 border border-emerald-100 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="mb-10 bg-white rounded-[2rem] p-6 border border-emerald-100 grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
                             <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Host / Organization</p>
                             <p class="text-sm font-bold text-emerald-800 mt-1">
@@ -129,14 +129,14 @@
 
                 {{-- Excerpt / Core Summary Box --}}
                 @if ($post->excerpt)
-                    <div class="mb-8 p-6 bg-teal-50/80 border-l-4 border-teal-600 rounded-r-3xl text-slate-800 text-base sm:text-lg font-medium leading-relaxed shadow-2xs">
+                    <div class="mb-8 p-6 bg-teal-50/80 border-l-4 border-teal-600 rounded-r-3xl text-slate-800 text-base sm:text-lg font-medium leading-relaxed">
                         {{ $post->excerpt }}
                     </div>
                 @endif
 
                 {{-- Code Snippet Box (For Tips & Tricks) --}}
                 @if ($post->code_snippet)
-                    <div class="mb-8 rounded-2xl bg-slate-900 p-5 text-teal-300 font-mono text-sm shadow-xl border border-slate-800 overflow-x-auto">
+                    <div class="mb-8 rounded-2xl bg-slate-900 p-5 text-teal-300 font-mono text-sm border border-slate-800 overflow-x-auto">
                         <div class="flex items-center justify-between text-xs text-slate-400 mb-3 pb-2 border-b border-slate-800">
                             <span class="flex items-center gap-1.5 font-bold text-teal-400">
                                 <i class="fa-solid fa-code"></i> Code Snippet
@@ -149,7 +149,7 @@
 
                 {{-- Pro Tip Callout Box (For Tips & Tricks) --}}
                 @if ($post->pro_tip)
-                    <div class="mb-8 rounded-2xl bg-amber-50 p-5 border border-amber-200 text-amber-900 text-sm flex items-start gap-3 shadow-xs">
+                    <div class="mb-8 rounded-2xl bg-amber-50 p-5 border border-amber-200 text-amber-900 text-sm flex items-start gap-3">
                         <i class="fa-solid fa-lightbulb text-amber-500 text-xl mt-0.5 shrink-0"></i>
                         <div>
                             <h4 class="font-bold text-amber-950 uppercase tracking-wider text-xs mb-1">Pro Tip &amp; Best Practice</h4>
@@ -167,7 +167,7 @@
 
                 {{-- Media Attachments Section --}}
                 @if ($post->media && $post->media->isNotEmpty())
-                    <div class="mt-12 p-6 sm:p-8 rounded-[2rem] bg-white border border-slate-200 shadow-sm">
+                    <div class="mt-12 p-6 sm:p-8 rounded-[2rem] bg-white border border-slate-200">
                         <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-4">
                             <i class="fa-solid fa-folder-closed text-teal-700 text-xl"></i>
                             <div>
@@ -193,7 +193,7 @@
 
                                     <a
                                         href="{{ route('media.download', $item->id) }}"
-                                        class="inline-flex items-center gap-1.5 rounded-full bg-[#0a2d27] px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#11443c] shrink-0 transition"
+                                        class="inline-flex items-center gap-1.5 rounded-full bg-[#0a2d27] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#11443c] shrink-0 transition"
                                     >
                                         <i class="fa-solid fa-download text-[10px]"></i> Download
                                     </a>
@@ -205,7 +205,7 @@
 
                 {{-- Opportunity Action Container --}}
                 @if ($post->type === 'opportunity')
-                    <div class="mt-12 p-8 rounded-[2.5rem] bg-gradient-to-br from-emerald-900 to-[#0a2d27] text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-emerald-800">
+                    <div class="mt-12 p-8 rounded-[2.5rem] bg-gradient-to-br from-emerald-900 to-[#0a2d27] text-white flex flex-col sm:flex-row items-center justify-between gap-6 border border-emerald-800">
                         <div>
                             <span class="inline-block bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-2 border border-emerald-400/20">
                                 Opportunity Action
@@ -225,7 +225,7 @@
                                     href="{{ $post->opportunity_link }}"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] shadow-lg hover:bg-white transition-all transform hover:-translate-y-0.5 shrink-0"
+                                    class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] hover:bg-white transition-all transform hover:-translate-y-0.5 shrink-0"
                                 >
                                     Apply / Access Opportunity <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
                                 </a>
@@ -240,7 +240,7 @@
 
                 {{-- Author Bio Card --}}
                 <div class="mt-12 p-6 rounded-[2rem] bg-slate-50 border border-slate-200/80 flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-[#0a2d27] text-white font-bold text-lg flex items-center justify-center shrink-0 shadow-md">
+                    <div class="w-12 h-12 rounded-full bg-[#0a2d27] text-white font-bold text-lg flex items-center justify-center shrink-0">
                         {{ strtoupper(substr($post->author->name ?? 'T', 0, 1)) }}
                     </div>
                     <div>
@@ -261,7 +261,7 @@
 
                         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             @foreach ($relatedPosts as $rel)
-                                <article class="bg-white rounded-[1.5rem] p-5 border border-slate-200/80 hover:shadow-lg transition-all duration-300 flex flex-col justify-between">
+                                <article class="bg-white rounded-[1.5rem] p-5 border border-slate-200 hover:border-teal-500 transition-all duration-300 flex flex-col justify-between">
                                     <div>
                                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
                                             {{ $rel->category }}

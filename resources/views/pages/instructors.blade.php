@@ -13,7 +13,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
 </head>
-<body class="hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
+<body class="public-layout hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
 
     @include('partials.public-header')
 
@@ -30,31 +30,31 @@
                 <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
                     <a
                         href="{{ route('landing.instructors', ['role' => 'all']) }}"
-                        class="px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ $activeRole === 'all' ? 'bg-yellow-400 text-[#0a2d27] shadow-md' : 'bg-white/10 text-white hover:bg-white/20' }}"
+                        class="px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ $activeRole === 'all' ? 'bg-yellow-400 text-[#0a2d27]' : 'bg-white/10 text-white hover:bg-white/20' }}"
                     >
                         All Members
                     </a>
                     <a
                         href="{{ route('landing.instructors', ['role' => 'instructor']) }}"
-                        class="px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ $activeRole === 'instructor' ? 'bg-teal-500 text-white shadow-md' : 'bg-white/10 text-white hover:bg-white/20' }}"
+                        class="px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ $activeRole === 'instructor' ? 'bg-teal-500 text-white' : 'bg-white/10 text-white hover:bg-white/20' }}"
                     >
                         <i class="fa-solid fa-chalkboard-user mr-1 text-[11px]"></i> Instructors
                     </a>
                     <a
                         href="{{ route('landing.instructors', ['role' => 'researcher']) }}"
-                        class="px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ $activeRole === 'researcher' ? 'bg-amber-500 text-white shadow-md' : 'bg-white/10 text-white hover:bg-white/20' }}"
+                        class="px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ $activeRole === 'researcher' ? 'bg-amber-500 text-white' : 'bg-white/10 text-white hover:bg-white/20' }}"
                     >
                         <i class="fa-solid fa-wand-magic-sparkles mr-1 text-[11px]"></i> Researchers
                     </a>
                     <a
                         href="{{ route('landing.instructors', ['role' => 'blogger']) }}"
-                        class="px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ $activeRole === 'blogger' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white/10 text-white hover:bg-white/20' }}"
+                        class="px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ $activeRole === 'blogger' ? 'bg-indigo-600 text-white' : 'bg-white/10 text-white hover:bg-white/20' }}"
                     >
                         <i class="fa-solid fa-newspaper mr-1 text-[11px]"></i> Bloggers
                     </a>
                     <a
                         href="{{ route('landing.instructors', ['role' => 'employer']) }}"
-                        class="px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ $activeRole === 'employer' ? 'bg-emerald-500 text-white shadow-md' : 'bg-white/10 text-white hover:bg-white/20' }}"
+                        class="px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ $activeRole === 'employer' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white hover:bg-white/20' }}"
                     >
                         <i class="fa-solid fa-briefcase mr-1 text-[11px]"></i> Employers
                     </a>
@@ -86,7 +86,7 @@
                                 }
                             @endphp
 
-                            <article class="group bg-white rounded-2xl p-3 sm:p-3.5 shadow-sm border border-slate-200/80 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
+                            <article class="group bg-white rounded-2xl p-3 sm:p-3.5 border border-slate-200 hover:border-teal-500 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
                                 <div>
                                     {{-- Photo Header Container (Full Portrait) --}}
                                     <div class="relative w-full aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-2.5 flex items-center justify-center" style="aspect-ratio: 3/4;">
@@ -98,7 +98,7 @@
                                                 onerror="this.parentElement.innerHTML='<div class=\'w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center\'><span class=\'text-lg font-black text-teal-700\'>{{ strtoupper(substr($member->name, 0, 2)) }}</span></div>'"
                                             >
                                         @else
-                                            <div class="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center shadow-inner">
+                                            <div class="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center border border-teal-200">
                                                 <span class="text-xl font-black text-teal-700">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
                                             </div>
                                         @endif
@@ -195,7 +195,7 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="text-center py-16 bg-white rounded-3xl border border-slate-100 shadow-xs">
+                    <div class="text-center py-16 bg-white rounded-3xl border border-slate-200">
                         <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
                             <i class="fa-solid fa-users text-xl text-slate-400"></i>
                         </div>
@@ -208,7 +208,7 @@
 
         {{-- Call to Action Section --}}
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-            <div class="rounded-[2.5rem] lg:rounded-[4rem] bg-[#0a2d27] p-8 lg:p-16 text-center lg:text-left relative overflow-hidden text-white shadow-xl">
+            <div class="rounded-[2.5rem] lg:rounded-[4rem] bg-[#0a2d27] p-8 lg:p-16 text-center lg:text-left relative overflow-hidden text-white">
                 <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
                     <div class="max-w-xl">
                         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400 mb-2">JOIN THE NETWORK</p>

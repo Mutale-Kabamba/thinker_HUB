@@ -31,12 +31,12 @@
                 src="{{ $avatarUrl }}" 
                 alt="{{ $name }}" 
                 title="{{ $name }}"
-                class="inline-block {{ $sizeClasses }} rounded-full ring-2 ring-white dark:ring-slate-900 object-cover shadow-xs" 
+                class="inline-block {{ $sizeClasses }} rounded-full ring-2 ring-white dark:ring-slate-900 object-cover" 
             />
         @else
             <div 
                 title="{{ $name }}"
-                class="inline-flex items-center justify-center {{ $sizeClasses }} rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold shadow-xs select-none"
+                class="inline-flex items-center justify-center {{ $sizeClasses }} rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold select-none"
             >
                 {{ $initial }}
             </div>
@@ -44,7 +44,7 @@
     @endforeach
 
     @if ($extra && $extra > 0)
-        <div class="inline-flex items-center justify-center {{ $sizeClasses }} rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-900 dark:bg-slate-800 text-white font-bold tracking-tight shadow-xs select-none">
+        <div class="inline-flex items-center justify-center {{ $sizeClasses }} rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-900 dark:bg-slate-800 text-white font-bold tracking-tight select-none">
             +{{ $extra }}
         </div>
     @endif

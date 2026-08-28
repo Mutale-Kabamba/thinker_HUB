@@ -67,7 +67,7 @@
     $scheme = $colorMap[$color] ?? $colorMap['teal'];
 @endphp
 
-<div {{ $attributes->merge(['class' => 'edtech-stat-card group relative bg-white dark:bg-slate-900/90 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden']) }}>
+<div {{ $attributes->merge(['class' => 'edtech-stat-card group relative bg-white dark:bg-slate-900/90 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 transition-all duration-200 flex flex-col justify-between overflow-hidden']) }}>
     {{-- Top Row: Title & Details Link / Icon --}}
     <div class="flex items-center justify-between gap-2 mb-3">
         <span class="text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-400 uppercase">
@@ -82,7 +82,7 @@
                 </svg>
             </a>
         @elseif ($icon)
-            <div class="w-8 h-8 rounded-xl {{ $scheme['icon_bg'] }} {{ $scheme['icon_text'] }} flex items-center justify-center text-sm shadow-xs">
+            <div class="w-8 h-8 rounded-xl {{ $scheme['icon_bg'] }} {{ $scheme['icon_text'] }} flex items-center justify-center text-sm">
                 {!! $icon !!}
             </div>
         @endif

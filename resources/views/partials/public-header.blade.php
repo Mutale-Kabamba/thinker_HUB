@@ -28,7 +28,7 @@
             @auth
                 <a
                     href="{{ route('dashboard') }}"
-                    class="inline-flex items-center gap-2 rounded-full bg-[#0a2d27] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#11443c] transition-all"
+                    class="inline-flex items-center gap-2 rounded-full bg-[#0a2d27] px-5 py-2 text-xs font-bold text-white hover:bg-[#11443c] transition-all"
                 >
                     <i class="fa-solid fa-gauge"></i> Dashboard ({{ Str::words(auth()->user()->name, 1, '') }})
                 </a>
@@ -40,7 +40,7 @@
                 </form>
             @else
                 <a href="{{ route('login') }}" class="hub-public-auth-link text-xs font-bold text-slate-700 hover:text-teal-700 transition-colors">Login</a>
-                <a href="{{ route('enroll') }}" class="hub-public-cta inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#11443c] transition duration-300">Enroll Now</a>
+                <a href="{{ route('enroll') }}" class="hub-public-cta inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-5 py-2 text-xs font-bold text-white hover:bg-[#11443c] transition duration-300">Enroll Now</a>
             @endauth
         </div>
 
@@ -60,7 +60,7 @@
 
             @auth
                 <div class="pt-3 mt-1 border-t border-slate-100 flex flex-col gap-2">
-                    <a href="{{ route('dashboard') }}" class="w-full min-h-[46px] flex items-center justify-center rounded-xl bg-[#0a2d27] py-3 text-center text-xs font-bold text-white shadow-xs active:scale-98">
+                    <a href="{{ route('dashboard') }}" class="w-full min-h-[46px] flex items-center justify-center rounded-xl bg-[#0a2d27] py-3 text-center text-xs font-bold text-white active:scale-98">
                         <i class="fa-solid fa-gauge mr-2"></i> Dashboard ({{ auth()->user()->name }})
                     </a>
                     <form method="POST" action="{{ route('logout') }}">

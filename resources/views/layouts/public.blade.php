@@ -16,7 +16,7 @@
     @include('partials.pwa-register')
     @livewireStyles
 </head>
-<body class="hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased min-h-dvh" x-data="{ mobileMenu: false }">
+<body class="public-layout hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased min-h-dvh" x-data="{ mobileMenu: false }">
     {{ $slot }}
     @livewireScripts
 </body>

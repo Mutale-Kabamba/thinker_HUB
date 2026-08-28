@@ -13,7 +13,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
 </head>
-<body class="hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
+<body class="public-layout hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
 
     @include('partials.public-header')
 
@@ -43,9 +43,9 @@
                 <div class="mt-6 grid gap-8 lg:grid-cols-[220px_1fr] lg:items-center">
                     <div class="mx-auto lg:mx-0">
                         @if ($profileImage)
-                            <img src="{{ $profileImage }}" alt="{{ $instructor->name }}" class="h-48 w-48 rounded-3xl object-cover border-4 border-white/15 shadow-2xl">
+                            <img src="{{ $profileImage }}" alt="{{ $instructor->name }}" class="h-48 w-48 rounded-3xl object-cover border-4 border-white/15">
                         @else
-                            <div class="h-48 w-48 rounded-3xl bg-white/10 border-4 border-white/15 shadow-2xl flex items-center justify-center">
+                            <div class="h-48 w-48 rounded-3xl bg-white/10 border-4 border-white/15 flex items-center justify-center">
                                 <span class="text-5xl font-black text-white">{{ strtoupper(substr($instructor->name, 0, 2)) }}</span>
                             </div>
                         @endif
@@ -114,7 +114,7 @@
 
         <section class="py-14 lg:py-18">
             <div class="mx-auto max-w-6xl px-6 lg:px-8 grid gap-6 lg:grid-cols-3">
-                <article class="lg:col-span-2 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+                <article class="lg:col-span-2 rounded-3xl border border-slate-200 bg-white p-7">
                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">About {{ $roleTitle }}</p>
                     <h2 class="mt-2 text-2xl font-black text-slate-900">Background &amp; Bio</h2>
                     <p class="mt-4 text-sm leading-relaxed text-slate-600">
@@ -122,7 +122,7 @@
                     </p>
                 </article>
 
-                <article class="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+                <article class="rounded-3xl border border-slate-200 bg-white p-7">
                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Profile Details</p>
                     <ul class="mt-4 space-y-3 text-sm text-slate-600">
                         <li><span class="font-semibold text-slate-900">Role:</span> {{ $roleTitle }}</li>
@@ -149,7 +149,7 @@
 
                     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($posts as $post)
-                            <article class="group bg-white rounded-3xl p-6 shadow-xs border border-slate-200 flex flex-col justify-between hover:border-teal-400 transition">
+                            <article class="group bg-white rounded-3xl p-6 border border-slate-200 flex flex-col justify-between hover:border-teal-400 transition">
                                 <div>
                                     <div class="flex items-center justify-between gap-2 mb-3">
                                         <span class="bg-teal-50 text-teal-800 text-[10px] font-extrabold uppercase px-3 py-0.5 rounded-full border border-teal-100">
@@ -187,7 +187,7 @@
 
                     <div class="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($courses as $course)
-                            <article class="group rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-sm hover:shadow-xl transition-all">
+                            <article class="group rounded-[1.6rem] border border-slate-200 bg-white p-4 hover:border-teal-500 transition-all">
                                 <div class="px-2 py-4">
                                     <h3 class="text-lg font-bold text-slate-900">{{ $course->title }}</h3>
                                     <p class="mt-1 text-xs text-slate-500">{{ $course->code }}</p>

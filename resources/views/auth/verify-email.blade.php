@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-slate-900">
+    <div class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 dark:border-slate-800 dark:bg-slate-900">
         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Email Verification</p>
         <h1 class="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">Verify Your Email Address</h1>
         <p class="mt-3 text-sm text-slate-600 dark:text-slate-400">

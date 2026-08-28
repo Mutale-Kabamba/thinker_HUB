@@ -19,7 +19,7 @@
     ][$accent] ?? 'bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 text-white';
 @endphp
 
-<div {{ $attributes->merge(['class' => "relative overflow-hidden rounded-2xl {$bgStyles} p-6 md:p-8 shadow-md border border-white/10"]) }}>
+<div {{ $attributes->merge(['class' => "relative overflow-hidden rounded-2xl {$bgStyles} p-6 md:p-8 border border-white/10"]) }}>
     {{-- Decorative Background Glow Circles --}}
     <div class="absolute -top-16 -right-16 w-56 h-56 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
     <div class="absolute -bottom-20 -left-12 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -70,7 +70,7 @@
 
             <a 
                 href="{{ $ctaUrl }}" 
-                class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-xs font-extrabold text-slate-900 bg-white hover:bg-slate-100 shadow-sm hover:shadow-md transition-all duration-150 transform hover:-translate-y-0.5"
+                class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-xs font-extrabold text-slate-900 bg-white hover:bg-slate-100 transition-all duration-150 transform hover:-translate-y-0.5"
             >
                 <span>{{ $ctaLabel }}</span>
                 <svg class="w-4 h-4 text-teal-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">

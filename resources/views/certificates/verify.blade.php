@@ -20,7 +20,7 @@
             background: #fff;
             border-radius: 14px;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 30px rgba(0,0,0,.06);
+            box-shadow: none;
             max-width: 480px;
             width: 100%;
             padding: 2.25rem;
@@ -37,7 +37,7 @@
         code { background: #f1f5f9; padding: 0.1rem 0.4rem; border-radius: 5px; font-size: 0.8rem; }
     </style>
 </head>
-<body>
+<body class="public-layout">
     @if ($certificate)
         <div class="card valid">
             <div class="badge" style="display:flex;justify-content:center;">

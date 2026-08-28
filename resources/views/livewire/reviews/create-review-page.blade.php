@@ -21,7 +21,6 @@
             border: 1px solid #e2e8f0;
             border-radius: 1rem;
             padding: 1.5rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
             transition: all 0.2s ease;
         }
 
@@ -29,7 +28,6 @@
         .fi-theme-dark .hub-card {
             background: #111b21;
             border-color: #1f2c34;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
         }
 
         .hub-banner-card {
@@ -40,7 +38,6 @@
             color: #ffffff;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 15px -1px rgba(10, 45, 39, 0.3);
         }
 
         .hub-eyebrow {
@@ -124,14 +121,12 @@
         .hub-target-btn.active {
             border-color: #7C3AED;
             background: #f5f3ff;
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
         }
 
         .dark .hub-target-btn.active,
         .fi-theme-dark .hub-target-btn.active {
             border-color: #c084fc;
             background: #2e1065;
-            box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
         }
 
         .hub-target-icon {
@@ -191,7 +186,6 @@
         .hub-input-field:focus {
             outline: none;
             border-color: #7C3AED;
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
         }
 
         .hub-submit-btn {
@@ -207,7 +201,6 @@
             color: #ffffff;
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 14px -2px rgba(124, 58, 237, 0.4);
             transition: all 0.2s ease;
         }
 
@@ -218,39 +211,28 @@
 
         /* Star Rating */
         .hub-star-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.85rem;
-            padding: 1.25rem;
-            text-align: center;
-        }
-
-        .dark .hub-star-box,
-        .fi-theme-dark .hub-star-box {
-            background: #1e293b;
-            border-color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
         }
 
         .hub-star-btn {
-            background: none;
+            background: transparent;
             border: none;
-            font-size: 2.25rem;
-            line-height: 1;
             cursor: pointer;
-            padding: 0 0.25rem;
-            transition: transform 0.15s ease;
+            padding: 0.25rem;
+            font-size: 1.5rem;
+            line-height: 1;
+            color: #cbd5e1;
+            transition: color 0.15s ease, transform 0.1s ease;
         }
 
         .hub-star-btn:hover {
-            transform: scale(1.25);
+            transform: scale(1.15);
         }
 
-        .hub-star-filled {
+        .hub-star-btn.active {
             color: #f59e0b;
-        }
-
-        .hub-star-empty {
-            color: #cbd5e1;
         }
 
         .dark .hub-star-empty,
@@ -272,13 +254,11 @@
             font-size: 0.875rem;
             border: none;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(15, 118, 110, 0.25);
             transition: all 0.2s ease;
         }
 
         .hub-btn-submit:hover {
             background: #115e59;
-            box-shadow: 0 4px 8px rgba(15, 118, 110, 0.35);
         }
 
         .hub-btn-submit:disabled {

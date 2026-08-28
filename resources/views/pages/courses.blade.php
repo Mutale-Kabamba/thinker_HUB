@@ -13,7 +13,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
 </head>
-<body class="hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
+<body class="public-layout hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
 
     @include('partials.public-header')
 
@@ -66,10 +66,10 @@
                         @php
                             $courseImage = $resolveCourseImage($course);
                         @endphp
-                        <article class="group bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-xl transition-all border border-slate-100">
+                        <article class="group bg-white rounded-[2rem] p-4 border border-slate-200 hover:border-teal-500 transition-all">
                             <div class="relative h-56 overflow-hidden rounded-[1.5rem]">
                                 <img src="{{ asset($courseImage) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="{{ $course->title }} image">
-                                <div class="absolute top-4 left-4 bg-yellow-400 text-[#0a2d27] text-[11px] font-bold px-4 py-1.5 rounded-full shadow-lg">BEST SELLER</div>
+                                <div class="absolute top-4 left-4 bg-yellow-400 text-[#0a2d27] text-[11px] font-bold px-4 py-1.5 rounded-full border border-yellow-500/20">BEST SELLER</div>
                             </div>
                             <div class="px-3 py-6">
                                 @php
@@ -138,14 +138,14 @@
                                                     type="button"
                                                     onclick="window.openCourseOptionModal(@js($courseModalData))"
                                                     @click.prevent="window.openCourseOptionModal(@js($courseModalData))"
-                                                    class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm cursor-pointer"
+                                                    class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 cursor-pointer"
                                                 >
                                                     Enroll &amp; Pay
                                                 </button>
                                             @else
                                                 <a
                                                     href="{{ route('checkout.show', $course) }}"
-                                                    class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm"
+                                                    class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300"
                                                 >
                                                     Enroll &amp; Pay
                                                 </a>
@@ -187,7 +187,7 @@
                         </article>
                     @empty
                         <div class="col-span-full py-24 text-center border-2 border-dashed border-slate-200 rounded-[3rem] bg-slate-50/50">
-                            <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-sm mb-4">
+                            <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto border border-slate-200 mb-4">
                                 <i class="fa-solid fa-book-open text-teal-600 text-2xl"></i>
                             </div>
                             <p class="text-slate-500 font-medium">No active courses available yet.</p>

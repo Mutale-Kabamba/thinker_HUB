@@ -27,7 +27,7 @@
         }
 
         /* Sheet card */
-        .pay-card { background:#fff; border-radius:20px; box-shadow:0 8px 40px rgba(10,45,39,.08); width:100%; }
+        .pay-card { background:#fff; border-radius:20px; box-shadow:none; width:100%; }
 
         /* Tabs */
         .tab-bar { display:flex; border-bottom:1.5px solid #e8f5f3; }
@@ -45,7 +45,6 @@
         .provider-item.selected {
             background: #e6f7f5;
             border-color: rgba(13, 148, 136, 0.25);
-            box-shadow: 0 4px 16px rgba(13, 148, 136, 0.08);
             transform: scale(1.01);
         }
         .provider-row {
@@ -80,7 +79,6 @@
         .provider-item.selected .provider-logo {
             transform: scale(1.08);
             border-color: #0d9488;
-            box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
         }
         .provider-logo img {
             width: 32px;
@@ -123,8 +121,8 @@
 
         /* Expanded form */
         .form-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#9db5b2; margin-bottom:6px; display:block; }
-        .form-input { width:100%; border:1.5px solid #d4eae7; border-radius:10px; padding:10px 14px; font-size:.85rem; color:#0a2d27; outline:none; transition:border-color .15s, box-shadow .15s; background:#fff; }
-        .form-input:focus { border-color:#0d9488; box-shadow:0 0 0 3px rgba(13,148,136,.10); }
+        .form-input { width:100%; border:1.5px solid #d4eae7; border-radius:10px; padding:10px 14px; font-size:.85rem; color:#0a2d27; outline:none; transition:border-color .15s; background:#fff; }
+        .form-input:focus { border-color:#0d9488; outline:none; }
         .input-prefix { display:flex; }
         .input-prefix-label { border:1.5px solid #d4eae7; border-right:none; border-radius:10px 0 0 10px; padding:10px 12px; font-size:.8rem; font-weight:700; color:#9db5b2; background:#f0faf8; }
         .input-prefix .form-input { border-radius:0 10px 10px 0; }
@@ -181,7 +179,6 @@
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            box-shadow: 0 4px 20px rgba(13, 148, 136, 0.35);
             z-index: 2;
         }
         .pay-orbit-ring {
@@ -213,7 +210,7 @@
         .blink-dot:nth-child(3) { animation-delay:.4s; }
     </style>
 </head>
-<body class="flex flex-col" x-data="checkout()">
+<body class="public-layout flex flex-col" x-data="checkout()">
 
     {{-- Minimal top bar --}}
     <div class="w-full bg-white/90 backdrop-blur-sm border-b border-teal-100/60 py-3 px-6 flex items-center justify-between">
@@ -239,7 +236,7 @@
 
             {{-- Error message banner --}}
             <template x-if="errorMessage">
-                <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700 flex items-start gap-2.5 shadow-sm">
+                <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700 flex items-start gap-2.5">
                     <i class="fa-solid fa-circle-exclamation text-red-500 mt-0.5 text-sm shrink-0"></i>
                     <div class="flex-1" x-text="errorMessage"></div>
                     <button type="button" @click="errorMessage = ''" class="text-red-400 hover:text-red-600">
@@ -326,7 +323,7 @@
                                 {{-- Active Selected Preview --}}
                                 <div class="flex items-center justify-between rounded-xl border border-teal-600/25 bg-teal-50/60 p-3.5">
                                     <div class="flex items-center gap-3">
-                                        <div class="h-9 w-9 rounded-xl bg-teal-600 text-white flex items-center justify-center text-sm font-bold shadow-xs shrink-0">
+                                        <div class="h-9 w-9 rounded-xl bg-teal-600 text-white flex items-center justify-center text-sm font-bold shrink-0">
                                             <i class="fa-solid fa-layer-group"></i>
                                         </div>
                                         <div class="min-w-0 flex-1">
@@ -334,7 +331,7 @@
                                             <p class="text-[11px] text-slate-500">Curriculum &amp; mentor access configured</p>
                                         </div>
                                     </div>
-                                    <span class="text-xs font-black text-teal-800 bg-white px-2.5 py-1 rounded-lg border border-teal-100 shadow-2xs shrink-0 ml-2">
+                                    <span class="text-xs font-black text-teal-800 bg-white px-2.5 py-1 rounded-lg border border-teal-100 shrink-0 ml-2">
                                         ZMW <span x-text="Number(feeAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span>
                                     </span>
                                 </div>
@@ -559,7 +556,7 @@
 
             <template x-if="paymentConfirmed">
                 <div class="py-4">
-                    <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-4 border border-emerald-100 shadow-sm">
+                    <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-4 border border-emerald-100">
                         <i class="fa-solid fa-check text-2xl"></i>
                     </div>
                     <h3 class="text-lg font-black text-[#0a2d27]">Payment Approved!</h3>

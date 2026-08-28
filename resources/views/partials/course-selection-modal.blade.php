@@ -36,7 +36,7 @@
     {{-- Modal Sheet --}}
     <div
         @click.stop
-        class="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-teal-100 transition-all duration-300 z-10 my-auto"
+        class="relative w-full max-w-xl bg-white rounded-3xl overflow-hidden border border-slate-200 transition-all duration-300 z-10 my-auto"
         x-show="isOpen"
         x-transition:enter="ease-out duration-300"
         x-transition:enter-start="opacity-0 translate-y-6 scale-95"
@@ -73,12 +73,12 @@
         {{-- Mode Filter Tabs (visible when both Group and 1:1 exist) --}}
         <div class="px-6 pt-4 pb-2 border-b border-slate-100 flex items-center justify-between gap-2" x-show="availableModes.length > 1">
             <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Filter Delivery Mode:</p>
-            <div class="inline-flex rounded-xl bg-slate-100 p-1">
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
                 <button
                     type="button"
                     @click="activeFilter = 'all'"
                     class="px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer"
-                    :class="activeFilter === 'all' ? 'bg-white text-[#0a2d27] shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+                    :class="activeFilter === 'all' ? 'bg-white text-[#0a2d27]' : 'text-slate-500 hover:text-slate-800'"
                 >
                     All (<span x-text="options.length"></span>)
                 </button>
@@ -87,7 +87,7 @@
                         type="button"
                         @click="activeFilter = mode"
                         class="px-3 py-1 text-xs font-bold rounded-lg transition capitalize cursor-pointer"
-                        :class="activeFilter === mode ? 'bg-white text-[#0a2d27] shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+                        :class="activeFilter === mode ? 'bg-white text-[#0a2d27]' : 'text-slate-500 hover:text-slate-800'"
                         x-text="mode === 'one_on_one' ? '1:1 Private' : 'Group Class'"
                     >
                     </button>
@@ -102,8 +102,8 @@
                     @click="selectOption(opt)"
                     class="group relative rounded-2xl border-2 p-4 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     :class="selectedOption && selectedOption.id === opt.id
-                        ? 'border-teal-600 bg-teal-50/70 shadow-md ring-2 ring-teal-600/20'
-                        : 'border-slate-200 bg-white hover:border-teal-300 hover:bg-slate-50/50 shadow-xs'"
+                        ? 'border-teal-600 bg-teal-50/70 ring-2 ring-teal-600/20'
+                        : 'border-slate-200 bg-white hover:border-teal-300 hover:bg-slate-50/50'"
                 >
                     <div class="flex items-start gap-3.5 min-w-0 flex-1">
                         {{-- Radio / Checkbox Indicator --}}
@@ -174,7 +174,7 @@
                 type="button"
                 @click="proceedToCheckout()"
                 :disabled="!selectedOption"
-                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-yellow-400 px-6 py-3 text-xs font-extrabold text-[#0a2d27] shadow-md shadow-yellow-400/20 transition hover:bg-yellow-300 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-yellow-400 px-6 py-3 text-xs font-extrabold text-[#0a2d27] transition hover:bg-yellow-300 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
                 <span>Proceed to Checkout</span>
                 <i class="fa-solid fa-arrow-right text-xs"></i>

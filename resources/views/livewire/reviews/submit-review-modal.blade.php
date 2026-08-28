@@ -4,7 +4,7 @@
             <div style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(6px);"
                  x-data
                  @keydown.escape.window="$wire.closeModal()">
-                <div style="position: relative; width: 100%; max-width: 520px; max-height: 90vh; background: #ffffff; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(226, 232, 240, 0.8);"
+                <div style="position: relative; width: 100%; max-width: 520px; max-height: 90vh; background: #ffffff; border-radius: 16px; box-shadow: none; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #cbd5e1;"
                      class="dark:bg-slate-900 dark:border-slate-800">
                     
                     {{-- Modal Header --}}
