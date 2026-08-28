@@ -13,7 +13,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
 </head>
-<body class="hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
+<body class="public-layout hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
 
     @include('partials.public-header')
 
@@ -28,7 +28,7 @@
 
         <section class="py-20 lg:py-24">
             <div class="mx-auto grid max-w-6xl gap-8 px-6 lg:grid-cols-2 lg:px-8">
-                <div class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+                <div class="rounded-[2rem] border border-slate-200 bg-white p-8">
                     <h2 class="text-2xl font-bold text-slate-900">Send a Message</h2>
                     <p class="mt-2 text-sm text-slate-600">Our team usually responds within one business day.</p>
                     @if (session('contact_success'))
@@ -96,7 +96,7 @@
                     </form>
                 </div>
 
-                <div class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm flex flex-col justify-between">
+                <div class="rounded-[2rem] border border-slate-200 bg-white p-8 flex flex-col justify-between">
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
                         <div class="mt-4 space-y-2.5 text-sm text-slate-500">
@@ -113,7 +113,7 @@
 
                     <!-- Interactive Google Map -->
                     <div class="mt-6">
-                        <div class="overflow-hidden rounded-2xl border border-slate-200 shadow-sm bg-slate-100">
+                        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
                             <iframe
                                 title="think.er HUB Livingstone Location Map"
                                 src="https://maps.google.com/maps?q=10A%20Off%20Natwange%20Street%2C%20Livingstone%2C%20Zambia&t=&z=16&ie=UTF8&iwloc=&output=embed"

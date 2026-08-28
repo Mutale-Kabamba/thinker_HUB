@@ -321,7 +321,6 @@
             background: #7C3AED;
             color: #ffffff;
             border-color: #7C3AED;
-            box-shadow: 0 4px 12px -2px rgba(124, 58, 237, 0.35);
         }
 
         .dark .claim-tab-btn,
@@ -812,6 +811,7 @@
         }
 
         .hub-modal-card {
+            position: relative;
             max-width: 440px;
             width: 100%;
             max-height: 85vh;
@@ -820,7 +820,6 @@
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -832,7 +831,6 @@
             background: #102028;
             border-color: #2d4048;
             color: #f8fafc;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
         }
 
         .modal-stat-box {

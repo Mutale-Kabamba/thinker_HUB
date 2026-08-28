@@ -15,7 +15,7 @@
     @include('partials.pwa-register')
 </head>
 <body
-    class="hub-public bg-white text-slate-900 font-sans antialiased"
+    class="public-layout hub-public bg-white text-slate-900 font-sans antialiased"
     x-data="{
         mobileMenu: false,
         heroSlideIndex: 0,
@@ -94,7 +94,7 @@
                             think.er HUB connects tutors and learners in one place: tutors can register courses and manage their learners, while anyone ready to upskill can register for a course of interest.
                         </p>
                         <div class="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5">
-                            <a href="{{ route('register') }}" class="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-yellow-400 px-10 py-4 font-bold text-[#0a2d27] shadow-[0_18px_42px_-18px_rgba(253,224,71,0.85)] transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-amber-300 focus:outline-none focus:ring-4 focus:ring-yellow-300/60">Register for a Course</a>
+                            <a href="{{ route('register') }}" class="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-yellow-400 px-10 py-4 font-bold text-[#0a2d27] transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-amber-300 focus:outline-none focus:ring-4 focus:ring-yellow-300/60">Register for a Course</a>
                             <a href="{{ route('landing.instructors.apply') }}" class="w-full sm:w-auto inline-flex items-center justify-center rounded-full border border-white/30 bg-white/5 px-10 py-4 font-bold text-white transition duration-300 ease-out hover:bg-white/15 focus:outline-none focus:ring-4 focus:ring-white/20 text-center">Instructor Registration</a>
                         </div>
                         
@@ -129,7 +129,7 @@
                                 class="rounded-full w-full h-full object-cover border-4 border-white/10 absolute inset-0 z-10"
                             >
                             <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/45 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white backdrop-blur-sm" x-text="heroSlides[heroSlideIndex].label"></div>
-                            <div class="absolute -bottom-2 -right-4 bg-white p-4 rounded-2xl shadow-2xl z-20 hidden sm:flex items-center gap-3">
+                            <div class="absolute -bottom-2 -right-4 bg-white p-4 rounded-2xl border border-slate-200 z-20 hidden sm:flex items-center gap-3">
                                 <div class="bg-green-100 p-2 rounded-lg text-green-600"><i class="fa-solid fa-certificate"></i></div>
                                 <div><p class="text-xs font-bold text-[#0a2d27]">Creator + Learner Ready</p><p class="text-[10px] text-slate-500">Teach, Manage, Upskill</p></div>
                             </div>
@@ -148,37 +148,37 @@
                 </div>
 
                 <div class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6">
                         <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-600"><i class="fa-solid fa-users-gear"></i></div>
                         <h3 class="mt-4 text-lg font-bold text-slate-900">Tutor-Led Course Management</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">Tutors can register courses, manage learners, and run delivery from one focused workspace.</p>
                     </article>
 
-                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6">
                         <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><i class="fa-solid fa-calendar-check"></i></div>
                         <h3 class="mt-4 text-lg font-bold text-slate-900">Structured Course Delivery</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">Coordinate sessions, assignments, and assessments without scattered tools.</p>
                     </article>
 
-                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6">
                         <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600"><i class="fa-solid fa-chart-line"></i></div>
                         <h3 class="mt-4 text-lg font-bold text-slate-900">Clear Progress Visibility</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">Track learner activity and outcomes so instructors can intervene earlier and better.</p>
                     </article>
 
-                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6">
                         <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700"><i class="fa-solid fa-folder-tree"></i></div>
                         <h3 class="mt-4 text-lg font-bold text-slate-900">Resource Control</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">Publish and manage materials, updates, and communication in one platform.</p>
                     </article>
 
-                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6">
                         <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><i class="fa-solid fa-user-plus"></i></div>
                         <h3 class="mt-4 text-lg font-bold text-slate-900">Curated Course Enrollment</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">Learners can discover curated courses and register quickly based on their goals.</p>
                     </article>
 
-                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6">
                         <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600"><i class="fa-solid fa-user-shield"></i></div>
                         <h3 class="mt-4 text-lg font-bold text-slate-900">Controlled Access by Role</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">Guide each user into admin, instructor, or student views with the permissions they need.</p>
@@ -240,10 +240,10 @@
                         @php
                             $courseImage = $resolveCourseImage($course);
                         @endphp
-                        <article class="group bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-xl transition-all border border-slate-100">
+                        <article class="group bg-white rounded-[2rem] p-4 border border-slate-200 hover:border-teal-500 transition-all">
                             <div class="relative h-56 overflow-hidden rounded-[1.5rem]">
                                 <img src="{{ asset($courseImage) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="{{ $course->title }} image">
-                                <div class="absolute top-4 left-4 bg-yellow-400 text-[#0a2d27] text-[11px] font-bold px-4 py-1.5 rounded-full shadow-lg">BEST SELLER</div>
+                                <div class="absolute top-4 left-4 bg-yellow-400 text-[#0a2d27] text-[11px] font-bold px-4 py-1.5 rounded-full border border-yellow-500/20">BEST SELLER</div>
                             </div>
                             <div class="px-3 py-6">
                                 @php
@@ -323,7 +323,7 @@
                         </article>
                     @empty
                         <div class="col-span-full py-24 text-center border-2 border-dashed border-slate-200 rounded-[3rem] bg-slate-50/50">
-                            <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-sm mb-4">
+                            <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto border border-slate-200 mb-4">
                                 <i class="fa-solid fa-book-open text-teal-600 text-2xl"></i>
                             </div>
                             <p class="text-slate-500 font-medium">New courses arriving shortly.</p>
@@ -336,7 +336,7 @@
 
         <section class="pb-20 lg:pb-24">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
-                <div class="rounded-[2rem] border border-slate-200 bg-white p-8 lg:p-12 shadow-sm">
+                <div class="rounded-[2rem] border border-slate-200 bg-white p-8 lg:p-12">
                     <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Platform Focus</span>
                     <h2 class="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">Built for Course Creators and Learners</h2>
                     <p class="mt-4 max-w-3xl text-slate-600 leading-relaxed">This platform supports both sides of growth: tutors can create and manage courses, and learners can enroll to build practical skills that matter.</p>
@@ -355,13 +355,11 @@
             </div>
         </section>
 
-        {{-- Real Feedback / Reviews & Ratings Section --}}
-        <section class="pb-20 lg:pb-24">
+        {{-- Real Reviews Section --}}
+        <section class="py-20 lg:py-24 bg-[#FDFBF7]">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
-                <div class="mb-10 text-center md:text-left">
-                    <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Real Feedback</span>
-                    <h2 class="text-3xl font-black text-slate-900 mt-2 sm:text-4xl">Student Reviews &amp; Ratings</h2>
-                    <p class="mt-2 text-slate-600 text-sm">Real feedback from learners actively using think.er HUB.</p>
+                <div class="mb-10 text-center">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight">Real Reviews</h2>
                 </div>
 
                 <livewire:reviews.review-list target-type="platform" target-title="thinker_HUB Community" />

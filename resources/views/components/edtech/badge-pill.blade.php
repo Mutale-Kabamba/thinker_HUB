@@ -22,7 +22,7 @@
     $style = $styles[$variant] ?? $styles['slate'];
 @endphp
 
-<span {{ $attributes->merge(['class' => "inline-flex items-center gap-1.5 font-bold rounded-full border shadow-2xs {$sizeClasses} {$style}"]) }}>
+<span {{ $attributes->merge(['class' => "inline-flex items-center gap-1.5 font-bold rounded-full border {$sizeClasses} {$style}"]) }}>
     @if ($dot)
         <span class="w-1.5 h-1.5 rounded-full bg-current opacity-80 animate-pulse"></span>
     @endif

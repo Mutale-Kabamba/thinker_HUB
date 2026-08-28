@@ -22,7 +22,7 @@
         }
     </style>
 </head>
-<body class="hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
+<body class="public-layout hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased" x-data="{ mobileMenu: false }">
 
     @include('partials.public-header')
 
@@ -433,13 +433,13 @@
                                 type="button"
                                 onclick="window.openCourseOptionModal(@js($courseModalData))"
                                 @click.prevent="window.openCourseOptionModal(@js($courseModalData))"
-                                class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] shadow-lg shadow-yellow-400/20 transition hover:bg-yellow-300 cursor-pointer"
+                                class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300 cursor-pointer"
                             >
                                 <i class="fa-solid fa-credit-card"></i>
                                 Enroll &amp; Pay (Instant Access)
                             </button>
                         @else
-                            <a href="{{ route('checkout.show', $course) }}" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] shadow-lg shadow-yellow-400/20 transition hover:bg-yellow-300">
+                            <a href="{{ route('checkout.show', $course) }}" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300">
                                 <i class="fa-solid fa-credit-card"></i>
                                 Enroll &amp; Pay (Instant Access)
                             </a>
@@ -472,7 +472,7 @@
                     @endif
 
                     @if ($course->isOngoing())
-                        <div class="space-y-4 rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/60 to-white p-6 shadow-sm">
+                        <div class="space-y-4 rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/60 to-white p-6">
                             <div class="flex items-center justify-between gap-3 flex-wrap">
                                 <div>
                                     <span class="text-xs font-bold uppercase tracking-wider text-teal-700">Course Schedule &amp; Intakes</span>
@@ -489,7 +489,7 @@
                             @endphp
 
                             @if ($activeIntake)
-                                <div class="rounded-xl border border-teal-200 bg-white p-4 shadow-sm">
+                                <div class="rounded-xl border border-teal-200 bg-white p-4">
                                     <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
                                         <div class="flex items-center gap-2">
                                             <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -551,7 +551,7 @@
                                         </div>
                                         <div class="space-y-2">
                                             @foreach ($section['rows'] as $row)
-                                                <div class="hub-fee-row flex w-full items-center justify-between gap-4 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+                                                <div class="hub-fee-row flex w-full items-center justify-between gap-4 rounded-xl border border-slate-200/80 bg-white px-4 py-3">
                                                     <span class="text-sm font-semibold text-slate-800">{{ $row['level'] !== '' ? $row['level'] : '-' }}</span>
                                                     <span class="text-sm font-bold text-slate-900">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</span>
                                                     <span class="text-sm text-slate-500">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</span>
@@ -567,7 +567,7 @@
                     @if (! empty($progressionCards))
                         <div class="space-y-4">
                             <h3 class="text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
-                            <div class="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                            <div class="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200/80 bg-white">
                                 @foreach ($progressionCards as $item)
                                     <div class="p-5 space-y-1">
                                         <h4 class="text-base font-bold text-slate-800">{{ $item['level'] }}</h4>
@@ -580,7 +580,7 @@
                 </div>
 
                 {{-- Sidebar Quick Facts Card --}}
-                <aside class="sticky top-6 min-w-0 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm lg:col-span-1">
+                <aside class="sticky top-6 min-w-0 rounded-2xl border border-slate-200/80 bg-white p-6 lg:col-span-1">
                     <h2 class="text-lg font-bold text-slate-900">Quick Facts</h2>
                     <dl class="mt-4 space-y-3 text-sm">
                         <div>
@@ -620,12 +620,12 @@
                                 type="button"
                                 onclick="window.openCourseOptionModal(@js($courseModalData))"
                                 @click.prevent="window.openCourseOptionModal(@js($courseModalData))"
-                                class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm cursor-pointer"
+                                class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300 cursor-pointer"
                             >
                                 <i class="fa-solid fa-credit-card mr-2"></i> Enroll &amp; Pay
                             </button>
                         @else
-                            <a href="{{ route('checkout.show', $course) }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300 shadow-sm">
+                            <a href="{{ route('checkout.show', $course) }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300">
                                 <i class="fa-solid fa-credit-card mr-2"></i> Enroll &amp; Pay
                             </a>
                         @endif
@@ -664,7 +664,7 @@
                     <p class="mt-2 text-slate-600">Explore other practical tracks that can complement this learning path.</p>
                     <div class="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                         @foreach ($relatedCourses as $relatedCourse)
-                            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <article class="rounded-2xl border border-slate-200 bg-white p-5">
                                 <p class="text-xs font-semibold uppercase tracking-[0.16em] text-teal-600">{{ $relatedCourse->code }}</p>
                                 <h3 class="mt-2 text-lg font-bold text-slate-900">{{ $relatedCourse->title }}</h3>
                                 <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ \Illuminate\Support\Str::limit($relatedCourse->overview, 120) }}</p>

@@ -37,7 +37,7 @@
     >
         <div
             @click.stop
-            class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 text-slate-900"
+            class="relative w-full max-w-md rounded-2xl bg-white p-6 border border-slate-200 text-slate-900"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
@@ -67,7 +67,7 @@
                     href="https://wa.me/260772640546"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="flex items-center justify-between w-full rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition"
+                    class="flex items-center justify-between w-full rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-bold text-white hover:bg-emerald-700 transition"
                 >
                     <span class="flex items-center gap-3">
                         <i class="fa-brands fa-whatsapp text-xl"></i>
@@ -79,7 +79,7 @@
                 {{-- Phone Call Button --}}
                 <a
                     href="tel:+260772640546"
-                    class="flex items-center justify-between w-full rounded-xl bg-[#0a2d27] px-4 py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#11443c] transition"
+                    class="flex items-center justify-between w-full rounded-xl bg-[#0a2d27] px-4 py-3.5 text-sm font-bold text-white hover:bg-[#11443c] transition"
                 >
                     <span class="flex items-center gap-3">
                         <i class="fa-solid fa-phone text-lg"></i>
@@ -117,7 +117,7 @@
         x-transition:leave-end="translate-y-full opacity-0"
         class="fixed bottom-0 inset-x-0 z-[10000] p-4 sm:p-6"
     >
-        <div class="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:flex sm:items-center sm:gap-6">
+        <div class="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 sm:flex sm:items-center sm:gap-6">
             <div class="flex-1 text-sm text-slate-600 leading-relaxed">
                 <p class="font-semibold text-slate-900 mb-1">We value your privacy</p>
                 <p>We use essential cookies to keep this platform running and optional analytics cookies to improve your experience. By clicking "Accept All", you consent to our use of cookies as described in our
@@ -156,7 +156,7 @@
     >
         <div
             @click.stop
-            class="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl bg-white shadow-2xl flex flex-col"
+            class="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl bg-white border border-slate-200 flex flex-col"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"

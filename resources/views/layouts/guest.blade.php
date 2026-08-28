@@ -19,7 +19,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @include('partials.pwa-register')
     </head>
-    <body class="font-sans antialiased text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-[#0b141a] min-h-dvh">
+    <body class="public-layout font-sans antialiased text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-[#0b141a] min-h-dvh">
         @include('partials.app-preloader')
 
         <div class="relative min-h-dvh overflow-x-clip flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">

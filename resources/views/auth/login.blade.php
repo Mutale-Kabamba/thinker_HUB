@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-slate-900">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 dark:border-slate-800 dark:bg-slate-900">
         <div class="mb-6 flex items-start justify-between gap-3">
             <a href="{{ route('home') }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-teal-300 hover:text-teal-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-teal-700 dark:hover:text-teal-400" aria-label="Back to home">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -35,7 +35,7 @@
 
             <div class="flex items-center justify-between pt-1">
                 <label for="remember_me" class="inline-flex items-center text-sm text-slate-600 dark:text-slate-400">
-                    <input id="remember_me" type="checkbox" class="rounded border-slate-300 text-teal-600 shadow-sm focus:ring-teal-500" name="remember">
+                    <input id="remember_me" type="checkbox" class="rounded border-slate-300 text-teal-600 focus:ring-teal-500" name="remember">
                     <span class="ms-2">Remember me</span>
                 </label>
 
@@ -70,7 +70,7 @@
                     id="google-signin-login"
                     class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-[0.75rem] font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
                 >
-                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm dark:bg-slate-900" aria-hidden="true">
+                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-900" aria-hidden="true">
                         <i class="fa-brands fa-google text-xs" style="background: conic-gradient(from 300deg, #4285F4 0deg 90deg, #34A853 90deg 180deg, #FBBC05 180deg 270deg, #EA4335 270deg 360deg); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>
                     </span>
                     <span>Google</span>
@@ -89,7 +89,7 @@
 
     <div id="google-enrollment-modal-login" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="google-enrollment-modal-login-title">
         <div class="absolute inset-0 bg-slate-900/50"></div>
-        <div class="relative mx-auto mt-10 w-[92%] max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:mt-16 dark:border-slate-700 dark:bg-slate-900">
+        <div class="relative mx-auto mt-10 w-[92%] max-w-lg rounded-2xl border border-slate-200 bg-white p-5 sm:mt-16 dark:border-slate-700 dark:bg-slate-900">
             <div class="mb-4">
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Course Setup</p>
                 <h3 id="google-enrollment-modal-login-title" class="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100">Finish Google Access Setup</h3>

@@ -85,7 +85,6 @@
         border-radius: 24px;
         background: linear-gradient(145deg, #112d36, #091a20);
         border: 1.5px solid rgba(0, 106, 103, 0.6);
-        box-shadow: 0 16px 36px -8px rgba(0, 106, 103, 0.55);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -93,8 +92,8 @@
     }
 
     @keyframes preloaderLogoPulse {
-        0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 16px 36px -8px rgba(0, 106, 103, 0.55); }
-        50% { transform: translateY(-4px) scale(1.04); box-shadow: 0 22px 42px -6px rgba(0, 136, 132, 0.75); }
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-4px) scale(1.04); }
     }
 
     .preloader-logo-img {
@@ -136,7 +135,6 @@
         border-radius: 999px;
         overflow: hidden;
         position: relative;
-        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
     }
 
     .preloader-progress-bar {
@@ -147,7 +145,6 @@
         width: 0%;
         background: linear-gradient(90deg, #006a67, #2dd4bf, #008884);
         border-radius: 999px;
-        box-shadow: 0 0 12px #2dd4bf;
         transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 

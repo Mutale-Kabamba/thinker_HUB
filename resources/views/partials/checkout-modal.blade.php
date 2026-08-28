@@ -17,7 +17,7 @@
     {{-- Sheet --}}
     <div id="checkout-wrapper" class="relative z-10 w-full flex items-center justify-center pointer-events-none">
         <div id="checkout-sheet"
-             class="pointer-events-auto w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden transition-all duration-200 translate-y-6 opacity-0">
+             class="pointer-events-auto w-full max-w-sm bg-white rounded-3xl border border-slate-200 overflow-hidden transition-all duration-200 translate-y-6 opacity-0">
 
             {{-- ── Top header bar ── --}}
             <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-100 bg-[#f7fdfb]">
@@ -233,7 +233,7 @@
 {{-- ── Real-Time USSD Waiting Modal ── --}}
 <div id="chk-ussd-modal" class="fixed inset-0 z-[210] hidden items-center justify-center p-4">
     <div class="absolute inset-0 bg-[#0a2d27]/65 backdrop-blur-sm"></div>
-    <div class="relative w-full max-w-xs bg-white rounded-2xl shadow-xl p-6 text-center">
+    <div class="relative w-full max-w-xs bg-white rounded-2xl border border-slate-200 p-6 text-center">
         <div id="chk-ussd-waiting-state">
             {{-- Animated Radar Signal & Mobile Orbit Spinner --}}
             <div class="pay-radar-container">
@@ -297,12 +297,11 @@
         font-size: .8rem;
         color: #0a2d27;
         outline: none;
-        transition: border-color .15s, box-shadow .15s;
+        transition: border-color .15s;
         background: #fff;
     }
     .chk-input:focus {
         border-color: #0d9488;
-        box-shadow: 0 0 0 3px rgba(13,148,136,.10);
     }
     .chk-prefix {
         border: 1.5px solid #d4eae7;
@@ -327,6 +326,7 @@
         background: none;
         border-top: none;
         border-left: none;
+    }
     .chk-provider-item {
         border-radius: 12px;
         transition: all 300ms cubic-bezier(0.34, 1.35, 0.7, 1);
@@ -336,7 +336,6 @@
     .chk-provider-item.selected {
         background: #e6f7f5;
         border-color: rgba(13, 148, 136, 0.25);
-        box-shadow: 0 4px 14px rgba(13, 148, 136, 0.08);
         transform: scale(1.01);
     }
     .chk-provider-row {
@@ -412,7 +411,6 @@
         align-items: center;
         justify-content: center;
         color: #ffffff;
-        box-shadow: 0 4px 18px rgba(13, 148, 136, 0.35);
         z-index: 2;
     }
     .pay-orbit-ring {
