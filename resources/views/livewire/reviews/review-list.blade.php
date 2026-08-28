@@ -100,6 +100,27 @@
                  canScrollRight: true,
                  scrollPosition: 0,
                  maxScroll: 1,
+                 isPaused: false,
+                 timer: null,
+                 init() {
+                     this.$nextTick(() => {
+                         this.updateScrollState();
+                         this.startAutoScroll();
+                     });
+                 },
+                 startAutoScroll() {
+                     this.stopAutoScroll();
+                     this.timer = setInterval(() => {
+                         if (this.isPaused) return;
+                         this.slideNext(true);
+                     }, 3500);
+                 },
+                 stopAutoScroll() {
+                     if (this.timer) {
+                         clearInterval(this.timer);
+                         this.timer = null;
+                     }
+                 },
                  updateScrollState() {
                      const el = this.$refs.reviewCarousel;
                      if (!el) return;
@@ -108,22 +129,39 @@
                      this.scrollPosition = el.scrollLeft;
                      this.maxScroll = Math.max(el.scrollWidth - el.clientWidth, 1);
                  },
-                 slideNext() {
+                 slideNext(isAuto = false) {
                      const el = this.$refs.reviewCarousel;
                      if (!el) return;
                      const card = el.querySelector('article');
                      const scrollAmount = card ? (card.offsetWidth + 20) : 380;
-                     el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                     
+                     if (el.scrollLeft >= (el.scrollWidth - el.clientWidth - 20)) {
+                         el.scrollTo({ left: 0, behavior: 'smooth' });
+                     } else {
+                         el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                     }
+                     if (!isAuto) {
+                         this.startAutoScroll();
+                     }
                  },
                  slidePrev() {
                      const el = this.$refs.reviewCarousel;
                      if (!el) return;
                      const card = el.querySelector('article');
                      const scrollAmount = card ? (card.offsetWidth + 20) : 380;
-                     el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                     
+                     if (el.scrollLeft <= 20) {
+                         el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' });
+                     } else {
+                         el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                     }
+                     this.startAutoScroll();
                  }
              }"
-             x-init="$nextTick(() => updateScrollState()); setTimeout(() => updateScrollState(), 200);"
+             @mouseenter="isPaused = true"
+             @mouseleave="isPaused = false"
+             @touchstart="isPaused = true"
+             @touchend="setTimeout(() => isPaused = false, 2500)"
              @resize.window.debounce.100ms="updateScrollState()">
             
             {{-- Carousel Navigation Header --}}
@@ -134,7 +172,7 @@
                         Verified Testimonials ({{ $reviews->total() }})
                     </span>
                     <span class="hidden sm:inline text-xs text-slate-400 font-medium">
-                        • Slide or swipe to explore
+                        • Auto-scrolling (Hover or swipe to interact)
                     </span>
                 </div>
 
@@ -144,7 +182,7 @@
                             @click="slidePrev()"
                             :disabled="!canScrollLeft"
                             :class="!canScrollLeft ? 'opacity-40 cursor-not-allowed text-slate-400 bg-slate-100 dark:bg-slate-800' : 'text-slate-800 dark:text-white bg-white dark:bg-slate-800 hover:bg-teal-50 hover:text-teal-600 dark:hover:bg-teal-950/50 dark:hover:text-teal-300 shadow-sm hover:shadow border-slate-200 dark:border-slate-700'"
-                            class="inline-flex items-center justify-center w-9 h-9 rounded-full border transition-all duration-200"
+                            class="inline-flex items-center justify-center w-9 h-9 rounded-full border transition-all duration-200 cursor-pointer"
                             aria-label="Previous Reviews">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
@@ -155,7 +193,7 @@
                             @click="slideNext()"
                             :disabled="!canScrollRight"
                             :class="!canScrollRight ? 'opacity-40 cursor-not-allowed text-slate-400 bg-slate-100 dark:bg-slate-800' : 'text-slate-800 dark:text-white bg-white dark:bg-slate-800 hover:bg-teal-50 hover:text-teal-600 dark:hover:bg-teal-950/50 dark:hover:text-teal-300 shadow-sm hover:shadow border-slate-200 dark:border-slate-700'"
-                            class="inline-flex items-center justify-center w-9 h-9 rounded-full border transition-all duration-200"
+                            class="inline-flex items-center justify-center w-9 h-9 rounded-full border transition-all duration-200 cursor-pointer"
                             aria-label="Next Reviews">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
