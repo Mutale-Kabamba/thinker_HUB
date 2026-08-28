@@ -355,13 +355,11 @@
             </div>
         </section>
 
-        {{-- Real Feedback / Reviews & Ratings Section --}}
-        <section class="pb-20 lg:pb-24">
+        {{-- Real Reviews Section --}}
+        <section class="py-20 lg:py-24 bg-[#FDFBF7]">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
-                <div class="mb-10 text-center md:text-left">
-                    <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Real Feedback</span>
-                    <h2 class="text-3xl font-black text-slate-900 mt-2 sm:text-4xl">Student Reviews &amp; Ratings</h2>
-                    <p class="mt-2 text-slate-600 text-sm">Real feedback from learners actively using think.er HUB.</p>
+                <div class="mb-10 text-center">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight">Real Reviews</h2>
                 </div>
 
                 <livewire:reviews.review-list target-type="platform" target-title="thinker_HUB Community" />

@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 [x-cloak] {
-    display: none !important;
+	display: none !important;
 }
 
 :root {
@@ -38,7 +38,8 @@
 	--color-text-muted: #94a3b8;
 }
 
-html, body {
+html,
+body {
 	min-height: 100dvh;
 	font-family: 'Sora', 'Segoe UI', sans-serif;
 	color: #0f172a;
@@ -46,7 +47,10 @@ html, body {
 	background-image: none !important;
 }
 
-.dark html, .dark body, html.dark, body.dark {
+.dark html,
+.dark body,
+html.dark,
+body.dark {
 	color: #f1f5f9;
 	background-color: #0b141a;
 	background-image: none !important;
@@ -73,6 +77,7 @@ h6,
 	border-right: 1px solid #e2e8f0;
 	background-color: #0f172a;
 }
+
 .dark .edu-sidebar {
 	border-right-color: #1f2c34;
 	background-color: #111b21;
@@ -115,6 +120,7 @@ h6,
 	border-radius: 1rem;
 	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
+
 .dark .edu-content section {
 	border-color: #1f2c34;
 	background: #111b21;
@@ -177,6 +183,7 @@ h6,
 		opacity: 0;
 		transform: translateY(10px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0);
@@ -554,6 +561,7 @@ body {
 }
 
 @media (pointer: coarse) {
+
 	.touch-target,
 	.btn-touch,
 	.fi-btn,
@@ -567,7 +575,7 @@ body {
 	.hub-public-cta {
 		min-height: 44px;
 	}
-	
+
 	input[type="text"],
 	input[type="email"],
 	input[type="password"],
@@ -577,7 +585,8 @@ body {
 	input[type="search"],
 	select,
 	textarea {
-		font-size: 16px !important; /* Prevents auto-zoom on iOS */
+		font-size: 16px !important;
+		/* Prevents auto-zoom on iOS */
 	}
 }
 
@@ -614,6 +623,3 @@ body {
 	transform: scale(0.96);
 	opacity: 0.88;
 }
-
-
-
