@@ -1,23 +1,46 @@
 <x-filament-widgets::widget>
-    <x-filament::section>
-        <x-slot name="heading">Pending Reschedule Requests</x-slot>
+    <div class="bg-white dark:bg-[#111b21] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800/60 pb-3">
+            <div>
+                <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <span>Pending Reschedule Requests</span>
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    Student session adjustment requests awaiting admin approval.
+                </p>
+            </div>
+            <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                {{ count($requests) }} Pending
+            </span>
+        </div>
 
-        <div style="display:flex;flex-direction:column;gap:0.55rem;">
+        <div class="divide-y divide-gray-100 dark:divide-gray-800/60">
             @forelse ($requests as $request)
-                <div class="hub-mobile-card" style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.7rem;flex-wrap:wrap;">
-                    <div style="flex:1;min-width:15rem;">
-                        <p style="margin:0;font-weight:700;color:var(--hub-ink);font-size:0.82rem;">{{ $request['student_name'] }} · Session #{{ $request['session_id'] }}</p>
-                        <p style="margin:0.15rem 0 0;font-size:0.74rem;color:var(--hub-muted);">{{ $request['reason'] ?: 'No reason provided.' }}</p>
-                        <p style="margin:0.2rem 0 0;font-size:0.72rem;color:var(--hub-muted);">
-                            Preferred: {{ $request['preferred_date'] ?: 'N/A' }}
-                            @if ($request['preferred_time']) at {{ $request['preferred_time'] }} @endif
+                <div class="py-3 flex items-start justify-between gap-3 first:pt-1 last:pb-1">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+                            {{ $request['student_name'] }} · <span class="font-mono text-teal-600 dark:text-teal-400">Session #{{ $request['session_id'] }}</span>
+                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            {{ $request['reason'] ?: 'No reason provided.' }}
+                        </p>
+                        <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
+                            Preferred: <span class="font-medium text-gray-700 dark:text-gray-300">{{ $request['preferred_date'] ?: 'N/A' }}</span>
+                            @if ($request['preferred_time']) at <span class="font-medium text-gray-700 dark:text-gray-300">{{ $request['preferred_time'] }}</span> @endif
                             @if ($request['created_at']) · {{ $request['created_at'] }} @endif
                         </p>
                     </div>
-                    <button wire:click="openDecisionWizard('{{ $request['id'] }}')" class="hub-btn hub-btn-primary" style="font-size:0.72rem;padding:0.3rem 0.6rem;white-space:nowrap;">Review</button>
+                    <button 
+                        wire:click="openDecisionWizard('{{ $request['id'] }}')" 
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-500 text-white shadow-sm transition active:scale-95 whitespace-nowrap"
+                    >
+                        Review
+                    </button>
                 </div>
             @empty
-                <p class="hub-copy" style="color:var(--hub-muted);text-align:center;">No pending reschedule requests.</p>
+                <div class="py-6 text-center text-xs text-gray-400">
+                    No pending reschedule requests.
+                </div>
             @endforelse
         </div>
 
@@ -90,5 +113,5 @@
                 </div>
             </div>
         @endif
-    </x-filament::section>
+    </div>
 </x-filament-widgets::widget>

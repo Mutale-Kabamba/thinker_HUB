@@ -19,4 +19,12 @@ class Dashboard extends BaseDashboard
     {
         return 'Thinker HUB Administration & Global Platform Oversight';
     }
+
+    public function getWidgets(): array
+    {
+        return [
+            \App\Filament\Widgets\AdminStatsWidget::class,
+            \App\Filament\Widgets\RecentActivitiesWidget::class,
+        ];
+    }
 }
