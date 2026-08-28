@@ -19,6 +19,8 @@ class InstructorsRelationManager extends RelationManager
 
     protected static ?string $inverseRelationship = 'instructorCourses';
 
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static ?string $title = 'Assigned Instructors';
 
     public function table(Table $table): Table
@@ -36,6 +38,15 @@ class InstructorsRelationManager extends RelationManager
                     ->searchable()
                     ->copyable(),
 
+                TextColumn::make('role')
+                    ->label('Role')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'admin' => 'success',
+                        'instructor' => 'info',
+                        default => 'gray',
+                    }),
+
                 TextColumn::make('proficiency')
                     ->label('Expertise')
                     ->placeholder('General')
@@ -50,8 +61,9 @@ class InstructorsRelationManager extends RelationManager
             ->headerActions([
                 AttachAction::make()
                     ->label('Assign Instructor')
+                    ->recordTitle(fn (User $record): string => "{$record->name} ({$record->email}) - " . ucfirst($record->role ?? 'User'))
                     ->preloadRecordSelect()
-                    ->recordSelectOptionsQuery(fn (Builder $query) => $query->where(fn (Builder $q) => $q->where('role', 'instructor')->orWhere('role', 'admin')))
+                    ->recordSelectOptionsQuery(fn (Builder $query) => $query->orderBy('name'))
                     ->recordSelectSearchColumns(['name', 'email']),
             ])
             ->recordActions([

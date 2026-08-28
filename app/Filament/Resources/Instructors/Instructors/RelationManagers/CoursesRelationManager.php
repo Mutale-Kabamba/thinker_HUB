@@ -18,6 +18,8 @@ class CoursesRelationManager extends RelationManager
 
     protected static ?string $inverseRelationship = 'instructors';
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static ?string $title = 'Assigned Courses';
 
     public function table(Table $table): Table
@@ -45,7 +47,9 @@ class CoursesRelationManager extends RelationManager
             ->headerActions([
                 AttachAction::make()
                     ->label('Assign Course')
+                    ->recordTitle(fn (Course $record): string => "{$record->code} - {$record->title}" . (! $record->is_active ? ' (Inactive)' : ''))
                     ->preloadRecordSelect()
+                    ->recordSelectOptionsQuery(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->orderBy('title'))
                     ->recordSelectSearchColumns(['title', 'code']),
             ])
             ->recordActions([
