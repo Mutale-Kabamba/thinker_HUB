@@ -254,4 +254,142 @@ class ClassIntakeScopingAndFriendsTest extends TestCase
             ->assertSee('Student Bravo')
             ->assertSee('MOB-501 • Spring Intake');
     }
+
+    public function test_multi_course_student_accumulates_points_separately_per_course(): void
+    {
+        $courseA = Course::create([
+            'title' => 'Web Development',
+            'code' => 'WEB-100',
+            'is_active' => true,
+        ]);
+
+        $intakeA = CourseIntake::create([
+            'course_id' => $courseA->id,
+            'name' => 'Intake 1',
+            'start_date' => now()->subMonth(),
+            'end_date' => now()->addMonths(2),
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+
+        $courseB = Course::create([
+            'title' => 'Graphic Design',
+            'code' => 'DES-200',
+            'is_active' => true,
+        ]);
+
+        $intakeB = CourseIntake::create([
+            'course_id' => $courseB->id,
+            'name' => 'Intake 2',
+            'start_date' => now()->subMonth(),
+            'end_date' => now()->addMonths(2),
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+
+        // Student enrolled in both courses
+        $studentMulti = User::factory()->create(['name' => 'Dual Student', 'role' => 'student', 'is_active' => true]);
+        Enrollment::create(['user_id' => $studentMulti->id, 'course_id' => $courseA->id, 'course_intake_id' => $intakeA->id]);
+        Enrollment::create(['user_id' => $studentMulti->id, 'course_id' => $courseB->id, 'course_intake_id' => $intakeB->id]);
+
+        // Peer in Course A only
+        $peerA = User::factory()->create(['name' => 'Web Peer', 'role' => 'student', 'is_active' => true]);
+        Enrollment::create(['user_id' => $peerA->id, 'course_id' => $courseA->id, 'course_intake_id' => $intakeA->id]);
+
+        // Peer in Course B only
+        $peerB = User::factory()->create(['name' => 'Design Peer', 'role' => 'student', 'is_active' => true]);
+        Enrollment::create(['user_id' => $peerB->id, 'course_id' => $courseB->id, 'course_intake_id' => $intakeB->id]);
+
+        $quizA = Quiz::create(['course_id' => $courseA->id, 'course_intake_id' => $intakeA->id, 'title' => 'Web Quiz', 'is_active' => true]);
+        $quizB = Quiz::create(['course_id' => $courseB->id, 'course_intake_id' => $intakeB->id, 'title' => 'Design Quiz', 'is_active' => true]);
+
+        $service = app(GamificationService::class);
+
+        // Award 300 XP in Web Quiz and 500 XP in Design Quiz
+        $service->awardPoints($studentMulti, 'quiz_passed', $quizA, 300, 10, 'Quiz completed');
+        $service->awardPoints($studentMulti, 'quiz_passed', $quizB, 500, 15, 'Quiz completed');
+
+        // Award 400 XP to Web Peer in Web Quiz
+        $service->awardPoints($peerA, 'quiz_passed', $quizA, 400, 10, 'Quiz completed');
+
+        // Award 200 XP to Design Peer in Design Quiz
+        $service->awardPoints($peerB, 'quiz_passed', $quizB, 200, 10, 'Quiz completed');
+
+        $studentMulti->refresh();
+        $peerA->refresh();
+        $peerB->refresh();
+
+        // Check course specific XP
+        $this->assertEquals(300, $studentMulti->getXpForCourse($courseA->id, $intakeA->id));
+        $this->assertEquals(500, $studentMulti->getXpForCourse($courseB->id, $intakeB->id));
+        // Total lifetime XP remains aggregate
+        $this->assertEquals(800, (int) $studentMulti->lifetime_xp);
+
+        // Web Peer checks leaderboard: Web Peer (400 XP) is #1, Dual Student (300 XP) is #2, Design Peer is not present
+        $webLeaderboard = $service->leaderboard($peerA);
+        $this->assertEquals(2, $webLeaderboard->count());
+        $this->assertEquals($peerA->id, $webLeaderboard[0]['user_id']);
+        $this->assertEquals(400, $webLeaderboard[0]['xp']);
+        $this->assertEquals($studentMulti->id, $webLeaderboard[1]['user_id']);
+        $this->assertEquals(300, $webLeaderboard[1]['xp']);
+
+        // Design Peer checks leaderboard: Dual Student (500 XP) is #1, Design Peer (200 XP) is #2, Web Peer is not present
+        $designLeaderboard = $service->leaderboard($peerB);
+        $this->assertEquals(2, $designLeaderboard->count());
+        $this->assertEquals($studentMulti->id, $designLeaderboard[0]['user_id']);
+        $this->assertEquals(500, $designLeaderboard[0]['xp']);
+        $this->assertEquals($peerB->id, $designLeaderboard[1]['user_id']);
+        $this->assertEquals(200, $designLeaderboard[1]['xp']);
+    }
+
+    public function test_leaderboard_switcher_and_friends_list_points(): void
+    {
+        $courseA = Course::create(['title' => 'Fullstack Dev', 'code' => 'FS-100', 'is_active' => true]);
+        $intakeA = CourseIntake::create(['course_id' => $courseA->id, 'name' => 'Cohort 1', 'start_date' => now()->subMonth(), 'end_date' => now()->addMonths(2), 'status' => 'active', 'is_active' => true]);
+
+        $courseB = Course::create(['title' => 'UI UX Design', 'code' => 'UX-200', 'is_active' => true]);
+        $intakeB = CourseIntake::create(['course_id' => $courseB->id, 'name' => 'Cohort 2', 'start_date' => now()->subMonth(), 'end_date' => now()->addMonths(2), 'status' => 'active', 'is_active' => true]);
+
+        $student = User::factory()->create(['name' => 'Alex Multi', 'role' => 'student', 'is_active' => true]);
+        $friend = User::factory()->create(['name' => 'Taylor Friend', 'role' => 'student', 'is_active' => true]);
+
+        Enrollment::create(['user_id' => $student->id, 'course_id' => $courseA->id, 'course_intake_id' => $intakeA->id]);
+        Enrollment::create(['user_id' => $student->id, 'course_id' => $courseB->id, 'course_intake_id' => $intakeB->id]);
+
+        Enrollment::create(['user_id' => $friend->id, 'course_id' => $courseA->id, 'course_intake_id' => $intakeA->id]);
+        Enrollment::create(['user_id' => $friend->id, 'course_id' => $courseB->id, 'course_intake_id' => $intakeB->id]);
+
+        Friendship::create(['user_id' => $student->id, 'friend_id' => $friend->id, 'status' => 'accepted']);
+
+        $service = app(GamificationService::class);
+        $service->awardPoints($friend, 'quiz_passed', null, 150, 5, 'Fullstack Passed', $courseA->id, $intakeA->id);
+        $service->awardPoints($friend, 'quiz_passed', null, 350, 10, 'UX Passed', $courseB->id, $intakeB->id);
+
+        $service->awardPoints($student, 'quiz_passed', null, 500, 15, 'Fullstack Passed', $courseA->id, $intakeA->id);
+        $service->awardPoints($student, 'quiz_passed', null, 100, 5, 'UX Passed', $courseB->id, $intakeB->id);
+
+        // Friends tab shows both badges with their distinct XP
+        Livewire::actingAs($student)
+            ->test(Community::class)
+            ->set('tab', 'friends')
+            ->assertSee('Taylor Friend')
+            ->assertSee('FS-100 • Cohort 1')
+            ->assertSee('(150 XP)')
+            ->assertSee('UX-200 • Cohort 2')
+            ->assertSee('(350 XP)');
+
+        // Leaderboard tab has class switcher and switches rankings
+        Livewire::actingAs($student)
+            ->test(Community::class)
+            ->set('tab', 'leaderboard')
+            // Default to first class (FS-100) -> Alex Multi #1 with 500 XP
+            ->assertSee('Leaderboard')
+            ->assertSee('FS-100 • Cohort 1')
+            ->assertSee('500')
+            // Switch to UX-200 -> Taylor Friend is #1 with 350 XP, Alex Multi has 100 XP
+            ->call('selectLeaderboardClass', $courseB->id, $intakeB->id)
+            ->assertSee('UX-200 • Cohort 2')
+            ->assertSee('350')
+            ->assertSee('100');
+    }
 }

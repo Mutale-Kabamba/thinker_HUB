@@ -1017,7 +1017,39 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     }
 
     /**
-     * Formatted course and intake labels for display across friend directory and profiles.
+     * Get XP accumulated by this student specifically in a given course and intake.
+     */
+    public function getXpForCourse(int $courseId, ?int $courseIntakeId = null): int
+    {
+        $txQuery = $this->xpTransactions()->where('course_id', $courseId);
+
+        if ($courseIntakeId !== null) {
+            $txQuery->where(function ($q) use ($courseIntakeId) {
+                $q->where('course_intake_id', $courseIntakeId)->orWhereNull('course_intake_id');
+            });
+        }
+
+        $totalFromTx = (int) $txQuery->sum('amount_xp');
+
+        if ($totalFromTx > 0) {
+            return $totalFromTx;
+        }
+
+        // Fallback: If no transactions have course_id, but the student has lifetime_xp:
+        // If the student is enrolled in only 1 course, their lifetime_xp belongs to that course.
+        $enrollmentCount = $this->enrollments()->count();
+        if ($enrollmentCount === 1) {
+            $singleEnrollment = $this->enrollments()->first();
+            if ($singleEnrollment && $singleEnrollment->course_id === $courseId) {
+                return (int) ($this->lifetime_xp ?? 0);
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Formatted course and intake labels with per-course points for display across friend directory, friends list, and profiles.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -1035,6 +1067,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             $courseTitle = $enrollment->course?->title ?? 'Course';
             $displayCourse = $courseCode ?: $courseTitle;
             $intakeName = $enrollment->intake?->name;
+            $courseXp = $this->getXpForCourse((int) $enrollment->course_id, $enrollment->course_intake_id);
 
             $labels[] = [
                 'course_id' => $enrollment->course_id,
@@ -1043,6 +1076,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
                 'intake_id' => $enrollment->course_intake_id,
                 'intake_name' => $intakeName,
                 'label' => $intakeName ? "{$displayCourse} • {$intakeName}" : $displayCourse,
+                'xp' => $courseXp,
+                'xp_formatted' => number_format($courseXp).' XP',
                 'color' => $enrollment->course ? $enrollment->course->getColorScheme() : Course::getColorSchemeFor(null, $courseTitle, $courseCode ?? ''),
             ];
         }

@@ -147,10 +147,37 @@ class GamificationService
         ?Model $subject = null,
         int $baseXp = 0,
         int $baseCoins = 0,
-        string $description = ''
+        string $description = '',
+        ?int $courseId = null,
+        ?int $courseIntakeId = null
     ): bool {
         if ($user->role !== 'student' && ! $user->isStudent()) {
             return false;
+        }
+
+        // Infer course_id and course_intake_id from subject if not explicitly provided
+        if ($courseId === null && $subject) {
+            if ($subject instanceof Course) {
+                $courseId = $subject->id;
+            } elseif ($subject instanceof Enrollment) {
+                $courseId = $subject->course_id;
+                $courseIntakeId = $courseIntakeId ?? $subject->course_intake_id;
+            } elseif (isset($subject->course_id)) {
+                $courseId = $subject->course_id;
+                $courseIntakeId = $courseIntakeId ?? ($subject->course_intake_id ?? null);
+            } elseif (method_exists($subject, 'quiz') && $subject->quiz) {
+                $courseId = $subject->quiz->course_id;
+                $courseIntakeId = $courseIntakeId ?? $subject->quiz->course_intake_id;
+            } elseif (method_exists($subject, 'assignment') && $subject->assignment) {
+                $courseId = $subject->assignment->course_id;
+                $courseIntakeId = $courseIntakeId ?? $subject->assignment->course_intake_id;
+            } elseif (method_exists($subject, 'assessment') && $subject->assessment) {
+                $courseId = $subject->assessment->course_id;
+                $courseIntakeId = $courseIntakeId ?? $subject->assessment->course_intake_id;
+            } elseif (method_exists($subject, 'courseSession') && $subject->courseSession) {
+                $courseId = $subject->courseSession->course_id;
+                $courseIntakeId = $courseIntakeId ?? $subject->courseSession->course_intake_id;
+            }
         }
 
         // 1. Daily coin limit check (max 150 TC/day earned from xp_transactions created today)
@@ -188,7 +215,7 @@ class GamificationService
             }
         }
 
-        return DB::transaction(function () use ($user, $activityType, $subject, $baseXp, $finalCoins, $description) {
+        return DB::transaction(function () use ($user, $activityType, $subject, $baseXp, $finalCoins, $description, $courseId, $courseIntakeId) {
             $lockedUser = User::query()->where('id', $user->id)->lockForUpdate()->first();
             if (! $lockedUser) {
                 return false;
@@ -209,6 +236,8 @@ class GamificationService
 
             XpTransaction::create([
                 'user_id' => $user->id,
+                'course_id' => $courseId,
+                'course_intake_id' => $courseIntakeId,
                 'amount_xp' => $baseXp,
                 'amount_coins' => $finalCoins,
                 'activity_type' => $activityType,
@@ -1292,30 +1321,77 @@ class GamificationService
     }
 
     /**
-     * Leaderboard ranked by lifetime XP.
-     * When $scopedUser is provided, only includes classmates in the same course and intake/class.
+     * Leaderboard ranked by lifetime XP or scoped course/intake XP.
+     * When $scopedUser / $courseId is provided, only includes classmates in the course/intake and ranks by points in that course.
      */
-    public function leaderboard(?User $scopedUser = null): Collection
+    public function leaderboard(?User $scopedUser = null, ?int $courseId = null, ?int $courseIntakeId = null): Collection
     {
-        $query = User::query()
-            ->where('role', 'student')
-            ->where('is_active', true);
+        $isCourseScoped = false;
 
-        if ($scopedUser && ! $scopedUser->isAdmin()) {
-            $peerIds = $scopedUser->getClassPeerIds();
-            $query->whereIn('id', $peerIds);
+        if ($courseId !== null) {
+            $isCourseScoped = true;
+            $enrollmentQuery = Enrollment::query()->where('course_id', $courseId);
+            if ($courseIntakeId !== null) {
+                $enrollmentQuery->where(function ($q) use ($courseIntakeId) {
+                    $q->where('course_intake_id', $courseIntakeId)->orWhereNull('course_intake_id');
+                });
+            }
+            $peerIds = $enrollmentQuery->pluck('user_id')->unique()->all();
+
+            $query = User::query()
+                ->where('role', 'student')
+                ->where('is_active', true)
+                ->whereIn('id', $peerIds);
+        } elseif ($scopedUser && ! $scopedUser->isAdmin()) {
+            $userEnrollments = $scopedUser->enrollments()->with(['course', 'intake'])->get();
+
+            if ($userEnrollments->isNotEmpty()) {
+                $firstEnrollment = $userEnrollments->first();
+                $courseId = (int) $firstEnrollment->course_id;
+                $courseIntakeId = $firstEnrollment->course_intake_id;
+                $isCourseScoped = true;
+
+                $enrollmentQuery = Enrollment::query()->where('course_id', $courseId);
+                if ($courseIntakeId !== null) {
+                    $enrollmentQuery->where(function ($q) use ($courseIntakeId) {
+                        $q->where('course_intake_id', $courseIntakeId)->orWhereNull('course_intake_id');
+                    });
+                }
+                $peerIds = $enrollmentQuery->pluck('user_id')->unique()->all();
+
+                $query = User::query()
+                    ->where('role', 'student')
+                    ->where('is_active', true)
+                    ->whereIn('id', $peerIds);
+            } else {
+                $query = User::query()
+                    ->where('role', 'student')
+                    ->where('is_active', true)
+                    ->where('id', $scopedUser->id);
+            }
+        } else {
+            $query = User::query()
+                ->where('role', 'student')
+                ->where('is_active', true);
         }
 
-        $students = $query
-            ->orderByDesc('lifetime_xp')
-            ->orderBy('id')
-            ->get();
+        $students = $query->get();
 
-        $userIds = $students->pluck('id')->all();
-
-        if ($userIds === []) {
+        if ($students->isEmpty()) {
             return collect();
         }
+
+        if ($isCourseScoped && $courseId !== null) {
+            $students = $students->map(function (User $student) use ($courseId, $courseIntakeId) {
+                $student->calculated_course_xp = $student->getXpForCourse($courseId, $courseIntakeId);
+
+                return $student;
+            })->sortByDesc(fn (User $s) => [$s->calculated_course_xp, -$s->id])->values();
+        } else {
+            $students = $students->sortByDesc(fn (User $s) => [(int) ($s->lifetime_xp ?? 0), -$s->id])->values();
+        }
+
+        $userIds = $students->pluck('id')->all();
 
         $badgeCounts = DB::table('user_badge')
             ->whereIn('user_id', $userIds)
@@ -1332,14 +1408,16 @@ class GamificationService
 
         $badgeIcons = $badgeDetails->map(fn ($rows) => $rows->pluck('icon')->filter()->take(5)->values()->all());
 
-        return $students->values()->map(function (User $student, int $index) use ($badgeCounts, $badgeIcons, $badgeDetails): array {
-            $rankInfo = $this->calculateUserRank((int) $student->lifetime_xp);
+        return $students->values()->map(function (User $student, int $index) use ($badgeCounts, $badgeIcons, $badgeDetails, $isCourseScoped): array {
+            $xpVal = $isCourseScoped ? (int) ($student->calculated_course_xp ?? 0) : (int) ($student->lifetime_xp ?? 0);
+            $rankInfo = $this->calculateUserRank($xpVal);
 
             return [
                 'rank' => $index + 1,
                 'user_id' => (int) $student->id,
                 'name' => $student->name,
-                'xp' => (int) $student->lifetime_xp,
+                'xp' => $xpVal,
+                'total_lifetime_xp' => (int) ($student->lifetime_xp ?? 0),
                 'coins' => (int) $student->spendable_coins,
                 'rank_name' => $rankInfo['rank_name'],
                 'multiplier' => $rankInfo['multiplier'],
