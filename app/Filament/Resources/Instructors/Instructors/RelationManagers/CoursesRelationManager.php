@@ -16,6 +16,8 @@ class CoursesRelationManager extends RelationManager
 {
     protected static string $relationship = 'instructorCourses';
 
+    protected static ?string $inverseRelationship = 'instructors';
+
     protected static ?string $title = 'Assigned Courses';
 
     public function table(Table $table): Table

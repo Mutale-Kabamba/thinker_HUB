@@ -38,6 +38,7 @@ class CourseResource extends Resource
     public static function getRelations(): array
     {
         return [
+            \App\Filament\Resources\Courses\RelationManagers\InstructorsRelationManager::class,
             \App\Filament\Resources\Courses\RelationManagers\StudentsRelationManager::class,
             \App\Filament\Resources\Courses\RelationManagers\IntakesRelationManager::class,
         ];
