@@ -44,7 +44,7 @@
 
                         {{-- Course Title & Summary --}}
                         <div>
-                            <h3 class="text-base font-extrabold text-slate-800 dark:text-white line-clamp-1 group-hover:text-[#7C3AED] transition-colors">
+                            <h3 class="text-base font-extrabold text-slate-800 dark:text-white leading-snug break-words group-hover:text-[#7C3AED] transition-colors">
                                 {{ $course['title'] }}
                             </h3>
 

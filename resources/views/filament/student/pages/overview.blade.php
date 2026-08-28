@@ -388,15 +388,15 @@
                                             {{ $idx + 1 }}
                                         </td>
                                         <td class="py-3.5 px-3">
-                                            <div class="flex items-center gap-3">
+                                            <div class="flex items-start gap-3">
                                                 <div 
-                                                    class="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-2xs"
+                                                    class="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-2xs mt-0.5"
                                                     style="background: {{ $course['gradient'] }};"
                                                 >
                                                     {{ substr($course['title'], 0, 1) }}
                                                 </div>
-                                                <div>
-                                                    <a href="{{ route('filament.student.pages.courses') }}" class="font-bold text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-[#7C3AED] dark:group-hover:text-purple-400 transition-colors">
+                                                <div class="min-w-0">
+                                                    <a href="{{ route('filament.student.pages.courses') }}" class="font-bold text-slate-800 dark:text-slate-100 leading-snug break-words group-hover:text-[#7C3AED] dark:group-hover:text-purple-400 transition-colors block">
                                                         {{ $course['title'] }}
                                                     </a>
                                                     <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
@@ -438,24 +438,24 @@
                                 x-show="activeTab === 'active' ? !@js($course['is_completed']) : @js($course['is_completed'])"
                                 class="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-100 dark:border-[#233842] space-y-2.5"
                             >
-                                <div class="flex items-center justify-between gap-2">
-                                    <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex items-start gap-2.5 min-w-0 flex-1">
                                         <div 
-                                            class="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-2xs"
+                                            class="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-2xs mt-0.5"
                                             style="background: {{ $course['gradient'] }};"
                                         >
                                             {{ substr($course['title'], 0, 1) }}
                                         </div>
-                                        <div>
-                                            <a href="{{ route('filament.student.pages.courses') }}" class="font-bold text-xs text-slate-800 dark:text-slate-100 truncate hover:text-[#7C3AED]">
+                                        <div class="min-w-0 flex-1">
+                                            <a href="{{ route('filament.student.pages.courses') }}" class="font-bold text-xs text-slate-800 dark:text-slate-100 hover:text-[#7C3AED] leading-snug break-words block">
                                                 {{ $course['title'] }}
                                             </a>
-                                            <p class="text-[10px] text-slate-400 dark:text-slate-500">
+                                            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
                                                 {{ $course['sessions_completed'] }}/{{ $course['sessions_total'] }} sessions
                                             </p>
                                         </div>
                                     </div>
-                                    <span class="text-xs font-black text-[#7C3AED] dark:text-purple-400 flex-shrink-0">
+                                    <span class="text-xs font-black text-[#7C3AED] dark:text-purple-400 flex-shrink-0 pt-0.5">
                                         {{ $course['progress'] }}%
                                     </span>
                                 </div>

@@ -61,9 +61,18 @@ class InstructorsRelationManager extends RelationManager
             ->headerActions([
                 AttachAction::make()
                     ->label('Assign Instructor')
-                    ->recordTitle(fn (User $record): string => "{$record->name} ({$record->email}) - " . ucfirst($record->role ?? 'User'))
+                    ->recordTitle(fn (User $record): string => $record->name)
                     ->preloadRecordSelect()
-                    ->recordSelectOptionsQuery(fn (Builder $query) => $query->orderBy('name'))
+                    ->recordSelectOptionsQuery(fn (Builder $query) => $query
+                        ->where('is_active', true)
+                        ->where(fn (Builder $q) => $q
+                            ->where('role', 'instructor')
+                            ->orWhere('role', 'admin')
+                            ->orWhereHas('instructorApplication', fn (Builder $sub) => $sub->where('status', 'approved'))
+                            ->orWhereHas('instructorCourses')
+                        )
+                        ->orderBy('name')
+                    )
                     ->recordSelectSearchColumns(['name', 'email']),
             ])
             ->recordActions([
