@@ -124,9 +124,14 @@ class SubmitReviewModal extends Component
         if ($this->targetType === 'course' && $this->targetId) {
             $isVerified = $user->enrollments()->where('course_id', $this->targetId)->exists();
         } elseif ($this->targetType === 'instructor' && $this->targetId) {
-            $isVerified = $user->enrollments()->whereHas('course', function ($q) {
-                $q->where('instructor_id', $this->targetId);
-            })->exists();
+            $instructorCourseIds = Course::query()
+                ->where('created_by', $this->targetId)
+                ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $this->targetId))
+                ->pluck('id');
+
+            $isVerified = $user->enrollments()->whereIn('course_id', $instructorCourseIds)->exists();
+        } else {
+            $isVerified = true;
         }
 
         $review = Review::updateOrCreate(
