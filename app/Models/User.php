@@ -1021,26 +1021,79 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
      */
     public function getXpForCourse(int $courseId, ?int $courseIntakeId = null): int
     {
-        $txQuery = $this->xpTransactions()->where('course_id', $courseId);
+        $allTx = $this->xpTransactions()->get();
 
-        if ($courseIntakeId !== null) {
-            $txQuery->where(function ($q) use ($courseIntakeId) {
-                $q->where('course_intake_id', $courseIntakeId)->orWhereNull('course_intake_id');
-            });
+        $directXp = 0;
+        $unassignedXp = 0;
+
+        foreach ($allTx as $tx) {
+            $txCourseId = $tx->course_id;
+            $txIntakeId = $tx->course_intake_id;
+
+            // If transaction has no course_id, attempt to infer from subject
+            if ($txCourseId === null && $tx->subject_type && $tx->subject_id) {
+                try {
+                    $subj = $tx->subject;
+                    if ($subj) {
+                        if ($subj instanceof Course) {
+                            $txCourseId = $subj->id;
+                        } elseif ($subj instanceof Enrollment) {
+                            $txCourseId = $subj->course_id;
+                            $txIntakeId = $subj->course_intake_id;
+                        } elseif (isset($subj->course_id)) {
+                            $txCourseId = $subj->course_id;
+                            $txIntakeId = $subj->course_intake_id ?? null;
+                        } elseif (method_exists($subj, 'quiz') && $subj->quiz) {
+                            $txCourseId = $subj->quiz->course_id;
+                            $txIntakeId = $subj->quiz->course_intake_id;
+                        } elseif (method_exists($subj, 'assignment') && $subj->assignment) {
+                            $txCourseId = $subj->assignment->course_id;
+                            $txIntakeId = $subj->assignment->course_intake_id;
+                        } elseif (method_exists($subj, 'assessment') && $subj->assessment) {
+                            $txCourseId = $subj->assessment->course_id;
+                            $txIntakeId = $subj->assessment->course_intake_id;
+                        } elseif (method_exists($subj, 'courseSession') && $subj->courseSession) {
+                            $txCourseId = $subj->courseSession->course_id;
+                            $txIntakeId = $subj->courseSession->course_intake_id;
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // ignore
+                }
+            }
+
+            if ($txCourseId === $courseId) {
+                if ($courseIntakeId === null || $txIntakeId === null || $txIntakeId === $courseIntakeId) {
+                    $directXp += (int) $tx->amount_xp;
+                }
+            } elseif ($txCourseId === null) {
+                $unassignedXp += (int) $tx->amount_xp;
+            }
         }
 
-        $totalFromTx = (int) $txQuery->sum('amount_xp');
-
-        if ($totalFromTx > 0) {
-            return $totalFromTx;
+        if ($directXp > 0) {
+            return $directXp;
         }
 
-        // Fallback: If no transactions have course_id, but the student has lifetime_xp:
-        // If the student is enrolled in only 1 course, their lifetime_xp belongs to that course.
-        $enrollmentCount = $this->enrollments()->count();
-        if ($enrollmentCount === 1) {
-            $singleEnrollment = $this->enrollments()->first();
-            if ($singleEnrollment && $singleEnrollment->course_id === $courseId) {
+        // If direct tagged XP is 0, but unassigned transactions exist:
+        // Attribute unassigned transaction XP to their primary/first enrollment
+        if ($unassignedXp > 0) {
+            $firstEnrollment = $this->enrollments()->first();
+            if ($firstEnrollment && $firstEnrollment->course_id === $courseId) {
+                return $unassignedXp;
+            }
+        }
+
+        // Fallback: If no transactions have been created at all or lifetime_xp was set directly:
+        $enrollments = $this->enrollments()->get();
+        if ($enrollments->isNotEmpty()) {
+            if ($enrollments->count() === 1 && $enrollments->first()->course_id === $courseId) {
+                return (int) ($this->lifetime_xp ?? 0);
+            }
+
+            // For multi-enrolled students with legacy lifetime_xp and no course-specific records yet:
+            // Attribute lifetime_xp to their first/active course so it doesn't show 0
+            if ($enrollments->first()->course_id === $courseId) {
                 return (int) ($this->lifetime_xp ?? 0);
             }
         }
