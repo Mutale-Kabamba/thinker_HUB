@@ -65,62 +65,65 @@
                     @forelse ($courses as $course)
                         @php
                             $courseImage = $resolveCourseImage($course);
+                            $avgRating = (float) ($course->average_rating ?? ($course->ratings_avg_rating ?? 0));
+                            $ratingCount = (int) ($course->review_count ?? ($course->ratings_count ?? 0));
+                            $studentsCount = (int) ($course->enrollments_count ?? 0);
+                            $isOpenEnrollment = $course->is_open_enrollment !== false;
+                            $fullTitle = (string) $course->title;
+                            $displayTitle = \Illuminate\Support\Str::limit($fullTitle, 65);
+                            if ($studentsCount === 0) {
+                                $studentsCount = (int) ($course->selected_participants_count ?? 0);
+                            }
                         @endphp
-                        <article class="group bg-white rounded-[2rem] p-4 border border-slate-200 hover:border-teal-500 transition-all">
-                            <div class="relative h-56 overflow-hidden rounded-[1.5rem]">
-                                <img src="{{ asset($courseImage) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="{{ $course->title }} image">
-                                <div class="absolute top-4 left-4 bg-yellow-400 text-[#0a2d27] text-[11px] font-bold px-4 py-1.5 rounded-full border border-yellow-500/20">BEST SELLER</div>
+                        <article class="group bg-white rounded-2xl p-3 border border-slate-200 hover:border-teal-500 hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+                            <div>
+                                <div class="relative h-40 sm:h-44 overflow-hidden rounded-xl bg-slate-100">
+                                    <img src="{{ asset($courseImage) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }} image">
+                                    <div class="absolute top-2.5 left-2.5 bg-yellow-400 text-[#0a2d27] text-[10px] font-black px-2.5 py-0.5 rounded-full border border-yellow-500/20 shadow-xs">BEST SELLER</div>
+                                </div>
+                                <div class="px-1 pt-2.5 pb-1">
+                                    <div class="flex items-center gap-1 mb-1.5">
+                                        <x-rating-stars :rating="$avgRating" :count="$ratingCount" size="xs" />
+                                    </div>
+                                    <div>
+                                        <h3
+                                            class="text-sm sm:text-base font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug line-clamp-2"
+                                            title="{{ $fullTitle }}"
+                                        >
+                                            {{ $displayTitle }}
+                                        </h3>
+                                        @if ($course->isOngoing())
+                                            @php $activeIntake = $course->activeIntake; @endphp
+                                            <div class="mt-1">
+                                                @if ($activeIntake)
+                                                    <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-[9px] font-semibold text-teal-700 border border-teal-200">
+                                                        <span class="h-1 w-1 rounded-full bg-emerald-500"></span> Intake: {{ $activeIntake->name }}
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-semibold text-slate-600 border border-slate-200">
+                                                        Ongoing (Intakes)
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="mt-2 space-y-0.5 text-[11px] text-slate-600">
+                                        <p class="truncate"><span class="font-semibold text-slate-800">Course By:</span> {{ $course->course_owner_label }}</p>
+                                        <p class="truncate"><span class="font-semibold text-slate-800">Instructor:</span> {{ $course->instructor_label }}</p>
+                                        @if ($course->isOngoing() && $course->activeIntake && $course->activeIntake->next_intake_start_date)
+                                            <p class="truncate"><span class="font-semibold text-teal-800">Next Intake:</span> {{ $course->activeIntake->formattedNextIntake() }}</p>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
-                            <div class="px-3 py-6">
-                                @php
-                                    $avgRating = (float) ($course->average_rating ?? ($course->ratings_avg_rating ?? 0));
-                                    $ratingCount = (int) ($course->review_count ?? ($course->ratings_count ?? 0));
-                                    $studentsCount = (int) ($course->enrollments_count ?? 0);
-                                    $isOpenEnrollment = $course->is_open_enrollment !== false;
-                                    $fullTitle = (string) $course->title;
-                                    $displayTitle = \Illuminate\Support\Str::limit($fullTitle, 72);
-                                    if ($studentsCount === 0) {
-                                        $studentsCount = (int) ($course->selected_participants_count ?? 0);
-                                    }
-                                @endphp
-                                <div class="flex items-center gap-1 mb-3">
-                                    <x-rating-stars :rating="$avgRating" :count="$ratingCount" size="xs" />
+
+                            <div>
+                                <div class="mt-2.5 flex items-center justify-between border-t border-slate-100 pt-2 text-slate-500 font-medium text-[11px]">
+                                    <span class="flex items-center gap-1.5 truncate"><i class="fa-regular fa-clock text-teal-600"></i> {{ ($course->isOngoing() && $course->activeIntake ? $course->activeIntake->formattedDateRange() : null) ?: ($course->timeline ?: 'Self paced') }}</span>
+                                    <span class="flex items-center gap-1.5 shrink-0"><i class="fa-regular fa-user text-teal-600"></i> {{ $studentsCount }} Students</span>
                                 </div>
-                                <div class="min-h-[6.25rem]">
-                                    <h3
-                                        class="text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug"
-                                        title="{{ $fullTitle }}"
-                                    >
-                                        {{ $displayTitle }}
-                                    </h3>
-                                    @if ($course->isOngoing())
-                                        @php $activeIntake = $course->activeIntake; @endphp
-                                        <div class="mt-2">
-                                            @if ($activeIntake)
-                                                <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-0.5 text-[10px] font-semibold text-teal-700 border border-teal-200">
-                                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Intake: {{ $activeIntake->name }}
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 border border-slate-200">
-                                                    Ongoing (Intakes)
-                                                </span>
-                                            @endif
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="mt-3 space-y-1 text-xs text-slate-600">
-                                    <p><span class="font-semibold text-slate-800">Course By:</span> {{ $course->course_owner_label }}</p>
-                                    <p><span class="font-semibold text-slate-800">Instructor:</span> {{ $course->instructor_label }}</p>
-                                    @if ($course->isOngoing() && $course->activeIntake && $course->activeIntake->next_intake_start_date)
-                                        <p><span class="font-semibold text-teal-800">Next Intake:</span> {{ $course->activeIntake->formattedNextIntake() }}</p>
-                                    @endif
-                                </div>
-                                <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-5 text-slate-500 font-medium text-xs">
-                                    <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-teal-600"></i> {{ ($course->isOngoing() && $course->activeIntake ? $course->activeIntake->formattedDateRange() : null) ?: ($course->timeline ?: 'Self paced') }}</span>
-                                    <span class="flex items-center gap-2"><i class="fa-regular fa-user text-teal-600"></i> {{ $studentsCount }} Students</span>
-                                </div>
-                                <div class="mt-4 flex items-center justify-between gap-2">
-                                    <div class="flex items-center gap-2">
+                                <div class="mt-2.5 flex items-center justify-between gap-1.5">
+                                    <div class="flex items-center gap-1.5">
                                         @if ($isOpenEnrollment)
                                             @php
                                                 $feeOptions = $course->getFeeOptions();
@@ -138,28 +141,28 @@
                                                     type="button"
                                                     onclick="window.openCourseOptionModal(@js($courseModalData))"
                                                     @click.prevent="window.openCourseOptionModal(@js($courseModalData))"
-                                                    class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 cursor-pointer"
+                                                    class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3 py-1 text-[11px] font-bold text-[#0a2d27] transition hover:bg-yellow-300 cursor-pointer"
                                                 >
                                                     Enroll &amp; Pay
                                                 </button>
                                             @else
                                                 <a
                                                     href="{{ route('checkout.show', $course) }}"
-                                                    class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3.5 py-1.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300"
+                                                    class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3 py-1 text-[11px] font-bold text-[#0a2d27] transition hover:bg-yellow-300"
                                                 >
                                                     Enroll &amp; Pay
                                                 </a>
                                             @endif
                                         @else
                                             <span
-                                                class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400 cursor-not-allowed border border-slate-200"
+                                                class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-400 cursor-not-allowed border border-slate-200"
                                             >
-                                                <i class="fa-solid fa-lock text-[10px] text-amber-500"></i> Locked
+                                                <i class="fa-solid fa-lock text-[9px] text-amber-500"></i> Locked
                                             </span>
                                         @endif
                                         <a
                                             href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}"
-                                            class="inline-flex items-center justify-center rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
+                                            class="inline-flex items-center justify-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-200"
                                         >
                                             Details
                                         </a>
@@ -169,17 +172,17 @@
                                         <span
                                             title="Open to enroll"
                                             aria-label="Open to enroll"
-                                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"
+                                            class="inline-flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"
                                         >
-                                            <i class="fa-solid fa-lock-open text-sm"></i>
+                                            <i class="fa-solid fa-lock-open text-xs"></i>
                                         </span>
                                     @else
                                         <span
                                             title="Locked for selected students"
                                             aria-label="Locked for selected students"
-                                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600"
+                                            class="inline-flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600"
                                         >
-                                            <i class="fa-solid fa-lock text-sm"></i>
+                                            <i class="fa-solid fa-lock text-xs"></i>
                                         </span>
                                     @endif
                                 </div>

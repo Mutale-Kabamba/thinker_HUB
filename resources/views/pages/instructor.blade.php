@@ -112,59 +112,65 @@
             </div>
         </section>
 
-        <section class="py-14 lg:py-18">
-            <div class="mx-auto max-w-6xl px-6 lg:px-8 grid gap-6 lg:grid-cols-3">
-                <article class="lg:col-span-2 rounded-3xl border border-slate-200 bg-white p-7">
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">About {{ $roleTitle }}</p>
-                    <h2 class="mt-2 text-2xl font-black text-slate-900">Background &amp; Bio</h2>
-                    <p class="mt-4 text-sm leading-relaxed text-slate-600">
+        <section class="py-12 lg:py-16">
+            <div class="mx-auto max-w-4xl px-6 py-2 lg:px-8">
+                <div class="space-y-6 text-sm leading-relaxed text-slate-700">
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">About {{ $roleTitle }}</p>
+                    <h2 class="text-2xl font-black text-slate-900 sm:text-3xl">Biography &amp; Background</h2>
+                    <div class="prose prose-slate max-w-none text-base leading-relaxed text-slate-700 whitespace-pre-line">
                         {{ $instructor->bio ?: 'This member is an active contributor on think.er HUB. Explore their authored resources and courses below.' }}
-                    </p>
-                </article>
+                    </div>
 
-                <article class="rounded-3xl border border-slate-200 bg-white p-7">
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Profile Details</p>
-                    <ul class="mt-4 space-y-3 text-sm text-slate-600">
-                        <li><span class="font-semibold text-slate-900">Role:</span> {{ $roleTitle }}</li>
-                        @if ($instructor->company)
-                            <li><span class="font-semibold text-slate-900">Company:</span> {{ $instructor->company }}</li>
-                        @endif
-                        @if ($instructor->specialty || $instructor->proficiency)
-                            <li><span class="font-semibold text-slate-900">Specialty:</span> {{ $instructor->specialty ?: $instructor->proficiency }}</li>
-                        @endif
-                        <li><span class="font-semibold text-slate-900">Authored Posts:</span> {{ $postsCount }}</li>
-                    </ul>
-                </article>
+                    <div class="mt-8 pt-6 border-t border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-900">Profile &amp; Expertise</h3>
+                        <ul class="mt-3 list-disc pl-5 space-y-2 text-sm text-slate-700">
+                            <li><span class="font-semibold text-slate-900">Role:</span> {{ $roleTitle }}</li>
+                            @if ($instructor->company)
+                                <li><span class="font-semibold text-slate-900">Company / Organization:</span> {{ $instructor->company }}</li>
+                            @endif
+                            @if ($instructor->specialty || $instructor->proficiency)
+                                <li><span class="font-semibold text-slate-900">Specialty:</span> {{ $instructor->specialty ?: $instructor->proficiency }}</li>
+                            @endif
+                            @if ($instructor->occupation)
+                                <li><span class="font-semibold text-slate-900">Occupation:</span> {{ $instructor->occupation }}</li>
+                            @endif
+                            <li><span class="font-semibold text-slate-900">Authored Resources:</span> {{ $postsCount }}</li>
+                            @if ($instructor->isInstructor() && $coursesCount > 0)
+                                <li><span class="font-semibold text-slate-900">Active Courses:</span> {{ $coursesCount }} ({{ $learnersCount }} {{ \Illuminate\Support\Str::plural('Learner', $learnersCount) }})</li>
+                            @endif
+                        </ul>
+                    </div>
+                </div>
             </div>
         </section>
 
         {{-- Authored Resources Section --}}
         @if (isset($posts) && $posts->isNotEmpty())
             <section class="pb-16 lg:pb-20">
-                <div class="mx-auto max-w-6xl px-6 lg:px-8">
-                    <div class="mb-8">
-                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-teal-600">Publications</p>
-                        <h2 class="mt-1 text-3xl font-black text-slate-900">Resources by {{ $instructor->name }}</h2>
+                <div class="mx-auto max-w-5xl px-6 lg:px-8">
+                    <div class="mb-6">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">Publications</p>
+                        <h2 class="mt-1 text-2xl font-black text-slate-900">Resources by {{ $instructor->name }}</h2>
                     </div>
 
-                    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($posts as $post)
-                            <article class="group bg-white rounded-3xl p-6 border border-slate-200 flex flex-col justify-between hover:border-teal-400 transition">
+                            <article class="group bg-white rounded-2xl p-4 border border-slate-200 flex flex-col justify-between hover:border-teal-400 hover:-translate-y-0.5 transition-all">
                                 <div>
-                                    <div class="flex items-center justify-between gap-2 mb-3">
-                                        <span class="bg-teal-50 text-teal-800 text-[10px] font-extrabold uppercase px-3 py-0.5 rounded-full border border-teal-100">
+                                    <div class="flex items-center justify-between gap-2 mb-2.5">
+                                        <span class="bg-teal-50 text-teal-800 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border border-teal-100">
                                             {{ App\Models\HubPost::TYPES[$post->type] ?? ucfirst($post->type) }}
                                         </span>
                                         <span class="text-xs text-slate-400 font-medium">{{ $post->created_at->format('M j, Y') }}</span>
                                     </div>
-                                    <h3 class="text-lg font-bold text-slate-900 group-hover:text-teal-700 transition cursor-pointer line-clamp-2">
+                                    <h3 class="text-base font-bold text-slate-900 group-hover:text-teal-700 transition cursor-pointer line-clamp-2">
                                         <a href="{{ route('hub.show', $post->slug) }}">{{ $post->title }}</a>
                                     </h3>
                                     @if ($post->excerpt)
-                                        <p class="mt-2 text-xs text-slate-600 line-clamp-2 leading-relaxed">{{ $post->excerpt }}</p>
+                                        <p class="mt-1.5 text-xs text-slate-600 line-clamp-2 leading-relaxed">{{ $post->excerpt }}</p>
                                     @endif
                                 </div>
-                                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                                     <span class="text-xs text-slate-500 font-semibold">{{ $post->category }}</span>
                                     <a href="{{ route('hub.show', $post->slug) }}" class="text-xs font-bold text-teal-700 hover:underline">
                                         View Resource <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i>
@@ -178,21 +184,26 @@
         @endif
 
         @if ($courses->isNotEmpty())
-            <section class="pb-20 lg:pb-24">
-                <div class="mx-auto max-w-6xl px-6 lg:px-8">
-                    <div class="mb-8">
-                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-teal-600">Curated Courses</p>
-                        <h2 class="mt-1 text-3xl font-black text-slate-900">Courses Taught</h2>
+            <section class="pb-16 lg:pb-20">
+                <div class="mx-auto max-w-5xl px-6 lg:px-8">
+                    <div class="mb-6">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">Curated Courses</p>
+                        <h2 class="mt-1 text-2xl font-black text-slate-900">Courses Taught</h2>
                     </div>
 
-                    <div class="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($courses as $course)
-                            <article class="group rounded-[1.6rem] border border-slate-200 bg-white p-4 hover:border-teal-500 transition-all">
-                                <div class="px-2 py-4">
-                                    <h3 class="text-lg font-bold text-slate-900">{{ $course->title }}</h3>
-                                    <p class="mt-1 text-xs text-slate-500">{{ $course->code }}</p>
-                                    <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title)]) }}" class="mt-4 inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-bold text-white hover:bg-[#11443c]">
-                                        Open Course
+                            <article class="group rounded-2xl border border-slate-200 bg-white p-3.5 hover:border-teal-500 hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between gap-2 mb-2">
+                                        <span class="bg-teal-50 text-teal-800 text-[10px] font-bold uppercase px-2 py-0.5 rounded border border-teal-200/60">{{ $course->code }}</span>
+                                    </div>
+                                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-teal-700 transition leading-snug">{{ $course->title }}</h3>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                                    <span class="text-[11px] text-slate-500"><i class="fa-regular fa-user text-teal-600 mr-1"></i>{{ (int) ($course->enrollments_count ?? 0) }} Students</span>
+                                    <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title)]) }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-3 py-1 text-[11px] font-bold text-white hover:bg-[#11443c]">
+                                        Open Course &rarr;
                                     </a>
                                 </div>
                             </article>
@@ -203,12 +214,12 @@
         @endif
 
         {{-- Instructor Teaching Reviews Section --}}
-        <section class="pb-20 lg:pb-24">
-            <div class="mx-auto max-w-6xl px-6 lg:px-8">
-                <div class="mb-8">
+        <section class="pb-16 lg:pb-20">
+            <div class="mx-auto max-w-5xl px-6 lg:px-8">
+                <div class="mb-6">
                     <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Testimonials &amp; Feedback</span>
-                    <h2 class="text-3xl font-black text-slate-900 mt-1 sm:text-4xl">Student Ratings &amp; Reviews</h2>
-                    <p class="mt-2 text-slate-600 text-sm">Feedback from learners who completed courses and mentorship with {{ $instructor->name }}.</p>
+                    <h2 class="text-2xl font-black text-slate-900 mt-1 sm:text-3xl">Student Ratings &amp; Reviews</h2>
+                    <p class="mt-1 text-slate-600 text-sm">Feedback from learners who completed courses and mentorship with {{ $instructor->name }}.</p>
                 </div>
 
                 <livewire:reviews.review-list target-type="instructor" :target-id="$instructor->id" :target-title="$instructor->name" />

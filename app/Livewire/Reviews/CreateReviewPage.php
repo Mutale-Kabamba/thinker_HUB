@@ -152,17 +152,21 @@ class CreateReviewPage extends Component
 
         $reviewRating = ($this->rating !== null && $this->rating !== '') ? (int) $this->rating : null;
 
-        $review = Review::create([
-            'user_id' => $user->id,
-            'reviewable_type' => $reviewableType,
-            'reviewable_id' => $reviewableId,
-            'rating' => $reviewRating,
-            'title' => $this->title ? trim($this->title) : null,
-            'comment' => ! empty(trim($this->comment)) ? trim($this->comment) : null,
-            'is_anonymous' => $this->isAnonymous,
-            'is_approved' => true,
-            'is_verified' => $isVerified,
-        ]);
+        $review = Review::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'reviewable_type' => $reviewableType,
+                'reviewable_id' => $reviewableId,
+            ],
+            [
+                'rating' => $reviewRating,
+                'title' => $this->title ? trim($this->title) : null,
+                'comment' => ! empty(trim($this->comment)) ? trim($this->comment) : null,
+                'is_anonymous' => $this->isAnonymous,
+                'is_approved' => true,
+                'is_verified' => $isVerified,
+            ]
+        );
 
         $this->submitted = true;
         $this->title = '';

@@ -65,7 +65,7 @@
         <section class="py-12 lg:py-16">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 @if ($instructors->isNotEmpty())
-                    <div class="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                    <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                         @foreach ($instructors as $member)
                             @php
                                 $roleTitle = match($member->role) {
@@ -86,29 +86,31 @@
                                 }
                             @endphp
 
-                            <article class="group bg-white rounded-2xl p-3 sm:p-3.5 border border-slate-200 hover:border-teal-500 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
+                            <article class="group bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200 hover:border-teal-500 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
                                 <div>
-                                    {{-- Photo Header Container (Full Portrait) --}}
-                                    <div class="relative w-full aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-2.5 flex items-center justify-center" style="aspect-ratio: 3/4;">
-                                        @if ($avatarUrl)
-                                            <img
-                                                src="{{ $avatarUrl }}"
-                                                class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
-                                                alt="{{ $member->name }}"
-                                                onerror="this.parentElement.innerHTML='<div class=\'w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center\'><span class=\'text-lg font-black text-teal-700\'>{{ strtoupper(substr($member->name, 0, 2)) }}</span></div>'"
-                                            >
-                                        @else
-                                            <div class="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center border border-teal-200">
-                                                <span class="text-xl font-black text-teal-700">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
-                                            </div>
-                                        @endif
+                                    {{-- Centered Instructor Avatar (Clean & Proportional) --}}
+                                    <div class="flex items-center justify-center mb-2.5">
+                                        <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden ring-4 ring-teal-50 border border-teal-200/80 bg-slate-100 flex items-center justify-center shadow-sm">
+                                            @if ($avatarUrl)
+                                                <img
+                                                    src="{{ $avatarUrl }}"
+                                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    alt="{{ $member->name }}"
+                                                    onerror="this.parentElement.innerHTML='<div class=\'w-full h-full bg-teal-100 flex items-center justify-center\'><span class=\'text-lg font-black text-teal-700\'>{{ strtoupper(substr($member->name, 0, 2)) }}</span></div>'"
+                                                >
+                                            @else
+                                                <div class="w-full h-full bg-teal-100 flex items-center justify-center">
+                                                    <span class="text-xl font-black text-teal-700">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </div>
 
                                     {{-- Member Details --}}
-                                    <div class="px-0.5">
+                                    <div class="text-center px-0.5">
                                         {{-- Neatly Placed Role Badge --}}
                                         <div class="mb-1">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider text-teal-800 bg-teal-50 border border-teal-200/70">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider text-teal-800 bg-teal-50 border border-teal-200/70">
                                                 {{ $roleTitle }}
                                             </span>
                                         </div>
@@ -119,7 +121,7 @@
                                             </a>
                                         </h3>
 
-                                        <div class="my-1">
+                                        <div class="my-1 flex items-center justify-center">
                                             <x-rating-stars :rating="$member->instructor_rating ?? 0" :count="$member->instructor_review_count ?? 0" size="xs" />
                                         </div>
 
@@ -131,7 +133,7 @@
 
                                         {{-- Skills / Specialty Tags --}}
                                         @if (!empty($skills))
-                                            <div class="flex flex-wrap items-center gap-1 my-1.5">
+                                            <div class="flex flex-wrap items-center justify-center gap-1 my-1.5">
                                                 @foreach (array_slice($skills, 0, 2) as $skill)
                                                     <span class="inline-flex items-center bg-teal-50/90 text-teal-800 border border-teal-200/60 text-[10px] font-medium rounded-md px-1.5 py-0.5 leading-tight truncate max-w-[130px]" title="{{ $skill }}">
                                                         {{ $skill }}
@@ -147,10 +149,10 @@
                                     </div>
                                 </div>
 
-                                {{-- Compact Action Bar: Social Icons & Profile Button Inline --}}
-                                <div class="px-0.5 pt-2 mt-auto border-t border-slate-100 flex items-center justify-between gap-1.5">
+                                {{-- Action Bar: Centered with Social Icons & View Profile Button Below on Mobile, Inline on Desktop --}}
+                                <div class="px-0.5 pt-3 mt-auto border-t border-slate-100 flex flex-col sm:flex-row items-center sm:justify-between gap-2.5 sm:gap-1.5">
                                     {{-- Social Icons Row --}}
-                                    <div class="flex items-center gap-1">
+                                    <div class="flex items-center justify-center gap-1.5">
                                         @if ($member->whatsapp)
                                             <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $member->whatsapp) }}" target="_blank" rel="noopener" class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition" title="WhatsApp">
                                                 <i class="fa-brands fa-whatsapp text-[11px]"></i>
@@ -183,10 +185,10 @@
                                         @endif
                                     </div>
 
-                                    {{-- CTA Button --}}
+                                    {{-- CTA Small Pill Button --}}
                                     <a
                                         href="{{ route('landing.instructors.show', ['instructor' => $member->id, 'slug' => $profileSlug]) }}"
-                                        class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50/80 hover:bg-[#0a2d27] hover:border-[#0a2d27] hover:text-white px-2.5 py-1 text-[10px] sm:text-[11px] font-bold text-slate-700 transition-all shrink-0"
+                                        class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50/90 hover:bg-[#0a2d27] hover:border-[#0a2d27] hover:text-white px-2.5 py-1 text-[10px] sm:text-[11px] font-bold text-slate-700 transition-all shadow-2xs shrink-0"
                                     >
                                         View Profile &rarr;
                                     </a>
