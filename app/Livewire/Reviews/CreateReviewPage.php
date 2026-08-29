@@ -40,26 +40,28 @@ class CreateReviewPage extends Component
 
     public ?string $redirectUrl = null;
 
-    public function mount(?string $type = null, ?int $id = null): void
+    public function mount(?string $targetType = null, ?int $targetId = null, ?string $type = null, ?int $id = null): void
     {
         if (! Auth::check()) {
             redirect()->guest(route('login'));
             return;
         }
 
-        $type = $type ?: request('type', $this->targetType);
-        $id = $id ?: request('id', $this->targetId);
+        $resolvedType = $targetType ?: ($type ?: request('type', $this->targetType));
+        $resolvedId = $targetId ?: ($id ?: request('id', $this->targetId));
 
-        if (in_array($type, ['platform', 'course', 'instructor'], true)) {
-            $this->targetType = $type;
+        if (in_array($resolvedType, ['platform', 'course', 'instructor'], true)) {
+            $this->targetType = $resolvedType;
         } else {
             $this->targetType = 'platform';
         }
 
-        if ($this->targetType === 'course' && $id) {
-            $this->selectedCourseId = (int) $id;
-        } elseif ($this->targetType === 'instructor' && $id) {
-            $this->selectedInstructorId = (int) $id;
+        $this->targetId = $resolvedId ? (int) $resolvedId : null;
+
+        if ($this->targetType === 'course' && $this->targetId) {
+            $this->selectedCourseId = $this->targetId;
+        } elseif ($this->targetType === 'instructor' && $this->targetId) {
+            $this->selectedInstructorId = $this->targetId;
         }
     }
 
