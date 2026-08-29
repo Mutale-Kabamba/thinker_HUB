@@ -376,7 +376,7 @@ class ClassIntakeScopingAndFriendsTest extends TestCase
             ->assertSee('FS-100 • Cohort 1')
             ->assertSee('(165 XP)')
             ->assertSee('UX-200 • Cohort 2')
-            ->assertSee('(350 XP)');
+            ->assertSee('(365 XP)');
 
         // Leaderboard tab has class switcher and switches rankings
         Livewire::actingAs($student)
@@ -386,10 +386,49 @@ class ClassIntakeScopingAndFriendsTest extends TestCase
             ->assertSee('Leaderboard')
             ->assertSee('FS-100 • Cohort 1')
             ->assertSee('500')
-            // Switch to UX-200 -> Taylor Friend is #1 with 350 XP, Alex Multi has 100 XP
+            // Switch to UX-200 -> Taylor Friend is #1 with 365 XP, Alex Multi has 100 XP
             ->call('selectLeaderboardClass', $courseB->id, $intakeB->id)
             ->assertSee('UX-200 • Cohort 2')
-            ->assertSee('350')
+            ->assertSee('365')
             ->assertSee('100');
+    }
+
+    public function test_points_earned_after_enrolling_in_second_course_are_accounted_for_in_that_course(): void
+    {
+        $courseA = Course::create(['title' => 'Web Dev', 'code' => 'WEB-101', 'is_active' => true]);
+        $intakeA = CourseIntake::create(['course_id' => $courseA->id, 'name' => 'Intake 1', 'start_date' => now()->subMonths(2), 'end_date' => now()->addMonth(), 'status' => 'active', 'is_active' => true]);
+
+        $courseB = Course::create(['title' => 'Data Science', 'code' => 'DS-201', 'is_active' => true]);
+        $intakeB = CourseIntake::create(['course_id' => $courseB->id, 'name' => 'Intake 2', 'start_date' => now()->subMonth(), 'end_date' => now()->addMonth(), 'status' => 'active', 'is_active' => true]);
+
+        $student = User::factory()->create(['name' => 'Jane Student', 'role' => 'student', 'is_active' => true]);
+
+        // 1. Enrolls in Course A 30 days ago
+        Enrollment::create(['user_id' => $student->id, 'course_id' => $courseA->id, 'course_intake_id' => $intakeA->id, 'created_at' => now()->subDays(30)]);
+
+        $service = app(GamificationService::class);
+
+        // Earns 200 XP in Course A 20 days ago
+        $quizA = Quiz::create(['course_id' => $courseA->id, 'course_intake_id' => $intakeA->id, 'title' => 'HTML Quiz', 'is_active' => true]);
+        $service->awardPoints($student, 'quiz_passed', $quizA, 200, 10, 'HTML Quiz Passed');
+
+        // 2. Enrolls in Course B 10 days ago
+        Enrollment::create(['user_id' => $student->id, 'course_id' => $courseB->id, 'course_intake_id' => $intakeB->id, 'created_at' => now()->subDays(10)]);
+
+        // Earns 300 XP in Course B quiz
+        $quizB = Quiz::create(['course_id' => $courseB->id, 'course_intake_id' => $intakeB->id, 'title' => 'Python Quiz', 'is_active' => true]);
+        $service->awardPoints($student, 'quiz_passed', $quizB, 300, 15, 'Python Quiz Passed');
+
+        // Earns 50 XP daily login / streak after enrolling in Course B
+        $service->awardPoints($student, 'daily_login', null, 50, 5, 'Daily login');
+
+        // Course A: 200 (quiz) + 50 (daily login) = 250 XP
+        $this->assertEquals(250, $student->getXpForCourse($courseA->id, $intakeA->id));
+
+        // Course B: 300 (quiz) + 50 (daily login earned after enrolling) = 350 XP
+        $this->assertEquals(350, $student->getXpForCourse($courseB->id, $intakeB->id));
+
+        // Total lifetime XP = 200 + 300 + 50 = 550 XP
+        $this->assertEquals(550, (int) $student->lifetime_xp);
     }
 }
