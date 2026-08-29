@@ -374,7 +374,7 @@ class ClassIntakeScopingAndFriendsTest extends TestCase
             ->set('tab', 'friends')
             ->assertSee('Taylor Friend')
             ->assertSee('FS-100 • Cohort 1')
-            ->assertSee('(150 XP)')
+            ->assertSee('(165 XP)')
             ->assertSee('UX-200 • Cohort 2')
             ->assertSee('(350 XP)');
 

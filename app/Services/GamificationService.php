@@ -180,6 +180,15 @@ class GamificationService
             }
         }
 
+        // If still null, default to user's active/first enrollment
+        if ($courseId === null) {
+            $firstEnrollment = $user->enrollments()->first();
+            if ($firstEnrollment) {
+                $courseId = $firstEnrollment->course_id;
+                $courseIntakeId = $courseIntakeId ?? $firstEnrollment->course_intake_id;
+            }
+        }
+
         // 1. Daily coin limit check (max 150 TC/day earned from xp_transactions created today)
         $todayEarnedCoins = (int) XpTransaction::query()
             ->where('user_id', $user->id)
