@@ -177,6 +177,10 @@ class GamificationService
             } elseif (method_exists($subject, 'courseSession') && $subject->courseSession) {
                 $courseId = $subject->courseSession->course_id;
                 $courseIntakeId = $courseIntakeId ?? $subject->courseSession->course_intake_id;
+            } elseif ($subject instanceof Review) {
+                if ($subject->reviewable_type === Course::class || $subject->reviewable_type === 'App\Models\Course') {
+                    $courseId = (int) $subject->reviewable_id;
+                }
             }
         }
 

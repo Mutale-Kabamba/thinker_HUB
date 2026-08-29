@@ -65,7 +65,7 @@
         <section class="py-12 lg:py-16">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 @if ($instructors->isNotEmpty())
-                    <div class="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                    <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                         @foreach ($instructors as $member)
                             @php
                                 $roleTitle = match($member->role) {
@@ -88,17 +88,17 @@
 
                             <article class="group bg-white rounded-2xl p-3 sm:p-3.5 border border-slate-200 hover:border-teal-500 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
                                 <div>
-                                    {{-- Photo Header Container (Full Portrait) --}}
-                                    <div class="relative w-full aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-2.5 flex items-center justify-center" style="aspect-ratio: 3/4;">
+                                    {{-- Photo Header Container (Compact Image Height) --}}
+                                    <div class="relative w-full h-32 sm:h-36 overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-teal-50/50 mb-2.5 flex items-center justify-center">
                                         @if ($avatarUrl)
                                             <img
                                                 src="{{ $avatarUrl }}"
-                                                class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                                                class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                                                 alt="{{ $member->name }}"
                                                 onerror="this.parentElement.innerHTML='<div class=\'w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center\'><span class=\'text-lg font-black text-teal-700\'>{{ strtoupper(substr($member->name, 0, 2)) }}</span></div>'"
                                             >
                                         @else
-                                            <div class="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center border border-teal-200">
+                                            <div class="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center border border-teal-200">
                                                 <span class="text-xl font-black text-teal-700">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
                                             </div>
                                         @endif
@@ -148,7 +148,7 @@
                                 </div>
 
                                 {{-- Compact Action Bar: Social Icons & Profile Button Inline --}}
-                                <div class="px-0.5 pt-2 mt-auto border-t border-slate-100 flex items-center justify-between gap-1.5">
+                                <div class="px-0.5 pt-2.5 mt-auto border-t border-slate-100 flex items-center justify-between gap-1.5">
                                     {{-- Social Icons Row --}}
                                     <div class="flex items-center gap-1">
                                         @if ($member->whatsapp)
