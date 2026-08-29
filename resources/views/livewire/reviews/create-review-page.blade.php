@@ -212,32 +212,50 @@
         /* Star Rating */
         .hub-star-box {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 0.35rem;
+            justify-content: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.25rem 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .dark .hub-star-box,
+        .fi-theme-dark .hub-star-box {
+            background: #1e293b;
+            border-color: #334155;
         }
 
         .hub-star-btn {
             background: transparent;
             border: none;
             cursor: pointer;
-            padding: 0.25rem;
-            font-size: 1.5rem;
+            padding: 0.2rem 0.35rem;
+            font-size: 2rem;
             line-height: 1;
             color: #cbd5e1;
-            transition: color 0.15s ease, transform 0.1s ease;
+            transition: color 0.15s ease, transform 0.15s ease;
+            user-select: none;
         }
 
         .hub-star-btn:hover {
-            transform: scale(1.15);
+            transform: scale(1.25);
         }
 
-        .hub-star-btn.active {
-            color: #f59e0b;
+        .hub-star-filled {
+            color: #f59e0b !important;
+            filter: drop-shadow(0 2px 6px rgba(245, 158, 11, 0.45));
+        }
+
+        .hub-star-empty {
+            color: #cbd5e1 !important;
         }
 
         .dark .hub-star-empty,
         .fi-theme-dark .hub-star-empty {
-            color: #475569;
+            color: #475569 !important;
         }
 
         /* Buttons */
@@ -486,11 +504,21 @@
                     @endif
                 </div>
 
-                <div class="hub-star-box">
-                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                <div class="hub-star-box"
+                     x-data="{
+                         hoverRating: 0,
+                         get current() {
+                             return this.hoverRating || @js($rating) || 0;
+                         }
+                     }"
+                     @mouseleave="hoverRating = 0">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;">
                         @for ($s = 1; $s <= 5; $s++)
                             <button type="button"
                                     wire:click="setRating({{ $s }})"
+                                    @mouseenter="hoverRating = {{ $s }}"
+                                    @touchstart.passive="hoverRating = {{ $s }}"
+                                    :class="current >= {{ $s }} ? 'hub-star-btn hub-star-filled' : 'hub-star-btn hub-star-empty'"
                                     class="hub-star-btn {{ $rating !== null && $s <= $rating ? 'hub-star-filled' : 'hub-star-empty' }}"
                                     title="{{ $s }} Star{{ $s > 1 ? 's' : '' }}">
                                 ★
