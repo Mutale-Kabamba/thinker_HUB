@@ -19,6 +19,7 @@
     @include('partials.pwa-register')
 </head>
 <body class="font-sans antialiased bg-slate-50 dark:bg-[#0b141a] text-slate-900 dark:text-slate-100 min-h-dvh safe-p" x-data="{ sidebarOpen: false }">
+    @include('partials.app-preloader')
     @php
         $resolvedSection = $section ?? (auth()->user()?->isAdmin() ? 'admin' : 'student');
         $links = $resolvedSection === 'admin'

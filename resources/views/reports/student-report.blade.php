@@ -188,12 +188,17 @@
                                         <td><strong>{{ $session['title'] }}</strong></td>
                                         <td>{{ $session['session_date'] }} {{ $session['time'] ? '• ' . $session['time'] : '' }}</td>
                                         <td class="text-center">
-                                            @if ($session['status'] === 'Present')
+                                            @php
+                                                $st = strtolower((string) ($session['status'] ?? ''));
+                                            @endphp
+                                            @if ($st === 'present')
                                                 <span class="badge badge-success">Present</span>
-                                            @elseif ($session['status'] === 'Late')
+                                            @elseif ($st === 'late')
                                                 <span class="badge badge-warning">Late</span>
-                                            @elseif ($session['status'] === 'Apology')
+                                            @elseif ($st === 'apology' || $st === 'excused')
                                                 <span class="badge badge-info">Excused</span>
+                                            @elseif ($st === 'upcoming')
+                                                <span class="badge badge-gray">Upcoming</span>
                                             @else
                                                 <span class="badge badge-danger">Absent</span>
                                             @endif
