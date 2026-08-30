@@ -258,4 +258,111 @@ class AdminReportGenerationTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
     }
+
+    public function test_report_service_accurately_tracks_lowercase_and_mixed_attendance_statuses(): void
+    {
+        $student = User::factory()->create([
+            'name' => 'David Present',
+            'email' => 'david@thinker.test',
+            'role' => 'student',
+        ]);
+
+        $course = Course::create([
+            'title' => 'Flutter Mobile Architecture',
+            'code' => 'FLUTTER401',
+            'is_active' => true,
+        ]);
+
+        Enrollment::create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+        ]);
+
+        // Session 1: Present (lowercase constant from Filament Attendance manager)
+        $session1 = CourseSession::create([
+            'course_id' => $course->id,
+            'title' => 'Session 1',
+            'session_date' => Carbon::now()->subDays(4),
+            'start_time' => '10:00',
+            'end_time' => '11:30',
+        ]);
+        Attendance::create([
+            'user_id' => $student->id,
+            'course_session_id' => $session1->id,
+            'status' => Attendance::STATUS_PRESENT, // 'present'
+            'notes' => 'Active participant',
+        ]);
+
+        // Session 2: Late
+        $session2 = CourseSession::create([
+            'course_id' => $course->id,
+            'title' => 'Session 2',
+            'session_date' => Carbon::now()->subDays(3),
+            'start_time' => '10:00',
+            'end_time' => '11:30',
+        ]);
+        Attendance::create([
+            'user_id' => $student->id,
+            'course_session_id' => $session2->id,
+            'status' => Attendance::STATUS_LATE, // 'late'
+            'notes' => 'Joined 10 mins late',
+        ]);
+
+        // Session 3: Apology
+        $session3 = CourseSession::create([
+            'course_id' => $course->id,
+            'title' => 'Session 3',
+            'session_date' => Carbon::now()->subDays(2),
+            'start_time' => '10:00',
+            'end_time' => '11:30',
+        ]);
+        Attendance::create([
+            'user_id' => $student->id,
+            'course_session_id' => $session3->id,
+            'status' => Attendance::STATUS_APOLOGY, // 'apology'
+            'notes' => 'Medical appointment',
+        ]);
+
+        // Session 4: Absent
+        $session4 = CourseSession::create([
+            'course_id' => $course->id,
+            'title' => 'Session 4',
+            'session_date' => Carbon::now()->subDays(1),
+            'start_time' => '10:00',
+            'end_time' => '11:30',
+        ]);
+        Attendance::create([
+            'user_id' => $student->id,
+            'course_session_id' => $session4->id,
+            'status' => Attendance::STATUS_ABSENT, // 'absent'
+        ]);
+
+        $service = app(ReportGenerationService::class);
+        $academicData = $service->getStudentAcademicData($student, $course);
+        $courseData = $academicData['courses_data'][0];
+
+        $this->assertEquals(1, $courseData['present_count'], 'Present count must be 1');
+        $this->assertEquals(1, $courseData['late_count'], 'Late count must be 1');
+        $this->assertEquals(1, $courseData['apology_count'], 'Apology count must be 1');
+        $this->assertEquals(1, $courseData['absent_count'], 'Absent count must be 1');
+        $this->assertEquals(2, $courseData['sessions_attended'], 'Sessions attended (present + late) must be 2');
+        $this->assertEquals(4, $courseData['sessions_total'], 'Total sessions must be 4');
+        $this->assertEquals(50, $courseData['attendance_rate'], 'Attendance rate must be 50%');
+
+        $sessionLog = collect($courseData['session_log'])->keyBy('session_id');
+        $this->assertEquals('Present', $sessionLog[$session1->id]['status']);
+        $this->assertEquals('Active participant', $sessionLog[$session1->id]['remarks']);
+        $this->assertEquals('Late', $sessionLog[$session2->id]['status']);
+        $this->assertEquals('Apology', $sessionLog[$session3->id]['status']);
+        $this->assertEquals('Absent', $sessionLog[$session4->id]['status']);
+
+        // Test Course Analytics data
+        $courseAnalytics = $service->getCourseAnalyticsData($course);
+        $this->assertEquals(1, $courseAnalytics['attendance']['present']);
+        $this->assertEquals(1, $courseAnalytics['attendance']['late']);
+        $this->assertEquals(1, $courseAnalytics['attendance']['apology']);
+        $this->assertEquals(1, $courseAnalytics['attendance']['absent']);
+        $this->assertEquals(50, $courseAnalytics['attendance']['rate']);
+        $this->assertEquals(2, $courseAnalytics['roster'][0]['attended_sessions']);
+    }
 }

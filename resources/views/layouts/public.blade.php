@@ -17,6 +17,7 @@
     @livewireStyles
 </head>
 <body class="public-layout hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased min-h-dvh" x-data="{ mobileMenu: false }">
+    @include('partials.app-preloader')
     {{ $slot }}
     @livewireScripts
 </body>

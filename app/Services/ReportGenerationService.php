@@ -91,16 +91,25 @@ class ReportGenerationService
             foreach ($sessions as $session) {
                 $att = $attendances->get($session->id);
                 $sessionDate = $session->session_date ? Carbon::parse($session->session_date) : null;
-                $status = $att?->status ?? ($sessionDate && $sessionDate->isPast() ? 'Absent' : 'Upcoming');
+                $rawStatus = $att?->status !== null ? strtolower(trim((string) $att->status)) : null;
 
-                if ($status === 'Present') {
+                if ($rawStatus === Attendance::STATUS_PRESENT || $rawStatus === 'present') {
+                    $status = 'Present';
                     $presentCount++;
-                } elseif ($status === 'Late') {
+                } elseif ($rawStatus === Attendance::STATUS_LATE || $rawStatus === 'late') {
+                    $status = 'Late';
                     $lateCount++;
-                } elseif ($status === 'Apology') {
+                } elseif ($rawStatus === Attendance::STATUS_APOLOGY || $rawStatus === 'apology' || $rawStatus === 'excused') {
+                    $status = 'Apology';
                     $apologyCount++;
-                } elseif ($status === 'Absent') {
+                } elseif ($rawStatus === Attendance::STATUS_ABSENT || $rawStatus === 'absent') {
+                    $status = 'Absent';
                     $absentCount++;
+                } else {
+                    $status = ($sessionDate && $sessionDate->isPast()) ? 'Absent' : 'Upcoming';
+                    if ($status === 'Absent') {
+                        $absentCount++;
+                    }
                 }
 
                 $sessionLog[] = [
@@ -109,7 +118,7 @@ class ReportGenerationService
                     'session_date' => $sessionDate ? $sessionDate->format('M d, Y') : 'TBD',
                     'time' => $session->start_time ? Carbon::parse($session->start_time)->format('H:i') : null,
                     'status' => $status,
-                    'remarks' => $att?->remarks,
+                    'remarks' => $att?->notes ?? $att?->remarks,
                     'is_past' => $sessionDate ? $sessionDate->isPast() : false,
                 ];
             }
@@ -383,11 +392,11 @@ class ReportGenerationService
             ->whereIn('course_session_id', $sessions->pluck('id'))
             ->get();
 
-        $presentTotal = $allAttendances->where('status', 'Present')->count();
-        $lateTotal = $allAttendances->where('status', 'Late')->count();
-        $apologyTotal = $allAttendances->where('status', 'Apology')->count();
-        $absentTotal = $allAttendances->where('status', 'Absent')->count();
-        $totalMarked = $allAttendances->count();
+        $presentTotal = $allAttendances->filter(fn ($a) => in_array(strtolower(trim((string) $a->status)), ['present', Attendance::STATUS_PRESENT]))->count();
+        $lateTotal = $allAttendances->filter(fn ($a) => in_array(strtolower(trim((string) $a->status)), ['late', Attendance::STATUS_LATE]))->count();
+        $apologyTotal = $allAttendances->filter(fn ($a) => in_array(strtolower(trim((string) $a->status)), ['apology', 'excused', Attendance::STATUS_APOLOGY]))->count();
+        $absentTotal = $allAttendances->filter(fn ($a) => in_array(strtolower(trim((string) $a->status)), ['absent', Attendance::STATUS_ABSENT]))->count();
+        $totalMarked = $allAttendances->filter(fn ($a) => in_array(strtolower(trim((string) $a->status)), ['present', 'late', 'apology', 'excused', 'absent']))->count();
 
         $aggregateAttendanceRate = $totalMarked > 0
             ? round((($presentTotal + $lateTotal) / $totalMarked) * 100, 1)
@@ -468,7 +477,7 @@ class ReportGenerationService
             }
 
             $stAttendances = $allAttendances->where('user_id', $student->id);
-            $stAttended = $stAttendances->whereIn('status', ['Present', 'Late'])->count();
+            $stAttended = $stAttendances->filter(fn ($a) => in_array(strtolower(trim((string) $a->status)), ['present', 'late', Attendance::STATUS_PRESENT, Attendance::STATUS_LATE]))->count();
             $stTotalSessions = $sessions->count();
             $stAttRate = $stTotalSessions > 0 ? round(($stAttended / $stTotalSessions) * 100) : 100;
 

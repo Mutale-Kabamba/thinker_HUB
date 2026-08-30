@@ -15,6 +15,7 @@
     @livewireStyles
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased overflow-x-hidden min-h-screen">
+    @include('partials.app-preloader')
     {{ $slot }}
     @livewireScripts
 </body>

@@ -1,22 +1,19 @@
-<div id="thinker-app-preloader" class="thinker-preloader-root" aria-hidden="true" style="display: none;">
-    <div class="preloader-ambient"></div>
-    <div class="preloader-content">
-        <div class="preloader-logo-ring">
-            <img src="{{ asset('images/logos/icon_green.png') }}" alt="think.er HUB" class="preloader-logo-img">
+<div id="thinker-app-preloader" class="thinker-preloader-root" role="status" aria-live="polite" aria-label="Loading think.er HUB">
+    <div class="preloader-container">
+        <div class="preloader-logo-box">
+            <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB" class="preloader-logo preloader-logo-light">
+            <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB" class="preloader-logo preloader-logo-dark">
         </div>
 
-        <div class="preloader-brand">
-            <span class="preloader-title">think.er <span class="preloader-title-hub">HUB</span></span>
-            <span class="preloader-tagline">Learn • Level Up • Achieve</span>
+        <div class="preloader-indicator" aria-hidden="true">
+            <div class="preloader-indicator-bar"></div>
         </div>
 
-        <div class="preloader-progress-wrap">
-            <div class="preloader-progress-bar" id="preloader-bar"></div>
-        </div>
+        <span class="sr-only">Loading application...</span>
+    </div>
 
-        <div class="preloader-status" id="preloader-status-text">
-            Initializing mobile app...
-        </div>
+    <div class="preloader-credit">
+        By Ori Studio Limited
     </div>
 </div>
 
@@ -25,135 +22,214 @@
         position: fixed;
         inset: 0;
         z-index: 999999;
-        display: none;
+        display: flex;
         align-items: center;
         justify-content: center;
-        background: radial-gradient(circle at center, #0a242c 0%, #06161a 100%);
-        color: #e2f1f0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: #f8fafc;
+        color: #0f172a;
         opacity: 1;
-        transform: scale(1);
-        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: none;
+        visibility: visible;
+        pointer-events: auto;
         user-select: none;
         -webkit-user-select: none;
+        transition: opacity 280ms cubic-bezier(0.4, 0, 0.2, 1), visibility 280ms cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .thinker-preloader-root.preloader-active {
-        display: flex !important;
-        pointer-events: auto !important;
+    /* Dark mode background resolution */
+    @media (prefers-color-scheme: dark) {
+        .thinker-preloader-root {
+            background-color: #0b141a;
+            color: #f8fafc;
+        }
+    }
+
+    html.dark .thinker-preloader-root,
+    body.dark .thinker-preloader-root {
+        background-color: #0b141a !important;
+        color: #f8fafc !important;
     }
 
     .thinker-preloader-root.preloader-hidden {
         opacity: 0 !important;
-        transform: scale(1.025) !important;
+        visibility: hidden !important;
         pointer-events: none !important;
-        display: none !important;
     }
 
-    .preloader-ambient {
-        position: absolute;
-        width: 380px;
-        height: 380px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(0, 106, 103, 0.5) 0%, rgba(6, 22, 26, 0) 70%);
-        animation: preloaderGlow 3s ease-in-out infinite alternate;
-        pointer-events: none;
-    }
-
-    @keyframes preloaderGlow {
-        0% { transform: scale(0.85); opacity: 0.5; }
-        100% { transform: scale(1.2); opacity: 0.95; }
-    }
-
-    .preloader-content {
-        position: relative;
-        z-index: 2;
+    .preloader-container {
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: 1.25rem;
-        padding: 2rem;
-        max-width: 320px;
+        padding: 1.5rem;
+        max-width: 260px;
         text-align: center;
     }
 
-    .preloader-logo-ring {
-        position: relative;
-        width: 84px;
-        height: 84px;
-        border-radius: 24px;
-        background: linear-gradient(145deg, #112d36, #091a20);
-        border: 1.5px solid rgba(0, 106, 103, 0.6);
+    .preloader-logo-box {
         display: flex;
         align-items: center;
         justify-content: center;
-        animation: preloaderLogoPulse 2.4s ease-in-out infinite;
+        animation: preloaderLogoPulse 1.8s ease-in-out infinite;
     }
 
-    @keyframes preloaderLogoPulse {
-        0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-4px) scale(1.04); }
-    }
-
-    .preloader-logo-img {
-        width: 52px;
-        height: 52px;
+    .preloader-logo {
+        height: 38px;
+        width: auto;
+        max-width: 170px;
         object-fit: contain;
+        display: block;
     }
 
-    .preloader-brand {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.25rem;
+    @media (max-width: 640px) {
+        .preloader-logo {
+            height: 32px;
+            max-width: 140px;
+        }
     }
 
-    .preloader-title {
-        font-size: 1.45rem;
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        color: #ffffff;
+    .preloader-logo-dark {
+        display: none;
     }
 
-    .preloader-title-hub {
-        color: #2dd4bf;
+    @media (prefers-color-scheme: dark) {
+        .preloader-logo-light {
+            display: none;
+        }
+        .preloader-logo-dark {
+            display: block;
+        }
     }
 
-    .preloader-tagline {
-        font-size: 0.72rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: #94a3b8;
+    html.dark .preloader-logo-light,
+    body.dark .preloader-logo-light {
+        display: none !important;
     }
 
-    .preloader-progress-wrap {
-        width: 220px;
-        height: 5px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 999px;
+    html.dark .preloader-logo-dark,
+    body.dark .preloader-logo-dark {
+        display: block !important;
+    }
+
+    .preloader-indicator {
+        width: 110px;
+        height: 2px;
+        background: rgba(0, 106, 103, 0.15);
+        border-radius: 9999px;
         overflow: hidden;
         position: relative;
     }
 
-    .preloader-progress-bar {
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        width: 0%;
-        background: linear-gradient(90deg, #006a67, #2dd4bf, #008884);
-        border-radius: 999px;
-        transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    @media (prefers-color-scheme: dark) {
+        .preloader-indicator {
+            background: rgba(45, 212, 191, 0.15);
+        }
     }
 
-    .preloader-status {
-        font-size: 0.78rem;
-        font-weight: 600;
-        color: #a4bbba;
-        min-height: 1.2rem;
-        transition: opacity 0.2s ease;
+    html.dark .preloader-indicator,
+    body.dark .preloader-indicator {
+        background: rgba(45, 212, 191, 0.15) !important;
+    }
+
+    .preloader-indicator-bar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 40%;
+        background: #006a67;
+        border-radius: 9999px;
+        animation: preloaderSlide 1.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .preloader-indicator-bar {
+            background: #2dd4bf;
+        }
+    }
+
+    html.dark .preloader-indicator-bar,
+    body.dark .preloader-indicator-bar {
+        background: #2dd4bf !important;
+    }
+
+    .preloader-credit {
+        position: absolute;
+        bottom: 2rem;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        opacity: 0.8;
+        padding: 0 1rem;
+        pointer-events: none;
+    }
+
+    @media (max-width: 640px) {
+        .preloader-credit {
+            bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+            font-size: 0.68rem;
+        }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .preloader-credit {
+            color: #94a3b8;
+        }
+    }
+
+    html.dark .preloader-credit,
+    body.dark .preloader-credit {
+        color: #94a3b8 !important;
+    }
+
+    @keyframes preloaderLogoPulse {
+        0%, 100% {
+            opacity: 0.9;
+        }
+        50% {
+            opacity: 1;
+        }
+    }
+
+    @keyframes preloaderSlide {
+        0% {
+            transform: translateX(-120%);
+        }
+        100% {
+            transform: translateX(280%);
+        }
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .preloader-logo-box,
+        .preloader-indicator-bar {
+            animation: none !important;
+        }
+
+        .preloader-indicator-bar {
+            width: 100%;
+            transform: none !important;
+        }
+
+        .thinker-preloader-root {
+            transition: opacity 150ms ease !important;
+        }
     }
 </style>
 
@@ -162,46 +238,40 @@
     const preloader = document.getElementById('thinker-app-preloader');
     if (!preloader) return;
 
+    let isDismissed = false;
+    const minDisplayTime = 4000;
+    const maxSafetyTimeout = 6500;
+    const startTime = performance.now();
+
     function dismissPreloader() {
-        preloader.classList.add('preloader-hidden');
-        preloader.classList.remove('preloader-active');
-        preloader.style.pointerEvents = 'none';
-        preloader.style.display = 'none';
+        if (isDismissed) return;
+        isDismissed = true;
+
+        const elapsed = performance.now() - startTime;
+        const remaining = Math.max(0, minDisplayTime - elapsed);
+
+        setTimeout(function () {
+            preloader.classList.add('preloader-hidden');
+            setTimeout(function () {
+                if (preloader && preloader.parentNode) {
+                    preloader.parentNode.removeChild(preloader);
+                }
+            }, 300);
+        }, remaining);
     }
 
-    try {
-        const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches 
-            || window.navigator.standalone === true;
-
-        const path = window.location.pathname.toLowerCase();
-        const isAuthPage = path.includes('/login') || path.includes('/register') || path.includes('/auth');
-        let alreadyPreloaded = false;
-
-        try {
-            alreadyPreloaded = sessionStorage.getItem('thinker_pwa_preloaded') === 'true';
-        } catch (e) {
-            alreadyPreloaded = true; // Fallback if storage access is restricted
-        }
-
-        // ONLY trigger on standalone PWA launch at auth screen
-        if (isStandalonePWA && isAuthPage && !alreadyPreloaded) {
-            try {
-                sessionStorage.setItem('thinker_pwa_preloaded', 'true');
-            } catch (e) {}
-
-            preloader.classList.add('preloader-active');
-
-            const bar = document.getElementById('preloader-bar');
-            requestAnimationFrame(function () {
-                if (bar) bar.style.width = '100%';
-            });
-
-            setTimeout(dismissPreloader, 1200);
-        } else {
-            dismissPreloader();
-        }
-    } catch (err) {
+    if (document.readyState === 'complete') {
         dismissPreloader();
+    } else {
+        window.addEventListener('load', dismissPreloader, { once: true });
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(dismissPreloader, 200);
+        }, { once: true });
     }
+
+    document.addEventListener('livewire:navigated', dismissPreloader, { once: true });
+    document.addEventListener('livewire:initialized', dismissPreloader, { once: true });
+
+    setTimeout(dismissPreloader, maxSafetyTimeout);
 })();
 </script>
