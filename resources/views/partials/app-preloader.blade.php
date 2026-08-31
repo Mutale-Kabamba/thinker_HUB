@@ -53,6 +53,7 @@
         opacity: 0 !important;
         visibility: hidden !important;
         pointer-events: none !important;
+        display: none !important;
     }
 
     .preloader-container {
@@ -238,40 +239,88 @@
     const preloader = document.getElementById('thinker-app-preloader');
     if (!preloader) return;
 
-    let isDismissed = false;
-    const minDisplayTime = 4000;
-    const maxSafetyTimeout = 6500;
-    const startTime = performance.now();
+    function immediateDismiss() {
+        preloader.classList.add('preloader-hidden');
+        preloader.style.pointerEvents = 'none';
+        preloader.style.display = 'none';
+        if (preloader.parentNode) {
+            preloader.parentNode.removeChild(preloader);
+        }
+    }
 
-    function dismissPreloader() {
-        if (isDismissed) return;
-        isDismissed = true;
+    try {
+        const path = window.location.pathname.toLowerCase();
+        const isAuthPage = path.includes('/login') || path.includes('/register') || path.includes('/auth') || path.includes('/forgot-password') || path.includes('/reset-password');
+        let isLoggingIn = false;
+        let alreadyBooted = false;
 
-        const elapsed = performance.now() - startTime;
-        const remaining = Math.max(0, minDisplayTime - elapsed);
+        try {
+            isLoggingIn = sessionStorage.getItem('thinker_is_logging_in') === 'true';
+            alreadyBooted = sessionStorage.getItem('thinker_app_booted') === 'true';
+        } catch (e) {}
 
-        setTimeout(function () {
-            preloader.classList.add('preloader-hidden');
+        // Preloader should ONLY appear on initial boot and logging in, not during in-app navigation
+        const shouldShow = !alreadyBooted || isAuthPage || isLoggingIn;
+
+        if (!shouldShow) {
+            immediateDismiss();
+            return;
+        }
+
+        // Mark as booted and clear one-time login flag
+        try {
+            sessionStorage.setItem('thinker_app_booted', 'true');
+            if (isLoggingIn) {
+                sessionStorage.removeItem('thinker_is_logging_in');
+            }
+        } catch (e) {}
+
+        // Listen for login form submissions to trigger preloader on subsequent post-login load
+        if (isAuthPage) {
+            document.addEventListener('submit', function () {
+                try {
+                    sessionStorage.setItem('thinker_is_logging_in', 'true');
+                } catch (e) {}
+            }, true);
+        }
+
+        let isDismissed = false;
+        const minDisplayTime = 4000;
+        const maxSafetyTimeout = 6500;
+        const startTime = performance.now();
+
+        function dismissPreloader() {
+            if (isDismissed) return;
+            isDismissed = true;
+
+            const elapsed = performance.now() - startTime;
+            const remaining = Math.max(0, minDisplayTime - elapsed);
+
             setTimeout(function () {
-                if (preloader && preloader.parentNode) {
-                    preloader.parentNode.removeChild(preloader);
-                }
-            }, 300);
-        }, remaining);
+                preloader.classList.add('preloader-hidden');
+                setTimeout(function () {
+                    if (preloader && preloader.parentNode) {
+                        preloader.parentNode.removeChild(preloader);
+                    }
+                }, 300);
+            }, remaining);
+        }
+
+        if (document.readyState === 'complete') {
+            dismissPreloader();
+        } else {
+            window.addEventListener('load', dismissPreloader, { once: true });
+            document.addEventListener('DOMContentLoaded', function () {
+                setTimeout(dismissPreloader, 200);
+            }, { once: true });
+        }
+
+        document.addEventListener('livewire:navigated', dismissPreloader, { once: true });
+        document.addEventListener('livewire:initialized', dismissPreloader, { once: true });
+
+        setTimeout(dismissPreloader, maxSafetyTimeout);
+    } catch (err) {
+        immediateDismiss();
     }
-
-    if (document.readyState === 'complete') {
-        dismissPreloader();
-    } else {
-        window.addEventListener('load', dismissPreloader, { once: true });
-        document.addEventListener('DOMContentLoaded', function () {
-            setTimeout(dismissPreloader, 200);
-        }, { once: true });
-    }
-
-    document.addEventListener('livewire:navigated', dismissPreloader, { once: true });
-    document.addEventListener('livewire:initialized', dismissPreloader, { once: true });
-
-    setTimeout(dismissPreloader, maxSafetyTimeout);
 })();
 </script>
