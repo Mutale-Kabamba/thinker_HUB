@@ -68,16 +68,54 @@ class CourseSessionTable
             ->filters([
                 SelectFilter::make('status')
                     ->options([
-                        'scheduled' => 'Scheduled',
-                        'completed' => 'Completed',
+                        'scheduled'   => 'Scheduled',
+                        'completed'   => 'Completed',
                         'rescheduled' => 'Rescheduled',
-                        'cancelled' => 'Cancelled',
+                        'cancelled'   => 'Cancelled',
                     ]),
                 SelectFilter::make('type')
                     ->options([
-                        'group' => 'Group',
+                        'group'      => 'Group',
                         'one_on_one' => 'One-On-One',
                     ]),
+                SelectFilter::make('course')
+                    ->label('Course')
+                    ->relationship('course', 'title')
+                    ->searchable()
+                    ->preload(),
+                \Filament\Tables\Filters\Filter::make('day_of_week')
+                    ->label('Day')
+                    ->form([
+                        \Filament\Forms\Components\Select::make('day')
+                            ->label('Day of Week')
+                            ->options([
+                                '1' => 'Monday',
+                                '2' => 'Tuesday',
+                                '3' => 'Wednesday',
+                                '4' => 'Thursday',
+                                '5' => 'Friday',
+                                '6' => 'Saturday',
+                                '0' => 'Sunday',
+                            ])
+                            ->placeholder('All days'),
+                    ])
+                    ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data): \Illuminate\Database\Eloquent\Builder {
+                        if (filled($data['day'] ?? null)) {
+                            $query->whereRaw('DAYOFWEEK(session_date) - 1 = ?', [(int) $data['day']]);
+                        }
+
+                        return $query;
+                    })
+                    ->indicateUsing(function (array $data): ?string {
+                        $days = [
+                            '0' => 'Sunday', '1' => 'Monday', '2' => 'Tuesday',
+                            '3' => 'Wednesday', '4' => 'Thursday', '5' => 'Friday', '6' => 'Saturday',
+                        ];
+
+                        return filled($data['day'] ?? null)
+                            ? 'Day: ' . ($days[$data['day']] ?? $data['day'])
+                            : null;
+                    }),
             ])
             ->recordActions([
                 \Filament\Actions\ActionGroup::make([
