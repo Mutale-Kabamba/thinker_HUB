@@ -365,6 +365,91 @@
                         </button>
                     </div>
 
+                    {{-- Course & Day Filter Row --}}
+                    <div class="grid grid-cols-2 gap-2">
+                        {{-- Filter by Course --}}
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                                <x-heroicon-o-book-open class="w-3 h-3" />
+                                Course
+                            </label>
+                            <div class="relative">
+                                <select
+                                    wire:model.live="filterCourse"
+                                    class="w-full pl-2.5 pr-7 py-1.5 rounded-xl border text-xs font-semibold appearance-none cursor-pointer transition-all
+                                        {{ $filterCourse ? 'border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/40 text-[#7C3AED] dark:text-purple-300' : 'border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300' }}
+                                        focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50"
+                                >
+                                    <option value="">All Courses</option>
+                                    @foreach ($courseLegend as $cLeg)
+                                        <option value="{{ $cLeg['id'] }}">
+                                            {{ $cLeg['code'] ? $cLeg['code'].' – ' : '' }}{{ \Illuminate\Support\Str::limit($cLeg['title'], 24) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Filter by Day --}}
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                                <x-heroicon-o-calendar class="w-3 h-3" />
+                                Day
+                            </label>
+                            <div class="relative">
+                                <select
+                                    wire:model.live="filterDay"
+                                    class="w-full pl-2.5 pr-7 py-1.5 rounded-xl border text-xs font-semibold appearance-none cursor-pointer transition-all
+                                        {{ $filterDay ? 'border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/40 text-[#7C3AED] dark:text-purple-300' : 'border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300' }}
+                                        focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50"
+                                >
+                                    <option value="">All Days</option>
+                                    <option value="Monday">Monday</option>
+                                    <option value="Tuesday">Tuesday</option>
+                                    <option value="Wednesday">Wednesday</option>
+                                    <option value="Thursday">Thursday</option>
+                                    <option value="Friday">Friday</option>
+                                    <option value="Saturday">Saturday</option>
+                                    <option value="Sunday">Sunday</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Active filter badges + Clear all --}}
+                    @if ($filterCourse || $filterDay)
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            @if ($filterCourse)
+                                @php $activeCourse = collect($courseLegend)->firstWhere('id', (int) $filterCourse); @endphp
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                    <x-heroicon-o-book-open class="w-2.5 h-2.5" />
+                                    {{ $activeCourse['code'] ?? '' }}{{ $activeCourse ? ($activeCourse['code'] ? ' – ' : '').Illuminate\Support\Str::limit($activeCourse['title'], 18) : '' }}
+                                    <button type="button" wire:click="$set('filterCourse', '')" class="ml-0.5 hover:text-red-500 transition-colors">×</button>
+                                </span>
+                            @endif
+                            @if ($filterDay)
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                    <x-heroicon-o-calendar class="w-2.5 h-2.5" />
+                                    {{ $filterDay }}
+                                    <button type="button" wire:click="$set('filterDay', '')" class="ml-0.5 hover:text-red-500 transition-colors">×</button>
+                                </span>
+                            @endif
+                            <button type="button" wire:click="$set('filterCourse', ''); $set('filterDay', '')" class="text-[10px] font-bold text-rose-500 hover:text-rose-700 transition-colors ml-1">
+                                Clear all
+                            </button>
+                        </div>
+                    @endif
+
                     {{-- Quick Search Input --}}
                     <div class="relative flex items-center">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -379,6 +464,7 @@
                             class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
                         >
                     </div>
+
 
                     {{-- Scrollable Session Card List --}}
                     <div class="max-h-[520px] overflow-y-auto space-y-2.5 pr-1">
