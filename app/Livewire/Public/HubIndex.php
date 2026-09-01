@@ -455,6 +455,7 @@ class HubIndex extends Component
                 'submitCompensation' => 'nullable|string|max:255',
                 'submitRequirements' => 'nullable|string',
                 'submitExcerpt' => 'nullable|string|max:500',
+                'submitFiles' => 'nullable|array|max:5',
                 'submitFiles.*' => 'nullable|file|max:51200',
             ]);
 
@@ -514,6 +515,7 @@ class HubIndex extends Component
                 'submitCodeSnippet' => 'nullable|string',
                 'submitProTip' => 'nullable|string|max:500',
                 'submitYoutubeUrl' => 'nullable|url|max:255',
+                'submitFiles' => 'nullable|array|max:5',
                 'submitFiles.*' => 'nullable|file|max:51200',
             ]);
 

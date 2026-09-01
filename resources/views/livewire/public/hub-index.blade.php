@@ -757,16 +757,16 @@
                     {{-- Multi-Format Media Upload Component --}}
                     <div class="rounded-2xl border-2 border-dashed border-slate-200 p-4 bg-slate-50/70 text-center">
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 cursor-pointer">
-                            <i class="fa-solid fa-cloud-arrow-up text-teal-600 text-lg mr-1"></i> Attach Media Files (PDF, PPT, Word, Image, MP4)
+                            <i class="fa-solid fa-cloud-arrow-up text-teal-600 text-lg mr-1"></i> Attach Files (Any format — PDF, Word, ZIP, RAR, Image, Video, etc.)
                         </label>
-                        <p class="text-[11px] text-slate-500 mb-2">Upload slide decks, specification documents, or code cheat sheets (Up to 50MB per file)</p>
+                        <p class="text-[11px] text-slate-500 mb-2">Upload up to 5 files of any type (Up to 50MB per file)</p>
                         <input
                             type="file"
                             wire:model="submitFiles"
                             multiple
-                            accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.mp4"
                             class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer"
                         >
+                        @error('submitFiles') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                         @error('submitFiles.*') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
 
                         <div wire:loading wire:target="submitFiles" class="mt-2 text-xs text-teal-600 font-semibold flex items-center justify-center gap-1">
