@@ -134,9 +134,9 @@
                                     <textarea id="experience" name="experience" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Describe your relevant teaching or industry experience.">{{ old('experience') }}</textarea>
                                 </div>
                                 <div>
-                                    <label for="cv" class="block text-sm font-semibold text-slate-700 mb-1">Upload CV (PDF/DOC)</label>
-                                    <input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
-                                    <p class="mt-1 text-xs text-slate-500">Max 5MB. PDF or Word document.</p>
+                                    <label for="cv" class="block text-sm font-semibold text-slate-700 mb-1">Upload CV / Resume</label>
+                                    <input type="file" id="cv" name="cv" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                                    <p class="mt-1 text-xs text-slate-500">Any format accepted (PDF, Word, ZIP, etc.) &mdash; Max 5MB.</p>
                                 </div>
                             </div>
                         </div>
@@ -183,9 +183,9 @@
                                     @error('competence_note') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                                 </div>
                                 <div>
-                                    <label for="roadmap" class="block text-sm font-semibold text-slate-700 mb-1">Course Roadmap (PDF, max 2 pages) *</label>
-                                    <input type="file" id="roadmap" name="roadmap" accept=".pdf" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
-                                    <p class="mt-1 text-xs text-slate-500">Max 5MB.</p>
+                                    <label for="roadmap" class="block text-sm font-semibold text-slate-700 mb-1">Course Roadmap (max 2 pages) *</label>
+                                    <input type="file" id="roadmap" name="roadmap" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                                    <p class="mt-1 text-xs text-slate-500">Any format accepted (PDF, Word, ZIP, etc.) &mdash; Max 5MB.</p>
                                     @error('roadmap') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                                 </div>
                             </div>
@@ -260,13 +260,13 @@
 
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div>
-                                        <label for="full_roadmap" class="block text-sm font-semibold text-slate-700 mb-1">Full Course Roadmap (PDF) *</label>
-                                        <input type="file" id="full_roadmap" name="full_roadmap" accept=".pdf" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                                        <label for="full_roadmap" class="block text-sm font-semibold text-slate-700 mb-1">Full Course Roadmap *</label>
+                                        <input type="file" id="full_roadmap" name="full_roadmap" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
                                         @error('full_roadmap') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                                     </div>
                                     <div>
-                                        <label for="curriculum" class="block text-sm font-semibold text-slate-700 mb-1">Detailed Curriculum (PDF) *</label>
-                                        <input type="file" id="curriculum" name="curriculum" accept=".pdf" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                                        <label for="curriculum" class="block text-sm font-semibold text-slate-700 mb-1">Detailed Curriculum *</label>
+                                        <input type="file" id="curriculum" name="curriculum" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
                                         @error('curriculum') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                                     </div>
                                 </div>

@@ -49,14 +49,14 @@ class InstructorApplicationController extends Controller
             'linkedin_url' => ['nullable', 'url', 'max:500'],
             'facebook_url' => ['nullable', 'url', 'max:500'],
             'portfolio_url' => ['nullable', 'url', 'max:500'],
-            'cv' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
+            'cv' => ['nullable', 'file', 'max:5120'],
             'proposal_type' => ['required', 'in:new,existing'],
 
             // Existing course fields
             'preferred_course_id' => ['required_if:proposal_type,existing', 'nullable', 'exists:courses,id'],
             'motivation_note' => ['required_if:proposal_type,existing', 'nullable', 'string', 'max:5000'],
             'competence_note' => ['required_if:proposal_type,existing', 'nullable', 'string', 'max:5000'],
-            'roadmap' => ['required_if:proposal_type,existing', 'nullable', 'file', 'mimes:pdf', 'max:5120'],
+            'roadmap' => ['required_if:proposal_type,existing', 'nullable', 'file', 'max:5120'],
 
             // New course fields
             'proposed_course_name' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:255'],
@@ -70,8 +70,8 @@ class InstructorApplicationController extends Controller
             'proposed_course_key_outcome' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:5000'],
             'proposed_course_is_open_enrollment' => ['nullable', 'boolean'],
             'teaching_location' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:255'],
-            'full_roadmap' => ['required_if:proposal_type,new', 'nullable', 'file', 'mimes:pdf', 'max:10240'],
-            'curriculum' => ['required_if:proposal_type,new', 'nullable', 'file', 'mimes:pdf', 'max:10240'],
+            'full_roadmap' => ['required_if:proposal_type,new', 'nullable', 'file', 'max:10240'],
+            'curriculum' => ['required_if:proposal_type,new', 'nullable', 'file', 'max:10240'],
         ]);
 
         $validated['proposed_course_is_open_enrollment'] = $request->boolean('proposed_course_is_open_enrollment', true);
