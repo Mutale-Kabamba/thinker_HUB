@@ -40,6 +40,10 @@ class Schedule extends Page
 
     public string $filterType = ''; // '' for all, 'one_on_one', 'group'
 
+    public string $filterCourse = ''; // '' for all courses, or a course id (string)
+
+    public string $filterDay = ''; // '' for all days, or a day name e.g. 'Monday'
+
     public string $searchSession = '';
 
     public string $periodTitle = '';
@@ -181,6 +185,16 @@ class Schedule extends Page
     }
 
     public function updatedFilterType(): void
+    {
+        $this->loadSessions();
+    }
+
+    public function updatedFilterCourse(): void
+    {
+        $this->loadSessions();
+    }
+
+    public function updatedFilterDay(): void
     {
         $this->loadSessions();
     }
@@ -679,6 +693,17 @@ class Schedule extends Page
 
             if ($this->filterType && $s->type !== $this->filterType) {
                 return false;
+            }
+
+            if ($this->filterCourse && (string) $s->course_id !== $this->filterCourse) {
+                return false;
+            }
+
+            if ($this->filterDay) {
+                $sessionDayName = $s->getEffectiveDate()->format('l'); // e.g. 'Monday'
+                if (strtolower($sessionDayName) !== strtolower($this->filterDay)) {
+                    return false;
+                }
             }
 
             if (filled($this->searchSession)) {
