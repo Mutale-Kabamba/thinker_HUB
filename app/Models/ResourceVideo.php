@@ -211,4 +211,9 @@ class ResourceVideo extends Model
     {
         return array_combine(self::CATEGORIES, self::CATEGORIES);
     }
+
+    public function getVideoUrlAttribute(): ?string
+    {
+        return $this->youtube_url;
+    }
 }

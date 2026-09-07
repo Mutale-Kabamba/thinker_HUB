@@ -593,6 +593,7 @@
 
                 get modeLabel() {
                     if (this.mode === 'one_on_one') return 'One-on-One';
+                    if (this.mode === 'self_paced') return 'Self-Paced';
                     return 'Group Class';
                 },
 

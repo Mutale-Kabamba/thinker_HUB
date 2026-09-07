@@ -889,6 +889,20 @@ Route::get('/file/public', function (Request $request) {
     return $disk->response($path);
 })->name('file.public');
 
+// Sequential E-Learning Classroom & Course Player
+Route::middleware(['auth'])->group(function () {
+    Route::get('/portal/dashboard', function () {
+        return redirect()->route('filament.student.pages.overview');
+    })->name('portal.dashboard');
+
+    Route::get('/learn/{course:slug}/{lessonId?}', \App\Livewire\CoursePlayer::class)
+        ->name('course.player')
+        ->where('course', '^(?!courses|assessments|assignments|certificates|claim-hub|community|learning-resources|login|logout|materials|opportunities|overview|quizzes|reviews|schedule|search|settings|take-quiz).*$');
+
+    Route::get('/classroom/{course:slug}/{lessonId?}', \App\Livewire\CoursePlayer::class)
+        ->name('course.classroom');
+});
+
 require __DIR__.'/auth.php';
 
 Route::domain('www.thinker.it.com')->group(function () {

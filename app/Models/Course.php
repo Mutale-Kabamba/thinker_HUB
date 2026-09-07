@@ -21,6 +21,7 @@ class Course extends Model
 
     protected $fillable = [
         'title',
+        'slug',
         'code',
         'offering_mode',
         'course_by',
@@ -115,6 +116,32 @@ class Course extends Model
     public function materials(): HasMany
     {
         return $this->hasMany(LearningMaterial::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Course $course) {
+            if (empty($course->slug) && ! empty($course->title)) {
+                $baseSlug = \Illuminate\Support\Str::slug($course->title);
+                $slug = $baseSlug;
+                $counter = 1;
+                while (static::where('slug', $slug)->where('id', '!=', $course->id)->exists()) {
+                    $slug = "{$baseSlug}-{$counter}";
+                    $counter++;
+                }
+                $course->slug = $slug;
+            }
+        });
+    }
+
+    public function sections(): HasMany
+    {
+        return $this->hasMany(CourseSection::class)->orderBy('order_column', 'asc');
+    }
+
+    public function lessons(): HasMany
+    {
+        return $this->hasMany(Lesson::class)->orderBy('order_column', 'asc');
     }
 
     public function learningMaterials(): HasMany
@@ -268,6 +295,9 @@ class Course extends Model
             if (in_array($cat, ['one_on_one', 'one2one', 'one_to_one', 'private', 'private_class', '1_1'], true)) {
                 return ['one_on_one', 'One-on-One', '1:1 Focus', 'Personalized 1:1 mentorship & dedicated project guidance'];
             }
+            if (in_array($cat, ['self_paced', 'selfpaced', 'self_study', 'self_learning', 'asynchronous'], true)) {
+                return ['self_paced', 'Self-Paced', 'Flexible', 'Learn at your own pace with on-demand lessons & resources'];
+            }
             if (in_array($cat, ['group', 'group_class', 'group_classes', 'class_group'], true)) {
                 return ['group', 'Group Class', 'Best Value', 'Interactive group cohorts & collaborative exercises'];
             }
@@ -292,8 +322,8 @@ class Course extends Model
         };
 
         if (is_array($parsed)) {
-            // 1. Check categorized dictionary: ['group' => [...], 'one_on_one' => [...]]
-            foreach (['group', 'one_on_one'] as $sectionKey) {
+            // 1. Check categorized dictionary: ['group' => [...], 'one_on_one' => [...], 'self_paced' => [...]]
+            foreach (['group', 'one_on_one', 'self_paced'] as $sectionKey) {
                 if (isset($parsed[$sectionKey]) && is_array($parsed[$sectionKey])) {
                     [$catKey, $modeLabel, $modeBadge, $highlight] = $normalizeCategory($sectionKey);
                     foreach ($parsed[$sectionKey] as $entry) {
@@ -350,7 +380,7 @@ class Course extends Model
             // 3. Flat map: ['Beginner' => 1200, 'Intermediate' => 1800]
             if (empty($options)) {
                 foreach ($parsed as $k => $v) {
-                    if (is_string($k) && ! in_array($k, ['group', 'one_on_one'], true)) {
+                    if (is_string($k) && ! in_array($k, ['group', 'one_on_one', 'self_paced'], true)) {
                         $amount = $parseAmount($v);
                         if ($amount > 0) {
                             $level = $normalizeLevel($k);
@@ -380,7 +410,14 @@ class Course extends Model
                 $line = trim($line);
                 if ($line === '') continue;
 
-                $rawCat = str_contains(strtolower($line), 'one') || str_contains(strtolower($line), 'private') ? 'one_on_one' : 'group';
+                $lowerLine = strtolower($line);
+                if (str_contains($lowerLine, 'self') || str_contains($lowerLine, 'paced')) {
+                    $rawCat = 'self_paced';
+                } elseif (str_contains($lowerLine, 'one') || str_contains($lowerLine, 'private')) {
+                    $rawCat = 'one_on_one';
+                } else {
+                    $rawCat = 'group';
+                }
                 [$catKey, $modeLabel, $modeBadge, $highlight] = $normalizeCategory($rawCat);
 
                 if (preg_match_all('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:Beginner|Intermediate|Advanced)\s*[:\-]|$)/i', $line, $matches, PREG_SET_ORDER) > 0) {
@@ -483,6 +520,8 @@ class Course extends Model
         $normMode = $mode ? strtolower(trim(str_replace(['-', ' '], '_', $mode))) : null;
         if ($normMode && in_array($normMode, ['one_on_one', 'one2one', '1_1', 'private'], true)) {
             $normMode = 'one_on_one';
+        } elseif ($normMode && in_array($normMode, ['self_paced', 'selfpaced', 'self_study', 'self_learning', 'asynchronous'], true)) {
+            $normMode = 'self_paced';
         } elseif ($normMode && in_array($normMode, ['group', 'class'], true)) {
             $normMode = 'group';
         }
