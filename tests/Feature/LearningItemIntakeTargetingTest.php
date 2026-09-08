@@ -222,4 +222,128 @@ class LearningItemIntakeTargetingTest extends TestCase
         $this->assertNotNull($enrollment);
         $this->assertSame($intake->id, $enrollment->course_intake_id);
     }
+
+    public function test_resource_video_course_scoping_and_global_visibility(): void
+    {
+        $course1 = Course::create(['title' => 'Course 1', 'code' => 'C1', 'is_active' => true]);
+        $course2 = Course::create(['title' => 'Course 2', 'code' => 'C2', 'is_active' => true]);
+
+        $student1 = User::factory()->create(['role' => 'student']);
+        $student2 = User::factory()->create(['role' => 'student']);
+        $student3 = User::factory()->create(['role' => 'student']);
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        Enrollment::create(['user_id' => $student1->id, 'course_id' => $course1->id]);
+        Enrollment::create(['user_id' => $student2->id, 'course_id' => $course2->id]);
+
+        // Video tied to Course 1
+        $videoCourse1 = ResourceVideo::create([
+            'title' => 'Course 1 Video',
+            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'course_id' => $course1->id,
+            'is_published' => true,
+            'is_recorded_lesson' => false,
+        ]);
+
+        // Video tied to Course 2
+        $videoCourse2 = ResourceVideo::create([
+            'title' => 'Course 2 Video',
+            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'course_id' => $course2->id,
+            'is_published' => true,
+            'is_recorded_lesson' => false,
+        ]);
+
+        // Global video not tied to any course
+        $videoGlobal = ResourceVideo::create([
+            'title' => 'Global Public Video',
+            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'course_id' => null,
+            'is_published' => true,
+            'is_recorded_lesson' => false,
+        ]);
+
+        // Student 1 (enrolled in Course 1) sees Video 1 and Global Video, but NOT Video 2
+        $s1Videos = ResourceVideo::query()->visibleTo($student1)->pluck('id')->all();
+        $this->assertContains($videoCourse1->id, $s1Videos);
+        $this->assertContains($videoGlobal->id, $s1Videos);
+        $this->assertNotContains($videoCourse2->id, $s1Videos);
+
+        // Student 2 (enrolled in Course 2) sees Video 2 and Global Video, but NOT Video 1
+        $s2Videos = ResourceVideo::query()->visibleTo($student2)->pluck('id')->all();
+        $this->assertContains($videoCourse2->id, $s2Videos);
+        $this->assertContains($videoGlobal->id, $s2Videos);
+        $this->assertNotContains($videoCourse1->id, $s2Videos);
+
+        // Student 3 (un-enrolled) sees ONLY Global Video
+        $s3Videos = ResourceVideo::query()->visibleTo($student3)->pluck('id')->all();
+        $this->assertContains($videoGlobal->id, $s3Videos);
+        $this->assertNotContains($videoCourse1->id, $s3Videos);
+        $this->assertNotContains($videoCourse2->id, $s3Videos);
+
+        // Admin sees all videos
+        $adminVideos = ResourceVideo::query()->visibleTo($admin)->pluck('id')->all();
+        $this->assertContains($videoCourse1->id, $adminVideos);
+        $this->assertContains($videoCourse2->id, $adminVideos);
+        $this->assertContains($videoGlobal->id, $adminVideos);
+    }
+
+    public function test_student_learning_resources_page_respects_course_tied_videos(): void
+    {
+        $courseA = Course::create(['title' => 'Course Alpha', 'code' => 'CA', 'is_active' => true]);
+        $courseB = Course::create(['title' => 'Course Beta', 'code' => 'CB', 'is_active' => true]);
+
+        $studentA = User::factory()->create(['role' => 'student']);
+        Enrollment::create(['user_id' => $studentA->id, 'course_id' => $courseA->id]);
+
+        $videoA = ResourceVideo::create([
+            'title' => 'Alpha Only Video',
+            'category' => 'Web Development',
+            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'course_id' => $courseA->id,
+            'is_published' => true,
+            'is_recorded_lesson' => false,
+        ]);
+
+        $videoB = ResourceVideo::create([
+            'title' => 'Beta Only Video',
+            'category' => 'Web Development',
+            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'course_id' => $courseB->id,
+            'is_published' => true,
+            'is_recorded_lesson' => false,
+        ]);
+
+        $videoGlobal = ResourceVideo::create([
+            'title' => 'Universal Public Video',
+            'category' => 'Web Development',
+            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'course_id' => null,
+            'is_published' => true,
+            'is_recorded_lesson' => false,
+        ]);
+
+        $this->actingAs($studentA);
+
+        $component = Livewire::test(\App\Filament\Student\Pages\LearningResources::class);
+
+        // Should be able to open Alpha video and Universal video
+        $component->call('openGeneralVideo', $videoA->id)
+            ->assertSet('showPlayer', true)
+            ->assertSet('activeVideoId', $videoA->id);
+
+        $component->call('closePlayer')
+            ->assertSet('showPlayer', false);
+
+        $component->call('openGeneralVideo', $videoGlobal->id)
+            ->assertSet('showPlayer', true)
+            ->assertSet('activeVideoId', $videoGlobal->id);
+
+        $component->call('closePlayer')
+            ->assertSet('showPlayer', false);
+
+        // Attempting to open unauthorized Course Beta video should fail silently (showPlayer remains false)
+        $component->call('openGeneralVideo', $videoB->id)
+            ->assertSet('showPlayer', false);
+    }
 }

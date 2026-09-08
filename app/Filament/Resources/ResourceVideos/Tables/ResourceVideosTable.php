@@ -33,7 +33,7 @@ class ResourceVideosTable
                     ->boolean(),
                 TextColumn::make('course.title')
                     ->label('Course')
-                    ->placeholder('—')
+                    ->placeholder('All Courses')
                     ->searchable(),
                 TextColumn::make('target_level')
                     ->label('Level')
@@ -52,6 +52,9 @@ class ResourceVideosTable
             ])
             ->defaultSort('sort_order')
             ->filters([
+                SelectFilter::make('course_id')
+                    ->relationship('course', 'title')
+                    ->label('Course'),
                 SelectFilter::make('category')
                     ->options(\App\Models\ResourceVideo::categoryOptions()),
                 TernaryFilter::make('is_recorded_lesson')
