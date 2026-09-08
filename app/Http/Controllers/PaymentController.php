@@ -37,7 +37,13 @@ class PaymentController extends Controller
         }
 
         $rawMode = strtolower(trim((string) $request->query('mode', $request->query('category', 'group'))));
-        $selectedMode = in_array($rawMode, ['one_on_one', 'one2one', '1_1', 'private'], true) ? 'one_on_one' : 'group';
+        if (in_array($rawMode, ['one_on_one', 'one2one', '1_1', 'private'], true)) {
+            $selectedMode = 'one_on_one';
+        } elseif (in_array($rawMode, ['self_paced', 'selfpaced', 'self_study'], true)) {
+            $selectedMode = 'self_paced';
+        } else {
+            $selectedMode = 'group';
+        }
 
         $feeOptions = $course->getFeeOptions();
         $feeAmount = $course->getNumericFeeForOption($selectedLevel, $selectedMode);

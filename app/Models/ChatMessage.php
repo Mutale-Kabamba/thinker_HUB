@@ -59,8 +59,15 @@ class ChatMessage extends Model
             : null;
     }
 
+    public function getAttachmentDownloadUrlAttribute(): ?string
+    {
+        return $this->attachment_path
+            ? route('file.download', ['type' => 'chat-message', 'id' => $this->id], false)
+            : null;
+    }
+
     /**
-     * @return array<int, array{path: string, name: string, type: string, url: string}>
+     * @return array<int, array{path: string, name: string, type: string, url: string, download_url: string}>
      */
     public function getAllAttachmentsAttribute(): array
     {
@@ -73,6 +80,7 @@ class ChatMessage extends Model
                         'name' => (string) ($item['name'] ?? basename($item['path'])),
                         'type' => (string) ($item['type'] ?? (in_array(strtolower(pathinfo($item['path'], PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']) ? 'image' : 'file')),
                         'url' => route('file.view', ['type' => 'chat-message', 'id' => $this->id, 'index' => $index], false),
+                        'download_url' => route('file.download', ['type' => 'chat-message', 'id' => $this->id, 'index' => $index], false),
                     ];
                 }
             }
@@ -84,6 +92,7 @@ class ChatMessage extends Model
                 'name' => (string) ($this->attachment_name ?? basename($this->attachment_path)),
                 'type' => (string) ($this->attachment_type ?: 'file'),
                 'url' => route('file.view', ['type' => 'chat-message', 'id' => $this->id], false),
+                'download_url' => route('file.download', ['type' => 'chat-message', 'id' => $this->id], false),
             ];
         }
 

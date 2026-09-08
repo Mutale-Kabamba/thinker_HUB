@@ -134,6 +134,7 @@ class CoursesTable
         $groups = [
             'one_on_one' => [],
             'group' => [],
+            'self_paced' => [],
             'other' => [],
         ];
 
@@ -153,7 +154,7 @@ class CoursesTable
 
         $sections = [];
 
-        foreach (['one_on_one' => 'One-On-One', 'group' => 'Group'] as $key => $label) {
+        foreach (['one_on_one' => 'One-On-One', 'group' => 'Group', 'self_paced' => 'Self-Paced'] as $key => $label) {
             if ($groups[$key] !== []) {
                 $sections[] = [
                     'key' => $key,
@@ -262,6 +263,10 @@ class CoursesTable
             return 'one_on_one';
         }
 
+        if (str_contains($text, 'self') || str_contains($text, 'paced')) {
+            return 'self_paced';
+        }
+
         if (str_contains($text, 'group')) {
             return 'group';
         }
@@ -271,7 +276,7 @@ class CoursesTable
 
     private static function stripFeeModeText(string $value): string
     {
-        return trim((string) preg_replace('/\b(one\s*[-:]?\s*on\s*[-:]?\s*one|1\s*[:x]\s*1|private|group)\b\s*[:\-]?\s*/i', '', $value));
+        return trim((string) preg_replace('/\b(one\s*[-:]?\s*on\s*[-:]?\s*one|1\s*[:x]\s*1|private|group|self\s*[-:]?\s*paced)\b\s*[:\-]?\s*/i', '', $value));
     }
 
     private static function cleanLevelText(string $value): string

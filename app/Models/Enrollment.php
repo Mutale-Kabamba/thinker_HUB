@@ -14,11 +14,13 @@ class Enrollment extends Model
         'user_id',
         'course_id',
         'course_intake_id',
+        'progress_percentage',
         'completed_at',
         'completed_by_user_id',
     ];
 
     protected $casts = [
+        'progress_percentage' => 'integer',
         'completed_at' => 'datetime',
     ];
 

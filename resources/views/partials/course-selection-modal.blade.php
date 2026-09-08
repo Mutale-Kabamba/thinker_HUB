@@ -88,7 +88,7 @@
                         @click="activeFilter = mode"
                         class="px-3 py-1 text-xs font-bold rounded-lg transition capitalize cursor-pointer"
                         :class="activeFilter === mode ? 'bg-white text-[#0a2d27]' : 'text-slate-500 hover:text-slate-800'"
-                        x-text="mode === 'one_on_one' ? '1:1 Private' : 'Group Class'"
+                        x-text="mode === 'one_on_one' ? '1:1 Private' : (mode === 'self_paced' ? 'Self-Paced' : 'Group Class')"
                     >
                     </button>
                 </template>
@@ -126,7 +126,9 @@
                                     class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold"
                                     :class="opt.category === 'one_on_one'
                                         ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                                        : 'bg-emerald-100 text-emerald-800 border border-emerald-200'"
+                                        : (opt.category === 'self_paced'
+                                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                            : 'bg-emerald-100 text-emerald-800 border border-emerald-200')"
                                     x-text="opt.mode_label"
                                 >
                                 </span>

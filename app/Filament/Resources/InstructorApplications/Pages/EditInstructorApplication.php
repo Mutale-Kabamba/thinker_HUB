@@ -146,8 +146,15 @@ class EditInstructorApplication extends BaseEditRecord
             }
 
             $categoryRaw = Str::lower($parts[0]);
+            $catKey = 'one_on_one';
+            if (Str::contains($categoryRaw, 'self') || Str::contains($categoryRaw, 'paced')) {
+                $catKey = 'self_paced';
+            } elseif (Str::contains($categoryRaw, 'group')) {
+                $catKey = 'group';
+            }
+
             $entries[] = [
-                'category' => Str::contains($categoryRaw, 'group') ? 'group' : 'one_on_one',
+                'category' => $catKey,
                 'level' => self::normalizeLevelLabel($parts[1]),
                 'amount' => $parts[2],
                 'duration' => $parts[3] ?? '',
@@ -161,6 +168,7 @@ class EditInstructorApplication extends BaseEditRecord
         $grouped = [
             'one_on_one' => [],
             'group' => [],
+            'self_paced' => [],
         ];
 
         foreach ($entries as $entry) {

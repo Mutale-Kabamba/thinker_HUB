@@ -432,6 +432,61 @@ class CommunityChatEnhancementsTest extends TestCase
             ->call('closeProfile')
             ->assertDontSee('XP & Badge Earnings');
     }
+
+    public function test_chat_message_attachment_can_be_downloaded_by_room_member(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        \Illuminate\Support\Facades\Storage::disk('public')->put('chat-attachments/diagram.png', 'PNG_IMAGE_BINARY_DATA');
+        \Illuminate\Support\Facades\Storage::disk('public')->put('chat-attachments/study_guide.pdf', 'PDF_DOCUMENT_BINARY_DATA');
+
+        $course = Course::query()->create(['title' => 'Biology 101', 'code' => 'BIO-101', 'is_active' => true]);
+
+        $studentA = User::factory()->create(['role' => 'student', 'is_active' => true]);
+        $studentB = User::factory()->create(['role' => 'student', 'is_active' => true]);
+        $studentC = User::factory()->create(['role' => 'student', 'is_active' => true]); // not in room
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+
+        $room = ChatRoom::create(['type' => 'course', 'course_id' => $course->id, 'name' => 'BIO-101']);
+        $room->members()->sync([$studentA->id, $studentB->id]);
+
+        $message = ChatMessage::create([
+            'chat_room_id' => $room->id,
+            'user_id' => $studentA->id,
+            'body' => 'Here are the study files',
+            'attachments' => [
+                ['path' => 'chat-attachments/diagram.png', 'name' => 'diagram.png', 'type' => 'image'],
+                ['path' => 'chat-attachments/study_guide.pdf', 'name' => 'study_guide.pdf', 'type' => 'file'],
+            ],
+        ]);
+
+        // Student B (room member) downloads index 0 (image)
+        $response0 = $this->actingAs($studentB)->get(route('file.download', ['type' => 'chat-message', 'id' => $message->id, 'index' => 0]));
+        $response0->assertStatus(200);
+        $this->assertStringContainsString('attachment', (string) $response0->headers->get('content-disposition'));
+        $this->assertStringContainsString('diagram.png', (string) $response0->headers->get('content-disposition'));
+
+        // Student B downloads index 1 (pdf)
+        $response1 = $this->actingAs($studentB)->get(route('file.download', ['type' => 'chat-message', 'id' => $message->id, 'index' => 1]));
+        $response1->assertStatus(200);
+        $this->assertStringContainsString('attachment', (string) $response1->headers->get('content-disposition'));
+        $this->assertStringContainsString('study_guide.pdf', (string) $response1->headers->get('content-disposition'));
+
+        // Student C (not in room) gets 403 Forbidden
+        $responseForbidden = $this->actingAs($studentC)->get(route('file.download', ['type' => 'chat-message', 'id' => $message->id, 'index' => 0]));
+        $responseForbidden->assertStatus(403);
+
+        // Admin can download any chat attachment
+        $responseAdmin = $this->actingAs($admin)->get(route('file.download', ['type' => 'chat-message', 'id' => $message->id, 'index' => 0]));
+        $responseAdmin->assertStatus(200);
+
+        // Community UI renders download button & link
+        Livewire::actingAs($studentB)
+            ->test(Community::class)
+            ->call('openRoom', $room->id)
+            ->assertSee('Download')
+            ->assertSee('diagram.png')
+            ->assertSee('study_guide.pdf');
+    }
 }
 
 
