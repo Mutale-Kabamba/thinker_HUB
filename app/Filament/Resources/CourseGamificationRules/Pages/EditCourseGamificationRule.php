@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\CourseGamificationRules\Pages;
 
 use App\Filament\Resources\CourseGamificationRules\CourseGamificationRuleResource;
+use App\Filament\Resources\Pages\BaseEditRecord;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
 
-class EditCourseGamificationRule extends EditRecord
+class EditCourseGamificationRule extends BaseEditRecord
 {
     protected static string $resource = CourseGamificationRuleResource::class;
 

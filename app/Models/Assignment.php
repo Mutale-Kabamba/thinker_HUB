@@ -150,4 +150,9 @@ class Assignment extends Model
                     });
             });
     }
+
+    public function getTitleAttribute(): ?string
+    {
+        return $this->name;
+    }
 }

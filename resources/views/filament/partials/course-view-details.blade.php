@@ -50,6 +50,8 @@
                     <h3 class="text-xs font-bold uppercase tracking-wide text-indigo-800">{{ $section['label'] }}</h3>
                     @if (($section['key'] ?? '') === 'one_on_one')
                         <span class="rounded-full border border-indigo-300 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-indigo-700">1:1 Focus</span>
+                    @elseif (($section['key'] ?? '') === 'self_paced')
+                        <span class="rounded-full border border-emerald-300 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">Self-Paced</span>
                     @endif
                 </div>
 

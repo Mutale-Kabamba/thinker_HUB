@@ -34,7 +34,7 @@ class LearningResources extends Page
             $lastViewed = session('last_viewed_resources_at_' . $user->id)
                 ?? \Illuminate\Support\Facades\Cache::get('user_' . $user->id . '_last_viewed_resources_at');
 
-            $query = ResourceVideo::query()->where('is_published', true);
+            $query = ResourceVideo::query()->visibleTo($user)->where('is_published', true);
 
             if ($lastViewed) {
                 $query->where('created_at', '>', $lastViewed);
@@ -133,7 +133,12 @@ class LearningResources extends Page
 
     public function openGeneralVideo(int $id): void
     {
-        $video = ResourceVideo::query()->where('is_published', true)->find($id);
+        $user = auth()->user();
+        if (! $user) {
+            return;
+        }
+
+        $video = ResourceVideo::query()->visibleTo($user)->where('is_published', true)->find($id);
 
         if (! $video) {
             return;
@@ -253,8 +258,8 @@ class LearningResources extends Page
         }
 
         $subject = match ($this->activeVideoType) {
-            'video' => ResourceVideo::query()->find($this->activeVideoId),
-            'lesson' => LearningMaterial::query()->find($this->activeVideoId),
+            'video' => ResourceVideo::query()->visibleTo($user)->where('is_published', true)->find($this->activeVideoId),
+            'lesson' => LearningMaterial::query()->visibleTo($user)->find($this->activeVideoId),
             default => null,
         };
 
@@ -373,7 +378,7 @@ class LearningResources extends Page
 
         $model = match ($type) {
             'lesson' => LearningMaterial::query()->visibleTo($user)->find($id),
-            'video' => ResourceVideo::query()->where('is_published', true)->find($id),
+            'video' => ResourceVideo::query()->visibleTo($user)->where('is_published', true)->find($id),
             default => null,
         };
 
@@ -452,22 +457,9 @@ class LearningResources extends Page
         // Recorded lessons from admin-managed videos, targeted by course + level + intake.
         $recordedVideoLessons = ResourceVideo::query()
             ->with('course')
+            ->visibleTo($user)
             ->where('is_published', true)
             ->where('is_recorded_lesson', true)
-            ->whereNotNull('course_id')
-            ->whereIn('course_id', $user->courses()->pluck('courses.id'))
-            ->where(function ($q) use ($user): void {
-                $q->whereNull('target_level')->orWhere('target_level', $user->track);
-            })
-            ->where(function ($q) use ($user): void {
-                $q->whereNull('course_intake_id')
-                    ->orWhereIn('course_intake_id', function ($sub) use ($user) {
-                        $sub->select('course_intake_id')
-                            ->from('enrollments')
-                            ->where('user_id', $user->id)
-                            ->whereNotNull('course_intake_id');
-                    });
-            })
             ->orderBy('sort_order')
             ->latest()
             ->get()
@@ -504,6 +496,8 @@ class LearningResources extends Page
 
         // Curated general videos (admin-managed ResourceVideo).
         $query = ResourceVideo::query()
+            ->with('course')
+            ->visibleTo($user)
             ->where('is_published', true)
             ->where('is_recorded_lesson', false);
 
@@ -517,6 +511,7 @@ class LearningResources extends Page
             ->get()
             ->map(fn (ResourceVideo $video): array => $this->presentVideo($video) + [
                 'channel' => $video->channel_name,
+                'course' => $video->course?->title,
                 'bookmarked' => $isBookmarked(ResourceVideo::class, $video->id),
                 'points_earned' => $isPointsEarned(ResourceVideo::class, $video->id),
             ])
@@ -588,6 +583,7 @@ class LearningResources extends Page
             'title' => $video->title,
             'description' => $video->description,
             'category' => $video->category,
+            'course' => $video->course?->title,
             'source' => $local ? 'file' : ($hasLocal ? 'processing' : 'youtube'),
             'embed_url' => $hasLocal ? null : $video->embed_url,
             'file_url' => $local?->url(),

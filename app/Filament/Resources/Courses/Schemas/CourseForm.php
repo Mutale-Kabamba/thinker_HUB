@@ -4,9 +4,11 @@ namespace App\Filament\Resources\Courses\Schemas;
 
 use App\Models\User;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\MorphToSelect;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -57,12 +59,13 @@ class CourseForm
                     ->columnSpanFull(),
                 Repeater::make('fees')
                     ->label('Fees')
-                    ->helperText('Add fee entries with +. Category is One-On-One or Group; level is Beginner, Intermediate, or Advanced.')
+                    ->helperText('Add fee entries with +. Category is One-On-One, Group, or Self-Paced; level is Beginner, Intermediate, or Advanced.')
                     ->schema([
                         Select::make('category')
                             ->options([
                                 'one_on_one' => 'One-On-One',
                                 'group' => 'Group',
+                                'self_paced' => 'Self-Paced',
                             ])
                             ->required(),
                         Select::make('level')
@@ -81,7 +84,11 @@ class CourseForm
                     ->columns(['default' => 1, 'sm' => 2, 'lg' => 4])
                     ->itemLabel(fn (array $state): string => trim(sprintf(
                         '%s - %s (%s)',
-                        ($state['category'] ?? 'one_on_one') === 'group' ? 'Group' : 'One-On-One',
+                        match ($state['category'] ?? 'one_on_one') {
+                            'group' => 'Group',
+                            'self_paced' => 'Self-Paced',
+                            default => 'One-On-One',
+                        },
                         $state['level'] ?? 'Level',
                         $state['amount'] ?? '-',
                     )))
@@ -102,6 +109,7 @@ class CourseForm
                                 ->options([
                                     'one_on_one' => 'One-On-One',
                                     'group' => 'Group',
+                                    'self_paced' => 'Self-Paced',
                                 ])
                                 ->required(),
                             Select::make('level')
@@ -217,6 +225,52 @@ class CourseForm
                     ->preload()
                     ->visible(fn (callable $get): bool => ! (bool) $get('is_open_enrollment'))
                     ->columnSpanFull(),
+                Repeater::make('sections')
+                    ->relationship('sections')
+                    ->orderColumn('order_column')
+                    ->label('Curriculum & Sequential Learning Path')
+                    ->helperText('Define sections and ordered lessons (Video, Reading, Quiz, Task/Assignment).')
+                    ->schema([
+                        TextInput::make('title')->required()->label('Section Title'),
+
+                        Repeater::make('lessons')
+                            ->relationship('lessons')
+                            ->orderColumn('order_column')
+                            ->label('Lessons')
+                            ->schema([
+                                TextInput::make('title')->required()->label('Lesson Title'),
+
+                                Select::make('type')
+                                    ->options([
+                                        'video' => 'Video',
+                                        'reading' => 'Reading Article',
+                                        'quiz' => 'Quiz',
+                                        'assignment' => 'Task / Assignment',
+                                    ])
+                                    ->reactive()
+                                    ->required(),
+
+                                // Displayed conditionally for Reading
+                                RichEditor::make('reading_body')
+                                    ->visible(fn ($get) => $get('type') === 'reading')
+                                    ->columnSpanFull(),
+
+                                // Polymorphic relationship link for quizzes/assignments/videos
+                                MorphToSelect::make('content')
+                                    ->types([
+                                        MorphToSelect\Type::make(\App\Models\ResourceVideo::class)->titleAttribute('title'),
+                                        MorphToSelect\Type::make(\App\Models\Quiz::class)->titleAttribute('title'),
+                                        MorphToSelect\Type::make(\App\Models\Assignment::class)->titleAttribute('title'),
+                                    ])
+                                    ->visible(fn ($get) => in_array($get('type'), ['video', 'quiz', 'assignment']))
+                                    ->columnSpanFull(),
+                            ])
+                            ->collapsible()
+                            ->defaultItems(1),
+                    ])
+                    ->collapsible()
+                    ->defaultItems(0)
+                    ->columnSpanFull(),
                 Toggle::make('is_active')
                     ->required(),
             ]);
@@ -303,6 +357,7 @@ class CourseForm
         $grouped = [
             'one_on_one' => [],
             'group' => [],
+            'self_paced' => [],
         ];
 
         foreach ($entries as $entry) {
@@ -330,8 +385,8 @@ class CourseForm
     {
         $entries = [];
 
-        if (array_key_exists('one_on_one', $state) || array_key_exists('group', $state)) {
-            foreach (['one_on_one', 'group'] as $category) {
+        if (array_key_exists('one_on_one', $state) || array_key_exists('group', $state) || array_key_exists('self_paced', $state)) {
+            foreach (['one_on_one', 'group', 'self_paced'] as $category) {
                 $rows = $state[$category] ?? [];
 
                 if (! is_array($rows)) {
@@ -388,8 +443,16 @@ class CourseForm
             return [];
         }
 
-        $category = str_contains(strtolower($line), 'group') ? 'group' : 'one_on_one';
-        $normalizedLine = trim((string) preg_replace('/^(one\s*[-\s:]?\s*on\s*[-\s:]?\s*one|1\s*[:x]\s*1|private|group)\s*(?:[:\-|]\s*)?/i', '', $line));
+        $lowerLine = strtolower($line);
+        if (str_contains($lowerLine, 'self') || str_contains($lowerLine, 'paced')) {
+            $category = 'self_paced';
+        } elseif (str_contains($lowerLine, 'group')) {
+            $category = 'group';
+        } else {
+            $category = 'one_on_one';
+        }
+
+        $normalizedLine = trim((string) preg_replace('/^(one\s*[-\s:]?\s*on\s*[-\s:]?\s*one|1\s*[:x]\s*1|private|group|self\s*[-:]?\s*paced)\s*(?:[:\-|]\s*)?/i', '', $line));
         $normalizedLine = $normalizedLine === '' ? $line : $normalizedLine;
         $compactLine = trim((string) preg_replace('/\s+/', ' ', $normalizedLine));
 
@@ -555,6 +618,10 @@ class CourseForm
 
         if (preg_match('/one\s*[-\s:]?\s*on\s*[-\s:]?\s*one|1\s*[:x]\s*1|private/', $normalized) === 1) {
             return 'one_on_one';
+        }
+
+        if (str_contains($normalized, 'self') || str_contains($normalized, 'paced')) {
+            return 'self_paced';
         }
 
         if (str_contains($normalized, 'group')) {

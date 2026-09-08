@@ -494,4 +494,51 @@ class CoursePaymentGatewayTest extends TestCase
         $response->assertSee('course-option-modal');
         $response->assertSee('Graphic Design Masterclass');
     }
+
+    public function test_self_paced_fee_entry_category_is_supported_in_course_form_and_checkout(): void
+    {
+        $courseData = [
+            'fees' => [
+                ['category' => 'self_paced', 'level' => 'Beginner', 'amount' => '300', 'duration' => '4 Weeks'],
+                ['category' => 'group', 'level' => 'Beginner', 'amount' => '450', 'duration' => '6 Weeks'],
+                ['category' => 'one_on_one', 'level' => 'Beginner', 'amount' => '800', 'duration' => '6 Weeks'],
+            ],
+        ];
+
+        // 1. CourseForm::prepareDataForSave
+        $savedFees = \App\Filament\Resources\Courses\Schemas\CourseForm::prepareDataForSave($courseData)['fees'];
+        $this->assertNotNull($savedFees);
+        $decoded = json_decode($savedFees, true);
+        $this->assertArrayHasKey('self_paced', $decoded);
+        $this->assertEquals('300', $decoded['self_paced'][0]['amount']);
+
+        // 2. Course::getFeeOptions
+        $course = Course::create([
+            'title' => 'Self-Paced Web Dev',
+            'code' => 'SP101',
+            'fees' => $savedFees,
+            'is_active' => true,
+        ]);
+
+        $options = $course->getFeeOptions();
+        $selfPacedOpt = collect($options)->firstWhere('category', 'self_paced');
+        $this->assertNotNull($selfPacedOpt);
+        $this->assertEquals('Self-Paced', $selfPacedOpt['mode_label']);
+        $this->assertEquals('Flexible', $selfPacedOpt['mode_badge']);
+        $this->assertEquals(300.0, $selfPacedOpt['amount']);
+
+        // 3. Course::getNumericFeeForOption
+        $fee = $course->getNumericFeeForOption('Beginner', 'self_paced');
+        $this->assertEquals(300.0, $fee);
+
+        // 4. Checkout page loads with self_paced mode
+        $response = $this->get(route('checkout.show', [
+            $course,
+            'track' => 'Beginner',
+            'mode' => 'self_paced',
+        ]));
+        $response->assertStatus(200);
+        $response->assertSee('300.00');
+        $response->assertSee('Self-Paced');
+    }
 }

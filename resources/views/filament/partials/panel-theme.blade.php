@@ -4195,6 +4195,461 @@
         border: 1px solid #243c49 !important;
         color: #f1f5f9 !important;
     }
+
+    /* ==========================================================================
+       MODERN HIGH-END UI DESIGN SYSTEM FOR ALL EDIT PAGES (INSTRUCTOR & ADMIN)
+       ========================================================================== */
+    .fi-resource-edit-record-page {
+        max-width: 1280px !important;
+        margin-inline: auto !important;
+        width: 100% !important;
+        padding-bottom: 5rem !important;
+    }
+
+    /* 1. Modern Command-Center Hero Header Card */
+    .fi-resource-edit-record-page > .fi-page-header-main-ctn > .fi-header {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.94) 100%) !important;
+        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+        border-radius: 20px !important;
+        padding: 1.4rem 1.75rem !important;
+        box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
+        position: relative !important;
+        overflow: hidden !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    .dark .fi-resource-edit-record-page > .fi-page-header-main-ctn > .fi-header {
+        background: linear-gradient(135deg, rgba(16, 32, 40, 0.98) 0%, rgba(11, 20, 26, 0.95) 100%) !important;
+        border-color: rgba(35, 56, 66, 0.9) !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .fi-resource-edit-record-page > .fi-page-header-main-ctn > .fi-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3.5px;
+        background: linear-gradient(90deg, #0d9488 0%, #14b8a6 50%, #6366f1 100%);
+    }
+
+    @media (min-width: 768px) {
+        .fi-resource-edit-record-page > .fi-page-header-main-ctn > .fi-header {
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+        }
+    }
+
+    /* Breadcrumbs inside Edit Page */
+    .fi-resource-edit-record-page .fi-breadcrumbs {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.35rem !important;
+        margin-bottom: 0.45rem !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+    }
+
+    .fi-resource-edit-record-page .fi-breadcrumbs-item-label {
+        color: #64748b !important;
+        padding: 0.15rem 0.45rem !important;
+        border-radius: 6px !important;
+        transition: all 0.15s ease !important;
+    }
+
+    .fi-resource-edit-record-page .fi-breadcrumbs-item-label:hover {
+        background: #f1f5f9 !important;
+        color: #0d9488 !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-breadcrumbs-item-label {
+        color: #94a3b8 !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-breadcrumbs-item-label:hover {
+        background: #1e293b !important;
+        color: #14b8a6 !important;
+    }
+
+    /* Heading & Subheading */
+    .fi-resource-edit-record-page .fi-header-heading {
+        font-size: clamp(1.4rem, 2.2vw, 1.85rem) !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        letter-spacing: -0.025em !important;
+        line-height: 1.25 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.6rem !important;
+        flex-wrap: wrap !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-header-heading {
+        color: #ffffff !important;
+    }
+
+    .fi-resource-edit-record-page .fi-header-subheading {
+        font-size: 0.825rem !important;
+        color: #64748b !important;
+        margin-top: 0.35rem !important;
+        line-height: 1.5 !important;
+        font-weight: 500 !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-header-subheading {
+        color: #94a3b8 !important;
+    }
+
+    /* Header Actions */
+    .fi-resource-edit-record-page .fi-header-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.65rem !important;
+        flex-wrap: wrap !important;
+    }
+
+    /* 2. Modern Form Layout & Sections */
+    .fi-resource-edit-record-page form#form {
+        display: grid !important;
+        gap: 1.5rem !important;
+    }
+
+    .fi-resource-edit-record-page .fi-section {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 18px !important;
+        box-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
+        overflow: hidden !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-section {
+        background: #111b21 !important;
+        border-color: #1f2c34 !important;
+        box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .fi-resource-edit-record-page .fi-section:hover {
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.07) !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-section:hover {
+        border-color: #2a3942 !important;
+    }
+
+    /* Section Header */
+    .fi-resource-edit-record-page .fi-section-header {
+        padding: 1.15rem 1.5rem !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%) !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-section-header {
+        border-bottom-color: #1a2730 !important;
+        background: linear-gradient(180deg, #16232b 0%, #111b21 100%) !important;
+    }
+
+    .fi-resource-edit-record-page .fi-section-header-heading {
+        font-size: 1.02rem !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        letter-spacing: -0.01em !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-section-header-heading {
+        color: #f1f5f9 !important;
+    }
+
+    .fi-resource-edit-record-page .fi-section-header-heading::before {
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 16px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #0d9488, #14b8a6);
+        flex-shrink: 0;
+    }
+
+    .fi-resource-edit-record-page .fi-section-header-description {
+        font-size: 0.78rem !important;
+        color: #64748b !important;
+        margin-top: 0.25rem !important;
+        line-height: 1.4 !important;
+        font-weight: 400 !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-section-header-description {
+        color: #94a3b8 !important;
+    }
+
+    .fi-resource-edit-record-page .fi-section-content {
+        padding: 1.5rem !important;
+    }
+
+    /* 3. Field Wrappers, Labels, and Validation */
+    .fi-resource-edit-record-page .fi-fo-field-wrp {
+        margin-bottom: 0.4rem !important;
+    }
+
+    .fi-resource-edit-record-page .fi-fo-field-wrp-label {
+        font-size: 0.79rem !important;
+        font-weight: 700 !important;
+        color: #334155 !important;
+        letter-spacing: 0.01em !important;
+        margin-bottom: 0.35rem !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-fo-field-wrp-label {
+        color: #cbd5e1 !important;
+    }
+
+    .fi-resource-edit-record-page .fi-fo-field-wrp-label sup {
+        color: #ef4444 !important;
+        font-weight: 800 !important;
+        font-size: 0.85rem !important;
+        margin-left: 2px !important;
+    }
+
+    .fi-resource-edit-record-page .fi-fo-field-wrp-helper-text {
+        font-size: 0.73rem !important;
+        color: #64748b !important;
+        line-height: 1.4 !important;
+        margin-top: 0.35rem !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-fo-field-wrp-helper-text {
+        color: #94a3b8 !important;
+    }
+
+    .fi-resource-edit-record-page .fi-fo-field-wrp-error-message {
+        font-size: 0.73rem !important;
+        font-weight: 600 !important;
+        color: #ef4444 !important;
+        margin-top: 0.3rem !important;
+    }
+
+    /* 4. Modern Input Containers & Controls */
+    .fi-resource-edit-record-page .fi-input-wrp {
+        background-color: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) inset !important;
+        transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-input-wrp {
+        background-color: #0b141a !important;
+        border-color: #233842 !important;
+    }
+
+    .fi-resource-edit-record-page .fi-input-wrp:hover {
+        border-color: #cbd5e1 !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-input-wrp:hover {
+        border-color: #2e4754 !important;
+    }
+
+    .fi-resource-edit-record-page .fi-input-wrp:focus-within {
+        background-color: #ffffff !important;
+        border-color: #0d9488 !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18) !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-input-wrp:focus-within {
+        background-color: #111b21 !important;
+        border-color: #0d9488 !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25) !important;
+    }
+
+    .fi-resource-edit-record-page .fi-input,
+    .fi-resource-edit-record-page .fi-textarea {
+        font-size: 0.84rem !important;
+        font-weight: 500 !important;
+        color: #0f172a !important;
+        line-height: 1.45 !important;
+        padding: 0.58rem 0.85rem !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-input,
+    .dark .fi-resource-edit-record-page .fi-textarea {
+        color: #f8fafc !important;
+    }
+
+    .fi-resource-edit-record-page .fi-select-input {
+        font-size: 0.84rem !important;
+        font-weight: 500 !important;
+        color: #0f172a !important;
+        cursor: pointer !important;
+        padding: 0.58rem 0.85rem !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-select-input {
+        color: #f8fafc !important;
+    }
+
+    /* Modern File Uploads */
+    .fi-resource-edit-record-page .fi-fo-file-upload {
+        border-radius: 16px !important;
+    }
+
+    .fi-resource-edit-record-page .filepond--drop-label {
+        border: 2px dashed #cbd5e1 !important;
+        border-radius: 14px !important;
+        background: #f8fafc !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .dark .fi-resource-edit-record-page .filepond--drop-label {
+        border-color: #233842 !important;
+        background: #0b141a !important;
+    }
+
+    .fi-resource-edit-record-page .filepond--drop-label:hover {
+        border-color: #0d9488 !important;
+        background: rgba(13, 148, 136, 0.04) !important;
+    }
+
+    /* Repeater & Builder Items */
+    .fi-resource-edit-record-page .fi-fo-repeater-item {
+        border-radius: 14px !important;
+        border: 1px solid #e2e8f0 !important;
+        background: #fafbfc !important;
+        margin-bottom: 0.85rem !important;
+        overflow: hidden !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-fo-repeater-item {
+        border-color: #1f2c34 !important;
+        background: #0e171d !important;
+    }
+
+    .fi-resource-edit-record-page .fi-fo-repeater-item-header {
+        background: #f1f5f9 !important;
+        padding: 0.55rem 0.95rem !important;
+        font-weight: 700 !important;
+        font-size: 0.78rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        color: #475569 !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-fo-repeater-item-header {
+        background: #16232b !important;
+        border-color: #1f2c34 !important;
+        color: #cbd5e1 !important;
+    }
+
+    /* 5. Sticky Floating Action Dock (Form Footer) */
+    .fi-resource-edit-record-page .fi-form-actions {
+        position: sticky !important;
+        bottom: 1.25rem !important;
+        z-index: 35 !important;
+        background: rgba(255, 255, 255, 0.9) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border: 1px solid rgba(226, 232, 240, 0.95) !important;
+        border-radius: 9999px !important;
+        box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.05) !important;
+        padding: 0.65rem 1.35rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 0.75rem !important;
+        margin-top: 1.5rem !important;
+        width: fit-content !important;
+        margin-left: auto !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-form-actions {
+        background: rgba(17, 27, 33, 0.9) !important;
+        border-color: rgba(35, 56, 66, 0.95) !important;
+        box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    /* Save Changes Button in Edit Pages */
+    .fi-resource-edit-record-page .fi-form-actions button[type="submit"] {
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+        color: #ffffff !important;
+        border: 1px solid #0f766e !important;
+        box-shadow: 0 4px 14px -2px rgba(13, 148, 136, 0.4) !important;
+        border-radius: 9999px !important;
+        padding: 0.55rem 1.4rem !important;
+        font-weight: 700 !important;
+        font-size: 0.825rem !important;
+        transition: all 0.18s ease !important;
+    }
+
+    .fi-resource-edit-record-page .fi-form-actions button[type="submit"]:hover {
+        background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 20px -2px rgba(13, 148, 136, 0.5) !important;
+    }
+
+    /* Cancel / Back Button in Edit Pages */
+    .fi-resource-edit-record-page .fi-form-actions button[type="button"],
+    .fi-resource-edit-record-page .fi-form-actions a {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 9999px !important;
+        padding: 0.55rem 1.2rem !important;
+        font-weight: 600 !important;
+        font-size: 0.825rem !important;
+        transition: all 0.18s ease !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-form-actions button[type="button"],
+    .dark .fi-resource-edit-record-page .fi-form-actions a {
+        background: #1e293b !important;
+        color: #cbd5e1 !important;
+        border-color: #334155 !important;
+    }
+
+    .fi-resource-edit-record-page .fi-form-actions button[type="button"]:hover,
+    .fi-resource-edit-record-page .fi-form-actions a:hover {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        transform: translateY(-1px) !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-form-actions button[type="button"]:hover,
+    .dark .fi-resource-edit-record-page .fi-form-actions a:hover {
+        background: #334155 !important;
+        color: #ffffff !important;
+    }
+
+    /* 6. Relation Managers Under Edit Pages */
+    .fi-resource-edit-record-page .fi-resource-relation-managers {
+        margin-top: 2rem !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+
+    .fi-resource-edit-record-page .fi-resource-relation-managers .fi-tabs {
+        background: var(--hub-surface-soft, #f1f5f9) !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 3px !important;
+        gap: 4px !important;
+    }
+
+    .dark .fi-resource-edit-record-page .fi-resource-relation-managers .fi-tabs {
+        background: #16232b !important;
+        border-color: #233842 !important;
+    }
 </style>
 
 <script>

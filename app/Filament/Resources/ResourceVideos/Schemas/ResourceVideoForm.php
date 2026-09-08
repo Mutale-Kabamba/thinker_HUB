@@ -57,24 +57,14 @@ class ResourceVideoForm
                     ->visible(fn (callable $get): bool => $get('video_source') === 'upload')
                     ->required(fn (callable $get, ?ResourceVideo $record): bool => $get('video_source') === 'upload' && ! $record?->hasLocalVideo()),
 
-                Toggle::make('is_recorded_lesson')
-                    ->label('Recorded lesson')
-                    ->helperText('Turn on if this video is an official recorded lesson for enrolled students.')
-                    ->default(false)
-                    ->afterStateUpdated(function ($state, callable $set): void {
-                        if ($state) {
-                            $set('category', 'Recorded Lessons');
-                        }
-                    })
-                    ->live(),
-
                 Select::make('course_id')
                     ->label('Course')
                     ->options($resolveCourseOptions)
                     ->searchable()
-                    ->live()
-                    ->visible(fn (callable $get): bool => (bool) $get('is_recorded_lesson'))
-                    ->required(fn (callable $get): bool => (bool) $get('is_recorded_lesson')),
+                    ->nullable()
+                    ->placeholder('All Courses (Visible to all students)')
+                    ->helperText('Assign to a specific course so only enrolled students can view it, or leave empty to make it visible to all students.')
+                    ->live(),
 
                 Select::make('course_intake_id')
                     ->label('Target Intake / Class')
@@ -95,7 +85,7 @@ class ResourceVideoForm
                     })
                     ->placeholder('All Intakes / Entire Course')
                     ->helperText('Leave empty to share with all cohorts across the course.')
-                    ->visible(fn (callable $get): bool => (bool) $get('is_recorded_lesson')),
+                    ->visible(fn (callable $get): bool => filled($get('course_id'))),
 
                 Select::make('target_level')
                     ->label('Target level')
@@ -104,8 +94,21 @@ class ResourceVideoForm
                         'Intermediate' => 'Intermediate',
                         'Advanced' => 'Advanced',
                     ])
-                    ->helperText('Leave empty to show this recorded lesson to all levels in the selected course.')
-                    ->visible(fn (callable $get): bool => (bool) $get('is_recorded_lesson')),
+                    ->nullable()
+                    ->placeholder('All Levels')
+                    ->helperText('Leave empty to show this video to all levels in the selected course.')
+                    ->visible(fn (callable $get): bool => filled($get('course_id'))),
+
+                Toggle::make('is_recorded_lesson')
+                    ->label('Recorded lesson')
+                    ->helperText('Turn on if this video is an official recorded lesson for enrolled students.')
+                    ->default(false)
+                    ->afterStateUpdated(function ($state, callable $set): void {
+                        if ($state) {
+                            $set('category', 'Recorded Lessons');
+                        }
+                    })
+                    ->live(),
 
                 Select::make('category')
                     ->label('Category')

@@ -80,9 +80,9 @@ class ResourceVideo extends Model
         $enrolledCourseIds = $user->courses()->pluck('courses.id');
 
         return $query->where(function (Builder $q) use ($user, $enrolledCourseIds): void {
-            $q->where('is_recorded_lesson', false)
-                ->orWhere(function (Builder $lessonQ) use ($user, $enrolledCourseIds): void {
-                    $lessonQ->whereIn('course_id', $enrolledCourseIds)
+            $q->whereNull('course_id')
+                ->orWhere(function (Builder $courseQ) use ($user, $enrolledCourseIds): void {
+                    $courseQ->whereIn('course_id', $enrolledCourseIds)
                         ->where(function (Builder $lvl) use ($user): void {
                             $lvl->whereNull('target_level')->orWhere('target_level', $user->track);
                         })
@@ -210,5 +210,10 @@ class ResourceVideo extends Model
     public static function categoryOptions(): array
     {
         return array_combine(self::CATEGORIES, self::CATEGORIES);
+    }
+
+    public function getVideoUrlAttribute(): ?string
+    {
+        return $this->youtube_url;
     }
 }

@@ -222,36 +222,44 @@
 
                                         {{-- Attachments & Files --}}
                                         @php
-                                            $rawAtts = $msg->attachments;
-                                            $attachmentsList = is_array($rawAtts) ? $rawAtts : (is_string($rawAtts) ? json_decode($rawAtts, true) : []);
-                                            if (empty($attachmentsList) && $msg->attachment_path) {
-                                                $attachmentsList = [[
-                                                    'path' => $msg->attachment_path,
-                                                    'name' => $msg->attachment_name ?: 'File',
-                                                    'type' => $msg->attachment_type ?: 'file',
-                                                ]];
-                                            }
+                                            $attachmentsList = $msg->all_attachments;
                                         @endphp
                                         @if (!empty($attachmentsList))
-                                            <div class="space-y-1 my-1">
-                                                @foreach ($attachmentsList as $att)
+                                            <div class="space-y-1.5 my-1.5">
+                                                @foreach ($attachmentsList as $attIndex => $att)
                                                     @php
-                                                        $url = \Illuminate\Support\Facades\Storage::disk('public')->url($att['path'] ?? '');
                                                         $isImage = ($att['type'] ?? '') === 'image' || preg_match('/\.(jpg|jpeg|png|gif|webp|svg)$/i', $att['path'] ?? '');
+                                                        $viewUrl = $att['url'] ?? route('file.view', ['type' => 'chat-message', 'id' => $msg->id, 'index' => $attIndex]);
+                                                        $downloadUrl = $att['download_url'] ?? route('file.download', ['type' => 'chat-message', 'id' => $msg->id, 'index' => $attIndex]);
+                                                        $fileName = $att['name'] ?? basename($att['path'] ?? 'File');
                                                     @endphp
                                                     @if ($isImage)
-                                                        <a href="{{ $url }}" target="_blank" class="block rounded-lg overflow-hidden border border-black/10 dark:border-white/10">
-                                                            <img src="{{ $url }}" alt="{{ $att['name'] ?? 'Image' }}" class="max-h-52 w-full object-cover">
-                                                        </a>
-                                                    @else
-                                                        <div class="p-1.5 rounded-lg bg-black/5 dark:bg-black/20 flex items-center justify-between gap-2 text-xs border border-black/5 dark:border-white/5">
-                                                            <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                                                                <span class="text-sm">📄</span>
-                                                                <span class="truncate font-medium text-[12px] text-gray-700 dark:text-gray-200">{{ $att['name'] ?? basename($att['path'] ?? 'Document') }}</span>
-                                                            </div>
-                                                            <a href="{{ $url }}" download class="text-emerald-600 dark:text-emerald-400 hover:opacity-80 p-0.5 shrink-0" title="Download">
-                                                                <x-heroicon-s-arrow-down-tray class="w-4 h-4" />
+                                                        <div class="relative group/att rounded-lg overflow-hidden border border-black/10 dark:border-white/10 bg-black/5 dark:bg-black/20">
+                                                            <a href="{{ $viewUrl }}" target="_blank" class="block">
+                                                                <img src="{{ $viewUrl }}" alt="{{ $fileName }}" class="max-h-56 w-full object-cover rounded-lg">
                                                             </a>
+                                                            <div class="absolute bottom-1.5 right-1.5 flex items-center gap-1">
+                                                                <a href="{{ $downloadUrl }}" download="{{ $fileName }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/70 hover:bg-black/90 text-white text-[10px] font-semibold backdrop-blur-xs transition shadow-xs" title="Download {{ $fileName }}">
+                                                                    <x-heroicon-s-arrow-down-tray class="w-3 h-3" />
+                                                                    <span>Download</span>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <div class="p-2 rounded-lg bg-black/5 dark:bg-black/20 flex items-center justify-between gap-2 text-xs border border-black/5 dark:border-white/5">
+                                                            <a href="{{ $viewUrl }}" target="_blank" class="flex items-center gap-1.5 min-w-0 flex-1 hover:underline text-gray-700 dark:text-gray-200" title="View {{ $fileName }}">
+                                                                <span class="text-sm shrink-0">📄</span>
+                                                                <span class="truncate font-medium text-[12px]">{{ $fileName }}</span>
+                                                            </a>
+                                                            <div class="flex items-center gap-1 shrink-0">
+                                                                <a href="{{ $viewUrl }}" target="_blank" class="p-1 rounded text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" title="View file">
+                                                                    <x-heroicon-m-eye class="w-3.5 h-3.5" />
+                                                                </a>
+                                                                <a href="{{ $downloadUrl }}" download="{{ $fileName }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold transition" title="Download {{ $fileName }}">
+                                                                    <x-heroicon-s-arrow-down-tray class="w-3.5 h-3.5" />
+                                                                    <span>Download</span>
+                                                                </a>
+                                                            </div>
                                                         </div>
                                                     @endif
                                                 @endforeach

@@ -754,11 +754,132 @@ Route::middleware('auth')->group(function () {
             );
         }
 
+        if ($request->query('download')) {
+            $downloadName = $request->query('name') ?: basename($path);
+            return $disk->download($path, $downloadName);
+        }
+
         return $disk->response($path, basename($path), [
             'X-Frame-Options' => 'SAMEORIGIN',
             'Content-Security-Policy' => "frame-ancestors 'self'",
         ]);
     })->name('file.view');
+
+    Route::get('/file/download/{type}/{id}', function (Request $request, string $type, int $id) {
+        $user = Auth::user();
+        if (! $user) {
+            abort(403);
+        }
+
+        $disk = Storage::disk('public');
+        $index = $request->query('index');
+        $fileParam = $request->query('file');
+        $downloadName = null;
+
+        if ($type === 'material') {
+            $material = ($user->isAdmin() || $user->isInstructor())
+                ? LearningMaterial::query()->findOrFail($id)
+                : LearningMaterial::query()->visibleTo($user)->findOrFail($id);
+            $path = $material->file_path;
+            $downloadName = $material->file_name ?: ($material->title ? $material->title . '.' . pathinfo($path, PATHINFO_EXTENSION) : basename($path));
+        } elseif ($type === 'assignment') {
+            $assignment = ($user->isAdmin() || $user->isInstructor())
+                ? Assignment::query()->findOrFail($id)
+                : Assignment::query()->visibleTo($user)->findOrFail($id);
+            $paths = $assignment->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $assignment->file_path;
+            }
+            $downloadName = basename($path);
+        } elseif ($type === 'assessment') {
+            $assessment = ($user->isAdmin() || $user->isInstructor())
+                ? Assessment::query()->findOrFail($id)
+                : Assessment::query()->visibleTo($user)->findOrFail($id);
+            $paths = $assessment->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $assessment->file_path;
+            }
+            $downloadName = basename($path);
+        } elseif ($type === 'submission') {
+            $submission = AssignmentSubmission::query()->findOrFail($id);
+            $canView = $user->isAdmin()
+                || $user->isInstructor()
+                || $submission->user_id === $user->id;
+            abort_unless($canView, 403);
+            $paths = $submission->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $submission->file_path;
+            }
+            $downloadName = basename($path);
+        } elseif ($type === 'assessment-submission') {
+            $submission = AssessmentSubmission::query()->findOrFail($id);
+            $canView = $user->isAdmin()
+                || $user->isInstructor()
+                || $submission->user_id === $user->id;
+            abort_unless($canView, 403);
+            $paths = $submission->all_file_paths;
+            if ($index !== null && isset($paths[(int) $index])) {
+                $path = $paths[(int) $index];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths[0] ?? $submission->file_path;
+            }
+            $downloadName = basename($path);
+        } elseif ($type === 'chat-message') {
+            $chatMessage = ChatMessage::query()->findOrFail($id);
+
+            $isRoomMember = ChatRoom::query()
+                ->whereKey($chatMessage->chat_room_id)
+                ->whereHas('members', fn ($query) => $query->where('users.id', $user->id))
+                ->exists();
+
+            abort_unless($isRoomMember || $user->isAdmin(), 403);
+
+            $attachments = $chatMessage->all_attachments;
+            if ($index !== null && isset($attachments[(int) $index])) {
+                $path = $attachments[(int) $index]['path'];
+                $downloadName = $attachments[(int) $index]['name'] ?? basename($path);
+            } elseif ($fileParam) {
+                $matched = collect($attachments)->firstWhere('path', $fileParam);
+                $path = $matched ? $matched['path'] : ($attachments[0]['path'] ?? $chatMessage->attachment_path);
+                $downloadName = $matched['name'] ?? ($attachments[0]['name'] ?? ($chatMessage->attachment_name ?: basename($path)));
+            } else {
+                $path = $attachments[0]['path'] ?? $chatMessage->attachment_path;
+                $downloadName = $attachments[0]['name'] ?? ($chatMessage->attachment_name ?: basename($path));
+            }
+        } else {
+            abort(404);
+        }
+
+        $path = PublicDiskPath::normalize($path);
+
+        if ($path && ! $disk->exists($path)) {
+            if ($disk->exists('submissions/' . basename($path))) {
+                $path = 'submissions/' . basename($path);
+            }
+        }
+
+        if (! $path || ! $disk->exists($path)) {
+            abort(404);
+        }
+
+        $downloadName = $downloadName ?: basename($path);
+
+        return $disk->download($path, $downloadName);
+    })->name('file.download');
 
     // Signed URL route for viewing Office documents via Google Docs Viewer.
     // Generates a temporary signed URL that doesn't require authentication.
@@ -888,6 +1009,20 @@ Route::get('/file/public', function (Request $request) {
 
     return $disk->response($path);
 })->name('file.public');
+
+// Sequential E-Learning Classroom & Course Player
+Route::middleware(['auth'])->group(function () {
+    Route::get('/portal/dashboard', function () {
+        return redirect()->route('filament.student.pages.overview');
+    })->name('portal.dashboard');
+
+    Route::get('/learn/{course:slug}/{lessonId?}', \App\Livewire\CoursePlayer::class)
+        ->name('course.player')
+        ->where('course', '^(?!courses|assessments|assignments|certificates|claim-hub|community|learning-resources|login|logout|materials|opportunities|overview|quizzes|reviews|schedule|search|settings|take-quiz).*$');
+
+    Route::get('/classroom/{course:slug}/{lessonId?}', \App\Livewire\CoursePlayer::class)
+        ->name('course.classroom');
+});
 
 require __DIR__.'/auth.php';
 

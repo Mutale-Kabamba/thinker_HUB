@@ -179,7 +179,9 @@
                             </div>
                             <div style="padding:0.55rem 0.7rem;">
                                 <p style="margin:0;font-weight:600;color:var(--hub-ink);font-size:0.85rem;line-height:1.25;">{{ $video['title'] }}</p>
-                                @if ($video['channel'])
+                                @if (! empty($video['course']))
+                                    <p style="margin:0.2rem 0 0;font-size:0.72rem;color:var(--hub-primary);font-weight:600;">{{ $video['course'] }}</p>
+                                @elseif (! empty($video['channel']))
                                     <p style="margin:0.2rem 0 0;font-size:0.72rem;color:var(--hub-muted);">{{ $video['channel'] }}</p>
                                 @endif
                             </div>

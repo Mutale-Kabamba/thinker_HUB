@@ -76,6 +76,10 @@
                     return 'one_on_one';
                 }
 
+                if (in_array($normalized, ['self_paced', 'selfpaced', 'self_study', 'self_learning', 'asynchronous'], true)) {
+                    return 'self_paced';
+                }
+
                 if (in_array($normalized, ['group', 'group_class', 'group_classes', 'class_group'], true)) {
                     return 'group';
                 }
@@ -88,6 +92,10 @@
 
                 if (preg_match('/one\s*[-:]?\s*on\s*[-:]?\s*one|1\s*[:x]\s*1|private/', $text) === 1) {
                     return 'one_on_one';
+                }
+
+                if (str_contains($text, 'self') || str_contains($text, 'paced')) {
+                    return 'self_paced';
                 }
 
                 if (str_contains($text, 'group')) {
@@ -217,12 +225,14 @@
                     $label = match ($key) {
                         'one_on_one' => 'One-on-One',
                         'group' => 'Group',
+                        'self_paced' => 'Self-Paced',
                         default => ucwords(str_replace('_', ' ', (string) $key)),
                     };
 
                     $badge = match ($key) {
                         'one_on_one' => '1:1 Focus',
                         'group' => 'Best Value',
+                        'self_paced' => 'Flexible',
                         default => '',
                     };
 
@@ -244,10 +254,11 @@
                     $groupedRows = [
                         'one_on_one' => array_values(array_filter($fallbackRows, static fn (array $row): bool => ($row['mode'] ?? 'fees') === 'one_on_one')),
                         'group' => array_values(array_filter($fallbackRows, static fn (array $row): bool => ($row['mode'] ?? 'fees') === 'group')),
-                        'fees' => array_values(array_filter($fallbackRows, static fn (array $row): bool => ! in_array(($row['mode'] ?? 'fees'), ['one_on_one', 'group'], true))),
+                        'self_paced' => array_values(array_filter($fallbackRows, static fn (array $row): bool => ($row['mode'] ?? 'fees') === 'self_paced')),
+                        'fees' => array_values(array_filter($fallbackRows, static fn (array $row): bool => ! in_array(($row['mode'] ?? 'fees'), ['one_on_one', 'group', 'self_paced'], true))),
                     ];
 
-                    foreach (['one_on_one', 'group', 'fees'] as $sectionKey) {
+                    foreach (['one_on_one', 'group', 'self_paced', 'fees'] as $sectionKey) {
                         if ($groupedRows[$sectionKey] === []) {
                             continue;
                         }
@@ -257,11 +268,13 @@
                             'label' => match ($sectionKey) {
                                 'one_on_one' => 'One-on-One',
                                 'group' => 'Group',
+                                'self_paced' => 'Self-Paced',
                                 default => 'Fees',
                             },
                             'badge' => match ($sectionKey) {
                                 'one_on_one' => '1:1 Focus',
                                 'group' => 'Best Value',
+                                'self_paced' => 'Flexible',
                                 default => '',
                             },
                             'rows' => $groupedRows[$sectionKey],

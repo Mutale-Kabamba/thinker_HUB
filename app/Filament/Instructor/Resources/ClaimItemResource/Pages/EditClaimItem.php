@@ -3,10 +3,10 @@
 namespace App\Filament\Instructor\Resources\ClaimItemResource\Pages;
 
 use App\Filament\Instructor\Resources\ClaimItemResource\ClaimItemResource;
+use App\Filament\Resources\Pages\BaseEditRecord;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
 
-class EditClaimItem extends EditRecord
+class EditClaimItem extends BaseEditRecord
 {
     protected static string $resource = ClaimItemResource::class;
 

@@ -242,7 +242,7 @@ class ListCourses extends ListRecords
 
         $lines = [];
 
-        foreach (['one_on_one' => 'One-on-One', 'group' => 'Group'] as $key => $label) {
+        foreach (['one_on_one' => 'One-on-One', 'group' => 'Group', 'self_paced' => 'Self-Paced'] as $key => $label) {
             $entries = Arr::get($value, $key, []);
 
             if (! is_array($entries)) {

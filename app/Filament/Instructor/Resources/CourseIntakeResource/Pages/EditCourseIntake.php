@@ -3,11 +3,11 @@
 namespace App\Filament\Instructor\Resources\CourseIntakeResource\Pages;
 
 use App\Filament\Instructor\Resources\CourseIntakeResource\CourseIntakeResource;
+use App\Filament\Resources\Pages\BaseEditRecord;
 use App\Models\CourseIntake;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
 
-class EditCourseIntake extends EditRecord
+class EditCourseIntake extends BaseEditRecord
 {
     protected static string $resource = CourseIntakeResource::class;
 

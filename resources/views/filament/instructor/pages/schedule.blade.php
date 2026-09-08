@@ -466,42 +466,70 @@
                     </div>
 
 
-                    {{-- Scrollable Session Card List --}}
-                    <div class="max-h-[520px] overflow-y-auto space-y-2.5 pr-1">
-                        @forelse ($filteredSessions as $s)
+                    {{-- Scrollable Session Card List (Presented Per Course) --}}
+                    <div class="max-h-[520px] overflow-y-auto space-y-3.5 pr-1">
+                        @php
+                            $groupedSessions = collect($filteredSessions)->groupBy(fn ($s) => $s['course_title'] ?? 'Other');
+                        @endphp
+                        @forelse ($groupedSessions as $courseTitle => $courseSessions)
                             @php
-                                $col = $s['color'] ?? \App\Models\Course::getColorSchemeFor($s['course_id'] ?? null, $s['title'] ?? '', $s['course_code'] ?? '');
+                                $firstSession = $courseSessions->first();
+                                $cCol = $firstSession['color'] ?? \App\Models\Course::getColorSchemeFor($firstSession['course_id'] ?? null, $courseTitle, $firstSession['course_code'] ?? '');
                             @endphp
-                            <div 
-                                wire:click="openSessionDetails({{ $s['id'] }})"
-                                class="p-3.5 rounded-xl border {{ $col['card_border'] }} bg-slate-50/70 dark:bg-slate-800/40 hover:shadow-xs cursor-pointer space-y-2 transition-all relative overflow-hidden"
-                            >
-                                <div class="absolute left-0 top-0 bottom-0 w-1 {{ $col['bar'] }}"></div>
-                                <div class="flex items-center justify-between text-[10px] pl-1">
-                                    <div class="flex items-center gap-1.5">
-                                        @if ($s['course_code'])
-                                            <span class="px-1.5 py-0.5 rounded font-extrabold {{ $col['badge_bg'] }}">{{ $s['course_code'] }}</span>
+                            <div class="space-y-2">
+                                {{-- Course Header Banner --}}
+                                <div class="flex items-center justify-between px-2.5 py-1.5 rounded-xl border {{ $cCol['card_border'] }} {{ $cCol['card_bg'] }} shadow-2xs sticky top-0 z-10 backdrop-blur-md">
+                                    <div class="flex items-center gap-1.5 min-w-0">
+                                        <span class="w-2.5 h-2.5 rounded-full {{ $cCol['dot'] }} shrink-0"></span>
+                                        @if (!empty($firstSession['course_code']))
+                                            <span class="px-1.5 py-0.5 rounded font-black text-[9px] {{ $cCol['badge_bg'] }} shrink-0">{{ $firstSession['course_code'] }}</span>
                                         @endif
-                                        <span class="font-bold text-slate-400">{{ $s['type_label'] ?? 'Group' }}</span>
+                                        <span class="text-[11px] font-extrabold text-slate-800 dark:text-slate-200 truncate">{{ $courseTitle }}</span>
                                     </div>
-                                    <span class="px-2 py-0.5 rounded-full font-bold {{ $s['status'] === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' }}">
-                                        {{ ucfirst($s['status']) }}
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-black {{ $cCol['accent_text'] }} shrink-0">
+                                        {{ count($courseSessions) }} {{ \Illuminate\Support\Str::plural('session', count($courseSessions)) }}
                                     </span>
                                 </div>
 
-                                <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 pl-1">{{ $s['title'] }}</h4>
+                                {{-- Session Cards for this Course --}}
+                                <div class="space-y-2">
+                                    @foreach ($courseSessions as $s)
+                                        @php
+                                            $col = $s['color'] ?? $cCol;
+                                        @endphp
+                                        <div 
+                                            wire:click="openSessionDetails({{ $s['id'] }})"
+                                            class="p-3.5 rounded-xl border {{ $col['card_border'] }} bg-slate-50/70 dark:bg-slate-800/40 hover:shadow-xs cursor-pointer space-y-2 transition-all relative overflow-hidden"
+                                        >
+                                            <div class="absolute left-0 top-0 bottom-0 w-1 {{ $col['bar'] }}"></div>
+                                            <div class="flex items-center justify-between text-[10px] pl-1">
+                                                <div class="flex items-center gap-1.5">
+                                                    @if ($s['course_code'])
+                                                        <span class="px-1.5 py-0.5 rounded font-extrabold {{ $col['badge_bg'] }}">{{ $s['course_code'] }}</span>
+                                                    @endif
+                                                    <span class="font-bold text-slate-400">{{ $s['type_label'] ?? 'Group' }}</span>
+                                                </div>
+                                                <span class="px-2 py-0.5 rounded-full font-bold {{ $s['status'] === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' }}">
+                                                    {{ ucfirst($s['status']) }}
+                                                </span>
+                                            </div>
 
-                                <div class="space-y-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium pl-1">
-                                    <div class="flex items-center gap-1.5">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                                        <span>{{ $s['session_date'] }} · {{ $s['start_time'] }} - {{ $s['end_time'] }}</span>
-                                    </div>
-                                    @if (!empty($s['student_name']))
-                                        <div class="flex items-center gap-1.5">
-                                            <x-heroicon-o-user class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                                            <span>{{ $s['student_name'] }}</span>
+                                            <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 pl-1">{{ $s['title'] }}</h4>
+
+                                            <div class="space-y-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium pl-1">
+                                                <div class="flex items-center gap-1.5">
+                                                    <x-heroicon-o-calendar class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                                                    <span>{{ $s['session_date'] }} · {{ $s['start_time'] }} - {{ $s['end_time'] }}</span>
+                                                </div>
+                                                @if (!empty($s['student_name']))
+                                                    <div class="flex items-center gap-1.5">
+                                                        <x-heroicon-o-user class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                                                        <span>{{ $s['student_name'] }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </div>
-                                    @endif
+                                    @endforeach
                                 </div>
                             </div>
                         @empty
