@@ -279,10 +279,10 @@ class CourseSessionTable
                         }),
 
                     Action::make('attendance')
-                        ->label('Attendance')
+                        ->label('Attendance Register')
                         ->icon('heroicon-m-clipboard-document-check')
                         ->color('info')
-                        ->url(fn (CourseSession $record): string => CourseSessionResource::getUrl('edit', ['record' => $record])),
+                        ->url(fn (CourseSession $record): string => route('filament.admin.pages.attendance-register', ['session_id' => $record->id])),
 
                     EditAction::make()->icon('heroicon-m-pencil-square'),
                 ])
