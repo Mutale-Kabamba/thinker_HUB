@@ -103,6 +103,25 @@
                 </div>
             </div>
 
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                    <x-input-label for="gender" class="text-slate-700 dark:text-slate-300" :value="__('Gender (Optional)')" />
+                    <select id="gender" name="gender" class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                        <option value="">Select gender</option>
+                        <option value="Male" @selected(old('gender') === 'Male')>Male</option>
+                        <option value="Female" @selected(old('gender') === 'Female')>Female</option>
+                        <option value="Other" @selected(old('gender') === 'Other')>Other</option>
+                    </select>
+                    <x-input-error :messages="$errors->get('gender')" class="mt-2" />
+                </div>
+
+                <div>
+                    <x-input-label for="nrc_passport" class="text-slate-700 dark:text-slate-300" :value="__('NRC / Passport Number (Optional)')" />
+                    <x-text-input id="nrc_passport" class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" type="text" name="nrc_passport" :value="old('nrc_passport')" placeholder="e.g. 123456/11/1 or Passport No." />
+                    <x-input-error :messages="$errors->get('nrc_passport')" class="mt-2" />
+                </div>
+            </div>
+
             <div id="payment-notice" class="hidden rounded-2xl border border-teal-200 bg-teal-50/80 p-4 text-xs text-teal-950 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-200">
                 <div class="flex items-center justify-between mb-1">
                     <span class="font-bold flex items-center gap-1.5 text-teal-900 dark:text-teal-200">

@@ -51,6 +51,21 @@ class AttendancesRelationManager extends RelationManager
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->headerActions([
+                \Filament\Actions\Action::make('open_register')
+                    ->label('Open Dedicated Register')
+                    ->icon('heroicon-m-arrow-top-right-on-square')
+                    ->color('primary')
+                    ->url(function (): string {
+                        $sessionId = $this->ownerRecord?->id;
+                        $panel = filament()->getCurrentPanel()?->getId();
+                        $routeName = $panel === 'instructor'
+                            ? 'filament.instructor.pages.attendance-register'
+                            : 'filament.admin.pages.attendance-register';
+
+                        return route($routeName, ['session_id' => $sessionId]);
+                    }),
+            ])
             ->defaultSort('id');
     }
 }

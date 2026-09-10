@@ -151,7 +151,15 @@
                         <tr>
                             <td>
                                 <strong>{{ is_array($s) ? ($s['name'] ?? $s['student']?->name ?? 'Student') : ($s->name ?? 'Student') }}</strong>
-                                <div class="text-muted" style="font-size: 6.5pt;">{{ is_array($s) ? ($s['email'] ?? $s['student']?->email ?? '') : ($s->email ?? '') }}</div>
+                                <div class="text-muted" style="font-size: 6.5pt;">
+                                    {{ is_array($s) ? ($s['email'] ?? $s['student']?->email ?? '') : ($s->email ?? '') }}
+                                    @php
+                                        $stObj = is_array($s) ? ($s['student'] ?? null) : $s;
+                                    @endphp
+                                    @if($stObj && (!empty($isPlayItForward) || $stObj->gender || $stObj->nrc_passport))
+                                        • {{ $stObj->gender ?: '—' }} • NRC: {{ $stObj->nrc_passport ?: '—' }}
+                                    @endif
+                                </div>
                             </td>
                             <td>
                                 <span class="badge badge-gray">{{ strtoupper(is_array($s) ? ($s['track'] ?? $s['student']?->track ?? 'LEARNER') : ($s->track ?? 'LEARNER')) }}</span>
