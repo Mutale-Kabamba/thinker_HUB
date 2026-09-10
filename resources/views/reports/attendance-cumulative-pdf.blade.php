@@ -59,7 +59,12 @@
                             <td style="text-align: center; color: #64748b;">{{ $idx + 1 }}</td>
                             <td>
                                 <strong>{{ $row['student']->name }}</strong>
-                                <div style="font-size: 5.8pt; color: #64748b;">{{ $row['student']->email }}</div>
+                                <div style="font-size: 5.8pt; color: #64748b;">
+                                    {{ $row['student']->email }}
+                                    @if(!empty($isPlayItForward) || $row['student']->gender || $row['student']->nrc_passport)
+                                        • {{ $row['student']->gender ?: '—' }} • NRC: {{ $row['student']->nrc_passport ?: '—' }}
+                                    @endif
+                                </div>
                             </td>
                             @foreach($sessions as $s)
                                 @php

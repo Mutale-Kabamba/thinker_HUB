@@ -123,6 +123,13 @@
                             <td style="text-align: center; color: #64748b; font-size: 7pt;">{{ $index + 1 }}</td>
                             <td>
                                 <strong>{{ $record->student?->name ?? '—' }}</strong>
+                                @if(!empty($isPlayItForward) || $record->student?->gender || $record->student?->nrc_passport)
+                                    <div style="font-size: 6.5pt; color: #64748b; margin-top: 1px;">
+                                        <span>Gender: <strong>{{ $record->student?->gender ?: '—' }}</strong></span>
+                                        <span style="color: #cbd5e1; margin: 0 2px;">•</span>
+                                        <span>NRC/ID: <strong>{{ $record->student?->nrc_passport ?: '—' }}</strong></span>
+                                    </div>
+                                @endif
                             </td>
                             <td class="text-muted" style="font-size: 7pt;">
                                 {{ $record->student?->email ?? '—' }}
