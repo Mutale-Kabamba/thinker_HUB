@@ -45,30 +45,63 @@ class Attendance extends Model
     /**
      * Idempotently ensure an attendance row exists for every student who
      * should attend the given session: the assigned student for one-on-one
-     * sessions, otherwise every student enrolled in the session's course.
+     * sessions, otherwise students enrolled in the session's course (respecting
+     * intake scoping when specified).
+     *
+     * @return array{total_eligible: int, newly_created: int, student_ids: list<int>}
      */
-    public static function syncForSession(CourseSession $session): void
+    public static function syncForSession(CourseSession $session): array
     {
         $studentIds = [];
 
         if ($session->student_id && $session->isOneOnOne()) {
             $studentIds = [(int) $session->student_id];
         } elseif ($session->course_id) {
-            $studentIds = Enrollment::query()
-                ->where('course_id', $session->course_id)
-                ->pluck('user_id')
-                ->all();
+            $query = Enrollment::query()->where('course_id', $session->course_id);
+
+            if ($session->course_intake_id) {
+                $intakeStudentIds = (clone $query)
+                    ->where('course_intake_id', $session->course_intake_id)
+                    ->pluck('user_id')
+                    ->map(fn ($id) => (int) $id)
+                    ->all();
+
+                if (! empty($intakeStudentIds)) {
+                    $studentIds = $intakeStudentIds;
+                } else {
+                    $studentIds = $query->pluck('user_id')
+                        ->map(fn ($id) => (int) $id)
+                        ->all();
+                }
+            } else {
+                $studentIds = $query->pluck('user_id')
+                    ->map(fn ($id) => (int) $id)
+                    ->all();
+            }
         }
+
+        $studentIds = array_values(array_unique($studentIds));
+        $newlyCreated = 0;
 
         foreach ($studentIds as $studentId) {
             try {
-                self::query()->firstOrCreate([
+                $record = self::query()->firstOrCreate([
                     'course_session_id' => $session->id,
                     'user_id' => $studentId,
                 ]);
+
+                if ($record->wasRecentlyCreated) {
+                    $newlyCreated++;
+                }
             } catch (\Throwable $e) {
                 report($e);
             }
         }
+
+        return [
+            'total_eligible' => count($studentIds),
+            'newly_created' => $newlyCreated,
+            'student_ids' => $studentIds,
+        ];
     }
 }
