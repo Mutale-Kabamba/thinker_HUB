@@ -490,4 +490,251 @@ class AttendanceService
             ->setOption('isHtml5ParserEnabled', true)
             ->setOption('isRemoteEnabled', true);
     }
+
+    /**
+     * Render an official printable PDF attendance schedule register matching the school register format:
+     * Month header -> Weeks (Week 1, Week 2, Week 3, Week 4...) -> Days (M, T, W, TH, F) with
+     * student rows, checkmarks (✓) for Present, crosses (✗) for Absent, and signature lines.
+     */
+    public function exportScheduleRegisterPdf(Course $course, ?int $intakeId = null, ?Carbon $upToDate = null, ?string $targetMonth = null): DomPDF
+    {
+        $upToDate = $upToDate ?: Carbon::today();
+
+        $sessionsQuery = CourseSession::query()
+            ->where('course_id', $course->id)
+            ->where('session_date', '<=', $upToDate->toDateString())
+            ->orderBy('session_date', 'asc')
+            ->orderBy('start_time', 'asc');
+
+        if ($intakeId) {
+            $sessionsQuery->where('course_intake_id', $intakeId);
+        }
+
+        if ($targetMonth) {
+            $sessionsQuery->where('session_date', 'like', $targetMonth . '%');
+        }
+
+        $sessions = $sessionsQuery->get();
+
+        // If no past sessions found or if course has upcoming sessions, fall back to all sessions of course
+        if ($sessions->isEmpty()) {
+            $sessionsQuery = CourseSession::query()
+                ->where('course_id', $course->id)
+                ->orderBy('session_date', 'asc')
+                ->orderBy('start_time', 'asc');
+
+            if ($intakeId) {
+                $sessionsQuery->where('course_intake_id', $intakeId);
+            }
+            $sessions = $sessionsQuery->get();
+        }
+
+        // Pre-sync attendance for all these sessions so all enrolled students have rows
+        foreach ($sessions as $session) {
+            $this->syncSessionRoster($session);
+        }
+
+        // Get enrolled students
+        $enrollmentQuery = Enrollment::query()
+            ->where('course_id', $course->id)
+            ->with('user');
+
+        if ($intakeId) {
+            $enrollmentQuery->where('course_intake_id', $intakeId);
+        }
+
+        $students = $enrollmentQuery->get()
+            ->map(fn ($e) => $e->user)
+            ->filter()
+            ->sortBy('name')
+            ->values();
+
+        $intake = $intakeId ? CourseIntake::find($intakeId) : null;
+
+        // Group sessions by month (Y-m)
+        $months = $sessions->groupBy(fn ($s) => $s->getEffectiveDate()->format('Y-m'));
+
+        $monthDataList = [];
+
+        foreach ($months as $monthKey => $monthSessions) {
+            $monthDate = Carbon::parse($monthKey . '-01');
+            $monthName = $monthDate->format('F Y');
+            $sessionsByDate = $monthSessions->groupBy(fn ($s) => $s->getEffectiveDate()->format('Y-m-d'));
+
+            $firstMonday = $monthDate->copy()->startOfWeek(Carbon::MONDAY);
+            $lastFriday = $monthDate->copy()->endOfMonth()->endOfWeek(Carbon::FRIDAY);
+
+            $current = $firstMonday->copy();
+            $weeks = [];
+            $weekIdx = 1;
+
+            while ($current->lte($lastFriday)) {
+                $weekDays = [];
+                $hasSessionsInWeek = false;
+
+                for ($d = 0; $d < 5; $d++) {
+                    $dayDate = $current->copy()->addDays($d);
+                    $dateStr = $dayDate->format('Y-m-d');
+                    $isInMonth = $dayDate->month === $monthDate->month;
+
+                    $daySessions = $sessionsByDate->get($dateStr, collect());
+                    if ($daySessions->isNotEmpty()) {
+                        $hasSessionsInWeek = true;
+                    }
+
+                    $dayCode = match ($d) {
+                        0 => 'M',
+                        1 => 'T',
+                        2 => 'W',
+                        3 => 'TH',
+                        4 => 'F',
+                    };
+
+                    $weekDays[] = [
+                        'code' => $dayCode,
+                        'name' => $dayDate->format('l'),
+                        'date_str' => $dateStr,
+                        'day_num' => $dayDate->format('d'),
+                        'in_month' => $isInMonth,
+                        'sessions' => $daySessions,
+                    ];
+                }
+
+                if ($hasSessionsInWeek) {
+                    $weeks['Week ' . $weekIdx] = $weekDays;
+                    $weekIdx++;
+                }
+
+                $current->addWeek();
+            }
+
+            // If no sessions grouped into weeks, fallback to calendar weeks of month
+            if (empty($weeks)) {
+                $current = $firstMonday->copy();
+                $weekIdx = 1;
+                while ($current->lte($lastFriday)) {
+                    $weekDays = [];
+                    $hasDaysInMonth = false;
+                    for ($d = 0; $d < 5; $d++) {
+                        $dayDate = $current->copy()->addDays($d);
+                        $isInMonth = $dayDate->month === $monthDate->month;
+                        if ($isInMonth) {
+                            $hasDaysInMonth = true;
+                        }
+                        $dayCode = match ($d) { 0 => 'M', 1 => 'T', 2 => 'W', 3 => 'TH', 4 => 'F' };
+                        $weekDays[] = [
+                            'code' => $dayCode,
+                            'name' => $dayDate->format('l'),
+                            'date_str' => $dayDate->format('Y-m-d'),
+                            'day_num' => $dayDate->format('d'),
+                            'in_month' => $isInMonth,
+                            'sessions' => $sessionsByDate->get($dayDate->format('Y-m-d'), collect()),
+                        ];
+                    }
+                    if ($hasDaysInMonth) {
+                        $weeks['Week ' . $weekIdx] = $weekDays;
+                        $weekIdx++;
+                    }
+                    $current->addWeek();
+                }
+            }
+
+            $allDays = [];
+            foreach ($weeks as $wName => $wDays) {
+                foreach ($wDays as $d) {
+                    $allDays[] = $d;
+                }
+            }
+
+            $studentIds = $students->pluck('id')->all();
+            $attendances = Attendance::whereIn('course_session_id', $monthSessions->pluck('id'))
+                ->whereIn('user_id', $studentIds)
+                ->get()
+                ->groupBy('user_id');
+
+            $studentRows = [];
+            $dailyTotals = [];
+            foreach ($allDays as $d) {
+                $dailyTotals[$d['date_str']] = ['present' => 0, 'absent' => 0, 'has_session' => $d['sessions']->isNotEmpty()];
+            }
+
+            foreach ($students as $st) {
+                $stAtt = $attendances->get($st->id, collect())->keyBy('course_session_id');
+                $marks = [];
+                $presentCount = 0;
+                $absentCount = 0;
+                $totalScheduled = 0;
+
+                foreach ($allDays as $d) {
+                    $dateStr = $d['date_str'];
+                    $daySess = $d['sessions'];
+
+                    if ($daySess->isEmpty()) {
+                        $marks[$dateStr] = ['type' => 'none', 'symbol' => ''];
+                    } else {
+                        $totalScheduled += $daySess->count();
+                        $primarySess = $daySess->first();
+                        $att = $stAtt->get($primarySess->id);
+                        $status = $att ? strtolower((string) $att->status) : 'unmarked';
+
+                        if ($status === 'present') {
+                            $presentCount++;
+                            $dailyTotals[$dateStr]['present']++;
+                            $marks[$dateStr] = ['type' => 'present', 'symbol' => '&#10003;'];
+                        } elseif ($status === 'late') {
+                            $presentCount++;
+                            $dailyTotals[$dateStr]['present']++;
+                            $marks[$dateStr] = ['type' => 'late', 'symbol' => 'L'];
+                        } elseif ($status === 'apology') {
+                            $marks[$dateStr] = ['type' => 'apology', 'symbol' => 'E'];
+                        } elseif ($status === 'absent') {
+                            $absentCount++;
+                            $dailyTotals[$dateStr]['absent']++;
+                            $marks[$dateStr] = ['type' => 'absent', 'symbol' => '&#10007;'];
+                        } else {
+                            $marks[$dateStr] = ['type' => 'unmarked', 'symbol' => '—'];
+                        }
+                    }
+                }
+
+                $rate = $totalScheduled > 0 ? (int) round(($presentCount / $totalScheduled) * 100) : 0;
+
+                $studentRows[] = [
+                    'student' => $st,
+                    'marks' => $marks,
+                    'present' => $presentCount,
+                    'absent' => $absentCount,
+                    'total' => $totalScheduled,
+                    'rate' => $rate,
+                ];
+            }
+
+            $monthDataList[] = [
+                'monthKey' => $monthKey,
+                'monthName' => $monthName,
+                'weeks' => $weeks,
+                'allDays' => $allDays,
+                'studentRows' => $studentRows,
+                'dailyTotals' => $dailyTotals,
+                'totalSessions' => $monthSessions->count(),
+            ];
+        }
+
+        $firstSession = $sessions->first();
+        $instructorName = $firstSession?->instructor?->name ?? $course->course_by;
+
+        $data = [
+            'course' => $course,
+            'intake' => $intake,
+            'monthDataList' => $monthDataList,
+            'totalStudents' => $students->count(),
+            'instructorName' => $instructorName,
+            'generatedAt' => Carbon::now(),
+        ];
+
+        return Pdf::loadView('reports.attendance-schedule-pdf', $data)
+            ->setPaper('a4', 'landscape')
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', true);
+    }
 }

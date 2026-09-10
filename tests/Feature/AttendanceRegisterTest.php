@@ -228,6 +228,18 @@ class AttendanceRegisterTest extends TestCase
         $this->assertStringStartsWith('%PDF-', $output);
     }
 
+    public function test_schedule_pdf_export_generates_marked_schedule_grid(): void
+    {
+        Attendance::syncForSession($this->session);
+        $service = app(AttendanceService::class);
+
+        $pdf = $service->exportScheduleRegisterPdf($this->course, $this->intake->id);
+        $output = $pdf->output();
+
+        $this->assertNotEmpty($output);
+        $this->assertStringStartsWith('%PDF-', $output);
+    }
+
     public function test_admin_attendance_register_page_renders_and_marks_status(): void
     {
         $this->actingAs($this->admin);

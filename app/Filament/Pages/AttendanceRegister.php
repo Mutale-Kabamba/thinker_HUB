@@ -334,6 +334,43 @@ class AttendanceRegister extends Page
 
     public function exportPdf()
     {
+        return $this->exportSchedulePdf();
+    }
+
+    public function exportSchedulePdf()
+    {
+        $session = $this->selectedSession;
+        $course = $session ? $session->course : ($this->filterCourseId ? Course::find($this->filterCourseId) : null);
+
+        if (! $course && ! $session) {
+            Notification::make()->title('Please select a session or course to export.')->warning()->send();
+
+            return null;
+        }
+
+        $targetCourse = $course ?: $session->course;
+        $intakeId = $session ? $session->course_intake_id : $this->filterIntakeId;
+
+        try {
+            $pdf = app(AttendanceService::class)->exportScheduleRegisterPdf($targetCourse, $intakeId);
+            $cleanTitle = preg_replace('/[^A-Za-z0-9_\-]/', '_', $targetCourse->title);
+            $filename = "Attendance_Schedule_Register_{$cleanTitle}_" . date('Ymd') . '.pdf';
+
+            return response()->streamDownload(
+                fn () => print($pdf->output()),
+                $filename,
+                ['Content-Type' => 'application/pdf']
+            );
+        } catch (\Throwable $e) {
+            report($e);
+            Notification::make()->title('Failed to generate Schedule Register PDF')->body($e->getMessage())->danger()->send();
+
+            return null;
+        }
+    }
+
+    public function exportSingleSessionPdf()
+    {
         $session = $this->selectedSession;
         if (! $session) {
             Notification::make()->title('Please select a session to export.')->warning()->send();
@@ -344,7 +381,7 @@ class AttendanceRegister extends Page
         try {
             $pdf = app(AttendanceService::class)->exportSessionPdf($session);
             $cleanTitle = preg_replace('/[^A-Za-z0-9_\-]/', '_', $session->title ?: 'Session');
-            $filename = "Attendance_Register_{$cleanTitle}_" . date('Ymd') . '.pdf';
+            $filename = "Attendance_Session_Sheet_{$cleanTitle}_" . date('Ymd') . '.pdf';
 
             return response()->streamDownload(
                 fn () => print($pdf->output()),
@@ -377,32 +414,6 @@ class AttendanceRegister extends Page
 
     public function exportCourseCumulativePdf()
     {
-        if (! $this->filterCourseId) {
-            Notification::make()->title('Please select a course to export cumulative attendance.')->warning()->send();
-
-            return null;
-        }
-
-        $course = Course::find($this->filterCourseId);
-        if (! $course) {
-            return null;
-        }
-
-        try {
-            $pdf = app(AttendanceService::class)->exportCourseCumulativePdf($course, $this->filterIntakeId);
-            $cleanTitle = preg_replace('/[^A-Za-z0-9_\-]/', '_', $course->title);
-            $filename = "Cumulative_Attendance_{$cleanTitle}_" . date('Ymd') . '.pdf';
-
-            return response()->streamDownload(
-                fn () => print($pdf->output()),
-                $filename,
-                ['Content-Type' => 'application/pdf']
-            );
-        } catch (\Throwable $e) {
-            report($e);
-            Notification::make()->title('Failed to generate cumulative PDF')->body($e->getMessage())->danger()->send();
-
-            return null;
-        }
+        return $this->exportSchedulePdf();
     }
 }

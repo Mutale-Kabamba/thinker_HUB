@@ -52,9 +52,9 @@
                                 wire:click="exportPdf"
                                 wire:loading.attr="disabled"
                                 style="font-size: 0.75rem; padding: 0.35rem 0.75rem; background: var(--hub-surface); border: 1px solid #f43f5e; color: #e11d48; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; transition: all 0.15s ease;"
-                                title="Download official printable PDF attendance sheet">
+                                title="Download full up-to-current marked schedule register PDF (Month, Weeks, Days, checkmarks & crosses)">
                             <x-heroicon-o-document-arrow-down style="width: 0.9rem; height: 0.9rem; color: #f43f5e;" />
-                            <span>Export PDF</span>
+                            <span>Export Register PDF</span>
                         </button>
                     @endif
                 </div>
@@ -466,9 +466,10 @@
 
                             <button type="button"
                                     wire:click="exportCourseCumulativePdf"
-                                    style="font-size: 0.72rem; font-weight: 600; padding: 0.35rem 0.75rem; background: var(--hub-surface); border: 1px solid #f43f5e; color: #e11d48; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    style="font-size: 0.72rem; font-weight: 600; padding: 0.35rem 0.75rem; background: var(--hub-surface); border: 1px solid #f43f5e; color: #e11d48; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;"
+                                    title="Download full schedule attendance register PDF with month and week columns">
                                 <x-heroicon-o-document-arrow-down style="width: 0.85rem; height: 0.85rem; color: #f43f5e;" />
-                                Course Matrix (PDF)
+                                Schedule Register (PDF)
                             </button>
                         </div>
                     @endif
