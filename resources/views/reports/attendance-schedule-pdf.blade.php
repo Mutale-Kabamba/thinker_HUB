@@ -229,15 +229,24 @@
     {{-- Document Header --}}
     <table class="header-table">
         <tr>
-            <td style="width: 50%; vertical-align: middle;">
-                <div class="logo-text">think<span>.er</span> HUB</div>
-                <div class="tagline">Official Attendance Register • Marked Schedule</div>
+            <td style="width: 55%; vertical-align: middle;">
+                @if(!empty($isPlayItForward))
+                    @if(!empty($pifLogo))
+                        <img src="{{ $pifLogo }}" alt="Play it Forward" style="height: 30px; width: auto; max-width: 180px; display: block; margin-bottom: 2px;">
+                    @else
+                        <div class="logo-text" style="color: #047857;">Play it Forward</div>
+                    @endif
+                    <div class="tagline" style="color: #047857; font-weight: 700;">Digital Skills Program (DSP-PIF) • Official Attendance Register</div>
+                @else
+                    <div class="logo-text">think<span>.er</span> HUB</div>
+                    <div class="tagline">Official Attendance Register • Marked Schedule</div>
+                @endif
             </td>
-            <td class="meta-text" style="width: 50%; vertical-align: middle;">
+            <td class="meta-text" style="width: 45%; vertical-align: middle;">
                 <div style="font-weight: 800; color: #0f172a; font-size: 7.5pt; text-transform: uppercase;">
                     Schedule Attendance Sheet (Up to Current Date)
                 </div>
-                <div><strong>Generated:</strong> {{ $generatedAt->format('d M Y, H:i') }} • <strong>Doc:</strong> REG-{{ $course->code ?? 'CRS' }}-{{ date('Ymd') }}</div>
+                <div><strong>Generated:</strong> {{ $generatedAt->format('d M Y, H:i') }} • <strong>Doc:</strong> {{ !empty($isPlayItForward) ? 'PIF-REG' : 'REG' }}-{{ $course->code ?? 'CRS' }}-{{ date('Ymd') }}</div>
             </td>
         </tr>
     </table>
@@ -271,9 +280,9 @@
         @php
             $dayCount = count($monthData['allDays']);
             $summaryWidth = 8.0; // P (2.4%) + A (2.4%) + % (3.2%)
-            $nameColWidth = 26.0; // 26% for student name guarantees full display without cutoff
+            $nameColWidth = 27.0; // 27% gives room for Name, Gender, and NRC/Passport
             $availableDayWidth = 100.0 - $nameColWidth - $summaryWidth;
-            $dayPct = $dayCount > 0 ? round($availableDayWidth / $dayCount, 3) : 3.3;
+            $dayPct = $dayCount > 0 ? round($availableDayWidth / $dayCount, 3) : 3.25;
         @endphp
 
         {{-- The Outline Register Table --}}
@@ -291,7 +300,10 @@
                 {{-- Row 1: Name Header & Month Banner & Summary Headers --}}
                 <tr>
                     <th rowspan="3" class="th-name" style="width: {{ $nameColWidth }}%;">
-                        Student Name
+                        Student Details
+                        @if(!empty($isPlayItForward))
+                            <div style="font-size: 4.8pt; font-weight: normal; color: #64748b; text-transform: uppercase; margin-top: 1px;">Name • Gender • NRC/Passport</div>
+                        @endif
                     </th>
                     <th colspan="{{ $dayCount }}" class="th-month" style="width: {{ $availableDayWidth }}%;">
                         Month: {{ $monthData['monthName'] }}
@@ -332,9 +344,16 @@
                 {{-- Student Rows --}}
                 @forelse($monthData['studentRows'] as $rowIdx => $row)
                     <tr>
-                        {{-- Student Name --}}
+                        {{-- Student Details (Name, Gender, NRC/Passport) --}}
                         <td class="td-name">
-                            {{ $rowIdx + 1 }}. {{ $row['student']->name }}
+                            <div style="font-weight: 700; font-size: 6.8pt; color: #0f172a;">{{ $rowIdx + 1 }}. {{ $row['student']->name }}</div>
+                            @if(!empty($isPlayItForward) || $row['student']->gender || $row['student']->nrc_passport)
+                                <div style="font-size: 5.1pt; color: #475569; font-weight: normal; margin-top: 1px; line-height: 1.15;">
+                                    <span>Gender: <strong>{{ $row['student']->gender ?: '—' }}</strong></span>
+                                    <span style="color: #cbd5e1; margin: 0 1.5px;">•</span>
+                                    <span>NRC/ID: <strong>{{ $row['student']->nrc_passport ?: '—' }}</strong></span>
+                                </div>
+                            @endif
                         </td>
 
                         {{-- Day Attendance Marks --}}
@@ -479,8 +498,14 @@
     <div class="page-footer">
         <table style="width: 100%; border-collapse: collapse;">
             <tr>
-                <td style="width: 60%;">Thinker HUB LMS • Schedule Attendance Register • Page 1</td>
-                <td style="width: 40%; text-align: right;">Confidential Academic Record</td>
+                <td style="width: 65%;">
+                    @if(!empty($isPlayItForward))
+                        Play it Forward Zambia • Digital Skills Program | Powered by thinker HUB LMS
+                    @else
+                        Thinker HUB LMS • Schedule Attendance Register • Page 1
+                    @endif
+                </td>
+                <td style="width: 35%; text-align: right;">Confidential Academic Record</td>
             </tr>
         </table>
     </div>

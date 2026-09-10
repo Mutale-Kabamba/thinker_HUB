@@ -234,6 +234,18 @@ class AttendanceService
     }
 
     /**
+     * Get base64 Data URI for Play it Forward logo (public/images/logos/logo2.png).
+     */
+    public function getPlayItForwardLogoDataUri(): ?string
+    {
+        $logoPath = public_path('images/logos/logo2.png');
+        if (file_exists($logoPath)) {
+            return 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        }
+        return null;
+    }
+
+    /**
      * Render an official printable PDF attendance sheet for a single session.
      */
     public function exportSessionPdf(CourseSession $session): DomPDF
@@ -256,10 +268,16 @@ class AttendanceService
             ->select('attendances.*')
             ->get();
 
+        $course = $session->course;
+        $isPlayItForward = $course ? $course->isPlayItForward() : false;
+        $pifLogo = $isPlayItForward ? $this->getPlayItForwardLogoDataUri() : null;
+
         $data = [
             'session' => $session,
             'summary' => $summary,
             'records' => $records,
+            'isPlayItForward' => $isPlayItForward,
+            'pifLogo' => $pifLogo,
             'generatedAt' => Carbon::now(),
         ];
 
@@ -496,6 +514,9 @@ class AttendanceService
 
         $overallRate = $possibleAttendanceAll > 0 ? (int) round(($totalAttendedAll / $possibleAttendanceAll) * 100) : 0;
 
+        $isPlayItForward = $course->isPlayItForward();
+        $pifLogo = $isPlayItForward ? $this->getPlayItForwardLogoDataUri() : null;
+
         $data = [
             'course' => $course,
             'intake' => $intake,
@@ -504,6 +525,8 @@ class AttendanceService
             'overallRate' => $overallRate,
             'totalStudents' => $students->count(),
             'totalSessions' => $sessions->count(),
+            'isPlayItForward' => $isPlayItForward,
+            'pifLogo' => $pifLogo,
             'generatedAt' => Carbon::now(),
         ];
 
@@ -746,12 +769,17 @@ class AttendanceService
         $firstSession = $sessions->first();
         $instructorName = $firstSession?->instructor?->name ?? $course->course_by;
 
+        $isPlayItForward = $course->isPlayItForward();
+        $pifLogo = $isPlayItForward ? $this->getPlayItForwardLogoDataUri() : null;
+
         $data = [
             'course' => $course,
             'intake' => $intake,
             'monthDataList' => $monthDataList,
             'totalStudents' => $students->count(),
             'instructorName' => $instructorName,
+            'isPlayItForward' => $isPlayItForward,
+            'pifLogo' => $pifLogo,
             'generatedAt' => Carbon::now(),
         ];
 

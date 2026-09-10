@@ -335,4 +335,99 @@ class AttendanceRegisterTest extends TestCase
         $this->assertStringNotContainsString('190031@zcuniversity.edu.zm', $cumulativeOutput);
         $this->assertStringNotContainsString('Bwalya Mutale', $cumulativeOutput);
     }
+
+    public function test_play_it_forward_course_pdf_has_play_it_forward_branding_and_shows_gender_and_nrc(): void
+    {
+        $pifCourse = Course::query()->create([
+            'title' => 'Digital Skills Program',
+            'code' => 'DSP-PIF',
+            'is_active' => true,
+            'course_by' => (string) $this->instructor->id,
+        ]);
+
+        $this->assertTrue($pifCourse->isPlayItForward());
+
+        $pifStudent = User::factory()->create([
+            'role' => 'student',
+            'name' => 'Chileshe Mwamba',
+            'email' => 'chileshe@example.com',
+            'gender' => 'Female',
+            'nrc_passport' => '987654/10/1',
+        ]);
+
+        Enrollment::query()->create([
+            'user_id' => $pifStudent->id,
+            'course_id' => $pifCourse->id,
+        ]);
+
+        $session = CourseSession::query()->create([
+            'course_id' => $pifCourse->id,
+            'title' => 'Module 1: Computer Basics',
+            'session_date' => now()->toDateString(),
+            'start_time' => '09:00',
+            'end_time' => '11:00',
+            'instructor_id' => $this->instructor->id,
+            'status' => 'scheduled',
+        ]);
+
+        $service = app(AttendanceService::class);
+
+        // 1. Verify Schedule Register PDF
+        $schedulePdf = $service->exportScheduleRegisterPdf($pifCourse);
+        $scheduleHtml = $schedulePdf->getDomPDF()->output_html();
+        $scheduleOutput = $schedulePdf->output();
+
+        $this->assertStringStartsWith('%PDF-', $scheduleOutput);
+        $this->assertStringContainsString('Play it Forward', $scheduleHtml);
+        $this->assertStringContainsString('Digital Skills Program (DSP-PIF)', $scheduleHtml);
+        $this->assertStringContainsString('Chileshe Mwamba', $scheduleHtml);
+        $this->assertStringContainsString('Female', $scheduleHtml);
+        $this->assertStringContainsString('987654/10/1', $scheduleHtml);
+        // Header must NOT contain thinker
+        $this->assertStringNotContainsString('think<span>.er</span> HUB', $scheduleHtml);
+        // Footer must contain thinker attribution
+        $this->assertStringContainsString('Powered by thinker HUB LMS', $scheduleHtml);
+
+        // 2. Verify Session PDF
+        $sessionPdf = $service->exportSessionPdf($session);
+        $sessionHtml = $sessionPdf->getDomPDF()->output_html();
+        $sessionOutput = $sessionPdf->output();
+
+        $this->assertStringStartsWith('%PDF-', $sessionOutput);
+        $this->assertStringContainsString('Play it Forward', $sessionHtml);
+        $this->assertStringContainsString('Female', $sessionHtml);
+        $this->assertStringContainsString('987654/10/1', $sessionHtml);
+        $this->assertStringNotContainsString('think<span>.er</span> HUB', $sessionHtml);
+        $this->assertStringContainsString('Powered by thinker HUB LMS', $sessionHtml);
+
+        // 3. Verify Non-PIF course retains standard Thinker HUB header
+        $nonPifSchedulePdf = $service->exportScheduleRegisterPdf($this->course);
+        $nonPifHtml = $nonPifSchedulePdf->getDomPDF()->output_html();
+        $nonPifOutput = $nonPifSchedulePdf->output();
+
+        $this->assertStringStartsWith('%PDF-', $nonPifOutput);
+        $this->assertStringContainsString('think<span>.er</span> HUB', $nonPifHtml);
+        $this->assertStringNotContainsString('Play it Forward Zambia', $nonPifHtml);
+    }
+
+    public function test_gender_and_nrc_passport_can_be_updated_in_profile(): void
+    {
+        $student = User::factory()->create([
+            'role' => 'student',
+            'gender' => 'Male',
+            'nrc_passport' => '111222/33/1',
+        ]);
+
+        $response = $this->actingAs($student)->patch(route('profile.update'), [
+            'name' => 'Updated Student Name',
+            'email' => $student->email,
+            'gender' => 'Female',
+            'nrc_passport' => '444555/66/1',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $student->refresh();
+        $this->assertSame('Female', $student->gender);
+        $this->assertSame('444555/66/1', $student->nrc_passport);
+    }
 }

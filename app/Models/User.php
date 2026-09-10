@@ -36,6 +36,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     protected $fillable = [
         'name',
         'email',
+        'gender',
+        'nrc_passport',
         'firebase_uid',
         'password',
         'role',
