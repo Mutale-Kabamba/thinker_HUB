@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\Course;
 use App\Models\CourseIntake;
 use App\Models\CourseSession;
+use App\Models\User;
 use App\Services\AttendanceService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -247,6 +248,11 @@ class AttendanceRegister extends Page
             ->with(['student'])
             ->where('course_session_id', $session->id)
             ->join('users', 'attendances.user_id', '=', 'users.id')
+            ->whereNotIn('users.email', User::TEST_STUDENT_EMAILS)
+            ->where(function ($q) {
+                $q->where('users.name', 'not like', '%bwalya mutale%')
+                    ->orWhere('users.email', 'not like', '%zcuniversity%');
+            })
             ->select('attendances.*');
 
         if ($this->statusFilter !== 'all') {
