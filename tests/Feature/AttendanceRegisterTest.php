@@ -290,4 +290,49 @@ class AttendanceRegisterTest extends TestCase
         Livewire::test(InstructorAttendanceRegister::class, ['session_id' => $otherSession->id])
             ->assertDontSee('Renaissance Painting');
     }
+
+    public function test_designated_test_student_is_excluded_from_pdf_exports_and_rosters(): void
+    {
+        $testStudent = User::factory()->create([
+            'role' => 'student',
+            'name' => 'Bwalya Mutale',
+            'email' => '190031@zcuniversity.edu.zm',
+        ]);
+
+        Enrollment::query()->create([
+            'user_id' => $testStudent->id,
+            'course_id' => $this->course->id,
+            'course_intake_id' => $this->intake->id,
+        ]);
+
+        $this->assertTrue($testStudent->isTestStudent());
+
+        // 1. Sync does not create attendance row for test student
+        $syncResult = Attendance::syncForSession($this->session);
+        $this->assertNotContains($testStudent->id, $syncResult['student_ids']);
+        $this->assertDatabaseMissing('attendances', [
+            'course_session_id' => $this->session->id,
+            'user_id' => $testStudent->id,
+        ]);
+
+        $service = app(AttendanceService::class);
+
+        // 2. Schedule PDF does not capture test student
+        $schedulePdf = $service->exportScheduleRegisterPdf($this->course, $this->intake->id);
+        $scheduleOutput = $schedulePdf->output();
+        $this->assertStringNotContainsString('190031@zcuniversity.edu.zm', $scheduleOutput);
+        $this->assertStringNotContainsString('Bwalya Mutale', $scheduleOutput);
+
+        // 3. Single session PDF does not capture test student
+        $sessionPdf = $service->exportSessionPdf($this->session);
+        $sessionOutput = $sessionPdf->output();
+        $this->assertStringNotContainsString('190031@zcuniversity.edu.zm', $sessionOutput);
+        $this->assertStringNotContainsString('Bwalya Mutale', $sessionOutput);
+
+        // 4. Course Cumulative PDF does not capture test student
+        $cumulativePdf = $service->exportCourseCumulativePdf($this->course, $this->intake->id);
+        $cumulativeOutput = $cumulativePdf->output();
+        $this->assertStringNotContainsString('190031@zcuniversity.edu.zm', $cumulativeOutput);
+        $this->assertStringNotContainsString('Bwalya Mutale', $cumulativeOutput);
+    }
 }

@@ -57,7 +57,9 @@ class Attendance extends Model
         if ($session->student_id && $session->isOneOnOne()) {
             $studentIds = [(int) $session->student_id];
         } elseif ($session->course_id) {
-            $query = Enrollment::query()->where('course_id', $session->course_id);
+            $query = Enrollment::query()
+                ->where('course_id', $session->course_id)
+                ->whereHas('user', fn ($uq) => $uq->withoutTestStudents());
 
             if ($session->course_intake_id) {
                 $intakeStudentIds = (clone $query)

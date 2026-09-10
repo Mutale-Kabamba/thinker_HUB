@@ -1145,4 +1145,41 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
         return $labels;
     }
+
+    public const TEST_STUDENT_EMAILS = [
+        '190031@zcuniversity.edu.zm',
+    ];
+
+    /**
+     * Check if the user is a designated test student who should not be captured in formal reports or PDF exports.
+     */
+    public function isTestStudent(): bool
+    {
+        $email = strtolower(trim((string) $this->email));
+        $name = strtolower(trim((string) $this->name));
+
+        if (in_array($email, self::TEST_STUDENT_EMAILS, true)) {
+            return true;
+        }
+
+        if (str_contains($name, 'bwalya mutale') && (str_contains($email, 'zcuniversity') || str_contains($email, '190031'))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Scope query to exclude designated test students from reports and PDF rosters.
+     */
+    public function scopeWithoutTestStudents(\Illuminate\Database\Eloquent\Builder $query, string $tablePrefix = ''): \Illuminate\Database\Eloquent\Builder
+    {
+        $prefix = $tablePrefix !== '' ? rtrim($tablePrefix, '.') . '.' : '';
+
+        return $query->whereNotIn("{$prefix}email", self::TEST_STUDENT_EMAILS)
+            ->where(function ($q) use ($prefix) {
+                $q->where("{$prefix}name", 'not like', '%bwalya mutale%')
+                    ->orWhere("{$prefix}email", 'not like', '%zcuniversity%');
+            });
+    }
 }

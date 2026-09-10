@@ -377,7 +377,12 @@ class ReportGenerationService
 
         $enrollments = $enrollmentsQuery->get();
         $studentIds = $enrollments->pluck('user_id')->unique()->filter();
-        $students = User::query()->whereIn('id', $studentIds)->get()->keyBy('id');
+        $students = User::query()
+            ->whereIn('id', $studentIds)
+            ->withoutTestStudents()
+            ->get()
+            ->keyBy('id');
+        $studentIds = $students->keys();
 
         $intake = $intakeId ? CourseIntake::find($intakeId) : null;
 

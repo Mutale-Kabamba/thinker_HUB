@@ -27,6 +27,14 @@ class AttendanceService
     }
 
     /**
+     * Determine if a user is a designated test student who should be excluded from formal reports and PDF exports.
+     */
+    public function isExcludedStudent(?User $student): bool
+    {
+        return $student ? $student->isTestStudent() : false;
+    }
+
+    /**
      * Calculate comprehensive attendance metrics for a session.
      *
      * @return array{
@@ -44,7 +52,9 @@ class AttendanceService
     {
         $attendances = Attendance::query()
             ->where('course_session_id', $session->id)
-            ->get();
+            ->with('student')
+            ->get()
+            ->reject(fn ($a) => $this->isExcludedStudent($a->student));
 
         $total = $attendances->count();
         $present = $attendances->where('status', Attendance::STATUS_PRESENT)->count();
@@ -124,6 +134,11 @@ class AttendanceService
             ->with(['student'])
             ->where('course_session_id', $session->id)
             ->join('users', 'attendances.user_id', '=', 'users.id')
+            ->whereNotIn('users.email', User::TEST_STUDENT_EMAILS)
+            ->where(function ($q) {
+                $q->where('users.name', 'not like', '%bwalya mutale%')
+                    ->orWhere('users.email', 'not like', '%zcuniversity%');
+            })
             ->orderBy('users.name', 'asc')
             ->select('attendances.*')
             ->get();
@@ -232,6 +247,11 @@ class AttendanceService
             ->with(['student'])
             ->where('course_session_id', $session->id)
             ->join('users', 'attendances.user_id', '=', 'users.id')
+            ->whereNotIn('users.email', User::TEST_STUDENT_EMAILS)
+            ->where(function ($q) {
+                $q->where('users.name', 'not like', '%bwalya mutale%')
+                    ->orWhere('users.email', 'not like', '%zcuniversity%');
+            })
             ->orderBy('users.name', 'asc')
             ->select('attendances.*')
             ->get();
@@ -277,6 +297,7 @@ class AttendanceService
         $students = $enrollmentQuery->get()
             ->map(fn ($e) => $e->user)
             ->filter()
+            ->reject(fn ($u) => $this->isExcludedStudent($u))
             ->sortBy('name')
             ->values();
 
@@ -415,6 +436,7 @@ class AttendanceService
         $students = $enrollmentQuery->get()
             ->map(fn ($e) => $e->user)
             ->filter()
+            ->reject(fn ($u) => $this->isExcludedStudent($u))
             ->sortBy('name')
             ->values();
 
@@ -546,6 +568,7 @@ class AttendanceService
         $students = $enrollmentQuery->get()
             ->map(fn ($e) => $e->user)
             ->filter()
+            ->reject(fn ($u) => $this->isExcludedStudent($u))
             ->sortBy('name')
             ->values();
 
