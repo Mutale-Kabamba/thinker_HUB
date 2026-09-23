@@ -166,6 +166,12 @@
             font-weight: bold;
         }
 
+        .mark-cancelled {
+            color: #dc2626;
+            font-size: 8pt;
+            font-weight: bold;
+        }
+
         .mark-unmarked {
             color: #94a3b8;
             font-size: 7.5pt;
@@ -366,6 +372,7 @@
                                     'absent' => '#fff1f2',
                                     'late' => '#fffbeb',
                                     'apology' => '#eff6ff',
+                                    'cancelled' => '#fef2f2',
                                     default => ($hasSession ? '#ffffff' : '#f8fafc'),
                                 };
                             @endphp
@@ -378,6 +385,8 @@
                                     <span class="mark-late">L</span>
                                 @elseif($mark['type'] === 'apology')
                                     <span class="mark-apology">E</span>
+                                @elseif($mark['type'] === 'cancelled')
+                                    <span class="mark-cancelled">C</span>
                                 @elseif($mark['type'] === 'unmarked')
                                     <span class="mark-unmarked">—</span>
                                 @else
@@ -416,7 +425,11 @@
                         @endphp
                         <td style="font-size: 6.8pt; font-weight: bold; color: #059669; background: #fcfdfe;">
                             @if($dt && $dt['has_session'])
-                                {{ $dt['present'] }}
+                                @if(!empty($dt['is_cancelled']))
+                                    <span style="color: #dc2626; font-size: 6.5pt; font-weight: bold;">C</span>
+                                @else
+                                    {{ $dt['present'] }}
+                                @endif
                             @else
                                 <span style="color: #cbd5e1;">·</span>
                             @endif
@@ -438,7 +451,11 @@
                         @endphp
                         <td style="font-size: 6.8pt; font-weight: bold; color: #e11d48; background: #fcfdfe;">
                             @if($dt && $dt['has_session'])
-                                {{ $dt['absent'] }}
+                                @if(!empty($dt['is_cancelled']))
+                                    <span style="color: #dc2626; font-size: 6.5pt; font-weight: bold;">C</span>
+                                @else
+                                    {{ $dt['absent'] }}
+                                @endif
                             @else
                                 <span style="color: #cbd5e1;">·</span>
                             @endif
@@ -489,6 +506,7 @@
             <span style="color: #e11d48; font-weight: bold; margin-left: 8px;">&#10007; = Absent</span>
             <span style="color: #d97706; font-weight: bold; margin-left: 8px;">L = Late Arrival</span>
             <span style="color: #2563eb; font-weight: bold; margin-left: 8px;">E = Apology / Excused</span>
+            <span style="color: #dc2626; font-weight: bold; margin-left: 8px;">C = Session Cancelled</span>
             <span style="color: #94a3b8; margin-left: 8px;">— = Unmarked</span>
             <span style="color: #cbd5e1; margin-left: 8px;">· = No Session Scheduled</span>
         </div>

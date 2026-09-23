@@ -395,6 +395,11 @@ class AttendanceService
                 ];
 
                 foreach ($sessions as $s) {
+                    if ($s->status === 'cancelled') {
+                        $row[] = 'C';
+                        continue;
+                    }
+
                     $att = $attBySession->get($s->id);
                     $st = $att ? strtolower((string) $att->status) : 'unmarked';
 
@@ -416,7 +421,7 @@ class AttendanceService
                 }
 
                 $attendedTotal = $presentCount + $lateCount;
-                $totalSessions = $sessions->count();
+                $totalSessions = $sessions->where('status', '!=', 'cancelled')->count();
                 $rate = $totalSessions > 0 ? (int) round(($attendedTotal / $totalSessions) * 100) : 0;
 
                 $row[] = $presentCount;
@@ -430,7 +435,7 @@ class AttendanceService
             }
 
             fputcsv($handle, []);
-            fputcsv($handle, ['Legend: P = Present, L = Late, A = Absent, E = Apology/Excused, — = Unmarked']);
+            fputcsv($handle, ['Legend: P = Present, L = Late, A = Absent, E = Apology/Excused, C = Session Cancelled, — = Unmarked']);
 
             fclose($handle);
         }, 200, $headers);
@@ -477,7 +482,8 @@ class AttendanceService
 
         $matrix = [];
         $totalAttendedAll = 0;
-        $possibleAttendanceAll = $students->count() * max(1, $sessions->count());
+        $activeSessionCount = $sessions->where('status', '!=', 'cancelled')->count();
+        $possibleAttendanceAll = $students->count() * max(1, $activeSessionCount);
 
         foreach ($students as $student) {
             $studentAttendances = $allAttendances->get($student->id, collect());
@@ -490,8 +496,12 @@ class AttendanceService
             $statuses = [];
 
             foreach ($sessions as $s) {
-                $att = $attBySession->get($s->id);
-                $st = $att ? strtolower((string) $att->status) : 'unmarked';
+                if ($s->status === 'cancelled') {
+                    $st = 'cancelled';
+                } else {
+                    $att = $attBySession->get($s->id);
+                    $st = $att ? strtolower((string) $att->status) : 'unmarked';
+                }
                 $statuses[$s->id] = $st;
 
                 if ($st === Attendance::STATUS_PRESENT) {
@@ -507,7 +517,7 @@ class AttendanceService
 
             $attended = $present + $late;
             $totalAttendedAll += $attended;
-            $rate = $sessions->count() > 0 ? (int) round(($attended / $sessions->count()) * 100) : 0;
+            $rate = $activeSessionCount > 0 ? (int) round(($attended / $activeSessionCount) * 100) : 0;
 
             $matrix[] = [
                 'student' => $student,
@@ -710,7 +720,13 @@ class AttendanceService
             $studentRows = [];
             $dailyTotals = [];
             foreach ($allDays as $d) {
-                $dailyTotals[$d['date_str']] = ['present' => 0, 'absent' => 0, 'has_session' => $d['sessions']->isNotEmpty()];
+                $isCancelled = $d['sessions']->isNotEmpty() && $d['sessions']->first()->status === 'cancelled';
+                $dailyTotals[$d['date_str']] = [
+                    'present' => 0,
+                    'absent' => 0,
+                    'has_session' => $d['sessions']->isNotEmpty(),
+                    'is_cancelled' => $isCancelled,
+                ];
             }
 
             foreach ($students as $st) {
@@ -727,27 +743,31 @@ class AttendanceService
                     if ($daySess->isEmpty()) {
                         $marks[$dateStr] = ['type' => 'none', 'symbol' => ''];
                     } else {
-                        $totalScheduled += $daySess->count();
                         $primarySess = $daySess->first();
-                        $att = $stAtt->get($primarySess->id);
-                        $status = $att ? strtolower((string) $att->status) : 'unmarked';
-
-                        if ($status === 'present') {
-                            $presentCount++;
-                            $dailyTotals[$dateStr]['present']++;
-                            $marks[$dateStr] = ['type' => 'present', 'symbol' => '&#10003;'];
-                        } elseif ($status === 'late') {
-                            $presentCount++;
-                            $dailyTotals[$dateStr]['present']++;
-                            $marks[$dateStr] = ['type' => 'late', 'symbol' => 'L'];
-                        } elseif ($status === 'apology') {
-                            $marks[$dateStr] = ['type' => 'apology', 'symbol' => 'E'];
-                        } elseif ($status === 'absent') {
-                            $absentCount++;
-                            $dailyTotals[$dateStr]['absent']++;
-                            $marks[$dateStr] = ['type' => 'absent', 'symbol' => '&#10007;'];
+                        if ($primarySess->status === 'cancelled') {
+                            $marks[$dateStr] = ['type' => 'cancelled', 'symbol' => 'C'];
                         } else {
-                            $marks[$dateStr] = ['type' => 'unmarked', 'symbol' => '—'];
+                            $totalScheduled += $daySess->count();
+                            $att = $stAtt->get($primarySess->id);
+                            $status = $att ? strtolower((string) $att->status) : 'unmarked';
+
+                            if ($status === 'present') {
+                                $presentCount++;
+                                $dailyTotals[$dateStr]['present']++;
+                                $marks[$dateStr] = ['type' => 'present', 'symbol' => '&#10003;'];
+                            } elseif ($status === 'late') {
+                                $presentCount++;
+                                $dailyTotals[$dateStr]['present']++;
+                                $marks[$dateStr] = ['type' => 'late', 'symbol' => 'L'];
+                            } elseif ($status === 'apology') {
+                                $marks[$dateStr] = ['type' => 'apology', 'symbol' => 'E'];
+                            } elseif ($status === 'absent') {
+                                $absentCount++;
+                                $dailyTotals[$dateStr]['absent']++;
+                                $marks[$dateStr] = ['type' => 'absent', 'symbol' => '&#10007;'];
+                            } else {
+                                $marks[$dateStr] = ['type' => 'unmarked', 'symbol' => '—'];
+                            }
                         }
                     }
                 }

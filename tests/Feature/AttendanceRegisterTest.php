@@ -572,4 +572,34 @@ class AttendanceRegisterTest extends TestCase
         $this->assertStringContainsString('Ada Lovelace', $cumCsv);
         $this->assertStringNotContainsString('Hidden Inactive', $cumCsv);
     }
+
+    public function test_cancelled_session_shows_letter_c_in_red_on_registers(): void
+    {
+        // Cancel the session
+        $this->session->update(['status' => 'cancelled']);
+
+        $service = app(AttendanceService::class);
+
+        // 1. Schedule Register PDF
+        $schedulePdf = $service->exportScheduleRegisterPdf($this->course, $this->intake->id);
+        $scheduleHtml = $schedulePdf->getDomPDF()->output_html();
+        
+        // Assert letter C in red styling
+        $this->assertStringContainsString('mark-cancelled', $scheduleHtml);
+        $this->assertStringContainsString('C = Session Cancelled', $scheduleHtml);
+
+        // 2. Cumulative Register PDF
+        $cumulativePdf = $service->exportCourseCumulativePdf($this->course, $this->intake->id);
+        $cumulativeHtml = $cumulativePdf->getDomPDF()->output_html();
+        $this->assertStringContainsString('C = Session Cancelled', $cumulativeHtml);
+        $this->assertStringContainsString('#dc2626', $cumulativeHtml);
+
+        // 3. Cumulative Excel Export
+        $cumExcel = $service->exportCourseCumulativeExcel($this->course, $this->intake->id);
+        ob_start();
+        $cumExcel->sendContent();
+        $cumCsv = ob_get_clean();
+        $this->assertStringContainsString(',C,', $cumCsv);
+    }
 }
+
