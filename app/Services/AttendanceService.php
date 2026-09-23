@@ -27,11 +27,15 @@ class AttendanceService
     }
 
     /**
-     * Determine if a user is a designated test student who should be excluded from formal reports and PDF exports.
+     * Determine if a user is inactive or a designated test student who should be excluded from formal reports and PDF exports.
      */
     public function isExcludedStudent(?User $student): bool
     {
-        return $student ? $student->isTestStudent() : false;
+        if (! $student || ! $student->isActive()) {
+            return true;
+        }
+
+        return $student->isTestStudent();
     }
 
     /**
@@ -109,6 +113,9 @@ class AttendanceService
 
         $attendances = Attendance::query()
             ->where('course_session_id', $session->id)
+            ->whereHas('student', function ($q) {
+                $q->where('is_active', true)->withoutTestStudents();
+            })
             ->get();
 
         $count = 0;
@@ -134,6 +141,7 @@ class AttendanceService
             ->with(['student'])
             ->where('course_session_id', $session->id)
             ->join('users', 'attendances.user_id', '=', 'users.id')
+            ->where('users.is_active', true)
             ->whereNotIn('users.email', User::TEST_STUDENT_EMAILS)
             ->where(function ($q) {
                 $q->where('users.name', 'not like', '%bwalya mutale%')
@@ -259,6 +267,7 @@ class AttendanceService
             ->with(['student'])
             ->where('course_session_id', $session->id)
             ->join('users', 'attendances.user_id', '=', 'users.id')
+            ->where('users.is_active', true)
             ->whereNotIn('users.email', User::TEST_STUDENT_EMAILS)
             ->where(function ($q) {
                 $q->where('users.name', 'not like', '%bwalya mutale%')

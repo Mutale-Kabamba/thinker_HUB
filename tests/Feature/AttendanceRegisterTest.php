@@ -430,4 +430,146 @@ class AttendanceRegisterTest extends TestCase
         $this->assertSame('Female', $student->gender);
         $this->assertSame('444555/66/1', $student->nrc_passport);
     }
+
+    public function test_inactive_student_is_excluded_from_attendance_sync(): void
+    {
+        $inactiveStudent = User::factory()->create([
+            'role' => 'student',
+            'name' => 'Inactive Student',
+            'email' => 'inactive@example.com',
+            'is_active' => false,
+        ]);
+
+        Enrollment::query()->create([
+            'user_id' => $inactiveStudent->id,
+            'course_id' => $this->course->id,
+            'course_intake_id' => $this->intake->id,
+        ]);
+
+        $result = Attendance::syncForSession($this->session);
+
+        // Only active students (studentA and studentB) are synced
+        $this->assertSame(2, $result['total_eligible']);
+        $this->assertNotContains($inactiveStudent->id, $result['student_ids']);
+        $this->assertDatabaseMissing('attendances', [
+            'course_session_id' => $this->session->id,
+            'user_id' => $inactiveStudent->id,
+        ]);
+    }
+
+    public function test_inactive_student_is_excluded_from_one_on_one_session_sync(): void
+    {
+        $inactiveStudent = User::factory()->create([
+            'role' => 'student',
+            'name' => 'Inactive OneOnOne',
+            'email' => 'inactive1on1@example.com',
+            'is_active' => false,
+        ]);
+
+        $oneOnOneSession = CourseSession::query()->create([
+            'course_id' => $this->course->id,
+            'instructor_id' => $this->instructor->id,
+            'student_id' => $inactiveStudent->id,
+            'title' => 'Private Session with Inactive Student',
+            'type' => 'one_on_one',
+            'session_date' => now()->toDateString(),
+            'start_time' => '14:00:00',
+            'end_time' => '15:00:00',
+            'status' => 'scheduled',
+        ]);
+
+        $result = Attendance::syncForSession($oneOnOneSession);
+
+        $this->assertSame(0, $result['total_eligible']);
+        $this->assertEmpty($result['student_ids']);
+        $this->assertDatabaseMissing('attendances', [
+            'course_session_id' => $oneOnOneSession->id,
+            'user_id' => $inactiveStudent->id,
+        ]);
+    }
+
+    public function test_inactive_student_does_not_appear_on_attendance_register_page(): void
+    {
+        $this->actingAs($this->admin);
+
+        // Initially both studentA and studentB appear on register
+        $component = Livewire::test(AdminAttendanceRegister::class, ['session_id' => $this->session->id])
+            ->assertSee('Ada Lovelace')
+            ->assertSee('Charles Babbage');
+
+        // Deactivate studentB
+        $this->studentB->update(['is_active' => false]);
+
+        // Reload the register page
+        Livewire::test(AdminAttendanceRegister::class, ['session_id' => $this->session->id])
+            ->assertSee('Ada Lovelace')
+            ->assertDontSee('Charles Babbage');
+
+        // Verify summary calculates total based only on active students
+        $service = app(AttendanceService::class);
+        $summary = $service->getSessionAttendanceSummary($this->session);
+        $this->assertSame(1, $summary['total']);
+    }
+
+    public function test_inactive_student_is_excluded_from_all_exports(): void
+    {
+        Attendance::syncForSession($this->session);
+
+        $inactiveStudent = User::factory()->create([
+            'role' => 'student',
+            'name' => 'Hidden Inactive',
+            'email' => 'hidden_inactive@example.com',
+            'is_active' => false,
+        ]);
+
+        Enrollment::query()->create([
+            'user_id' => $inactiveStudent->id,
+            'course_id' => $this->course->id,
+            'course_intake_id' => $this->intake->id,
+        ]);
+
+        // Even if an attendance record existed prior to deactivation
+        Attendance::query()->create([
+            'course_session_id' => $this->session->id,
+            'user_id' => $inactiveStudent->id,
+            'status' => Attendance::STATUS_PRESENT,
+        ]);
+
+        $service = app(AttendanceService::class);
+
+        // 1. Session Excel Export
+        $response = $service->exportSessionExcel($this->session);
+        ob_start();
+        $response->sendContent();
+        $csvContent = ob_get_clean();
+        $this->assertStringContainsString('Ada Lovelace', $csvContent);
+        $this->assertStringNotContainsString('Hidden Inactive', $csvContent);
+        $this->assertStringNotContainsString('hidden_inactive@example.com', $csvContent);
+
+        // 2. Session PDF Export
+        $sessionPdf = $service->exportSessionPdf($this->session);
+        $sessionHtml = $sessionPdf->getDomPDF()->output_html();
+        $this->assertStringContainsString('Ada Lovelace', $sessionHtml);
+        $this->assertStringNotContainsString('Hidden Inactive', $sessionHtml);
+
+        // 3. Schedule Register PDF Export
+        $schedulePdf = $service->exportScheduleRegisterPdf($this->course, $this->intake->id);
+        $scheduleHtml = $schedulePdf->getDomPDF()->output_html();
+        $this->assertStringContainsString('Ada Lovelace', $scheduleHtml);
+        $this->assertStringNotContainsString('Hidden Inactive', $scheduleHtml);
+
+        // 4. Cumulative Course PDF Export
+        $cumulativePdf = $service->exportCourseCumulativePdf($this->course, $this->intake->id);
+        $cumulativeHtml = $cumulativePdf->getDomPDF()->output_html();
+        $this->assertStringContainsString('Ada Lovelace', $cumulativeHtml);
+        $this->assertStringNotContainsString('Hidden Inactive', $cumulativeHtml);
+
+        // 5. Cumulative Course Excel Export
+        $cumResponse = $service->exportCourseCumulativeExcel($this->course, $this->intake->id);
+        ob_start();
+        $cumResponse->sendContent();
+        $cumCsv = ob_get_clean();
+        $this->assertStringContainsString('Ada Lovelace', $cumCsv);
+        $this->assertStringNotContainsString('Hidden Inactive', $cumCsv);
+    }
 }

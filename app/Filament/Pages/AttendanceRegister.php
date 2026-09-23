@@ -248,6 +248,7 @@ class AttendanceRegister extends Page
             ->with(['student'])
             ->where('course_session_id', $session->id)
             ->join('users', 'attendances.user_id', '=', 'users.id')
+            ->where('users.is_active', true)
             ->whereNotIn('users.email', User::TEST_STUDENT_EMAILS)
             ->where(function ($q) {
                 $q->where('users.name', 'not like', '%bwalya mutale%')
@@ -293,7 +294,7 @@ class AttendanceRegister extends Page
     {
         $query = $this->getBaseSessionsQuery()
             ->with(['course', 'intake', 'instructor'])
-            ->withCount('attendances');
+            ->withCount(['attendances' => fn ($q) => $q->whereHas('student', fn ($sq) => $sq->where('is_active', true)->withoutTestStudents())]);
 
         if ($this->filterCourseId) {
             $query->where('course_id', $this->filterCourseId);
