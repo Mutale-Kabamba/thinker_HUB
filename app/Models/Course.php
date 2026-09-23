@@ -60,6 +60,26 @@ class Course extends Model
         return trim(preg_replace('/\s*\(.*\)/', '', $value));
     }
 
+    /**
+     * Determine if this course is affiliated with Play it Forward (e.g. Digital Skills Program DSP-PIF).
+     */
+    public function isPlayItForward(): bool
+    {
+        $code = strtoupper((string) $this->code);
+        $title = strtoupper((string) $this->title);
+        $desc = strtoupper((string) $this->description);
+        $overview = strtoupper((string) $this->overview);
+
+        return str_contains($code, 'PIF')
+            || str_contains($code, 'PLAY IT FORWARD')
+            || str_contains($title, 'PLAY IT FORWARD')
+            || str_contains($code, 'DS_PIZ')
+            || str_contains($code, 'DSP')
+            || str_contains($title, 'DIGITAL SKILLS')
+            || str_contains($desc, 'PLAY IT FORWARD')
+            || str_contains($overview, 'PLAY IT FORWARD');
+    }
+
     public function getCourseOwnerLabelAttribute(): string
     {
         $courseBy = trim((string) $this->course_by);

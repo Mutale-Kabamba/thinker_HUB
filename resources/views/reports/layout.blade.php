@@ -292,13 +292,22 @@
     <div class="report-header">
         <table class="header-table">
             <tr>
-                <td style="width: 50%; vertical-align: middle;">
-                    <div class="header-logo-text">think<span>.er</span> HUB</div>
-                    <div class="header-tagline">Academic & Performance Record</div>
+                <td style="width: 55%; vertical-align: middle;">
+                    @if (!empty($isPlayItForward))
+                        @if (!empty($pifLogo))
+                            <img src="{{ $pifLogo }}" alt="Play it Forward" style="height: 32px; width: auto; max-width: 180px; display: block; margin-bottom: 2px;">
+                        @else
+                            <div class="header-logo-text" style="color: #047857;">Play it Forward</div>
+                        @endif
+                        <div class="header-tagline" style="color: #047857; font-weight: 700;">Digital Skills Program (DSP-PIF)</div>
+                    @else
+                        <div class="header-logo-text">think<span>.er</span> HUB</div>
+                        <div class="header-tagline">Academic & Performance Record</div>
+                    @endif
                 </td>
-                <td class="header-meta" style="width: 50%; vertical-align: middle;">
+                <td class="header-meta" style="width: 45%; vertical-align: middle;">
                     <div class="header-title-badge">@yield('report_type', 'Official Academic Report')</div>
-                    <div><strong>Date:</strong> {{ $generated_at ?? now()->format('Y-m-d H:i') }} • <strong>Doc ID:</strong> THUB-{{ date('Ymd') }}-{{ rand(1000, 9999) }}</div>
+                    <div><strong>Date:</strong> {{ $generated_at ?? now()->format('Y-m-d H:i') }} • <strong>Doc ID:</strong> {{ !empty($isPlayItForward) ? 'PIF-DSP' : 'THUB' }}-{{ date('Ymd') }}-{{ rand(1000, 9999) }}</div>
                 </td>
             </tr>
         </table>
@@ -314,7 +323,11 @@
         <table class="footer-table">
             <tr>
                 <td style="width: 65%;">
-                    Thinker HUB LMS • Official Academic & Verification Record
+                    @if (!empty($isPlayItForward))
+                        Play it Forward Zambia • Digital Skills Program | Powered by thinker HUB LMS
+                    @else
+                        Thinker HUB LMS • Official Academic & Verification Record
+                    @endif
                 </td>
                 <td style="width: 35%; text-align: right;">
                     Confidential • Authorized Personnel Only

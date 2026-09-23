@@ -120,6 +120,20 @@ class StudentResource extends Resource
                 ->required()
                 ->default('Beginner'),
 
+            Select::make('gender')
+                ->label('Gender')
+                ->options([
+                    'Male' => 'Male',
+                    'Female' => 'Female',
+                    'Other' => 'Other',
+                ])
+                ->placeholder('Select gender'),
+
+            TextInput::make('nrc_passport')
+                ->label('NRC / Passport Number')
+                ->placeholder('e.g. 123456/11/1 or Passport No.')
+                ->maxLength(50),
+
             Select::make('courses')
                 ->label('Enrol in My Courses')
                 ->relationship('courses', 'title')
@@ -146,6 +160,21 @@ class StudentResource extends Resource
                 TextColumn::make('email')
                     ->searchable()
                     ->sortable()
+                    ->toggleable(),
+                TextColumn::make('gender')
+                    ->label('Gender')
+                    ->badge()
+                    ->color(fn (?string $state): string => match (strtolower((string) $state)) {
+                        'female' => 'danger',
+                        'male' => 'info',
+                        default => 'gray',
+                    })
+                    ->placeholder('—')
+                    ->toggleable(),
+                TextColumn::make('nrc_passport')
+                    ->label('NRC / Passport')
+                    ->searchable()
+                    ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('track')
                     ->label('Level')
