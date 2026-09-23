@@ -25,7 +25,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -151,12 +150,6 @@ class CourseSessionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->groups([
-                Group::make('course.title')
-                    ->label('Course Name')
-                    ->collapsible(),
-            ])
-            ->defaultGroup('course.title')
             ->columns([
                 TextColumn::make('course.title')
                     ->label('Course Name')
@@ -210,6 +203,11 @@ class CourseSessionResource extends Resource
                         'group' => 'Group',
                         'one_on_one' => 'One-On-One',
                     ]),
+                SelectFilter::make('course')
+                    ->label('Course Name')
+                    ->relationship('course', 'title', fn ($query) => $query->whereIn('id', static::instructorCourseIds()))
+                    ->searchable()
+                    ->preload(),
             ])
             ->recordActions([
                 \Filament\Actions\ActionGroup::make([
