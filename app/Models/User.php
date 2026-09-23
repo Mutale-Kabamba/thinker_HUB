@@ -1172,6 +1172,24 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     }
 
     /**
+     * Check if the user account is active.
+     */
+    public function isActive(): bool
+    {
+        return (bool) ($this->is_active ?? true);
+    }
+
+    /**
+     * Scope query to only include active users.
+     */
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query, string $tablePrefix = ''): \Illuminate\Database\Eloquent\Builder
+    {
+        $prefix = $tablePrefix !== '' ? rtrim($tablePrefix, '.') . '.' : '';
+
+        return $query->where("{$prefix}is_active", true);
+    }
+
+    /**
      * Scope query to exclude designated test students from reports and PDF rosters.
      */
     public function scopeWithoutTestStudents(\Illuminate\Database\Eloquent\Builder $query, string $tablePrefix = ''): \Illuminate\Database\Eloquent\Builder

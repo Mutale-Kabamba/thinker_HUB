@@ -8,6 +8,7 @@ use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class AttendancesRelationManager extends RelationManager
 {
@@ -29,6 +30,7 @@ class AttendancesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('student', fn ($q) => $q->where('is_active', true)->withoutTestStudents()))
             ->columns([
                 TextColumn::make('student.name')
                     ->label('Student')
