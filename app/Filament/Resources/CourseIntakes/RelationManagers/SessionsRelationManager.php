@@ -33,6 +33,12 @@ class SessionsRelationManager extends RelationManager
 
         return $table
             ->recordTitleAttribute('title')
+            ->defaultSort('session_date', 'asc')
+            ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query
+                ->orderByRaw("CASE WHEN status = 'scheduled' THEN 0 WHEN status = 'rescheduled' THEN 1 WHEN status = 'completed' THEN 2 WHEN status = 'cancelled' THEN 3 ELSE 4 END")
+                ->orderBy('session_date', 'asc')
+                ->orderBy('start_time', 'asc')
+            )
             ->columns([
                 TextColumn::make('title')
                     ->label('Session Title')

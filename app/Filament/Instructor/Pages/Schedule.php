@@ -604,8 +604,7 @@ class Schedule extends Page
                 }
                 $q->orWhere('instructor_id', $user->id);
             })
-            ->orderBy('session_date')
-            ->orderBy('start_time');
+            ->scheduledFirst();
 
         $allAccessibleSessions = $allSessionsQuery->get();
 
