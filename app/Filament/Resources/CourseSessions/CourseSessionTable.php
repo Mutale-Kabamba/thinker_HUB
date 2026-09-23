@@ -20,7 +20,6 @@ use Filament\Forms\Components\TimePicker;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Notifications\DatabaseNotification;
 
@@ -29,12 +28,6 @@ class CourseSessionTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->groups([
-                Group::make('course.title')
-                    ->label('Course Name')
-                    ->collapsible(),
-            ])
-            ->defaultGroup('course.title')
             ->columns([
                 TextColumn::make('course.title')
                     ->label('Course Name')
