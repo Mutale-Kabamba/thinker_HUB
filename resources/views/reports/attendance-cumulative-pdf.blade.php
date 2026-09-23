@@ -74,6 +74,7 @@
                                         'late' => '#fffbeb',
                                         'apology' => '#eff6ff',
                                         'absent' => '#fff1f2',
+                                        'cancelled' => '#fef2f2',
                                         default => '#ffffff',
                                     };
                                     $cellText = match ($st) {
@@ -81,6 +82,7 @@
                                         'late' => 'L',
                                         'apology' => 'E',
                                         'absent' => 'A',
+                                        'cancelled' => 'C',
                                         default => '—',
                                     };
                                     $cellColor = match ($st) {
@@ -88,6 +90,7 @@
                                         'late' => '#d97706',
                                         'apology' => '#2563eb',
                                         'absent' => '#e11d48',
+                                        'cancelled' => '#dc2626',
                                         default => '#94a3b8',
                                     };
                                 @endphp
@@ -120,6 +123,7 @@
         <span style="color: #d97706; font-weight: 700; margin-left: 6px;">L = Late</span>
         <span style="color: #2563eb; font-weight: 700; margin-left: 6px;">E = Apology / Excused</span>
         <span style="color: #e11d48; font-weight: 700; margin-left: 6px;">A = Absent</span>
+        <span style="color: #dc2626; font-weight: 700; margin-left: 6px;">C = Session Cancelled</span>
         <span style="color: #94a3b8; margin-left: 6px;">— = Unmarked / Not Enrolled</span>
     </div>
 @endsection
