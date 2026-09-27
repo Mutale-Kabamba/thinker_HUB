@@ -46,7 +46,9 @@
                         <article class="group bg-white rounded-2xl p-3 border border-slate-200 hover:border-teal-500 hover:-translate-y-0.5 transition-all flex flex-col justify-between">
                             <div>
                                 <div class="relative h-40 sm:h-44 overflow-hidden rounded-xl bg-slate-100">
-                                    <img src="{{ $courseImage }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }} image">
+                                    <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}" class="block w-full h-full">
+                                        <img src="{{ $courseImage }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }} image">
+                                    </a>
                                     <div class="absolute top-2.5 left-2.5 bg-yellow-400 text-[#0a2d27] text-[10px] font-black px-2.5 py-0.5 rounded-full border border-yellow-500/20 shadow-xs">BEST SELLER</div>
                                 </div>
                                 <div class="px-1 pt-2.5 pb-1">
@@ -58,7 +60,9 @@
                                             class="text-sm sm:text-base font-bold text-slate-900 group-hover:text-teal-600 transition-colors leading-snug line-clamp-2"
                                             title="{{ $fullTitle }}"
                                         >
-                                            {{ $displayTitle }}
+                                            <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}" class="hover:text-teal-600 transition-colors">
+                                                {{ $displayTitle }}
+                                            </a>
                                         </h3>
                                         @if ($course->isOngoing())
                                             @php $activeIntake = $course->activeIntake; @endphp
