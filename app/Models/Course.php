@@ -883,4 +883,58 @@ class Course extends Model
     {
         return static::getColorSchemeFor($this->id, (string) ($this->title ?? ''), (string) ($this->code ?? ''));
     }
+
+    /**
+     * Get the resolved URL for the uploaded course image, or a themed fallback.
+     */
+    public function getCourseImageUrlAttribute(): string
+    {
+        if (! empty($this->image_path)) {
+            $url = \App\Support\PublicDiskPath::url($this->image_path);
+            if ($url) {
+                return $url;
+            }
+        }
+
+        $courseImages = [
+            'images/courses/computer.png',
+            'images/courses/office.png',
+            'images/courses/design.png',
+            'images/courses/data.png',
+            'images/courses/media_ai.png',
+        ];
+
+        $courseImageKeywords = [
+            'images/courses/office.png' => ['office', 'excel', 'word', 'powerpoint'],
+            'images/courses/design.png' => ['design', 'graphics', 'ui', 'ux', 'canva', 'photoshop'],
+            'images/courses/data.png' => ['data', 'analytics', 'analysis', 'sql', 'power bi', 'tableau'],
+            'images/courses/media_ai.png' => ['social', 'media', 'marketing', 'content', 'ai'],
+            'images/courses/computer.png' => ['computer', 'digital', 'ict', 'literacy', 'fundamentals'],
+        ];
+
+        $searchText = strtolower(trim((string) ($this->title.' '.$this->code)));
+
+        foreach ($courseImageKeywords as $imagePath => $keywords) {
+            foreach ($keywords as $keyword) {
+                if (str_contains($searchText, $keyword)) {
+                    return asset($imagePath);
+                }
+            }
+        }
+
+        $seed = $this->id ?? (crc32($this->code ?: $this->title) & 0x7FFFFFFF);
+        $fallback = $courseImages[abs((int) $seed) % count($courseImages)];
+
+        return asset($fallback);
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! empty($this->image_path)) {
+            return \App\Support\PublicDiskPath::url($this->image_path);
+        }
+
+        return null;
+    }
 }
+

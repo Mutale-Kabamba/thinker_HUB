@@ -51,8 +51,11 @@ class CoursesTable
                     ->badge()
                     ->formatStateUsing(fn (?bool $state): string => $state === false ? 'Locked' : 'Open')
                     ->color(fn (?bool $state): string => $state === false ? 'gray' : 'success'),
-                IconColumn::make('is_active')
-                    ->boolean(),
+                TextColumn::make('is_active')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn (?bool $state): string => $state ? 'Active' : 'Pending Approval')
+                    ->color(fn (?bool $state): string => $state ? 'success' : 'warning'),
                 TextColumn::make('created_at')
                     ->label('Created')
                     ->date('M j, Y')
@@ -67,6 +70,12 @@ class CoursesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('is_active')
+                    ->label('Status')
+                    ->options([
+                        '1' => 'Active / Approved',
+                        '0' => 'Pending Approval / Inactive',
+                    ]),
                 SelectFilter::make('offering_mode')
                     ->label('Course Structure')
                     ->options([
@@ -99,6 +108,40 @@ class CoursesTable
             ])
             ->recordActions([
                 \Filament\Actions\ActionGroup::make([
+                    Action::make('approve')
+                        ->label('Approve & Activate')
+                        ->icon('heroicon-m-check-badge')
+                        ->color('success')
+                        ->visible(fn (Course $record): bool => ! (bool) $record->is_active)
+                        ->requiresConfirmation()
+                        ->modalHeading('Approve Course')
+                        ->modalDescription('Are you sure you want to approve this course? It will immediately become active and visible in the public course catalog.')
+                        ->action(function (Course $record): void {
+                            $record->update(['is_active' => true]);
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Course Approved')
+                                ->body("{$record->title} is now active and published publicly.")
+                                ->success()
+                                ->send();
+                        }),
+                    Action::make('deactivate')
+                        ->label('Deactivate')
+                        ->icon('heroicon-m-x-circle')
+                        ->color('danger')
+                        ->visible(fn (Course $record): bool => (bool) $record->is_active)
+                        ->requiresConfirmation()
+                        ->modalHeading('Deactivate Course')
+                        ->modalDescription('Are you sure you want to deactivate this course? It will be hidden from the public course catalog.')
+                        ->action(function (Course $record): void {
+                            $record->update(['is_active' => false]);
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Course Deactivated')
+                                ->body("{$record->title} is now inactive.")
+                                ->warning()
+                                ->send();
+                        }),
                     Action::make('viewDetails')
                         ->label('View Details')
                         ->icon('heroicon-m-eye')

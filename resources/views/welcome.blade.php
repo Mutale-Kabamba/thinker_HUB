@@ -204,43 +204,9 @@
 
                 <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3"
                 >
-                    @php
-                        $courseImages = [
-                            'images/courses/computer.png',
-                            'images/courses/office.png',
-                            'images/courses/design.png',
-                            'images/courses/data.png',
-                            'images/courses/media_ai.png',
-                        ];
-
-                        $courseImageKeywords = [
-                            'images/courses/office.png' => ['office', 'excel', 'word', 'powerpoint'],
-                            'images/courses/design.png' => ['design', 'graphics', 'ui', 'ux', 'canva', 'photoshop'],
-                            'images/courses/data.png' => ['data', 'analytics', 'analysis', 'sql', 'power bi', 'tableau'],
-                            'images/courses/media_ai.png' => ['social', 'media', 'marketing', 'content', 'ai'],
-                            'images/courses/computer.png' => ['computer', 'digital', 'ict', 'literacy', 'fundamentals'],
-                        ];
-
-                        $resolveCourseImage = static function ($course) use ($courseImages, $courseImageKeywords): string {
-                            $searchText = strtolower(trim((string) ($course->title.' '.$course->code)));
-
-                            foreach ($courseImageKeywords as $imagePath => $keywords) {
-                                foreach ($keywords as $keyword) {
-                                    if (str_contains($searchText, $keyword)) {
-                                        return $imagePath;
-                                    }
-                                }
-                            }
-
-                            return $courseImages[abs(crc32((string) $course->id)) % count($courseImages)];
-                        };
-                    @endphp
-
                     @forelse ($courses as $course)
                         @php
-                            $courseImage = $resolveCourseImage($course);
-                        @endphp
-                        @php
+                            $courseImage = $course->course_image_url;
                             $avgRating = (float) ($course->average_rating ?? ($course->ratings_avg_rating ?? 0));
                             $ratingCount = (int) ($course->review_count ?? ($course->ratings_count ?? 0));
                             $studentsCount = (int) ($course->enrollments_count ?? 0);
@@ -254,7 +220,7 @@
                         <article class="group bg-white rounded-2xl p-3 border border-slate-200 hover:border-teal-500 hover:-translate-y-0.5 transition-all flex flex-col justify-between">
                             <div>
                                 <div class="relative h-40 sm:h-44 overflow-hidden rounded-xl bg-slate-100">
-                                    <img src="{{ asset($courseImage) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }} image">
+                                    <img src="{{ $courseImage }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }} image">
                                     <div class="absolute top-2.5 left-2.5 bg-yellow-400 text-[#0a2d27] text-[10px] font-black px-2.5 py-0.5 rounded-full border border-yellow-500/20 shadow-xs">BEST SELLER</div>
                                 </div>
                                 <div class="px-1 pt-2.5 pb-1">
