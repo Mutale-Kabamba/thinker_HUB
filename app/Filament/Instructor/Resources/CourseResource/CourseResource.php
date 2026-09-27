@@ -3,6 +3,7 @@
 namespace App\Filament\Instructor\Resources\CourseResource;
 
 use App\Filament\Instructor\Concerns\ScopedToInstructor;
+use App\Filament\Instructor\Resources\CourseResource\Pages\CreateCourse;
 use App\Filament\Instructor\Resources\CourseResource\Pages\EditCourse;
 use App\Filament\Instructor\Resources\CourseResource\Pages\ListCourses;
 use App\Models\Course;
@@ -11,7 +12,7 @@ use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -35,10 +36,18 @@ class CourseResource extends Resource
     {
         return $table
             ->columns([
+                ImageColumn::make('image_path')
+                    ->label('Image')
+                    ->disk('public')
+                    ->circular(),
                 TextColumn::make('title')
-                    ->searchable(),
+                    ->searchable()
+                    ->wrap()
+                    ->weight('bold'),
                 TextColumn::make('code')
-                    ->searchable(),
+                    ->searchable()
+                    ->badge()
+                    ->color('gray'),
                 TextColumn::make('enrollments_count')
                     ->label('Students')
                     ->counts('enrollments')
@@ -48,8 +57,11 @@ class CourseResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn (?bool $state): string => $state === false ? 'Locked' : 'Open')
                     ->color(fn (?bool $state): string => $state === false ? 'gray' : 'success'),
-                IconColumn::make('is_active')
-                    ->boolean(),
+                TextColumn::make('is_active')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn (?bool $state): string => $state ? 'Active' : 'Pending Approval')
+                    ->color(fn (?bool $state): string => $state ? 'success' : 'warning'),
             ])
             ->filters([
                 SelectFilter::make('is_open_enrollment')
@@ -99,7 +111,9 @@ class CourseResource extends Resource
     {
         return [
             'index' => ListCourses::route('/'),
+            'create' => CreateCourse::route('/create'),
             'edit' => EditCourse::route('/{record}/edit'),
         ];
     }
 }
+

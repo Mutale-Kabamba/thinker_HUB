@@ -46,7 +46,7 @@ class CourseForm
                     ->image()
                     ->imageEditor()
                     ->maxSize(2048)
-                    ->helperText('Shown in course group chats as the room avatar.')
+                    ->helperText('Course image displayed on public course cards, course details, and group chats.')
                     ->columnSpanFull(),
                 Textarea::make('description')
                     ->columnSpanFull(),
@@ -272,7 +272,11 @@ class CourseForm
                     ->defaultItems(0)
                     ->columnSpanFull(),
                 Toggle::make('is_active')
-                    ->required(),
+                    ->label('Active / Published')
+                    ->helperText(fn () => auth()->user()?->isAdmin() ? 'Course is active and published to the public catalog.' : 'Requires Admin approval before becoming active and published.')
+                    ->disabled(fn () => ! (bool) auth()->user()?->isAdmin())
+                    ->dehydrated(fn () => (bool) auth()->user()?->isAdmin())
+                    ->default(false),
             ]);
     }
 

@@ -32,6 +32,29 @@
                         @enderror
                     </div>
 
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div>
+                            <label for="student_settings_gender" class="hub-eyebrow">Gender</label>
+                            <select id="student_settings_gender" name="gender" class="hub-input" style="background:var(--color-surface, #fff);color:inherit;">
+                                <option value="">Select Gender</option>
+                                <option value="Male" {{ old('gender', $user->gender) === 'Male' ? 'selected' : '' }}>Male</option>
+                                <option value="Female" {{ old('gender', $user->gender) === 'Female' ? 'selected' : '' }}>Female</option>
+                                <option value="Other" {{ old('gender', $user->gender) === 'Other' ? 'selected' : '' }}>Other</option>
+                            </select>
+                            @error('gender')
+                                <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="student_settings_nrc" class="hub-eyebrow">NRC / Passport Number</label>
+                            <input id="student_settings_nrc" name="nrc_passport" type="text" value="{{ old('nrc_passport', $user->nrc_passport) }}" placeholder="e.g. 123456/11/1" class="hub-input">
+                            @error('nrc_passport')
+                                <p class="hub-copy" style="color:var(--hub-danger);">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
                     <div>
                         <label for="student_settings_profile_photo" class="hub-eyebrow">Profile Picture</label>
                         @if ($user->profile_photo_path)

@@ -42,6 +42,18 @@ class UserForm
                     ->required(fn (callable $get): bool => $get('role') === 'student')
                     ->default('Beginner')
                     ->visible(fn (callable $get): bool => $get('role') === 'student'),
+                Select::make('gender')
+                    ->label('Gender')
+                    ->options([
+                        'Male' => 'Male',
+                        'Female' => 'Female',
+                        'Other' => 'Other',
+                    ])
+                    ->placeholder('Select gender'),
+                TextInput::make('nrc_passport')
+                    ->label('NRC / Passport Number')
+                    ->placeholder('e.g. 123456/11/1 or Passport No.')
+                    ->maxLength(50),
                 Select::make('instructorCourses')
                     ->label('Assigned Instructor Courses')
                     ->relationship('instructorCourses', 'title')

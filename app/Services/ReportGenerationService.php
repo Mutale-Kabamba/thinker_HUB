@@ -352,6 +352,15 @@ class ReportGenerationService
             ? round(($overallStats['total_sessions_attended'] / $overallStats['total_sessions_scheduled']) * 100)
             : 100;
 
+        $isPlayItForward = $scopedCourse ? $scopedCourse->isPlayItForward() : false;
+        if (! $isPlayItForward && $enrollments->count() > 0) {
+            $pifCourse = $enrollments->map(fn ($e) => $e->course)->filter()->first(fn ($c) => $c && $c->isPlayItForward());
+            if ($pifCourse && $enrollments->count() === 1) {
+                $isPlayItForward = true;
+            }
+        }
+        $pifLogo = $isPlayItForward ? $this->getPlayItForwardLogoDataUri() : null;
+
         return [
             'student' => $student,
             'generated_at' => Carbon::now()->format('F d, Y • H:i T'),
@@ -359,6 +368,8 @@ class ReportGenerationService
             'options' => $options,
             'overall_stats' => $overallStats,
             'courses_data' => $coursesData,
+            'isPlayItForward' => $isPlayItForward,
+            'pifLogo' => $pifLogo,
         ];
     }
 
@@ -377,7 +388,12 @@ class ReportGenerationService
 
         $enrollments = $enrollmentsQuery->get();
         $studentIds = $enrollments->pluck('user_id')->unique()->filter();
-        $students = User::query()->whereIn('id', $studentIds)->get()->keyBy('id');
+        $students = User::query()
+            ->whereIn('id', $studentIds)
+            ->withoutTestStudents()
+            ->get()
+            ->keyBy('id');
+        $studentIds = $students->keys();
 
         $intake = $intakeId ? CourseIntake::find($intakeId) : null;
 
@@ -511,9 +527,14 @@ class ReportGenerationService
         $completedStudentsCount = $enrollments->whereNotNull('completed_at')->count();
         $completionRate = $enrollments->count() > 0 ? round(($completedStudentsCount / $enrollments->count()) * 100, 1) : 0;
 
+        $isPlayItForward = $course->isPlayItForward();
+        $pifLogo = $isPlayItForward ? $this->getPlayItForwardLogoDataUri() : null;
+
         return [
             'course' => $course,
             'intake' => $intake,
+            'isPlayItForward' => $isPlayItForward,
+            'pifLogo' => $pifLogo,
             'generated_at' => Carbon::now()->format('F d, Y • H:i T'),
             'total_students' => $enrollments->count(),
             'completed_students_count' => $completedStudentsCount,
@@ -546,6 +567,18 @@ class ReportGenerationService
             ],
             'roster' => $studentRoster,
         ];
+    }
+
+    /**
+     * Get base64 Data URI for Play it Forward logo (public/images/logos/logo2.png).
+     */
+    public function getPlayItForwardLogoDataUri(): ?string
+    {
+        $logoPath = public_path('images/logos/logo2.png');
+        if (file_exists($logoPath)) {
+            return 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        }
+        return null;
     }
 
     /**

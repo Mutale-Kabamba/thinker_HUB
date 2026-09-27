@@ -20,7 +20,6 @@ use Filament\Forms\Components\TimePicker;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Notifications\DatabaseNotification;
 
@@ -29,12 +28,6 @@ class CourseSessionTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->groups([
-                Group::make('course.title')
-                    ->label('Course Name')
-                    ->collapsible(),
-            ])
-            ->defaultGroup('course.title')
             ->columns([
                 TextColumn::make('course.title')
                     ->label('Course Name')
@@ -72,6 +65,11 @@ class CourseSessionTable
                     ->placeholder('—'),
             ])
             ->defaultSort('session_date', 'asc')
+            ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query
+                ->orderByRaw("CASE WHEN status = 'scheduled' THEN 0 WHEN status = 'rescheduled' THEN 1 WHEN status = 'completed' THEN 2 WHEN status = 'cancelled' THEN 3 ELSE 4 END")
+                ->orderBy('session_date', 'asc')
+                ->orderBy('start_time', 'asc')
+            )
             ->filters([
                 SelectFilter::make('status')
                     ->options([
@@ -279,10 +277,10 @@ class CourseSessionTable
                         }),
 
                     Action::make('attendance')
-                        ->label('Attendance')
+                        ->label('Attendance Register')
                         ->icon('heroicon-m-clipboard-document-check')
                         ->color('info')
-                        ->url(fn (CourseSession $record): string => CourseSessionResource::getUrl('edit', ['record' => $record])),
+                        ->url(fn (CourseSession $record): string => route('filament.admin.pages.attendance-register', ['session_id' => $record->id])),
 
                     EditAction::make()->icon('heroicon-m-pencil-square'),
                 ])

@@ -83,6 +83,8 @@ class RegisteredUserController extends Controller
                 $courseExistsRule,
             ],
             'track' => ['required', 'in:Beginner,Intermediate,Advanced'],
+            'gender' => ['nullable', 'string', 'in:Male,Female,Other,male,female,other'],
+            'nrc_passport' => ['nullable', 'string', 'max:50'],
             'accept_terms' => ['accepted'],
             'accept_requirements' => ['accepted'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -106,6 +108,8 @@ class RegisteredUserController extends Controller
             $request->session()->put('pending_registration', [
                 'name' => $request->string('name')->toString(),
                 'email' => $request->string('email')->toString(),
+                'gender' => $request->gender ? ucfirst(strtolower($request->gender)) : null,
+                'nrc_passport' => $request->nrc_passport ? trim((string) $request->nrc_passport) : null,
                 'password' => $request->string('password')->toString(),
                 'track' => $request->string('track')->toString() ?: 'Beginner',
                 'course_id' => $course->id,
@@ -118,6 +122,8 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'gender' => $request->gender ? ucfirst(strtolower($request->gender)) : null,
+            'nrc_passport' => $request->nrc_passport ? trim((string) $request->nrc_passport) : null,
             'track' => $request->string('track')->toString() ?: 'Beginner',
             'role' => 'student',
             'is_active' => true,
