@@ -196,10 +196,16 @@
                             <article class="group rounded-2xl border border-slate-200 bg-white p-3 hover:border-teal-500 hover:-translate-y-0.5 transition-all flex flex-col justify-between">
                                 <div>
                                     <div class="relative h-36 w-full overflow-hidden rounded-xl bg-slate-100 mb-2.5">
-                                        <img src="{{ $course->course_image_url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }}">
+                                        <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title)]) }}" class="block w-full h-full">
+                                            <img src="{{ $course->course_image_url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }}">
+                                        </a>
                                         <div class="absolute top-2 left-2 bg-teal-800/90 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20">{{ $course->code }}</div>
                                     </div>
-                                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-teal-700 transition leading-snug line-clamp-2">{{ $course->title }}</h3>
+                                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-teal-700 transition leading-snug line-clamp-2">
+                                        <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title)]) }}" class="hover:text-teal-700 transition-colors">
+                                            {{ $course->title }}
+                                        </a>
+                                    </h3>
                                 </div>
                                 <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
                                     <span class="text-[11px] text-slate-500"><i class="fa-regular fa-user text-teal-600 mr-1"></i>{{ (int) ($course->enrollments_count ?? 0) }} Students</span>

@@ -53,17 +53,21 @@ class InstructorCourseCreationAndApprovalTest extends TestCase
             'is_active' => true,
         ]);
 
+        $detailsUrl = route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]);
+
         // Home page
         $homeResponse = $this->get('/');
         $homeResponse->assertOk();
         $homeResponse->assertSee($course->course_image_url);
         $homeResponse->assertSee('Graphic Design Masterclass');
+        $homeResponse->assertSee($detailsUrl);
 
         // Courses page
         $coursesResponse = $this->get('/courses');
         $coursesResponse->assertOk();
         $coursesResponse->assertSee($course->course_image_url);
         $coursesResponse->assertSee('Graphic Design Masterclass');
+        $coursesResponse->assertSee($detailsUrl);
 
         // Course details page
         $courseDetailResponse = $this->get('/courses/' . $course->id);

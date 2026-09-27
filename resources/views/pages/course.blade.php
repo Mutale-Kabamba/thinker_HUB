@@ -683,10 +683,16 @@
                             <article class="rounded-2xl border border-slate-200 bg-white p-4 hover:border-teal-500 hover:-translate-y-0.5 transition-all flex flex-col justify-between">
                                 <div>
                                     <div class="relative h-36 w-full overflow-hidden rounded-xl bg-slate-100 mb-3">
-                                        <img src="{{ $relatedCourse->course_image_url }}" class="w-full h-full object-cover" alt="{{ $relatedCourse->title }}">
+                                        <a href="{{ route('landing.courses.show', ['course' => $relatedCourse->id, 'slug' => $relatedCourse->seo_slug]) }}" class="block w-full h-full">
+                                            <img src="{{ $relatedCourse->course_image_url }}" class="w-full h-full object-cover" alt="{{ $relatedCourse->title }}">
+                                        </a>
                                         <div class="absolute top-2 left-2 bg-teal-800/90 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20">{{ $relatedCourse->code }}</div>
                                     </div>
-                                    <h3 class="text-base font-bold text-slate-900 leading-snug">{{ $relatedCourse->title }}</h3>
+                                    <h3 class="text-base font-bold text-slate-900 leading-snug">
+                                        <a href="{{ route('landing.courses.show', ['course' => $relatedCourse->id, 'slug' => $relatedCourse->seo_slug]) }}" class="hover:text-teal-700 transition-colors">
+                                            {{ $relatedCourse->title }}
+                                        </a>
+                                    </h3>
                                     <p class="mt-1.5 text-xs leading-relaxed text-slate-600 line-clamp-2">{{ \Illuminate\Support\Str::limit($relatedCourse->overview, 120) }}</p>
                                 </div>
                                 <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
