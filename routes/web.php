@@ -390,7 +390,7 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
         ->whereKeyNot($courseModel->id)
         ->latest()
         ->limit(3)
-        ->get(['id', 'title', 'code', 'overview'])
+        ->get(['id', 'title', 'code', 'overview', 'image_path'])
         ->each(function (Course $item) use ($courseSlug) {
             $item->setAttribute('seo_slug', $courseSlug($item));
         });

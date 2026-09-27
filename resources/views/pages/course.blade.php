@@ -594,6 +594,9 @@
 
                 {{-- Sidebar Quick Facts Card --}}
                 <aside class="sticky top-6 min-w-0 rounded-2xl border border-slate-200/80 bg-white p-6 lg:col-span-1">
+                    <div class="relative h-44 w-full overflow-hidden rounded-xl bg-slate-100 mb-5">
+                        <img src="{{ $course->course_image_url }}" class="w-full h-full object-cover" alt="{{ $course->title }}">
+                    </div>
                     <h2 class="text-lg font-bold text-slate-900">Quick Facts</h2>
                     <dl class="mt-4 space-y-3 text-sm">
                         <div>
@@ -677,11 +680,18 @@
                     <p class="mt-2 text-slate-600">Explore other practical tracks that can complement this learning path.</p>
                     <div class="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                         @foreach ($relatedCourses as $relatedCourse)
-                            <article class="rounded-2xl border border-slate-200 bg-white p-5">
-                                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-teal-600">{{ $relatedCourse->code }}</p>
-                                <h3 class="mt-2 text-lg font-bold text-slate-900">{{ $relatedCourse->title }}</h3>
-                                <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ \Illuminate\Support\Str::limit($relatedCourse->overview, 120) }}</p>
-                                <a href="{{ route('landing.courses.show', ['course' => $relatedCourse->id, 'slug' => $relatedCourse->seo_slug]) }}" class="mt-4 inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#11443c]">View Course</a>
+                            <article class="rounded-2xl border border-slate-200 bg-white p-4 hover:border-teal-500 hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+                                <div>
+                                    <div class="relative h-36 w-full overflow-hidden rounded-xl bg-slate-100 mb-3">
+                                        <img src="{{ $relatedCourse->course_image_url }}" class="w-full h-full object-cover" alt="{{ $relatedCourse->title }}">
+                                        <div class="absolute top-2 left-2 bg-teal-800/90 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20">{{ $relatedCourse->code }}</div>
+                                    </div>
+                                    <h3 class="text-base font-bold text-slate-900 leading-snug">{{ $relatedCourse->title }}</h3>
+                                    <p class="mt-1.5 text-xs leading-relaxed text-slate-600 line-clamp-2">{{ \Illuminate\Support\Str::limit($relatedCourse->overview, 120) }}</p>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                                    <a href="{{ route('landing.courses.show', ['course' => $relatedCourse->id, 'slug' => $relatedCourse->seo_slug]) }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-[#11443c]">View Course &rarr;</a>
+                                </div>
                             </article>
                         @endforeach
                     </div>
