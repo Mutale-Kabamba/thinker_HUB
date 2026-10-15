@@ -25,7 +25,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -151,12 +150,6 @@ class CourseSessionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->groups([
-                Group::make('course.title')
-                    ->label('Course Name')
-                    ->collapsible(),
-            ])
-            ->defaultGroup('course.title')
             ->columns([
                 TextColumn::make('course.title')
                     ->label('Course Name')
@@ -191,7 +184,12 @@ class CourseSessionResource extends Resource
                     }),
             ])
             ->defaultSort('session_date', 'asc')
-            ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('course_id', static::instructorCourseIds()))
+            ->modifyQueryUsing(fn (Builder $query) => $query
+                ->whereIn('course_id', static::instructorCourseIds())
+                ->orderByRaw("CASE WHEN status = 'scheduled' THEN 0 WHEN status = 'rescheduled' THEN 1 WHEN status = 'completed' THEN 2 WHEN status = 'cancelled' THEN 3 ELSE 4 END")
+                ->orderBy('session_date', 'asc')
+                ->orderBy('start_time', 'asc')
+            )
             ->filters([
                 SelectFilter::make('status')
                     ->options([
@@ -205,6 +203,11 @@ class CourseSessionResource extends Resource
                         'group' => 'Group',
                         'one_on_one' => 'One-On-One',
                     ]),
+                SelectFilter::make('course')
+                    ->label('Course Name')
+                    ->relationship('course', 'title', fn ($query) => $query->whereIn('id', static::instructorCourseIds()))
+                    ->searchable()
+                    ->preload(),
             ])
             ->recordActions([
                 \Filament\Actions\ActionGroup::make([
@@ -251,10 +254,10 @@ class CourseSessionResource extends Resource
                         }),
 
                     Action::make('attendance')
-                        ->label('Attendance')
+                        ->label('Attendance Register')
                         ->icon('heroicon-m-clipboard-document-check')
                         ->color('info')
-                        ->url(fn (CourseSession $record): string => self::getUrl('edit', ['record' => $record])),
+                        ->url(fn (CourseSession $record): string => route('filament.instructor.pages.attendance-register', ['session_id' => $record->id])),
 
                     EditAction::make()->icon('heroicon-m-pencil-square'),
                 ])

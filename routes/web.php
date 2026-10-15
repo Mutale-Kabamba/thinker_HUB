@@ -353,6 +353,7 @@ Route::get('/media/{media}/download', function (App\Models\Media $media) {
 
 Route::get('/checkout/{course}', [PaymentController::class, 'showCheckout'])->name('checkout.show');
 Route::get('/courses/{course}/enroll', [PaymentController::class, 'showCheckout']);
+Route::post('/checkout/{course}/apply-promo', [PaymentController::class, 'applyPromoCode'])->name('checkout.apply-promo');
 Route::post('/courses/{course}/pay', [PaymentController::class, 'processPayment'])->name('checkout.process');
 Route::get('/payments/receipt/{reference}', [PaymentController::class, 'showReceipt'])->name('payment.receipt');
 Route::get('/payments/status/{reference}', [PaymentController::class, 'checkStatus'])->name('payment.status');
@@ -390,7 +391,7 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
         ->whereKeyNot($courseModel->id)
         ->latest()
         ->limit(3)
-        ->get(['id', 'title', 'code', 'overview'])
+        ->get(['id', 'title', 'code', 'overview', 'image_path'])
         ->each(function (Course $item) use ($courseSlug) {
             $item->setAttribute('seo_slug', $courseSlug($item));
         });

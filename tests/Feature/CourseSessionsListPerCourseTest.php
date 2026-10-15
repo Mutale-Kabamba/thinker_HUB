@@ -194,4 +194,46 @@ class CourseSessionsListPerCourseTest extends TestCase
             ->assertSee('FLUT-301')
             ->assertSee('State Management with Bloc');
     }
+
+    public function test_admin_course_sessions_table_shows_scheduled_sessions_first(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $course = Course::create([
+            'title' => 'Fullstack Mastery',
+            'code' => 'FS-101',
+            'is_active' => true,
+        ]);
+
+        $completedSession = CourseSession::create([
+            'course_id' => $course->id,
+            'title' => 'Completed Earlier Session',
+            'session_date' => now()->subDays(2)->toDateString(),
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+            'status' => 'completed',
+        ]);
+
+        $scheduledSession = CourseSession::create([
+            'course_id' => $course->id,
+            'title' => 'Scheduled Upcoming Session',
+            'session_date' => now()->addDays(2)->toDateString(),
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+            'status' => 'scheduled',
+        ]);
+
+        $sessions = CourseSession::scheduledFirst()->get();
+        $this->assertEquals($scheduledSession->id, $sessions->first()->id);
+        $this->assertEquals($completedSession->id, $sessions->last()->id);
+
+        Livewire::actingAs($admin)
+            ->test(AdminListCourseSessions::class)
+            ->assertOk()
+            ->assertSee('Scheduled Upcoming Session')
+            ->assertSee('Completed Earlier Session');
+    }
 }

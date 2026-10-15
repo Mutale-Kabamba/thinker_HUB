@@ -425,8 +425,7 @@ class Schedule extends Page
                         ->where('student_id', $user->id);
                 });
             })
-            ->orderBy('session_date')
-            ->orderBy('start_time');
+            ->scheduledFirst();
 
         $allAccessibleSessions = $allAccessibleQuery->get();
 

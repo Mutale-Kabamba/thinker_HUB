@@ -27,7 +27,7 @@ class CoursePolicy
 
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $user->isInstructor();
     }
 
     public function update(User $user, Course $course): bool
