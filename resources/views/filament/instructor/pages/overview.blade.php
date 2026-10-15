@@ -2,11 +2,11 @@
     <div
         x-data="{
             currentSlide: 0,
-            slidesCount: {{ count($heroBanners) }},
+            slidesCount: {{ count($heroBanners ?? []) }},
             timer: null,
             selectedDate: null,
-            calendarMonth: @js($calendarMonthName),
-            events: @js($calendarEvents),
+            calendarMonth: @js($calendarMonthName ?? ''),
+            events: @js($calendarEvents ?? []),
             activeTab: 'active',
             init() {
                 this.startTimer();
@@ -52,7 +52,7 @@
                     x-on:mouseenter="pause()"
                     x-on:mouseleave="resume()"
                 >
-                    @foreach ($heroBanners as $idx => $banner)
+                    @foreach (($heroBanners ?? []) as $idx => $banner)
                         <div
                             x-show="currentSlide === {{ $idx }}"
                             x-cloak
@@ -72,7 +72,7 @@
                                         {{ $banner['badge'] }}
                                     </span>
                                     <span class="text-[10px] sm:text-[11px] font-bold text-white/80">
-                                        {{ $idx + 1 }} of {{ count($heroBanners) }}
+                                        {{ ($idx ?? 0) + 1 }} of {{ count($heroBanners ?? []) }}
                                     </span>
                                 </div>
 
@@ -108,12 +108,12 @@
                                     @if (!empty($banner['avatar']))
                                         <img 
                                             src="{{ $banner['avatar'] }}" 
-                                            alt="{{ auth()->user()->name }}" 
+                                            alt="{{ auth()->user()?->name ?? 'Instructor' }}" 
                                             class="w-full h-full object-cover rounded-full shadow-inner border border-white/50"
                                         />
                                     @else
                                         <div class="w-full h-full rounded-full bg-teal-800 text-white font-black text-2xl sm:text-3xl md:text-4xl flex items-center justify-center shadow-inner border border-white/50">
-                                            {{ Str::upper(substr(auth()->user()->name ?? 'IN', 0, 2)) }}
+                                            {{ Str::upper(substr(auth()->user()?->name ?? 'IN', 0, 2)) }}
                                         </div>
                                     @endif
                                 </div>
@@ -125,7 +125,7 @@
                 {{-- Carousel Indicator Dots & Controls --}}
                 <div class="flex items-center justify-between px-1 py-1">
                     <div class="flex items-center gap-1.5">
-                        @foreach ($heroBanners as $idx => $banner)
+                        @foreach (($heroBanners ?? []) as $idx => $banner)
                             <button
                                 type="button"
                                 x-on:click="goToSlide({{ $idx }})"
@@ -172,25 +172,25 @@
                         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">Teaching Profile</h2>
                     </div>
                     <span class="text-xs font-extrabold text-[#7C3AED] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2.5 py-0.5 rounded-full border border-purple-100 dark:border-purple-900/50">
-                        {{ count($courses) }} Classes
+                        {{ count($courses ?? []) }} Classes
                     </span>
                 </div>
 
                 <div class="space-y-3">
                     <div class="flex items-center gap-3">
-                        @if (auth()->user()->profile_photo_path)
-                            <img src="{{ auth()->user()->getFilamentAvatarUrl() }}" alt="{{ auth()->user()->name }}" class="w-12 h-12 rounded-xl object-cover shadow-2xs border border-slate-200 dark:border-[#233842]" />
+                        @if (auth()->user()?->profile_photo_path)
+                            <img src="{{ auth()->user()?->getFilamentAvatarUrl() }}" alt="{{ auth()->user()?->name ?? 'Instructor' }}" class="w-12 h-12 rounded-xl object-cover shadow-2xs border border-slate-200 dark:border-[#233842]" />
                         @else
                             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#7C3AED] to-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-2xs">
-                                {{ Str::upper(substr(auth()->user()->name ?? 'IN', 0, 2)) }}
+                                {{ Str::upper(substr(auth()->user()?->name ?? 'IN', 0, 2)) }}
                             </div>
                         @endif
                         <div class="min-w-0 flex-1">
                             <h3 class="font-black text-slate-900 dark:text-white text-sm truncate">
-                                {{ auth()->user()->name }}
+                                {{ auth()->user()?->name ?? 'Instructor' }}
                             </h3>
                             <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                {{ auth()->user()->email }}
+                                {{ auth()->user()?->email ?? '' }}
                             </p>
                         </div>
                     </div>
@@ -256,7 +256,7 @@
 
                     <div class="mt-3">
                         <div class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                            {{ sprintf('%02d', count($courses)) }}
+                            {{ sprintf('%02d', count($courses ?? [])) }}
                         </div>
                         <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 group-hover:text-[#B45309] dark:group-hover:text-amber-300 transition-colors">
                             Total Classes &rarr;

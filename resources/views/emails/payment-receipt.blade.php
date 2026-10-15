@@ -74,6 +74,24 @@
                                         {{ $course->code }} &bull; {{ $course->title }}
                                     </td>
                                 </tr>
+                                @if($payment->hasDiscount())
+                                <tr>
+                                    <td style="padding:14px 20px;border-bottom:1px solid #edf2f7;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">
+                                        Original Price
+                                    </td>
+                                    <td style="padding:14px 20px;border-bottom:1px solid #edf2f7;font-size:13px;font-weight:600;color:#94a3b8;text-decoration:line-through;">
+                                        {{ $payment->formattedOriginalAmount() }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:14px 20px;border-bottom:1px solid #edf2f7;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">
+                                        Promo Discount
+                                    </td>
+                                    <td style="padding:14px 20px;border-bottom:1px solid #edf2f7;font-size:13px;font-weight:700;color:#059669;">
+                                        -{{ $payment->formattedDiscountAmount() }} ({{ $payment->promoCodeText() }})
+                                    </td>
+                                </tr>
+                                @endif
                                 <tr>
                                     <td style="padding:14px 20px;border-bottom:1px solid #edf2f7;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">
                                         Amount Paid

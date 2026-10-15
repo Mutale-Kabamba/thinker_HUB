@@ -20,7 +20,8 @@ use Throwable;
 class PaymentService
 {
     public function __construct(
-        protected BroadPayGateway $gateway
+        protected BroadPayGateway $gateway,
+        protected PromoCodeService $promoCodeService,
     ) {}
 
     /**
@@ -83,18 +84,86 @@ class PaymentService
                 $feeAmount = 1500.00;
             }
 
+            $originalFee = $feeAmount;
+            $discountAmount = 0.00;
+            $promoCodeModel = null;
+            $promoCodeString = ! empty($validated['promo_code']) ? strtoupper(trim((string) $validated['promo_code'])) : null;
+
+            if ($promoCodeString) {
+                $promoValidation = $this->promoCodeService->validateCode(
+                    code: $promoCodeString,
+                    course: $course,
+                    amount: $originalFee,
+                    user: $currentUser,
+                    email: $validated['email'] ?? null
+                );
+
+                if (! $promoValidation['valid']) {
+                    return PaymentResult::failed(
+                        reference: '',
+                        message: $promoValidation['message'] ?? 'The provided promo code is invalid or expired.'
+                    );
+                }
+
+                $promoCodeModel = $promoValidation['promo_code'];
+                $discountAmount = $promoValidation['discount_amount'];
+                $feeAmount = $promoValidation['final_amount'];
+            }
+
             // 3. Generate unique payment reference
             $reference = 'TH-PAY-' . date('Y') . '-' . strtoupper(Str::random(6));
 
-            $paymentMethod = $validated['payment_method'];
+            // If 100% discount, bypass payment gateway directly
+            if ($feeAmount <= 0.00) {
+                $payment = Payment::create([
+                    'user_id' => $userId,
+                    'course_id' => $course->id,
+                    'promo_code_id' => $promoCodeModel?->id,
+                    'enrollment_id' => $enrollmentId,
+                    'amount' => 0.00,
+                    'original_amount' => $originalFee,
+                    'discount_amount' => $discountAmount,
+                    'currency' => config('broadpay.currency', 'ZMW'),
+                    'payment_method' => 'promo_code',
+                    'provider' => 'promo',
+                    'phone_number' => $validated['phone_number'] ?? null,
+                    'reference' => $reference,
+                    'status' => 'completed',
+                    'paid_at' => now(),
+                    'metadata' => [
+                        'ip' => $request->ip(),
+                        'user_agent' => $request->userAgent(),
+                        'gateway' => 'Promo Code Free Enrollment',
+                        'track' => $validated['track'] ?? 'Beginner',
+                        'mode' => $validated['mode'] ?? 'group',
+                        'promo_code' => $promoCodeModel?->code,
+                        'discount_amount' => $discountAmount,
+                        'original_amount' => $originalFee,
+                        'initiated_at' => now()->toIso8601String(),
+                        'guest_data' => $guestData,
+                    ],
+                ]);
+
+                $this->fulfillPayment($payment);
+
+                return PaymentResult::completed(
+                    reference: $reference,
+                    message: 'Course enrollment successfully confirmed via promo code!'
+                );
+            }
+
+            $paymentMethod = $validated['payment_method'] ?? 'mobile_money';
             $provider = $validated['provider'] ?? ($paymentMethod === 'mobile_money' ? 'airtel' : 'visa');
 
             // 4. Initialize Payment Record (user_id is nullable for guests until paid)
             $payment = Payment::create([
                 'user_id' => $userId,
                 'course_id' => $course->id,
+                'promo_code_id' => $promoCodeModel?->id,
                 'enrollment_id' => $enrollmentId,
                 'amount' => $feeAmount,
+                'original_amount' => $originalFee,
+                'discount_amount' => $discountAmount,
                 'currency' => config('broadpay.currency', 'ZMW'),
                 'payment_method' => $paymentMethod,
                 'provider' => $provider,
@@ -107,6 +176,9 @@ class PaymentService
                     'gateway' => 'Lenco by BroadPay',
                     'track' => $validated['track'],
                     'mode' => $validated['mode'] ?? 'group',
+                    'promo_code' => $promoCodeModel?->code,
+                    'discount_amount' => $discountAmount,
+                    'original_amount' => $originalFee,
                     'initiated_at' => now()->toIso8601String(),
                     'guest_data' => $guestData,
                 ],
@@ -241,6 +313,35 @@ class PaymentService
             'paid_at' => $payment->paid_at ?? now(),
             'metadata' => $metadata,
         ]);
+
+        // Record promo code redemption if promo code was applied
+        try {
+            $promo = $payment->promoCode ?: ($payment->promo_code_id ? \App\Models\PromoCode::find($payment->promo_code_id) : null);
+            if (! $promo && ! empty($payment->metadata['promo_code'])) {
+                $promo = \App\Models\PromoCode::where('code', $payment->metadata['promo_code'])->first();
+            }
+
+            if ($promo && $course) {
+                $origAmt = (float) ($payment->original_amount ?? ($payment->metadata['original_amount'] ?? $payment->amount));
+                $discAmt = (float) ($payment->discount_amount ?? ($payment->metadata['discount_amount'] ?? 0.00));
+                $finalAmt = (float) $payment->amount;
+
+                $this->promoCodeService->recordUsage(
+                    promoCode: $promo,
+                    course: $course,
+                    payment: $payment,
+                    originalAmount: $origAmt,
+                    discountAmount: $discAmt,
+                    finalAmount: $finalAmt,
+                    user: $student,
+                    email: $student?->email ?? ($payment->metadata['guest_data']['email'] ?? null)
+                );
+            }
+        } catch (Throwable $e) {
+            Log::error('Failed to record promo code usage: ' . $e->getMessage(), [
+                'payment_id' => $payment->id,
+            ]);
+        }
 
         // 3. Send payment receipt to student
         try {

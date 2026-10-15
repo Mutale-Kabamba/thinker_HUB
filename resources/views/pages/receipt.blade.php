@@ -111,6 +111,18 @@
 
                 <div class="dotted-line"></div>
 
+                @if($payment->hasDiscount())
+                <div class="detail-row">
+                    <span class="detail-label">Original Price</span>
+                    <span class="detail-value text-slate-400 line-through">{{ $payment->formattedOriginalAmount() }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Promo Discount ({{ $payment->promoCodeText() }})</span>
+                    <span class="detail-value text-emerald-600 font-semibold">-{{ $payment->formattedDiscountAmount() }}</span>
+                </div>
+                <div class="dotted-line"></div>
+                @endif
+
                 <div class="detail-row mb-4">
                     <span class="detail-label">Total Payment</span>
                     <span class="detail-value text-base font-bold">{{ $payment->formattedAmount() }}</span>

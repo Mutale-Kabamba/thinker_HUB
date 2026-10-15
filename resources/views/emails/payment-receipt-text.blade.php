@@ -11,7 +11,11 @@ Your course enrollment payment has been received and verified.
 TRANSACTION DETAILS:
 - Reference #: {{ $payment->reference }}
 - Course: {{ $course->code }} - {{ $course->title }}
-- Amount: {{ $payment->formattedAmount() }}
+@if($payment->hasDiscount())
+- Original Price: {{ $payment->formattedOriginalAmount() }}
+- Promo Discount: -{{ $payment->formattedDiscountAmount() }} ({{ $payment->promoCodeText() }})
+@endif
+- Amount Paid: {{ $payment->formattedAmount() }}
 - Method: {{ str_replace('_', ' ', $payment->payment_method) }} ({{ strtoupper($payment->provider ?? 'Gateway') }})
 - Status: PAID & VERIFIED
 - Date: {{ $payment->paid_at?->format('F j, Y, g:i a') ?? now()->format('F j, Y, g:i a') }}

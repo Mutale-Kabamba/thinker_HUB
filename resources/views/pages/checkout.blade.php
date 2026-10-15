@@ -231,7 +231,22 @@
                     <h1 class="text-lg font-black text-[#0a2d27] leading-tight">{{ $course->title }}</h1>
                     <p class="text-xs text-slate-400 mt-0.5">{{ $course->code }} &bull; Level: <span class="font-semibold text-slate-600" x-text="track"></span> &bull; <span class="font-semibold text-teal-700" x-text="modeLabel"></span></p>
                 </div>
-                <span class="amount-chip shrink-0 ml-4 mt-1">ZMW <span x-text="Number(feeAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span></span>
+                <div class="shrink-0 ml-4 mt-1 text-right">
+                    <template x-if="appliedPromoCode && discountAmount > 0">
+                        <div>
+                            <div class="text-[11px] text-slate-400 line-through">
+                                ZMW <span x-text="Number(originalFeeAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span>
+                            </div>
+                            <span class="amount-chip" :class="isFree ? 'bg-emerald-100 text-emerald-800' : ''">
+                                <span x-show="!isFree">ZMW <span x-text="Number(finalFeeAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span></span>
+                                <span x-show="isFree">FREE</span>
+                            </span>
+                        </div>
+                    </template>
+                    <template x-if="!appliedPromoCode || discountAmount <= 0">
+                        <span class="amount-chip">ZMW <span x-text="Number(originalFeeAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span></span>
+                    </template>
+                </div>
             </div>
 
             {{-- Error message banner --}}
@@ -249,10 +264,11 @@
             <div class="pay-card border border-teal-100/80 overflow-hidden">
                 <form method="POST" action="{{ route('checkout.process', $course) }}" id="payment-form" @submit.prevent="submitPayment()">
                     @csrf
-                    <input type="hidden" name="payment_method" :value="paymentMethod">
+                    <input type="hidden" name="payment_method" :value="isFree ? 'promo_code' : paymentMethod">
                     <input type="hidden" name="provider" :value="provider">
                     <input type="hidden" name="track" :value="track">
                     <input type="hidden" name="mode" :value="mode">
+                    <input type="hidden" name="promo_code" :value="appliedPromoCode">
 
                     <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
 
@@ -357,111 +373,241 @@
                                     </div>
                                 </template>
                             </div>
+
+                            {{-- ── Promo Code / Coupon Section ── --}}
+                            <div class="pt-3 border-t border-slate-100">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="form-label mb-0 flex items-center gap-1.5 text-slate-600 font-bold">
+                                        <i class="fa-solid fa-ticket text-teal-600"></i>
+                                        <span>Promo Code / Voucher</span>
+                                    </label>
+                                    <template x-if="!appliedPromoCode">
+                                        <span class="text-[10px] text-slate-400">Have a coupon code?</span>
+                                    </template>
+                                </div>
+
+                                {{-- Unapplied State: Input Box & Apply Button --}}
+                                <div x-show="!appliedPromoCode" class="space-y-2">
+                                    <div class="flex gap-2">
+                                        <div class="relative flex-1">
+                                            <input
+                                                type="text"
+                                                x-model="promoInput"
+                                                @keydown.enter.prevent="applyPromoCode(promoInput)"
+                                                placeholder="Enter code (e.g. WELCOME20)"
+                                                class="form-input text-xs uppercase tracking-wider font-mono font-bold"
+                                                :disabled="isApplyingPromo"
+                                            >
+                                        </div>
+                                        <button
+                                            type="button"
+                                            @click="applyPromoCode(promoInput)"
+                                            :disabled="isApplyingPromo || !promoInput.trim()"
+                                            class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-800 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+                                        >
+                                            <template x-if="!isApplyingPromo">
+                                                <span>Apply</span>
+                                            </template>
+                                            <template x-if="isApplyingPromo">
+                                                <span class="flex items-center gap-1.5">
+                                                    <svg class="spinner h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    <span>Applying…</span>
+                                                </span>
+                                            </template>
+                                        </button>
+                                    </div>
+
+                                    <template x-if="promoError">
+                                        <div class="p-2.5 rounded-xl bg-red-50 border border-red-200 text-[11px] text-red-600 flex items-start justify-between gap-2">
+                                            <div class="flex items-start gap-1.5">
+                                                <i class="fa-solid fa-circle-exclamation text-xs mt-0.5 text-red-500 shrink-0"></i>
+                                                <span x-text="promoError"></span>
+                                            </div>
+                                            <button type="button" @click="promoError = ''" class="text-red-400 hover:text-red-700">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                {{-- Applied State: Badge with details & Remove button --}}
+                                <div x-show="appliedPromoCode" class="space-y-2">
+                                    <div class="rounded-xl border border-emerald-200 bg-emerald-50/80 p-3 flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shrink-0 font-bold shadow-sm">
+                                                <i class="fa-solid fa-check"></i>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-xs font-black text-emerald-950 font-mono tracking-wider" x-text="appliedPromoCode"></span>
+                                                    <span class="text-[10px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-200/60" x-text="appliedDiscountLabel"></span>
+                                                </div>
+                                                <p class="text-[11px] text-emerald-700 leading-tight mt-0.5 truncate" x-text="promoMessage"></p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            @click="removePromoCode()"
+                                            title="Remove promo code"
+                                            class="text-xs text-slate-400 hover:text-red-600 hover:bg-white/80 p-1.5 rounded-lg transition shrink-0 cursor-pointer"
+                                        >
+                                            <i class="fa-solid fa-trash-can text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- Price Breakdown Summary if promo code is applied --}}
+                                <template x-if="appliedPromoCode && discountAmount > 0">
+                                    <div class="mt-3 p-3.5 rounded-xl bg-slate-50/90 border border-slate-200/80 space-y-2 text-xs">
+                                        <div class="flex justify-between text-slate-500 font-medium">
+                                            <span>Original Course Fee</span>
+                                            <span>ZMW <span x-text="Number(originalFeeAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span></span>
+                                        </div>
+                                        <div class="flex justify-between text-emerald-600 font-bold">
+                                            <span class="flex items-center gap-1.5">
+                                                <i class="fa-solid fa-tag text-[10px]"></i>
+                                                <span>Promo Discount (<span x-text="appliedPromoCode"></span>)</span>
+                                            </span>
+                                            <span>- ZMW <span x-text="Number(discountAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span></span>
+                                        </div>
+                                        <div class="pt-2 border-t border-slate-200 flex justify-between items-center text-slate-900 font-black">
+                                            <span class="text-xs uppercase tracking-wide text-slate-600">Total Due</span>
+                                            <span :class="isFree ? 'text-emerald-700 font-black text-sm' : 'text-teal-900 text-sm'">
+                                                <span x-show="!isFree">ZMW <span x-text="Number(finalFeeAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span></span>
+                                                <span x-show="isFree" class="text-[11px] px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">100% FREE</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
 
                         {{-- ── Right Side: Payment Methods & Execution ── --}}
                         <div class="p-6 flex flex-col justify-between">
                             <div>
-                                {{-- Tabs --}}
-                                <div class="tab-bar mb-3">
-                                    <button type="button" @click="setTab('mobile')" class="tab-item" :class="tab === 'mobile' && 'active'">
-                                        <i class="fa-solid fa-mobile-screen-button mb-1 text-[13px]"></i><br>
-                                        Mobile Money
-                                    </button>
-                                    <button type="button" @click="setTab('card')" class="tab-item" :class="tab === 'card' && 'active'">
-                                        <i class="fa-solid fa-credit-card mb-1 text-[13px]"></i><br>
-                                        Debit / Credit Card
-                                    </button>
-                                </div>
-
-                                {{-- Mobile Money Tab --}}
-                                <div x-show="tab === 'mobile'" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-                                    <div class="py-1 space-y-1.5">
-                                        {{-- Airtel Money --}}
-                                        <div class="provider-item" :class="provider === 'airtel' && 'selected'">
-                                            <div class="provider-row" @click="selectProvider('airtel')">
-                                                <div class="provider-logo">
-                                                    <img src="{{ asset('images/momo/airtel.png') }}" alt="Airtel Money">
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <p class="provider-name">Airtel Money</p>
-                                                    <p class="text-[10px] text-slate-400">097 / 077</p>
-                                                </div>
-                                                <i class="fa-solid fa-chevron-right provider-arrow"></i>
-                                            </div>
-                                            <div class="provider-drawer" :class="provider === 'airtel' && 'open'">
-                                                <div class="provider-drawer-content">
-                                                    @include('partials.checkout-momo-form', ['color' => 'red'])
-                                                </div>
-                                            </div>
+                                {{-- 100% Free Promo Code Applied View --}}
+                                <template x-if="isFree">
+                                    <div class="py-6 px-4 text-center rounded-2xl bg-gradient-to-b from-teal-50/70 to-emerald-50/50 border border-teal-100 my-2">
+                                        <div class="w-14 h-14 rounded-2xl bg-teal-800 text-teal-100 flex items-center justify-center mx-auto mb-3 shadow-sm">
+                                            <i class="fa-solid fa-gift text-2xl"></i>
                                         </div>
-
-                                        {{-- MTN MoMo --}}
-                                        <div class="provider-item" :class="provider === 'mtn' && 'selected'">
-                                            <div class="provider-row" @click="selectProvider('mtn')">
-                                                <div class="provider-logo">
-                                                    <img src="{{ asset('images/momo/mtn.png') }}" alt="MTN MoMo">
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <p class="provider-name">MTN MoMo</p>
-                                                    <p class="text-[10px] text-slate-400">096 / 076</p>
-                                                </div>
-                                                <i class="fa-solid fa-chevron-right provider-arrow"></i>
-                                            </div>
-                                            <div class="provider-drawer" :class="provider === 'mtn' && 'open'">
-                                                <div class="provider-drawer-content">
-                                                    @include('partials.checkout-momo-form', ['color' => 'amber'])
-                                                </div>
-                                            </div>
+                                        <h4 class="font-black text-[#0a2d27] text-base">100% Free Enrollment!</h4>
+                                        <p class="text-xs text-slate-600 max-w-xs mx-auto mt-1 leading-relaxed">
+                                            Promo code <strong class="text-teal-800 font-mono" x-text="appliedPromoCode"></strong> covers this course in full.
+                                        </p>
+                                        <div class="mt-3 py-2 px-3 rounded-xl bg-white/80 border border-emerald-100 text-[11px] text-emerald-800 font-medium inline-flex items-center gap-1.5">
+                                            <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                                            <span>No mobile money or card required</span>
                                         </div>
+                                    </div>
+                                </template>
 
-                                        {{-- Zamtel Kwacha --}}
-                                        <div class="provider-item" :class="provider === 'zamtel' && 'selected'">
-                                            <div class="provider-row" @click="selectProvider('zamtel')">
-                                                <div class="provider-logo">
-                                                    <img src="{{ asset('images/momo/zamtel.png') }}" alt="Zamtel Kwacha">
+                                {{-- Standard Payment Methods Tabs & Inputs (hidden if 100% free) --}}
+                                <div x-show="!isFree">
+                                    {{-- Tabs --}}
+                                    <div class="tab-bar mb-3">
+                                        <button type="button" @click="setTab('mobile')" class="tab-item" :class="tab === 'mobile' && 'active'">
+                                            <i class="fa-solid fa-mobile-screen-button mb-1 text-[13px]"></i><br>
+                                            Mobile Money
+                                        </button>
+                                        <button type="button" @click="setTab('card')" class="tab-item" :class="tab === 'card' && 'active'">
+                                            <i class="fa-solid fa-credit-card mb-1 text-[13px]"></i><br>
+                                            Debit / Credit Card
+                                        </button>
+                                    </div>
+
+                                    {{-- Mobile Money Tab --}}
+                                    <div x-show="tab === 'mobile'" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                                        <div class="py-1 space-y-1.5">
+                                            {{-- Airtel Money --}}
+                                            <div class="provider-item" :class="provider === 'airtel' && 'selected'">
+                                                <div class="provider-row" @click="selectProvider('airtel')">
+                                                    <div class="provider-logo">
+                                                        <img src="{{ asset('images/momo/airtel.png') }}" alt="Airtel Money">
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="provider-name">Airtel Money</p>
+                                                        <p class="text-[10px] text-slate-400">097 / 077</p>
+                                                    </div>
+                                                    <i class="fa-solid fa-chevron-right provider-arrow"></i>
                                                 </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <p class="provider-name">Zamtel Kwacha</p>
-                                                    <p class="text-[10px] text-slate-400">095 / 075</p>
+                                                <div class="provider-drawer" :class="provider === 'airtel' && 'open'">
+                                                    <div class="provider-drawer-content">
+                                                        @include('partials.checkout-momo-form', ['color' => 'red'])
+                                                    </div>
                                                 </div>
-                                                <i class="fa-solid fa-chevron-right provider-arrow"></i>
                                             </div>
-                                            <div class="provider-drawer" :class="provider === 'zamtel' && 'open'">
-                                                <div class="provider-drawer-content">
-                                                    @include('partials.checkout-momo-form', ['color' => 'green'])
+
+                                            {{-- MTN MoMo --}}
+                                            <div class="provider-item" :class="provider === 'mtn' && 'selected'">
+                                                <div class="provider-row" @click="selectProvider('mtn')">
+                                                    <div class="provider-logo">
+                                                        <img src="{{ asset('images/momo/mtn.png') }}" alt="MTN MoMo">
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="provider-name">MTN MoMo</p>
+                                                        <p class="text-[10px] text-slate-400">096 / 076</p>
+                                                    </div>
+                                                    <i class="fa-solid fa-chevron-right provider-arrow"></i>
+                                                </div>
+                                                <div class="provider-drawer" :class="provider === 'mtn' && 'open'">
+                                                    <div class="provider-drawer-content">
+                                                        @include('partials.checkout-momo-form', ['color' => 'amber'])
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {{-- Zamtel Kwacha --}}
+                                            <div class="provider-item" :class="provider === 'zamtel' && 'selected'">
+                                                <div class="provider-row" @click="selectProvider('zamtel')">
+                                                    <div class="provider-logo">
+                                                        <img src="{{ asset('images/momo/zamtel.png') }}" alt="Zamtel Kwacha">
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="provider-name">Zamtel Kwacha</p>
+                                                        <p class="text-[10px] text-slate-400">095 / 075</p>
+                                                    </div>
+                                                    <i class="fa-solid fa-chevron-right provider-arrow"></i>
+                                                </div>
+                                                <div class="provider-drawer" :class="provider === 'zamtel' && 'open'">
+                                                    <div class="provider-drawer-content">
+                                                        @include('partials.checkout-momo-form', ['color' => 'green'])
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {{-- Card Tab --}}
-                                <div x-show="tab === 'card'" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="py-1">
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <img src="{{ asset('images/momo/visa.png') }}" alt="Visa" class="h-5 object-contain">
-                                        <img src="{{ asset('images/momo/Mastercard-logo.svg') }}" alt="Mastercard" class="h-5 object-contain">
-                                        <span class="text-[10px] text-slate-400 ml-1">Visa &bull; Mastercard</span>
-                                    </div>
+                                    {{-- Card Tab --}}
+                                    <div x-show="tab === 'card'" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="py-1">
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <img src="{{ asset('images/momo/visa.png') }}" alt="Visa" class="h-5 object-contain">
+                                            <img src="{{ asset('images/momo/Mastercard-logo.svg') }}" alt="Mastercard" class="h-5 object-contain">
+                                            <span class="text-[10px] text-slate-400 ml-1">Visa &bull; Mastercard</span>
+                                        </div>
 
-                                    <div class="space-y-2.5">
-                                        <div>
-                                            <label class="form-label">Card Number</label>
-                                            <input type="text" name="card_number" x-model="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19"
-                                                   class="form-input font-mono" @input="formatCardInput($event)">
-                                        </div>
-                                        <div>
-                                            <label class="form-label">Cardholder Name</label>
-                                            <input type="text" name="card_holder" x-model="cardHolder" placeholder="Full name on card" class="form-input">
-                                        </div>
-                                        <div class="grid grid-cols-2 gap-2">
+                                        <div class="space-y-2.5">
                                             <div>
-                                                <label class="form-label">Expiry Date</label>
-                                                <input type="text" name="card_expiry" x-model="cardExpiry" placeholder="MM/YY" maxlength="5" class="form-input text-center font-mono">
+                                                <label class="form-label">Card Number</label>
+                                                <input type="text" name="card_number" x-model="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19"
+                                                       class="form-input font-mono" @input="formatCardInput($event)">
                                             </div>
                                             <div>
-                                                <label class="form-label">CVV / CVC</label>
-                                                <input type="password" name="card_cvv" x-model="cardCvv" maxlength="4" placeholder="•••" class="form-input text-center font-mono">
+                                                <label class="form-label">Cardholder Name</label>
+                                                <input type="text" name="card_holder" x-model="cardHolder" placeholder="Full name on card" class="form-input">
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label class="form-label">Expiry Date</label>
+                                                    <input type="text" name="card_expiry" x-model="cardExpiry" placeholder="MM/YY" maxlength="5" class="form-input text-center font-mono">
+                                                </div>
+                                                <div>
+                                                    <label class="form-label">CVV / CVC</label>
+                                                    <input type="password" name="card_cvv" x-model="cardCvv" maxlength="4" placeholder="•••" class="form-input text-center font-mono">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -470,9 +616,15 @@
 
                             {{-- Pay CTA & Security --}}
                             <div class="pt-4 mt-4 border-t border-slate-100">
-                                <button type="submit" :disabled="isProcessing" class="pay-btn flex items-center justify-center gap-2">
+                                <button type="submit" :disabled="isProcessing" class="pay-btn flex items-center justify-center gap-2" :class="isFree ? 'bg-teal-700 hover:bg-teal-800' : ''">
                                     <template x-if="!isProcessing">
-                                        <span>Pay ZMW {{ number_format($feeAmount, 2) }}</span>
+                                        <span>
+                                            <span x-show="!isFree">Pay ZMW <span x-text="Number(finalFeeAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span></span>
+                                            <span x-show="isFree" class="flex items-center gap-2">
+                                                <i class="fa-solid fa-graduation-cap"></i>
+                                                <span>Complete Free Enrollment</span>
+                                            </span>
+                                        </span>
                                     </template>
                                     <template x-if="isProcessing">
                                         <span class="flex items-center gap-2">
@@ -529,7 +681,7 @@
 
                     <h3 class="text-base font-black text-[#0a2d27]">Approve on Your Mobile Phone</h3>
                     <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                        A payment prompt of <strong class="text-[#0a2d27]">ZMW {{ number_format($feeAmount, 2) }}</strong> was sent to <strong class="text-teal-600" x-text="'+260 ' + phoneNumber"></strong>.
+                        A payment prompt of <strong class="text-[#0a2d27]">ZMW <span x-text="Number(finalFeeAmount).toLocaleString('en-ZM', { minimumFractionDigits: 2 })"></span></strong> was sent to <strong class="text-teal-600" x-text="'+260 ' + phoneNumber"></strong>.
                     </p>
 
                     <div class="mt-4 rounded-xl border border-teal-100 bg-teal-50/60 p-3.5 text-center">
@@ -572,7 +724,7 @@
                 tab: 'mobile',
                 track: '{{ $selectedLevel }}',
                 mode: '{{ $selectedMode }}',
-                feeAmount: {{ (float) $feeAmount }},
+                originalFeeAmount: {{ (float) $feeAmount }},
                 options: @js($feeOptions),
                 showOptionSwitcher: false,
                 paymentMethod: 'mobile_money',
@@ -591,18 +743,104 @@
                 pendingReference: null,
                 pollIntervalId: null,
 
+                // Promo code state
+                promoInput: '{{ $initialPromoCode ?? "" }}',
+                appliedPromoCode: '',
+                appliedDiscountLabel: '',
+                promoMessage: '',
+                promoError: '',
+                discountAmount: 0,
+                isApplyingPromo: false,
+
+                get feeAmount() {
+                    return this.originalFeeAmount;
+                },
+
+                get finalFeeAmount() {
+                    return Math.max(0, this.originalFeeAmount - this.discountAmount);
+                },
+
+                get isFree() {
+                    return this.appliedPromoCode !== '' && this.discountAmount > 0 && this.finalFeeAmount <= 0;
+                },
+
                 get modeLabel() {
                     if (this.mode === 'one_on_one') return 'One-on-One';
                     if (this.mode === 'self_paced') return 'Self-Paced';
                     return 'Group Class';
                 },
 
+                init() {
+                    if (this.promoInput && this.promoInput.trim().length > 0) {
+                        this.applyPromoCode(this.promoInput);
+                    }
+                },
+
                 selectCourseOption(opt) {
                     this.track = opt.level;
                     this.mode = opt.category || opt.mode || 'group';
-                    this.feeAmount = Number(opt.amount);
+                    this.originalFeeAmount = Number(opt.amount);
                     this.showOptionSwitcher = false;
+                    if (this.appliedPromoCode) {
+                        this.applyPromoCode(this.appliedPromoCode);
+                    }
                 },
+
+                async applyPromoCode(codeToApply) {
+                    const code = (codeToApply || this.promoInput || '').trim();
+                    if (!code) {
+                        this.promoError = 'Please enter a promo code.';
+                        return;
+                    }
+
+                    this.isApplyingPromo = true;
+                    this.promoError = '';
+
+                    try {
+                        const token = document.querySelector('input[name="_token"]')?.value || '{{ csrf_token() }}';
+                        const res = await fetch('{{ route("checkout.apply-promo", $course) }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token
+                            },
+                            body: JSON.stringify({
+                                code: code,
+                                track: this.track,
+                                mode: this.mode,
+                                email: this.student?.email || '{{ Auth::user()?->email ?? "" }}'
+                            })
+                        });
+
+                        const data = await res.json();
+                        this.isApplyingPromo = false;
+
+                        if (res.ok && data.success) {
+                            this.appliedPromoCode = data.code;
+                            this.discountAmount = Number(data.discount_amount);
+                            this.appliedDiscountLabel = data.formatted_discount;
+                            this.promoMessage = data.message;
+                            this.promoError = '';
+                            this.promoInput = data.code;
+                        } else {
+                            this.promoError = data.message || 'Promo code could not be applied.';
+                        }
+                    } catch (e) {
+                        this.isApplyingPromo = false;
+                        this.promoError = 'Unable to verify promo code right now. Please try again.';
+                    }
+                },
+
+                removePromoCode() {
+                    this.appliedPromoCode = '';
+                    this.discountAmount = 0;
+                    this.appliedDiscountLabel = '';
+                    this.promoMessage = '';
+                    this.promoError = '';
+                    this.promoInput = '';
+                },
+
                 @php
                     $pendingReg = session('pending_registration', []);
                 @endphp
@@ -643,22 +881,24 @@
                 async submitPayment() {
                     this.errorMessage = '';
 
-                    // Validate selection
-                    if (this.tab === 'mobile') {
-                        if (!this.provider) {
-                            this.errorMessage = 'Please select a Mobile Money network (Airtel, MTN, or Zamtel).';
-                            return;
+                    // Validate payment gateway inputs only if not 100% free
+                    if (!this.isFree) {
+                        if (this.tab === 'mobile') {
+                            if (!this.provider) {
+                                this.errorMessage = 'Please select a Mobile Money network (Airtel, MTN, or Zamtel).';
+                                return;
+                            }
+                            if (!this.phoneNumber || this.phoneNumber.trim().length < 9) {
+                                this.errorMessage = 'Please enter a valid Zambian Mobile Money phone number.';
+                                return;
+                            }
                         }
-                        if (!this.phoneNumber || this.phoneNumber.trim().length < 9) {
-                            this.errorMessage = 'Please enter a valid Zambian Mobile Money phone number.';
-                            return;
-                        }
-                    }
 
-                    if (this.tab === 'card') {
-                        if (!this.cardNumber || this.cardNumber.replace(/\s/g, '').length < 13) {
-                            this.errorMessage = 'Please enter a valid credit or debit card number.';
-                            return;
+                        if (this.tab === 'card') {
+                            if (!this.cardNumber || this.cardNumber.replace(/\s/g, '').length < 13) {
+                                this.errorMessage = 'Please enter a valid credit or debit card number.';
+                                return;
+                            }
                         }
                     }
 
@@ -666,7 +906,7 @@
                     const formData = new FormData(form);
 
                     this.isProcessing = true;
-                    this.processingStep = 'Connecting to gateway…';
+                    this.processingStep = this.isFree ? 'Activating your enrollment…' : 'Connecting to gateway…';
 
                     try {
                         const response = await fetch(form.action, {

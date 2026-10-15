@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ClaimItemSeeder::class,
             CourseGamificationRuleSeeder::class,
+            PromoCodeSeeder::class,
         ]);
     }
 }
