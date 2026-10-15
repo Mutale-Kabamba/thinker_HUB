@@ -366,4 +366,33 @@ class InstructorOverview extends Page
             $current->addDay();
         }
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getViewData(): array
+    {
+        return [
+            'courses' => $this->courses,
+            'classrooms' => $this->classrooms,
+            'totalStudents' => $this->totalStudents,
+            'totalAssessments' => $this->totalAssessments,
+            'totalAssignments' => $this->totalAssignments,
+            'pendingSubmissionsCount' => $this->pendingSubmissionsCount,
+            'calendarWeeks' => $this->calendarWeeks,
+            'calendarEvents' => $this->calendarEvents,
+            'calendarMonth' => $this->calendarMonth,
+            'calendarYear' => $this->calendarYear,
+            'calendarMonthName' => $this->calendarMonthName,
+            'upcomingSessionCount' => $this->upcomingSessionCount,
+            'upcomingSessions' => $this->upcomingSessions,
+            'todaySchedule' => $this->todaySchedule,
+            'heroBanners' => $this->heroBanners,
+            'quickActions' => $this->quickActions,
+            'recentSubmissions' => $this->recentSubmissions,
+            'stats' => $this->stats,
+            'selectedDate' => $this->selectedDate,
+        ];
+    }
 }
+

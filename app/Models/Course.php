@@ -267,6 +267,11 @@ class Course extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function promoCodes(): HasMany
+    {
+        return $this->hasMany(PromoCode::class);
+    }
+
     public function getNumericFee(): float
     {
         $fees = trim((string) $this->fees);
