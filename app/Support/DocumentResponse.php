@@ -68,6 +68,12 @@ class DocumentResponse
      */
     public static function resolveFile(?string $rawPath, ?string $preferredDisk = null): array
     {
+        // Direct check if raw path is an existing absolute local file.
+        if (file_exists($rawPath) && is_file($rawPath)) {
+            $real = realpath($rawPath) ?: $rawPath;
+            return [Storage::disk('local'), basename($rawPath), 'local', $real];
+        }
+
         $normalized = PublicDiskPath::normalize($rawPath);
 
         if (! $normalized) {
@@ -78,10 +84,51 @@ class DocumentResponse
         $candidatePaths = [$normalized];
         $baseName = basename($normalized);
 
-        foreach (['submissions/', 'learning-materials/', 'attachments/', 'materials/', 'courses/'] as $prefix) {
-            $variation = $prefix . $baseName;
-            if (! in_array($variation, $candidatePaths, true)) {
-                $candidatePaths[] = $variation;
+        $variations = [
+            $normalized,
+            $baseName,
+            urldecode($normalized),
+            urldecode($baseName),
+            str_replace(' ', '_', $normalized),
+            str_replace(' ', '_', $baseName),
+            str_replace('_', ' ', $normalized),
+            str_replace('_', ' ', $baseName),
+        ];
+
+        foreach ($variations as $var) {
+            if ($var !== '' && ! in_array($var, $candidatePaths, true)) {
+                $candidatePaths[] = $var;
+            }
+        }
+
+        $folderPrefixes = [
+            'materials/',
+            'learning-materials/',
+            'assignments/',
+            'assessments/',
+            'submissions/',
+            'assignment-submissions/',
+            'instructor-cvs/',
+            'instructor-roadmaps/',
+            'instructor-curricula/',
+            'chat-attachments/',
+            'broadcasts/',
+            'claim-items/',
+            'hub-media/',
+            'course-images/',
+            'profile-photos/',
+            'attachments/',
+            'courses/',
+            'temp/',
+            'imports/',
+        ];
+
+        foreach ($folderPrefixes as $prefix) {
+            foreach ([$baseName, str_replace(' ', '_', $baseName), str_replace('_', ' ', $baseName)] as $bn) {
+                $candidate = $prefix . $bn;
+                if (! in_array($candidate, $candidatePaths, true)) {
+                    $candidatePaths[] = $candidate;
+                }
             }
         }
 
@@ -106,6 +153,12 @@ class DocumentResponse
             $candidateDisks[] = 'local';
         }
 
+        foreach (array_keys((array) config('filesystems.disks', [])) as $diskKey) {
+            if (! in_array($diskKey, $candidateDisks, true)) {
+                $candidateDisks[] = $diskKey;
+            }
+        }
+
         // Check disks for file existence with safe error suppression.
         foreach ($candidateDisks as $diskName) {
             try {
@@ -128,19 +181,25 @@ class DocumentResponse
 
         // Direct local filesystem checks.
         foreach ($candidatePaths as $candidatePath) {
+            $cleanRelative = ltrim($candidatePath, '/\\');
             $localChecks = [
-                storage_path('app/public/' . $candidatePath),
-                storage_path('app/private/' . $candidatePath),
-                storage_path('app/' . $candidatePath),
-                public_path('storage/' . $candidatePath),
+                $candidatePath,
+                storage_path('app/public/' . $cleanRelative),
+                storage_path('app/private/' . $cleanRelative),
+                storage_path('app/' . $cleanRelative),
+                public_path('storage/' . $cleanRelative),
+                public_path($cleanRelative),
+                storage_path('app/public/' . basename($cleanRelative)),
+                storage_path('app/' . basename($cleanRelative)),
             ];
 
             foreach ($localChecks as $localPath) {
-                if (file_exists($localPath) && is_file($localPath)) {
+                if ($localPath && is_string($localPath) && file_exists($localPath) && is_file($localPath)) {
+                    $resolvedAbs = realpath($localPath) ?: $localPath;
                     try {
-                        return [Storage::disk('local'), $candidatePath, 'local', $localPath];
+                        return [Storage::disk('local'), $cleanRelative, 'local', $resolvedAbs];
                     } catch (\Throwable) {
-                        return [null, $candidatePath, 'local', $localPath];
+                        return [null, $cleanRelative, 'local', $resolvedAbs];
                     }
                 }
             }

@@ -109,8 +109,9 @@ foreach ($laravelCloudDisks as $cloudDisk) {
     ];
 }
 
-if ($cloudDefaultDisk && isset($disks[$cloudDefaultDisk])) {
-    $disks['public'] = $disks[$cloudDefaultDisk];
+$targetCloudDisk = $cloudDefaultDisk ?: ($laravelCloudDisks[0]['disk'] ?? null);
+if ($targetCloudDisk && isset($disks[$targetCloudDisk])) {
+    $disks['public'] = $disks[$targetCloudDisk];
 }
 
 return [

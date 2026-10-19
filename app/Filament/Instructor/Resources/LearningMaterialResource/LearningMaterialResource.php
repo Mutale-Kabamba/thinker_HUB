@@ -9,6 +9,7 @@ use App\Filament\Instructor\Resources\LearningMaterialResource\Pages\ListLearnin
 use App\Models\LearningMaterial;
 use App\Models\User;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -151,6 +152,8 @@ class LearningMaterialResource extends Resource
                     })
                     ->disk('public')
                     ->directory('materials')
+                    ->openable()
+                    ->downloadable()
                     ->maxSize(20480)
                     ->acceptedFileTypes(fn (callable $get): array => match ($get('material_type')) {
                         'Image' => ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
@@ -253,6 +256,23 @@ class LearningMaterialResource extends Resource
                     ]),
             ])
             ->recordActions([
+                Action::make('view_file')
+                    ->label('View')
+                    ->icon('heroicon-m-eye')
+                    ->color('info')
+                    ->visible(fn (LearningMaterial $record): bool => filled($record->file_path) || filled($record->link_url))
+                    ->url(fn (LearningMaterial $record): string => filled($record->file_path)
+                        ? route('file.view', ['type' => 'material', 'id' => $record->id])
+                        : $record->link_url
+                    )
+                    ->openUrlInNewTab(),
+                Action::make('download_file')
+                    ->label('Download')
+                    ->icon('heroicon-m-arrow-down-tray')
+                    ->color('gray')
+                    ->visible(fn (LearningMaterial $record): bool => filled($record->file_path))
+                    ->url(fn (LearningMaterial $record): string => route('file.download', ['type' => 'material', 'id' => $record->id]))
+                    ->openUrlInNewTab(),
                 EditAction::make(),
             ])
             ->toolbarActions([

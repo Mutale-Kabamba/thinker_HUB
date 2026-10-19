@@ -117,6 +117,11 @@
                     this.viewerObjectUrl = '';
                 }
             },
+            getDownloadUrl(url) {
+                if (!url) return '';
+                const separator = url.includes('?') ? '&' : '?';
+                return url + separator + 'download=1';
+            },
         };
     };
 </script>
@@ -156,7 +161,7 @@
                 style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid #e5e7eb;border-radius:999px;color:#475569;text-decoration:none;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
-            <a :href="viewerRawUrl" download title="Download"
+            <a :href="getDownloadUrl(viewerRawUrl)" download title="Download"
                 style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid #e5e7eb;border-radius:999px;color:#475569;text-decoration:none;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </a>
@@ -189,7 +194,7 @@
                     <p style="font-size:1rem;font-weight:700;color:#1f2937;margin:0.6rem 0 0.2rem;">Presentation</p>
                     <p style="font-size:0.82rem;color:#6b7280;margin:0 0 1.1rem;word-break:break-word;" x-text="viewerName"></p>
                     <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
-                        <a :href="viewerRawUrl" download class="hub-btn hub-btn-primary" style="font-size:0.85rem;">Download</a>
+                        <a :href="getDownloadUrl(viewerRawUrl)" download class="hub-btn hub-btn-primary" style="font-size:0.85rem;">Download</a>
                         <a :href="viewerRawUrl" target="_blank" rel="noopener" class="hub-btn" style="font-size:0.85rem;border:1px solid var(--hub-border,#e5e7eb);">Open in new tab</a>
                     </div>
                     <p style="font-size:0.74rem;color:#9ca3af;margin:1rem 0 0;">Presentations open in your device's native viewer (PowerPoint, Keynote, or Google Slides).</p>
@@ -213,7 +218,7 @@
             <template x-if="viewerType === 'other'">
                 <div style="text-align:center;padding:2rem;align-self:center;">
                     <p style="font-size:1rem;color:#6b7280;margin:0 0 1rem;">Preview is not available for this file type.</p>
-                    <a :href="viewerUrl" download class="hub-btn hub-btn-primary" style="font-size:0.85rem;">Download File</a>
+                    <a :href="getDownloadUrl(viewerRawUrl || viewerUrl)" download class="hub-btn hub-btn-primary" style="font-size:0.85rem;">Download File</a>
                 </div>
             </template>
         </div>
