@@ -82,7 +82,7 @@ class InstructorApplicationAttachmentService
         $extSuffix = $ext ? '.' . $ext : '.pdf';
         $downloadName = "{$applicantSlug}_{$resolved['default_filename']}{$extSuffix}";
 
-        return Storage::disk('public')->download($resolved['normalized_path'], $downloadName);
+        return \App\Support\DocumentResponse::serve($resolved['normalized_path'], $downloadName, isDownload: true);
     }
 
     /**

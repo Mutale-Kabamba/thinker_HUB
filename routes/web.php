@@ -344,11 +344,12 @@ Route::get('/courses', function () use ($loadPublicCourses, $loadRecentCourseRev
 Route::get('/hub', App\Livewire\Public\HubIndex::class)->name('hub.index');
 Route::get('/hub/{post:slug}', App\Livewire\Public\HubShow::class)->name('hub.show');
 Route::get('/media/{media}/download', function (App\Models\Media $media) {
-    if (! Illuminate\Support\Facades\Storage::disk($media->disk)->exists($media->path)) {
-        abort(404, 'Requested media file not found.');
-    }
-
-    return Illuminate\Support\Facades\Storage::disk($media->disk)->download($media->path, $media->original_name);
+    return \App\Support\DocumentResponse::serve(
+        rawPath: $media->path,
+        downloadName: $media->original_name,
+        isDownload: true,
+        preferredDisk: $media->disk
+    );
 })->name('media.download');
 
 Route::get('/checkout/{course}', [PaymentController::class, 'showCheckout'])->name('checkout.show');
@@ -736,34 +737,18 @@ Route::middleware('auth')->group(function () {
             abort(404);
         }
 
-        $path = PublicDiskPath::normalize($path);
+        $downloadName = $request->query('name') ?: basename((string) $path);
+        $isDownload = (bool) $request->query('download');
 
-        if ($path && ! $disk->exists($path)) {
-            if ($disk->exists('submissions/' . basename($path))) {
-                $path = 'submissions/' . basename($path);
-            }
-        }
-
-        if (! $path || ! $disk->exists($path)) {
-            return response(
-                '<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:#6b7280;background:#f9fafb;">'
-                .'<div style="text-align:center;padding:2rem;"><svg xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;margin:0 auto 1rem;color:#d1d5db;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>'
-                .'<p style="margin:0 0 0.5rem;font-size:1rem;font-weight:600;">File not found</p>'
-                .'<p style="margin:0;font-size:0.85rem;">The file may have been removed or is not yet available.</p></div></body></html>',
-                404,
-                ['Content-Type' => 'text/html']
-            );
-        }
-
-        if ($request->query('download')) {
-            $downloadName = $request->query('name') ?: basename($path);
-            return $disk->download($path, $downloadName);
-        }
-
-        return $disk->response($path, basename($path), [
-            'X-Frame-Options' => 'SAMEORIGIN',
-            'Content-Security-Policy' => "frame-ancestors 'self'",
-        ]);
+        return \App\Support\DocumentResponse::serve(
+            rawPath: $path,
+            downloadName: $downloadName,
+            isDownload: $isDownload,
+            extraHeaders: [
+                'X-Frame-Options' => 'SAMEORIGIN',
+                'Content-Security-Policy' => "frame-ancestors 'self'",
+            ]
+        );
     })->name('file.view');
 
     Route::get('/file/download/{type}/{id}', function (Request $request, string $type, int $id) {
@@ -865,21 +850,13 @@ Route::middleware('auth')->group(function () {
             abort(404);
         }
 
-        $path = PublicDiskPath::normalize($path);
+        $downloadName = $downloadName ?: basename((string) $path);
 
-        if ($path && ! $disk->exists($path)) {
-            if ($disk->exists('submissions/' . basename($path))) {
-                $path = 'submissions/' . basename($path);
-            }
-        }
-
-        if (! $path || ! $disk->exists($path)) {
-            abort(404);
-        }
-
-        $downloadName = $downloadName ?: basename($path);
-
-        return $disk->download($path, $downloadName);
+        return \App\Support\DocumentResponse::serve(
+            rawPath: $path,
+            downloadName: $downloadName,
+            isDownload: true
+        );
     })->name('file.download');
 
     // Signed URL route for viewing Office documents via Google Docs Viewer.
@@ -963,22 +940,16 @@ Route::middleware('auth')->group(function () {
             abort(404);
         }
 
-        $path = PublicDiskPath::normalize($path);
+        [$resolvedDisk, $resolvedPath] = \App\Support\DocumentResponse::resolveFile($path);
 
-        if ($path && ! $disk->exists($path)) {
-            if ($disk->exists('submissions/' . basename($path))) {
-                $path = 'submissions/' . basename($path);
-            }
-        }
-
-        if (! $path || ! $disk->exists($path)) {
+        if (! $resolvedPath || ! $resolvedDisk) {
             abort(404);
         }
 
         $signedUrl = URL::temporarySignedRoute(
             'file.public',
             now()->addMinutes(30),
-            ['path' => $path]
+            ['path' => $resolvedPath]
         );
 
         return response()->json(['url' => $signedUrl]);
@@ -1004,14 +975,17 @@ Route::get('/file/public', function (Request $request) {
     }
 
     $path = PublicDiskPath::normalize((string) $request->query('path', ''));
-    $disk = Storage::disk('public');
 
     // Prevent path traversal attacks.
-    if (! $path || str_contains($path, '..') || ! $disk->exists($path)) {
+    if (! $path || str_contains($path, '..')) {
         abort(404);
     }
 
-    return $disk->response($path);
+    return \App\Support\DocumentResponse::serve(
+        rawPath: $path,
+        downloadName: basename($path),
+        isDownload: false
+    );
 })->name('file.public');
 
 // Sequential E-Learning Classroom & Course Player
