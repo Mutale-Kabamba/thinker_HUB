@@ -664,11 +664,15 @@ Route::middleware('auth')->group(function () {
             $testContent = 'storage_ok_' . time();
 
             try {
-                $writeSuccess = Storage::disk('public')->put($testFileName, $testContent);
+                $testConfig = (array) config('filesystems.disks.public', []);
+                $testConfig['throw'] = true;
+                $testDisk = Storage::build($testConfig);
+
+                $writeSuccess = $testDisk->put($testFileName, $testContent);
                 if ($writeSuccess) {
-                    $readContent = Storage::disk('public')->get($testFileName);
+                    $readContent = $testDisk->get($testFileName);
                     $readSuccess = ($readContent === $testContent);
-                    Storage::disk('public')->delete($testFileName);
+                    $testDisk->delete($testFileName);
                     $deleteSuccess = true;
                 }
             } catch (\Throwable $e) {

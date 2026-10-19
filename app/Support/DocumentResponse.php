@@ -121,6 +121,7 @@ class DocumentResponse
             'courses/',
             'temp/',
             'imports/',
+            'livewire-tmp/',
         ];
 
         foreach ($folderPrefixes as $prefix) {
@@ -168,13 +169,26 @@ class DocumentResponse
             }
 
             foreach ($candidatePaths as $candidatePath) {
+                // 1. Direct exists check
                 try {
                     if ($disk->exists($candidatePath)) {
                         return [$disk, $candidatePath, $diskName, null];
                     }
                 } catch (\Throwable $e) {
                     Log::warning("DocumentResponse: disk '{$diskName}' exists check failed for '{$candidatePath}': " . $e->getMessage());
-                    continue;
+                }
+
+                // 2. Direct read stream probe: Essential for S3/R2 storage where HeadObject or
+                // ListBucket is denied or fails silently due to 'throw' => false, but
+                // GetObject/readStream is permitted and works.
+                try {
+                    $testStream = $disk->readStream($candidatePath);
+                    if (is_resource($testStream)) {
+                        fclose($testStream);
+                        return [$disk, $candidatePath, $diskName, null];
+                    }
+                } catch (\Throwable) {
+                    // Not accessible via stream on this disk
                 }
             }
         }
@@ -191,6 +205,8 @@ class DocumentResponse
                 public_path($cleanRelative),
                 storage_path('app/public/' . basename($cleanRelative)),
                 storage_path('app/' . basename($cleanRelative)),
+                storage_path('app/livewire-tmp/' . basename($cleanRelative)),
+                storage_path('app/livewire-tmp/' . $cleanRelative),
             ];
 
             foreach ($localChecks as $localPath) {
@@ -200,6 +216,23 @@ class DocumentResponse
                         return [Storage::disk('local'), $cleanRelative, 'local', $resolvedAbs];
                     } catch (\Throwable) {
                         return [null, $cleanRelative, 'local', $resolvedAbs];
+                    }
+                }
+            }
+        }
+
+        // Glob fallback across storage/app subdirectories for the exact basename
+        $base = basename($normalized);
+        if ($base !== '') {
+            $potentialMatches = glob(storage_path('app/*/' . $base)) ?: [];
+            $potentialMatches = array_merge($potentialMatches, glob(storage_path('app/*/*/' . $base)) ?: []);
+            foreach ($potentialMatches as $match) {
+                if (is_string($match) && is_file($match)) {
+                    $resolvedAbs = realpath($match) ?: $match;
+                    try {
+                        return [Storage::disk('local'), $normalized, 'local', $resolvedAbs];
+                    } catch (\Throwable) {
+                        return [null, $normalized, 'local', $resolvedAbs];
                     }
                 }
             }
@@ -327,12 +360,62 @@ class DocumentResponse
         $adminInfo = '';
         if ($user && ($user->isAdmin() || $user->isInstructor()) && $rawPath) {
             $escapedPath = htmlspecialchars($rawPath, ENT_QUOTES, 'UTF-8');
-            $driver = htmlspecialchars((string) config('filesystems.disks.public.driver', 'local'), ENT_QUOTES, 'UTF-8');
-            $adminInfo = '<div style="margin-top:1.25rem;padding:0.75rem 1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:0.78rem;color:#991b1b;text-align:left;max-width:440px;word-break:break-all;">'
-                . '<strong>Admin Diagnostic:</strong><br>'
+            $publicDriver = htmlspecialchars((string) config('filesystems.disks.public.driver', 'local'), ENT_QUOTES, 'UTF-8');
+            $bucket = htmlspecialchars((string) config('filesystems.disks.public.bucket', '(none)'), ENT_QUOTES, 'UTF-8');
+            $region = htmlspecialchars((string) config('filesystems.disks.public.region', '(none)'), ENT_QUOTES, 'UTF-8');
+            $endpoint = htmlspecialchars((string) config('filesystems.disks.public.endpoint', '(default AWS)'), ENT_QUOTES, 'UTF-8');
+
+            $keyRaw = (string) config('filesystems.disks.public.key', '');
+            $keyStatus = empty($keyRaw) ? 'Missing' : htmlspecialchars(substr($keyRaw, 0, 4) . '...' . substr($keyRaw, -4), ENT_QUOTES, 'UTF-8');
+            $secretStatus = empty(config('filesystems.disks.public.secret')) ? 'Missing' : 'Configured';
+
+            $liveTelemetry = '';
+            if (config('filesystems.disks.public.driver') === 's3') {
+                try {
+                    $testConfig = (array) config('filesystems.disks.public', []);
+                    $testConfig['throw'] = true;
+                    $testConfig['report'] = false;
+                    $testDisk = Storage::build($testConfig);
+
+                    // 1. Probe S3 write permission
+                    $probeKey = '_diag_probe_' . time() . '.tmp';
+                    try {
+                        $testDisk->put($probeKey, 'ok');
+                        $testDisk->delete($probeKey);
+                        $liveTelemetry .= '<div style="margin-top:0.35rem;color:#16a34a;"><strong>Write Check:</strong> Bucket is writable (S3 connected)</div>';
+                    } catch (\Throwable $we) {
+                        $liveTelemetry .= '<div style="margin-top:0.35rem;color:#dc2626;"><strong>Write Check FAILED:</strong> ' . htmlspecialchars($we->getMessage(), ENT_QUOTES, 'UTF-8') . '</div>';
+                    }
+
+                    // 2. Probe file read
+                    try {
+                        $stream = $testDisk->readStream($rawPath);
+                        if (is_resource($stream)) {
+                            fclose($stream);
+                            $liveTelemetry .= '<div style="margin-top:0.35rem;color:#16a34a;"><strong>Read Check:</strong> File exists and is readable in bucket!</div>';
+                        } else {
+                            $liveTelemetry .= '<div style="margin-top:0.35rem;color:#dc2626;"><strong>Read Check:</strong> File not found in bucket (NoSuchKey).</div>';
+                        }
+                    } catch (\Throwable $re) {
+                        $liveTelemetry .= '<div style="margin-top:0.35rem;color:#dc2626;"><strong>Read Check FAILED:</strong> ' . htmlspecialchars($re->getMessage(), ENT_QUOTES, 'UTF-8') . '</div>';
+                    }
+                } catch (\Throwable $ie) {
+                    $liveTelemetry .= '<div style="margin-top:0.35rem;color:#dc2626;"><strong>S3 Init Error:</strong> ' . htmlspecialchars($ie->getMessage(), ENT_QUOTES, 'UTF-8') . '</div>';
+                }
+            }
+
+            $adminInfo = '<div style="margin-top:1.25rem;padding:0.85rem 1.1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:0.78rem;color:#991b1b;text-align:left;max-width:540px;word-break:break-all;line-height:1.5;">'
+                . '<strong style="font-size:0.85rem;color:#7f1d1d;">Admin Storage Diagnostic:</strong><br>'
                 . 'Target Path in DB: <code>' . $escapedPath . '</code><br>'
-                . 'Public Driver: <code>' . $driver . '</code><br>'
-                . '<span style="display:inline-block;margin-top:0.4rem;color:#b91c1c;">Tip: If this record was uploaded before storage sync or while uploads were misconfigured, please edit the item and re-upload the file.</span>'
+                . 'Public Driver: <code>' . $publicDriver . '</code> | Bucket: <code>' . $bucket . '</code><br>'
+                . 'Region: <code>' . $region . '</code> | Endpoint: <code>' . $endpoint . '</code><br>'
+                . 'Key: <code>' . $keyStatus . '</code> | Secret: <code>' . $secretStatus . '</code>'
+                . $liveTelemetry
+                . '<div style="margin-top:0.6rem;padding-top:0.5rem;border-top:1px dashed #fca5a5;color:#b91c1c;">'
+                . '<strong>Action Needed:</strong> If Write Check fails, your S3/AWS credentials in <code>.env</code> are incorrect or lack bucket write permissions. '
+                . 'If Write Check succeeds but Read Check fails, the file was not uploaded to this bucket (e.g. uploaded before S3 was enabled). '
+                . 'Please edit this item in the Admin/Instructor panel and re-upload the file.'
+                . '</div>'
                 . '</div>';
         }
 
