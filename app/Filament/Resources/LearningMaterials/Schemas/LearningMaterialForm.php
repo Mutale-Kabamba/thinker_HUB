@@ -162,7 +162,6 @@ class LearningMaterialForm
                     })
                     ->visible(fn (callable $get): bool => in_array($get('material_type'), ['Document', 'Image', 'Video']))
                     ->required(fn (callable $get, string $operation): bool => $operation === 'create' && ($get('material_type') === 'Document' || $get('material_type') === 'Image'))
-                    ->dehydrated(fn (?string $state): bool => filled($state))
                     ->columnSpanFull(),
 
                 TextInput::make('video_url')

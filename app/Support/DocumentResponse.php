@@ -221,7 +221,7 @@ class DocumentResponse
         [$disk, $path, $diskName, $localAbsolutePath] = static::resolveFile($rawPath, $preferredDisk);
 
         if (! $path || (! $disk && ! $localAbsolutePath)) {
-            return static::notFoundResponse($isDownload, $extraHeaders);
+            return static::notFoundResponse($isDownload, $extraHeaders, $rawPath);
         }
 
         $filename = $downloadName ?: basename($path);
@@ -305,13 +305,13 @@ class DocumentResponse
             }
         }
 
-        return static::notFoundResponse($isDownload, $extraHeaders);
+        return static::notFoundResponse($isDownload, $extraHeaders, $rawPath);
     }
 
     /**
      * Generate a graceful 404 response.
      */
-    public static function notFoundResponse(bool $isDownload = false, array $extraHeaders = []): Response
+    public static function notFoundResponse(bool $isDownload = false, array $extraHeaders = [], ?string $rawPath = null): Response
     {
         if ($isDownload) {
             abort(404, 'The requested document could not be found.');
@@ -323,11 +323,26 @@ class DocumentResponse
             'Content-Security-Policy' => "frame-ancestors 'self'",
         ], $extraHeaders);
 
+        $user = auth()->user();
+        $adminInfo = '';
+        if ($user && ($user->isAdmin() || $user->isInstructor()) && $rawPath) {
+            $escapedPath = htmlspecialchars($rawPath, ENT_QUOTES, 'UTF-8');
+            $driver = htmlspecialchars((string) config('filesystems.disks.public.driver', 'local'), ENT_QUOTES, 'UTF-8');
+            $adminInfo = '<div style="margin-top:1.25rem;padding:0.75rem 1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:0.78rem;color:#991b1b;text-align:left;max-width:440px;word-break:break-all;">'
+                . '<strong>Admin Diagnostic:</strong><br>'
+                . 'Target Path in DB: <code>' . $escapedPath . '</code><br>'
+                . 'Public Driver: <code>' . $driver . '</code><br>'
+                . '<span style="display:inline-block;margin-top:0.4rem;color:#b91c1c;">Tip: If this record was uploaded before storage sync or while uploads were misconfigured, please edit the item and re-upload the file.</span>'
+                . '</div>';
+        }
+
         return response(
             '<html><head><title>File Not Found</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:#6b7280;background:#f9fafb;">'
-            .'<div style="text-align:center;padding:2rem;"><svg xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;margin:0 auto 1rem;color:#d1d5db;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>'
+            .'<div style="text-align:center;padding:2rem;display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;margin:0 auto 1rem;color:#d1d5db;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>'
             .'<p style="margin:0 0 0.5rem;font-size:1rem;font-weight:600;color:#1f2937;">File not found</p>'
-            .'<p style="margin:0;font-size:0.85rem;">The file may have been removed or is not yet available in storage.</p></div></body></html>',
+            .'<p style="margin:0;font-size:0.85rem;">The file may have been removed or is not yet available in storage.</p>'
+            . $adminInfo
+            .'</div></body></html>',
             404,
             $headers
         );

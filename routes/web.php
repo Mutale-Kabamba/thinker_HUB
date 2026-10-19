@@ -653,7 +653,7 @@ Route::middleware('auth')->group(function () {
             $publicEndpoint = config('filesystems.disks.public.endpoint');
 
             $cloudEnvPresent = isset($_SERVER['LARAVEL_CLOUD_DISK_CONFIG']);
-            $manualKeyPresent = ! empty(env('AWS_ACCESS_KEY_ID'));
+            $manualKeyPresent = ! empty(config('filesystems.disks.s3.key'));
 
             $writeSuccess = false;
             $readSuccess = false;
@@ -718,7 +718,7 @@ Route::middleware('auth')->group(function () {
             $material = ($user->isAdmin() || $user->isInstructor())
                 ? LearningMaterial::query()->findOrFail($id)
                 : LearningMaterial::query()->visibleTo($user)->findOrFail($id);
-            $path = $material->file_path;
+            $path = $material->file_path ?: $material->file_name;
 
             if ($user->role === 'student' || $user->isStudent()) {
                 try {
@@ -853,7 +853,7 @@ Route::middleware('auth')->group(function () {
             $material = ($user->isAdmin() || $user->isInstructor())
                 ? LearningMaterial::query()->findOrFail($id)
                 : LearningMaterial::query()->visibleTo($user)->findOrFail($id);
-            $path = $material->file_path;
+            $path = $material->file_path ?: $material->file_name;
             $downloadName = $material->file_name ?: ($material->title ? $material->title . '.' . pathinfo($path, PATHINFO_EXTENSION) : basename($path));
         } elseif ($type === 'assignment') {
             $assignment = ($user->isAdmin() || $user->isInstructor())

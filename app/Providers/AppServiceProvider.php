@@ -87,12 +87,12 @@ class AppServiceProvider extends ServiceProvider
                         $diskName = (string) $chosen['disk'];
                         $cloudDiskConfig = config('filesystems.disks.' . $diskName) ?: [
                             'driver' => 's3',
-                            'key' => $chosen['access_key_id'] ?? env('AWS_ACCESS_KEY_ID'),
-                            'secret' => $chosen['access_key_secret'] ?? env('AWS_SECRET_ACCESS_KEY'),
+                            'key' => $chosen['access_key_id'] ?? config('filesystems.disks.s3.key'),
+                            'secret' => $chosen['access_key_secret'] ?? config('filesystems.disks.s3.secret'),
                             'region' => $chosen['region'] ?? 'auto',
-                            'bucket' => $chosen['bucket'] ?? env('AWS_BUCKET'),
-                            'url' => $chosen['url'] ?? env('AWS_URL'),
-                            'endpoint' => $chosen['endpoint'] ?? env('AWS_ENDPOINT'),
+                            'bucket' => $chosen['bucket'] ?? config('filesystems.disks.s3.bucket'),
+                            'url' => $chosen['url'] ?? config('filesystems.disks.s3.url'),
+                            'endpoint' => $chosen['endpoint'] ?? config('filesystems.disks.s3.endpoint'),
                             'use_path_style_endpoint' => (bool) ($chosen['use_path_style_endpoint'] ?? false),
                             'throw' => false,
                             'report' => false,
@@ -121,7 +121,7 @@ class AppServiceProvider extends ServiceProvider
                     $this->app['filesystem']->forgetDisk('public');
                 }
             }
-        } elseif (! empty(env('AWS_ACCESS_KEY_ID')) && ! empty(env('AWS_BUCKET'))) {
+        } elseif (! empty(config('filesystems.disks.s3.key')) && ! empty(config('filesystems.disks.s3.bucket'))) {
             $s3Config = config('filesystems.disks.s3');
             if ($s3Config) {
                 config(['filesystems.disks.public' => $s3Config]);
