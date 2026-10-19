@@ -62,6 +62,10 @@ class PublicDiskPath
             return '/storage/'.ltrim($normalized, '/');
         }
 
-        return Storage::disk('public')->url($normalized);
+        try {
+            return Storage::disk('public')->url($normalized);
+        } catch (\Throwable) {
+            return '/storage/'.ltrim($normalized, '/');
+        }
     }
 }

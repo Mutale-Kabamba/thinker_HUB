@@ -219,7 +219,7 @@ class Assessments extends Page
         $this->refreshAssessments();
     }
 
-    public function downloadFile(int $assessmentId, ?int $fileIndex = null): ?StreamedResponse
+    public function downloadFile(int $assessmentId, ?int $fileIndex = null): mixed
     {
         $user = auth()->user();
 
@@ -244,22 +244,21 @@ class Assessments extends Page
             return null;
         }
 
-        $path = PublicDiskPath::normalize($rawPath);
-        $disk = Storage::disk('public');
+        [$resolvedDisk, $resolvedPath] = \App\Support\DocumentResponse::resolveFile($rawPath);
 
-        if (! $path || ! $disk->exists($path)) {
+        if (! $resolvedPath || ! $resolvedDisk) {
             Notification::make()->title('File not found.')->danger()->send();
 
             return null;
         }
 
-        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        $extension = pathinfo($resolvedPath, PATHINFO_EXTENSION);
         $downloadName = Str::slug($assessment->name ?: 'assessment') . '.' . $extension;
 
-        return $disk->download($path, $downloadName);
+        return \App\Support\DocumentResponse::serve($resolvedPath, $downloadName, isDownload: true);
     }
 
-    public function downloadSubmissionFile(int $assessmentId, ?int $fileIndex = null): ?StreamedResponse
+    public function downloadSubmissionFile(int $assessmentId, ?int $fileIndex = null): mixed
     {
         $user = auth()->user();
 
@@ -287,10 +286,9 @@ class Assessments extends Page
             return null;
         }
 
-        $path = PublicDiskPath::normalize($rawPath);
-        $disk = Storage::disk('public');
+        [$resolvedDisk, $resolvedPath] = \App\Support\DocumentResponse::resolveFile($rawPath);
 
-        if (! $path || ! $disk->exists($path)) {
+        if (! $resolvedPath || ! $resolvedDisk) {
             Notification::make()->title('Submission attachment is missing from storage.')->danger()->send();
 
             return null;
@@ -299,11 +297,11 @@ class Assessments extends Page
         $rawFirst = explode(' ', trim((string) ($user->name ?? 'Student')))[0] ?? 'Student';
         $studentFirst = Str::slug($rawFirst, '_');
         $assessmentSlug = Str::slug((string) ($submission->assessment?->name ?: 'Assessment'), '_');
-        $ext = pathinfo($path, PATHINFO_EXTENSION) ?: 'pdf';
+        $ext = pathinfo($resolvedPath, PATHINFO_EXTENSION) ?: 'pdf';
         $suffix = $fileIndex !== null && count($paths) > 1 ? '_' . ($fileIndex + 1) : '';
         $downloadName = "{$studentFirst}_{$assessmentSlug}{$suffix}.{$ext}";
 
-        return $disk->download($path, $downloadName);
+        return \App\Support\DocumentResponse::serve($resolvedPath, $downloadName, isDownload: true);
     }
 
     protected function refreshAssessments(): void
