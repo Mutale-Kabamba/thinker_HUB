@@ -65,12 +65,14 @@
                 const ext = name.split('.').pop().toLowerCase();
                 if (ext === 'pdf') {
                     this.viewerType = 'pdf';
+                    this.viewerLoading = true;
                     try {
                         this.viewerObjectUrl = await this.buildObjectUrl(url);
                         this.viewerUrl = this.viewerObjectUrl;
+                        this.viewerLoading = false;
                     } catch (e) {
-                        // Keep original URL as fallback when blob preview fails.
-                        this.viewerUrl = this.viewerRawUrl;
+                        this.viewerLoading = false;
+                        this.viewerType = 'error';
                     }
                 }
                 else if (['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) this.viewerType = 'image';
@@ -108,6 +110,7 @@
                 this.viewerUrl = '';
                 this.viewerRawUrl = '';
                 this.viewerDocxHtml = '';
+                this.viewerType = '';
                 this.viewerLoading = false;
                 if (this.viewerObjectUrl) {
                     URL.revokeObjectURL(this.viewerObjectUrl);
@@ -194,6 +197,18 @@
             </template>
             <template x-if="viewerType === 'text'">
                 <iframe :src="viewerUrl" class="doc-viewer-frame" style="width:100%;height:75vh;border:none;"></iframe>
+            </template>
+            <template x-if="viewerType === 'error'">
+                <div style="text-align:center;padding:3rem 1.5rem;align-self:center;">
+                    <div style="display:flex;justify-content:center;margin-bottom:0.75rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:3.25rem;height:3.25rem;color:#94a3b8;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
+                        </svg>
+                    </div>
+                    <p style="font-size:1.05rem;font-weight:700;color:#1e293b;margin:0 0 0.35rem;">File Not Available</p>
+                    <p style="font-size:0.85rem;color:#64748b;margin:0 0 1.25rem;max-width:440px;margin-inline:auto;">The requested document is not currently available in storage. It may have been removed or needs to be re-uploaded.</p>
+                    <button type="button" @click="closeViewer()" class="hub-btn hub-btn-secondary" style="font-size:0.85rem;padding:0.4rem 1.25rem;">Close</button>
+                </div>
             </template>
             <template x-if="viewerType === 'other'">
                 <div style="text-align:center;padding:2rem;align-self:center;">

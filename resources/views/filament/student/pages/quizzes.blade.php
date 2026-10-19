@@ -16,7 +16,7 @@
         </div>
 
         {{-- Desktop Table Card --}}
-        <div class="hub-quiz-listing edtech-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden hidden md:block">
+        <div class="hub-quiz-listing hub-desktop-only edtech-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
             <table class="w-full text-left text-xs">
                 <thead>
                     <tr class="bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-semibold text-[11px] uppercase tracking-wider">
@@ -99,7 +99,7 @@
         </div>
 
         {{-- Mobile Cards --}}
-        <div class="md:hidden space-y-3">
+        <div class="hub-mobile-only space-y-3">
             @forelse ($quizzes as $quiz)
                 @php
                     $statusPill = match ($quiz['status']) {

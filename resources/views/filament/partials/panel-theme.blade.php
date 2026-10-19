@@ -113,7 +113,7 @@
        GLOBAL PREMIUM BUTTON DESIGN SYSTEM (ALL PANELS)
        ========================================================================== */
     [hidden],
-    .hidden,
+    .hidden:not([class*="md:"]):not([class*="lg:"]):not([class*="sm:"]):not([class*="xl:"]),
     .fi-hidden,
     [x-cloak],
     [style*="display: none"],
@@ -2523,6 +2523,14 @@
     /* ============================================================ */
     .hub-desktop-only { display: block !important; }
     .hub-mobile-only  { display: none !important; }
+
+    @media (min-width: 769px) {
+        .md\:block { display: block !important; }
+        .md\:flex { display: flex !important; }
+        .md\:inline-flex { display: inline-flex !important; }
+        .md\:grid { display: grid !important; }
+        .md\:hidden { display: none !important; }
+    }
 
     /* Stats grid: 4 columns on desktop by default */
     .hub-stats-grid {
