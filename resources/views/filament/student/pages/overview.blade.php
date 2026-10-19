@@ -368,7 +368,7 @@
                     </div>
 
                     {{-- Desktop Courses Table --}}
-                    <div class="overflow-x-auto hidden md:block">
+                    <div class="overflow-x-auto hub-desktop-only">
                         <table class="w-full text-left text-xs">
                             <thead class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-[#233842]">
                                 <tr>
@@ -432,7 +432,7 @@
                     </div>
 
                     {{-- Mobile Course Cards --}}
-                    <div class="md:hidden space-y-3 pt-1">
+                    <div class="hub-mobile-only space-y-3 pt-1">
                         @forelse ($enrolledCourses as $idx => $course)
                             <div 
                                 x-show="activeTab === 'active' ? !@js($course['is_completed']) : @js($course['is_completed'])"
