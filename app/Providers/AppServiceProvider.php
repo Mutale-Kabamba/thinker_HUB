@@ -69,6 +69,29 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        // Align 'public' disk configuration with Laravel Cloud automatic disk or default cloud storage
+        if (isset($_SERVER['LARAVEL_CLOUD_DISK_CONFIG'])) {
+            try {
+                $cloudDisks = json_decode((string) $_SERVER['LARAVEL_CLOUD_DISK_CONFIG'], true);
+                if (is_array($cloudDisks) && ! empty($cloudDisks)) {
+                    $chosen = collect($cloudDisks)->firstWhere('is_default', true) ?? ($cloudDisks[0] ?? null);
+                    if ($chosen && ! empty($chosen['disk'])) {
+                        $cloudDiskConfig = config('filesystems.disks.' . $chosen['disk']);
+                        if ($cloudDiskConfig) {
+                            config(['filesystems.disks.public' => $cloudDiskConfig]);
+                        }
+                    }
+                }
+            } catch (\Throwable) {
+                // Ignore parsing errors during early boot
+            }
+        } elseif (config('filesystems.default') && ! in_array(config('filesystems.default'), ['local', 'public'], true)) {
+            $defaultConfig = config('filesystems.disks.' . config('filesystems.default'));
+            if ($defaultConfig && ($defaultConfig['driver'] ?? '') === 's3') {
+                config(['filesystems.disks.public' => $defaultConfig]);
+            }
+        }
+
         // Dynamically align WebAuthn Relying Party ID and Allowed Origins with current request
         if (! $this->app->runningInConsole()) {
             try {

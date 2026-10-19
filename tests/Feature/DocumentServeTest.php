@@ -214,4 +214,32 @@ class DocumentServeTest extends TestCase
         $this->assertEquals('auto', $config['disks']['cloud-bucket']['region']);
         $this->assertEquals('thinker-prod', $config['disks']['public']['bucket']);
     }
+
+    public function test_admin_can_access_storage_check(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.storage-check'));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'status' => 'CONNECTED_AND_WORKING',
+            'operations' => [
+                'write' => true,
+                'read' => true,
+                'delete' => true,
+            ],
+        ]);
+    }
+
+    public function test_non_admin_cannot_access_storage_check(): void
+    {
+        $response = $this->actingAs($this->student)
+            ->get(route('admin.storage-check'));
+
+        $response->assertStatus(403);
+    }
 }

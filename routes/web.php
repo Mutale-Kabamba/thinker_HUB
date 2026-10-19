@@ -628,6 +628,57 @@ Route::middleware('auth')->group(function () {
         Route::redirect('/assignments', '/manage/assignments')->name('assignments');
         Route::redirect('/assessments', '/manage/assessments')->name('assessments');
         Route::redirect('/materials', '/manage/learning-materials')->name('materials');
+
+        Route::get('/storage-check', function () {
+            $user = Auth::user();
+            abort_unless($user && ($user->isAdmin() || $user->isInstructor()), 403);
+
+            $defaultDisk = config('filesystems.default');
+            $publicDriver = config('filesystems.disks.public.driver');
+            $publicBucket = config('filesystems.disks.public.bucket');
+            $publicEndpoint = config('filesystems.disks.public.endpoint');
+
+            $cloudEnvPresent = isset($_SERVER['LARAVEL_CLOUD_DISK_CONFIG']);
+            $manualKeyPresent = ! empty(env('AWS_ACCESS_KEY_ID'));
+
+            $writeSuccess = false;
+            $readSuccess = false;
+            $deleteSuccess = false;
+            $error = null;
+
+            $testFileName = '_healthcheck_' . time() . '.txt';
+            $testContent = 'storage_ok_' . time();
+
+            try {
+                $writeSuccess = Storage::disk('public')->put($testFileName, $testContent);
+                if ($writeSuccess) {
+                    $readContent = Storage::disk('public')->get($testFileName);
+                    $readSuccess = ($readContent === $testContent);
+                    Storage::disk('public')->delete($testFileName);
+                    $deleteSuccess = true;
+                }
+            } catch (\Throwable $e) {
+                $error = get_class($e) . ': ' . $e->getMessage();
+            }
+
+            return response()->json([
+                'status' => ($writeSuccess && $readSuccess) ? 'CONNECTED_AND_WORKING' : 'STORAGE_FAILED',
+                'storage' => [
+                    'default_disk' => $defaultDisk,
+                    'public_driver' => $publicDriver,
+                    'public_bucket' => $publicBucket,
+                    'public_endpoint' => $publicEndpoint,
+                    'laravel_cloud_injected' => $cloudEnvPresent,
+                    'manual_aws_vars_defined' => $manualKeyPresent,
+                ],
+                'operations' => [
+                    'write' => $writeSuccess,
+                    'read' => $readSuccess,
+                    'delete' => $deleteSuccess,
+                ],
+                'error' => $error,
+            ], ($writeSuccess && $readSuccess) ? 200 : 500);
+        })->name('storage-check');
     });
 
     Route::middleware('auth')->group(function () {
