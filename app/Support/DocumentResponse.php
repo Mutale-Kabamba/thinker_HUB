@@ -119,7 +119,8 @@ class DocumentResponse
                     if ($disk->exists($candidatePath)) {
                         return [$disk, $candidatePath, $diskName, null];
                     }
-                } catch (\Throwable) {
+                } catch (\Throwable $e) {
+                    Log::warning("DocumentResponse: disk '{$diskName}' exists check failed for '{$candidatePath}': " . $e->getMessage());
                     continue;
                 }
             }
@@ -161,7 +162,7 @@ class DocumentResponse
         [$disk, $path, $diskName, $localAbsolutePath] = static::resolveFile($rawPath, $preferredDisk);
 
         if (! $path || (! $disk && ! $localAbsolutePath)) {
-            return static::notFoundResponse($isDownload);
+            return static::notFoundResponse($isDownload, $extraHeaders);
         }
 
         $filename = $downloadName ?: basename($path);
@@ -245,25 +246,31 @@ class DocumentResponse
             }
         }
 
-        return static::notFoundResponse($isDownload);
+        return static::notFoundResponse($isDownload, $extraHeaders);
     }
 
     /**
      * Generate a graceful 404 response.
      */
-    public static function notFoundResponse(bool $isDownload = false): Response
+    public static function notFoundResponse(bool $isDownload = false, array $extraHeaders = []): Response
     {
         if ($isDownload) {
             abort(404, 'The requested document could not be found.');
         }
 
+        $headers = array_merge([
+            'Content-Type' => 'text/html',
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Content-Security-Policy' => "frame-ancestors 'self'",
+        ], $extraHeaders);
+
         return response(
-            '<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:#6b7280;background:#f9fafb;">'
+            '<html><head><title>File Not Found</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:#6b7280;background:#f9fafb;">'
             .'<div style="text-align:center;padding:2rem;"><svg xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;margin:0 auto 1rem;color:#d1d5db;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>'
-            .'<p style="margin:0 0 0.5rem;font-size:1rem;font-weight:600;">File not found</p>'
-            .'<p style="margin:0;font-size:0.85rem;">The file may have been removed or is not yet available.</p></div></body></html>',
+            .'<p style="margin:0 0 0.5rem;font-size:1rem;font-weight:600;color:#1f2937;">File not found</p>'
+            .'<p style="margin:0;font-size:0.85rem;">The file may have been removed or is not yet available in storage.</p></div></body></html>',
             404,
-            ['Content-Type' => 'text/html']
+            $headers
         );
     }
 }

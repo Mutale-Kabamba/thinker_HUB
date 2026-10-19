@@ -109,7 +109,7 @@ foreach ($laravelCloudDisks as $cloudDisk) {
     ];
 }
 
-if ($cloudDefaultDisk && isset($disks[$cloudDefaultDisk]) && $useS3PublicDisk && empty($s3Bucket)) {
+if ($cloudDefaultDisk && isset($disks[$cloudDefaultDisk])) {
     $disks['public'] = $disks[$cloudDefaultDisk];
 }
 
