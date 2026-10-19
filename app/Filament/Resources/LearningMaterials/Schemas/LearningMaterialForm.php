@@ -129,6 +129,8 @@ class LearningMaterialForm
                     })
                     ->disk('public')
                     ->directory('materials')
+                    ->openable()
+                    ->downloadable()
                     ->maxSize(20480)
                     ->acceptedFileTypes(fn (callable $get): array => match ($get('material_type')) {
                         'Image' => [

@@ -15,6 +15,7 @@ use App\Models\ChatRoom;
 use App\Models\Course;
 use App\Models\CourseRating;
 use App\Models\HubPost;
+use App\Models\InstructorApplication;
 use App\Models\LearningMaterial;
 use App\Models\Media;
 use App\Models\Review;
@@ -351,6 +352,19 @@ Route::get('/media/{media}/download', function (App\Models\Media $media) {
         preferredDisk: $media->disk
     );
 })->name('media.download');
+
+Route::get('/media/{media}/view', function (App\Models\Media $media, Request $request) {
+    return \App\Support\DocumentResponse::serve(
+        rawPath: $media->path,
+        downloadName: $media->original_name,
+        isDownload: (bool) $request->query('download'),
+        preferredDisk: $media->disk,
+        extraHeaders: [
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Content-Security-Policy' => "frame-ancestors 'self'",
+        ]
+    );
+})->name('media.view');
 
 Route::get('/checkout/{course}', [PaymentController::class, 'showCheckout'])->name('checkout.show');
 Route::get('/courses/{course}/enroll', [PaymentController::class, 'showCheckout']);
@@ -784,6 +798,28 @@ Route::middleware('auth')->group(function () {
             } else {
                 $path = $attachments[0]['path'] ?? $chatMessage->attachment_path;
             }
+        } elseif ($type === 'instructor-application') {
+            $application = InstructorApplication::query()->findOrFail($id);
+            $canAccess = $user->isAdmin()
+                || ($application->user_id && $application->user_id === $user->id)
+                || (filled($application->email) && strtolower((string) $application->email) === strtolower((string) $user->email));
+            abort_unless($canAccess, 403);
+
+            $doc = $request->query('doc') ?: $request->query('attachment');
+            $paths = array_filter([
+                'cv' => $application->cv_path,
+                'roadmap' => $application->roadmap_path,
+                'full_roadmap' => $application->full_roadmap_path,
+                'curriculum' => $application->curriculum_path,
+            ]);
+
+            if ($doc && isset($paths[$doc])) {
+                $path = $paths[$doc];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths['cv'] ?? reset($paths);
+            }
         } else {
             abort(404);
         }
@@ -897,6 +933,36 @@ Route::middleware('auth')->group(function () {
                 $path = $attachments[0]['path'] ?? $chatMessage->attachment_path;
                 $downloadName = $attachments[0]['name'] ?? ($chatMessage->attachment_name ?: basename($path));
             }
+        } elseif ($type === 'instructor-application') {
+            $application = InstructorApplication::query()->findOrFail($id);
+            $canAccess = $user->isAdmin()
+                || ($application->user_id && $application->user_id === $user->id)
+                || (filled($application->email) && strtolower((string) $application->email) === strtolower((string) $user->email));
+            abort_unless($canAccess, 403);
+
+            $doc = $request->query('doc') ?: $request->query('attachment');
+            $paths = array_filter([
+                'cv' => $application->cv_path,
+                'roadmap' => $application->roadmap_path,
+                'full_roadmap' => $application->full_roadmap_path,
+                'curriculum' => $application->curriculum_path,
+            ]);
+
+            if ($doc && isset($paths[$doc])) {
+                $path = $paths[$doc];
+                $docKey = $doc;
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+                $docKey = array_search($fileParam, $paths, true);
+            } else {
+                $path = $paths['cv'] ?? reset($paths);
+                $docKey = 'cv';
+            }
+
+            $applicantSlug = Str::slug($application->name ?: 'Applicant', '_');
+            $ext = pathinfo((string) $path, PATHINFO_EXTENSION);
+            $extSuffix = $ext ? '.' . $ext : '';
+            $downloadName = "{$applicantSlug}_{$docKey}{$extSuffix}";
         } else {
             abort(404);
         }
@@ -986,6 +1052,28 @@ Route::middleware('auth')->group(function () {
                 $path = $fileParam;
             } else {
                 $path = $paths[0] ?? $submission->file_path;
+            }
+        } elseif ($type === 'instructor-application') {
+            $application = InstructorApplication::query()->findOrFail($id);
+            $canAccess = $user->isAdmin()
+                || ($application->user_id && $application->user_id === $user->id)
+                || (filled($application->email) && strtolower((string) $application->email) === strtolower((string) $user->email));
+            abort_unless($canAccess, 403);
+
+            $doc = $request->query('doc') ?: $request->query('attachment');
+            $paths = array_filter([
+                'cv' => $application->cv_path,
+                'roadmap' => $application->roadmap_path,
+                'full_roadmap' => $application->full_roadmap_path,
+                'curriculum' => $application->curriculum_path,
+            ]);
+
+            if ($doc && isset($paths[$doc])) {
+                $path = $paths[$doc];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths['cv'] ?? reset($paths);
             }
         } else {
             abort(404);

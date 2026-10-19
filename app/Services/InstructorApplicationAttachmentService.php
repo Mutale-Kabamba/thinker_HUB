@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\InstructorApplication;
+use App\Support\DocumentResponse;
 use App\Support\PublicDiskPath;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
@@ -82,7 +84,40 @@ class InstructorApplicationAttachmentService
         $extSuffix = $ext ? '.' . $ext : '.pdf';
         $downloadName = "{$applicantSlug}_{$resolved['default_filename']}{$extSuffix}";
 
-        return \App\Support\DocumentResponse::serve($resolved['normalized_path'], $downloadName, isDownload: true);
+        return DocumentResponse::serve($resolved['raw_path'], $downloadName, isDownload: true);
+    }
+
+    /**
+     * View a specific attachment file inline for an instructor application.
+     */
+    public function viewSingleAttachment(InstructorApplication $application, string $type): Response|StreamedResponse|null
+    {
+        $resolved = $this->resolveAttachment($application, $type);
+
+        if (! $resolved || ! $resolved['exists']) {
+            Notification::make()
+                ->title('Attachment not found')
+                ->body('The requested attached document could not be located on the server.')
+                ->warning()
+                ->send();
+
+            return null;
+        }
+
+        $applicantSlug = Str::slug($application->name ?: 'Applicant', '_');
+        $ext = pathinfo($resolved['path'], PATHINFO_EXTENSION);
+        $extSuffix = $ext ? '.' . $ext : '.pdf';
+        $viewName = "{$applicantSlug}_{$resolved['default_filename']}{$extSuffix}";
+
+        return DocumentResponse::serve(
+            rawPath: $resolved['raw_path'],
+            downloadName: $viewName,
+            isDownload: false,
+            extraHeaders: [
+                'X-Frame-Options' => 'SAMEORIGIN',
+                'Content-Security-Policy' => "frame-ancestors 'self'",
+            ]
+        );
     }
 
     /**
@@ -143,18 +178,29 @@ class InstructorApplicationAttachmentService
             $appFilesAdded = 0;
 
             foreach ($attachments as $type => $info) {
-                $normalized = PublicDiskPath::normalize($info['path']);
+                [$fDisk, $fPath, $fDiskName, $fLocalAbs] = DocumentResponse::resolveFile($info['path']);
 
-                if ($normalized && $disk->exists($normalized)) {
-                    $ext = pathinfo($normalized, PATHINFO_EXTENSION);
+                if ($fPath && ($fDisk || $fLocalAbs)) {
+                    $ext = pathinfo($fPath, PATHINFO_EXTENSION);
                     $extSuffix = $ext ? '.' . $ext : '.pdf';
                     $entryName = $folderPrefix . $info['default_filename'] . $extSuffix;
 
-                    // Read content safely (supports both local and S3 storage)
-                    $fileContents = $disk->get($normalized);
-                    $zip->addFromString($entryName, $fileContents);
-                    $filesAdded++;
-                    $appFilesAdded++;
+                    if ($fLocalAbs && file_exists($fLocalAbs) && is_file($fLocalAbs)) {
+                        $zip->addFile($fLocalAbs, $entryName);
+                        $filesAdded++;
+                        $appFilesAdded++;
+                    } elseif ($fDisk) {
+                        try {
+                            $fileContents = $fDisk->get($fPath);
+                            if ($fileContents !== false && $fileContents !== null) {
+                                $zip->addFromString($entryName, $fileContents);
+                                $filesAdded++;
+                                $appFilesAdded++;
+                            }
+                        } catch (\Throwable $e) {
+                            Log::warning("Zip attachments: unable to read {$fPath} on disk {$fDiskName}: " . $e->getMessage());
+                        }
+                    }
                 }
             }
 
@@ -177,8 +223,8 @@ class InstructorApplicationAttachmentService
             $readmeText .= "ATTACHED FILES STATUS:\n";
             $readmeText .= "----------------------\n";
             foreach ($attachments as $type => $info) {
-                $normalized = PublicDiskPath::normalize($info['path']);
-                $found = $normalized && $disk->exists($normalized);
+                [$fDisk, $fPath, $fDiskName, $fLocalAbs] = DocumentResponse::resolveFile($info['path']);
+                $found = filled($fPath) && ($fDisk !== null || $fLocalAbs !== null);
                 $readmeText .= "- " . $info['label'] . ": " . ($found ? 'Included' : 'Not found on server storage') . " (" . $info['path'] . ")\n";
             }
 
@@ -243,9 +289,8 @@ class InstructorApplicationAttachmentService
             return null;
         }
 
-        $normalizedPath = PublicDiskPath::normalize($rawPath);
-        $disk = Storage::disk('public');
-        $exists = $normalizedPath && $disk->exists($normalizedPath);
+        [$disk, $resolvedPath, $diskName, $localAbsolutePath] = DocumentResponse::resolveFile($rawPath);
+        $exists = filled($resolvedPath) && ($disk !== null || $localAbsolutePath !== null);
 
         $defaultFilename = match ($normalizedType) {
             'roadmap' => 'Course_Roadmap',
@@ -257,8 +302,11 @@ class InstructorApplicationAttachmentService
         return [
             'type' => $normalizedType,
             'raw_path' => $rawPath,
-            'normalized_path' => $normalizedPath,
-            'path' => $normalizedPath ?: $rawPath,
+            'normalized_path' => $resolvedPath ?: PublicDiskPath::normalize($rawPath),
+            'path' => $resolvedPath ?: $rawPath,
+            'disk' => $disk,
+            'disk_name' => $diskName,
+            'local_path' => $localAbsolutePath,
             'exists' => $exists,
             'default_filename' => $defaultFilename,
         ];

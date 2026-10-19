@@ -32,16 +32,25 @@ class PublicDiskPath
         $normalized = preg_replace('#/+#', '/', $normalized) ?? $normalized;
         $normalized = ltrim($normalized, '/');
 
+        // If the path contains an embedded storage prefix (e.g. from an absolute path or full URL)
         foreach ([
             'storage/app/public/',
-            'app/public/',
+            'storage/app/private/',
+            'storage/app/',
             'public/storage/',
+            'app/public/',
+            'app/private/',
+            'app/',
             'storage/',
             'public/',
         ] as $prefix) {
-            if (str_starts_with($normalized, $prefix)) {
-                $normalized = substr($normalized, strlen($prefix));
-                break;
+            $pos = strpos($normalized, $prefix);
+            if ($pos !== false) {
+                // If it starts with it or is preceded by a slash or drive colon (e.g. C:/.../storage/app/public/)
+                if ($pos === 0 || in_array($normalized[$pos - 1], ['/', ':'], true)) {
+                    $normalized = substr($normalized, $pos + strlen($prefix));
+                    break;
+                }
             }
         }
 

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Course;
+use App\Models\InstructorApplication;
 use App\Models\LearningMaterial;
 use App\Models\Media;
 use App\Models\User;
@@ -241,5 +242,131 @@ class DocumentServeTest extends TestCase
             ->get(route('admin.storage-check'));
 
         $response->assertStatus(403);
+    }
+
+    public function test_view_old_document_with_legacy_storage_prefix_resolves_and_streams(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('materials/legacy_lecture.pdf', '%PDF-1.4 legacy pdf content');
+
+        // Stored with legacy "storage/app/public/materials/..." in DB
+        $material = LearningMaterial::create([
+            'course_id' => $this->course->id,
+            'title' => 'Legacy Prefix Lecture',
+            'file_path' => 'storage/app/public/materials/legacy_lecture.pdf',
+            'is_published' => true,
+        ]);
+
+        $response = $this->actingAs($this->student)
+            ->get(route('file.view', ['type' => 'material', 'id' => $material->id]));
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
+    }
+
+    public function test_download_old_document_with_bare_filename_resolves_and_downloads(): void
+    {
+        Storage::fake('public');
+        // File saved on disk inside materials directory
+        Storage::disk('public')->put('materials/bare_notes.docx', 'docx binary content');
+
+        // Stored with bare filename "bare_notes.docx" without folder prefix
+        $material = LearningMaterial::create([
+            'course_id' => $this->course->id,
+            'title' => 'Bare Filename Notes',
+            'file_path' => 'bare_notes.docx',
+            'is_published' => true,
+        ]);
+
+        $response = $this->actingAs($this->student)
+            ->get(route('file.download', ['type' => 'material', 'id' => $material->id]));
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('attachment;', $response->headers->get('Content-Disposition'));
+    }
+
+    public function test_view_old_document_with_absolute_path_prefix_resolves(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('materials/archived_lecture.pdf', '%PDF-1.4 archived content');
+
+        // Stored with simulated server path like /var/www/html/storage/app/public/materials/...
+        $material = LearningMaterial::create([
+            'course_id' => $this->course->id,
+            'title' => 'Archived Lecture',
+            'file_path' => '/var/www/thinker_hub/storage/app/public/materials/archived_lecture.pdf',
+            'is_published' => true,
+        ]);
+
+        $response = $this->actingAs($this->student)
+            ->get(route('file.view', ['type' => 'material', 'id' => $material->id]));
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
+    }
+
+    public function test_instructor_application_documents_can_be_viewed_and_downloaded(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('instructor-cvs/applicant_cv.pdf', '%PDF-1.4 applicant cv');
+        Storage::disk('public')->put('instructor-roadmaps/applicant_roadmap.pdf', '%PDF-1.4 applicant roadmap');
+
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $application = InstructorApplication::create([
+            'name' => 'Jane Applicant',
+            'email' => 'jane@example.com',
+            'phone' => '1234567890',
+            'qualifications' => 'BSc Computer Science',
+            'experience' => '5 years teaching',
+            'course_concept_note' => 'Intro to Cloud Computing',
+            'proposed_curriculum' => 'Week 1-8 modules',
+            'cv_path' => 'instructor-cvs/applicant_cv.pdf',
+            'roadmap_path' => 'instructor-roadmaps/applicant_roadmap.pdf',
+            'proposal_type' => 'existing',
+            'status' => 'pending',
+        ]);
+
+        // Admin viewing CV
+        $viewCvResponse = $this->actingAs($admin)
+            ->get(route('file.view', ['type' => 'instructor-application', 'id' => $application->id, 'doc' => 'cv']));
+        $viewCvResponse->assertStatus(200);
+        $this->assertStringContainsString('application/pdf', $viewCvResponse->headers->get('Content-Type'));
+
+        // Admin downloading Roadmap
+        $downloadRoadmapResponse = $this->actingAs($admin)
+            ->get(route('file.download', ['type' => 'instructor-application', 'id' => $application->id, 'doc' => 'roadmap']));
+        $downloadRoadmapResponse->assertStatus(200);
+        $this->assertStringContainsString('attachment;', $downloadRoadmapResponse->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('jane_applicant_roadmap.pdf', $downloadRoadmapResponse->headers->get('Content-Disposition'));
+
+        // Admin viewing via report controller attachment route with view=1
+        $reportViewResponse = $this->actingAs($admin)
+            ->get(route('reports.instructor-application.attachment', ['application' => $application->id, 'type' => 'cv', 'view' => 1]));
+        $reportViewResponse->assertStatus(200);
+        $this->assertStringContainsString('application/pdf', $reportViewResponse->headers->get('Content-Type'));
+    }
+
+    public function test_media_view_route_streams_inline(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('uploads/banner.png', 'fake-png-content');
+
+        $media = Media::create([
+            'mediable_type' => Course::class,
+            'mediable_id' => $this->course->id,
+            'disk' => 'public',
+            'path' => 'uploads/banner.png',
+            'original_name' => 'banner.png',
+            'mime_type' => 'image/png',
+            'size_bytes' => 15,
+            'status' => 'ready',
+        ]);
+
+        $response = $this->get(route('media.view', ['media' => $media->id]));
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('image/png', $response->headers->get('Content-Type'));
+        $this->assertEquals('SAMEORIGIN', $response->headers->get('X-Frame-Options'));
     }
 }

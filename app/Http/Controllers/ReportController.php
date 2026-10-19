@@ -147,18 +147,21 @@ class ReportController extends Controller
     }
 
     /**
-     * Download a specific attached document (roadmap, full_roadmap, curriculum, cv).
+     * Download or view a specific attached document (roadmap, full_roadmap, curriculum, cv).
      */
     public function instructorApplicationAttachment(Request $request, InstructorApplication $application, string $type): Response
     {
         $this->authorizeAdminAccess($request);
 
-        $download = $this->attachmentService->downloadSingleAttachment($application, $type);
-        if (! $download) {
+        $response = $request->boolean('view') || $request->boolean('stream')
+            ? $this->attachmentService->viewSingleAttachment($application, $type)
+            : $this->attachmentService->downloadSingleAttachment($application, $type);
+
+        if (! $response) {
             abort(404, 'Requested attachment document was not found.');
         }
 
-        return $download;
+        return $response;
     }
 
     /**
