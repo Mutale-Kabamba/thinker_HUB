@@ -171,7 +171,7 @@ class CoursesTable
     /**
      * @return array<int, array{key: string, label: string, rows: array<int, array{level: string, amount: string, duration: string}>}>
      */
-    private static function feeSections(?string $value): array
+    public static function feeSections(?string $value): array
     {
         $rows = self::parseFeeRows($value);
         $groups = [
@@ -330,7 +330,7 @@ class CoursesTable
     /**
      * @return array<int, array{level: string, details: string}>
      */
-    private static function levelProgressionCards(?string $value): array
+    public static function levelProgressionCards(?string $value): array
     {
         $entries = self::parseLevelProgressions($value);
         $levels = ['Beginner', 'Intermediate', 'Advanced'];
