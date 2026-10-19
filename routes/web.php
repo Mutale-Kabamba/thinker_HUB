@@ -991,6 +991,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/student/{student}', [\App\Http\Controllers\ReportController::class, 'studentReport'])->name('student');
         Route::get('/course/{course}', [\App\Http\Controllers\ReportController::class, 'courseReport'])->name('course');
         Route::get('/intake/{intake}', [\App\Http\Controllers\ReportController::class, 'intakeReport'])->name('intake');
+        Route::get('/instructor-application/{application}', [\App\Http\Controllers\ReportController::class, 'instructorApplicationReport'])->name('instructor-application');
+        Route::get('/instructor-application/{application}/attachment/{type}', [\App\Http\Controllers\ReportController::class, 'instructorApplicationAttachment'])->name('instructor-application.attachment');
+        Route::get('/instructor-application/{application}/attachments-zip', [\App\Http\Controllers\ReportController::class, 'instructorApplicationAttachmentsZip'])->name('instructor-application.attachments-zip');
     });
 });
 

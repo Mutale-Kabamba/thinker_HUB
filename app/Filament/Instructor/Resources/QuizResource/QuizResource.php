@@ -2,6 +2,7 @@
 
 namespace App\Filament\Instructor\Resources\QuizResource;
 
+use App\Filament\Actions\ExportQuizzesAction;
 use App\Filament\Instructor\Concerns\ScopedToInstructor;
 use App\Filament\Instructor\Resources\QuizResource\Pages\CreateQuiz;
 use App\Filament\Instructor\Resources\QuizResource\Pages\EditQuiz;
@@ -244,9 +245,11 @@ class QuizResource extends Resource
             )
             ->recordActions([
                 EditAction::make(),
+                ExportQuizzesAction::makeRowAction(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    ExportQuizzesAction::makeBulkAction(static::instructorCourseIds()),
                     DeleteBulkAction::make(),
                 ]),
             ]);

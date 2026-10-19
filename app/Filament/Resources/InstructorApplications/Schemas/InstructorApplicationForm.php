@@ -51,6 +51,17 @@ class InstructorApplicationForm
                             ->label('Portfolio')
                             ->disabled(),
 
+                        TextInput::make('cv_path')
+                            ->label('Attached CV / Resume')
+                            ->disabled()
+                            ->suffixAction(
+                                \Filament\Actions\Action::make('download_cv')
+                                    ->icon('heroicon-m-arrow-down-tray')
+                                    ->tooltip('Download CV')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->downloadSingleAttachment($record, 'cv'))
+                            )
+                            ->visible(fn ($record) => filled($record?->cv_path)),
+
                         Textarea::make('bio')
                             ->disabled()
                             ->columnSpanFull()
@@ -104,6 +115,12 @@ class InstructorApplicationForm
                             ->label('Roadmap PDF')
                             ->disabled()
                             ->columnSpanFull()
+                            ->suffixAction(
+                                \Filament\Actions\Action::make('download_roadmap')
+                                    ->icon('heroicon-m-arrow-down-tray')
+                                    ->tooltip('Download Roadmap')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->downloadSingleAttachment($record, 'roadmap'))
+                            )
                             ->visible(fn ($record) => $record?->proposal_type === 'existing' && $record?->roadmap_path),
 
                         // New course fields
@@ -179,11 +196,23 @@ class InstructorApplicationForm
                         TextInput::make('full_roadmap_path')
                             ->label('Full Roadmap PDF')
                             ->disabled()
+                            ->suffixAction(
+                                \Filament\Actions\Action::make('download_full_roadmap')
+                                    ->icon('heroicon-m-arrow-down-tray')
+                                    ->tooltip('Download Full Roadmap')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->downloadSingleAttachment($record, 'full_roadmap'))
+                            )
                             ->visible(fn ($record) => $record?->proposal_type === 'new' && $record?->full_roadmap_path),
 
                         TextInput::make('curriculum_path')
                             ->label('Curriculum PDF')
                             ->disabled()
+                            ->suffixAction(
+                                \Filament\Actions\Action::make('download_curriculum')
+                                    ->icon('heroicon-m-arrow-down-tray')
+                                    ->tooltip('Download Curriculum')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->downloadSingleAttachment($record, 'curriculum'))
+                            )
                             ->visible(fn ($record) => $record?->proposal_type === 'new' && $record?->curriculum_path),
 
                         // Legacy fields (for older applications)

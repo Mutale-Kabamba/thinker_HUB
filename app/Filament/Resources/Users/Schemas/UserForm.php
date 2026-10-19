@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Users\Schemas;
 use App\Models\Course;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -54,6 +55,11 @@ class UserForm
                     ->label('NRC / Passport Number')
                     ->placeholder('e.g. 123456/11/1 or Passport No.')
                     ->maxLength(50),
+                Textarea::make('bio')
+                    ->label('Instructor Bio')
+                    ->rows(4)
+                    ->columnSpanFull()
+                    ->visible(fn (callable $get): bool => in_array($get('role'), ['instructor', 'admin'], true)),
                 Select::make('instructorCourses')
                     ->label('Assigned Instructor Courses')
                     ->relationship('instructorCourses', 'title')
@@ -69,10 +75,3 @@ class UserForm
             ]);
     }
 }
-
-use Filament\Forms\Components\Textarea;
-
-Textarea::make('bio')
-    ->label('Instructor Bio')
-    ->rows(4)
-    ->columnSpanFull();

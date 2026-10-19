@@ -5,6 +5,9 @@ namespace App\Filament\Resources\InstructorApplications\Pages;
 use App\Filament\Resources\InstructorApplications\InstructorApplicationResource;
 use App\Models\Course;
 use App\Models\InstructorApplication;
+use App\Services\InstructorApplicationAttachmentService;
+use App\Services\InstructorApplicationPdfService;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use App\Filament\Resources\Pages\BaseEditRecord;
 use Illuminate\Support\Str;
@@ -12,6 +15,44 @@ use Illuminate\Support\Str;
 class EditInstructorApplication extends BaseEditRecord
 {
     protected static string $resource = InstructorApplicationResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('download_pdf')
+                ->label('Download Application PDF')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('info')
+                ->action(function () {
+                    /** @var InstructorApplication $record */
+                    $record = $this->record;
+                    $service = app(InstructorApplicationPdfService::class);
+                    $pdf = $service->renderApplicationPdf($record);
+                    $filename = $service->getPdfFilename($record);
+
+                    return response()->streamDownload(
+                        fn () => print($pdf->output()),
+                        $filename,
+                        ['Content-Type' => 'application/pdf']
+                    );
+                }),
+
+            Action::make('download_attachments_zip')
+                ->label('Download All Attachments (ZIP)')
+                ->icon('heroicon-o-folder-arrow-down')
+                ->color('success')
+                ->visible(function () {
+                    /** @var InstructorApplication $record */
+                    $record = $this->record;
+                    return app(InstructorApplicationAttachmentService::class)->hasAttachments($record);
+                })
+                ->action(function () {
+                    /** @var InstructorApplication $record */
+                    $record = $this->record;
+                    return app(InstructorApplicationAttachmentService::class)->downloadApplicationAttachmentsZip($record);
+                }),
+        ];
+    }
 
     protected function afterSave(): void
     {
