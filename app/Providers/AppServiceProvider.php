@@ -131,6 +131,10 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
+        // Ensure Livewire temporary uploads always stage onto the local filesystem
+        // so that fopen($tmp->getRealPath()) succeeds when streaming files to cloud storage disks like S3/R2.
+        config(['livewire.temporary_file_upload.disk' => env('LIVEWIRE_TMP_DISK', 'local')]);
+
         // Dynamically align WebAuthn Relying Party ID and Allowed Origins with current request
         if (! $this->app->runningInConsole()) {
             try {
