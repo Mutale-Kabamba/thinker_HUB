@@ -4,12 +4,18 @@ $s3AdapterAvailable = class_exists(\League\Flysystem\AwsS3V3\PortableVisibilityC
 
 // Detect Laravel Cloud injected disk configs if present.
 $laravelCloudDisks = [];
-$rawCloudConfig = env('LARAVEL_CLOUD_DISK_CONFIG', $_SERVER['LARAVEL_CLOUD_DISK_CONFIG'] ?? null);
+$rawCloudConfig = env('LARAVEL_CLOUD_DISK_CONFIG')
+    ?: ($_SERVER['LARAVEL_CLOUD_DISK_CONFIG'] ?? null)
+    ?: ($_ENV['LARAVEL_CLOUD_DISK_CONFIG'] ?? null)
+    ?: (function_exists('getenv') ? getenv('LARAVEL_CLOUD_DISK_CONFIG') : null);
+
 if (is_string($rawCloudConfig) && trim($rawCloudConfig) !== '') {
     $decoded = json_decode($rawCloudConfig, true);
     if (is_array($decoded)) {
-        $laravelCloudDisks = $decoded;
+        $laravelCloudDisks = isset($decoded['disk']) ? [$decoded] : $decoded;
     }
+} elseif (is_array($rawCloudConfig)) {
+    $laravelCloudDisks = isset($rawCloudConfig['disk']) ? [$rawCloudConfig] : $rawCloudConfig;
 }
 
 // Check if any Laravel Cloud disk is marked as default
@@ -112,6 +118,14 @@ foreach ($laravelCloudDisks as $cloudDisk) {
 $targetCloudDisk = $cloudDefaultDisk ?: ($laravelCloudDisks[0]['disk'] ?? null);
 if ($targetCloudDisk && isset($disks[$targetCloudDisk])) {
     $disks['public'] = $disks[$targetCloudDisk];
+    if (! filled($rawFilesystemDisk) || $rawFilesystemDisk === 'local') {
+        $defaultDisk = $targetCloudDisk;
+    }
+} elseif (! empty($s3Key) && ! empty($s3Bucket) && $s3AdapterAvailable) {
+    $disks['public'] = $disks['s3'];
+    if (! filled($rawFilesystemDisk) || $rawFilesystemDisk === 'local') {
+        $defaultDisk = 's3';
+    }
 }
 
 return [

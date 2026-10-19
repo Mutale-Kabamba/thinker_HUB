@@ -129,6 +129,7 @@ class LearningMaterialForm
                     })
                     ->disk('public')
                     ->directory('materials')
+                    ->storeFileNamesIn('file_name')
                     ->openable()
                     ->downloadable()
                     ->maxSize(20480)

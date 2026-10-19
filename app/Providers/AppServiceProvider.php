@@ -70,15 +70,43 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // Align 'public' disk configuration with Laravel Cloud automatic disk or default cloud storage
-        if (isset($_SERVER['LARAVEL_CLOUD_DISK_CONFIG'])) {
+        $rawCloudConfig = $_SERVER['LARAVEL_CLOUD_DISK_CONFIG']
+            ?? $_ENV['LARAVEL_CLOUD_DISK_CONFIG']
+            ?? env('LARAVEL_CLOUD_DISK_CONFIG')
+            ?? (function_exists('getenv') ? getenv('LARAVEL_CLOUD_DISK_CONFIG') : null);
+
+        if (! empty($rawCloudConfig)) {
             try {
-                $cloudDisks = json_decode((string) $_SERVER['LARAVEL_CLOUD_DISK_CONFIG'], true);
+                $cloudDisks = is_array($rawCloudConfig) ? $rawCloudConfig : json_decode((string) $rawCloudConfig, true);
                 if (is_array($cloudDisks) && ! empty($cloudDisks)) {
+                    if (isset($cloudDisks['disk'])) {
+                        $cloudDisks = [$cloudDisks];
+                    }
                     $chosen = collect($cloudDisks)->firstWhere('is_default', true) ?? ($cloudDisks[0] ?? null);
                     if ($chosen && ! empty($chosen['disk'])) {
-                        $cloudDiskConfig = config('filesystems.disks.' . $chosen['disk']);
-                        if ($cloudDiskConfig) {
-                            config(['filesystems.disks.public' => $cloudDiskConfig]);
+                        $diskName = (string) $chosen['disk'];
+                        $cloudDiskConfig = config('filesystems.disks.' . $diskName) ?: [
+                            'driver' => 's3',
+                            'key' => $chosen['access_key_id'] ?? env('AWS_ACCESS_KEY_ID'),
+                            'secret' => $chosen['access_key_secret'] ?? env('AWS_SECRET_ACCESS_KEY'),
+                            'region' => $chosen['region'] ?? 'auto',
+                            'bucket' => $chosen['bucket'] ?? env('AWS_BUCKET'),
+                            'url' => $chosen['url'] ?? env('AWS_URL'),
+                            'endpoint' => $chosen['endpoint'] ?? env('AWS_ENDPOINT'),
+                            'use_path_style_endpoint' => (bool) ($chosen['use_path_style_endpoint'] ?? false),
+                            'throw' => false,
+                            'report' => false,
+                        ];
+
+                        config([
+                            'filesystems.disks.' . $diskName => $cloudDiskConfig,
+                            'filesystems.disks.public' => $cloudDiskConfig,
+                            'filesystems.default' => $diskName,
+                        ]);
+
+                        if ($this->app->resolved('filesystem')) {
+                            $this->app['filesystem']->forgetDisk('public');
+                            $this->app['filesystem']->forgetDisk($diskName);
                         }
                     }
                 }
@@ -89,6 +117,17 @@ class AppServiceProvider extends ServiceProvider
             $defaultConfig = config('filesystems.disks.' . config('filesystems.default'));
             if ($defaultConfig && ($defaultConfig['driver'] ?? '') === 's3') {
                 config(['filesystems.disks.public' => $defaultConfig]);
+                if ($this->app->resolved('filesystem')) {
+                    $this->app['filesystem']->forgetDisk('public');
+                }
+            }
+        } elseif (! empty(env('AWS_ACCESS_KEY_ID')) && ! empty(env('AWS_BUCKET'))) {
+            $s3Config = config('filesystems.disks.s3');
+            if ($s3Config) {
+                config(['filesystems.disks.public' => $s3Config]);
+                if ($this->app->resolved('filesystem')) {
+                    $this->app['filesystem']->forgetDisk('public');
+                }
             }
         }
 

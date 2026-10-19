@@ -11,6 +11,7 @@ return [
     | post_max_size (both 40M on this machine).
     */
     'temporary_file_upload' => [
+        'disk' => env('LIVEWIRE_TMP_DISK', 'public'),
         'rules' => 'required|file|max:30720',
     ],
     'navigate' => [

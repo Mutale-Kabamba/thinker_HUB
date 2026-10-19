@@ -152,6 +152,7 @@ class LearningMaterialResource extends Resource
                     })
                     ->disk('public')
                     ->directory('materials')
+                    ->storeFileNamesIn('file_name')
                     ->openable()
                     ->downloadable()
                     ->maxSize(20480)

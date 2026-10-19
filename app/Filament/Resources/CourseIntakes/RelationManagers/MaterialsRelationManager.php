@@ -96,6 +96,7 @@ class MaterialsRelationManager extends RelationManager
                             ->label('Upload File')
                             ->disk('public')
                             ->directory('learning-materials')
+                            ->storeFileNamesIn('file_name')
                             ->maxSize(20480)
                             ->columnSpanFull(),
 
@@ -156,6 +157,7 @@ class MaterialsRelationManager extends RelationManager
                                 ->label('Upload File')
                                 ->disk('public')
                                 ->directory('learning-materials')
+                                ->storeFileNamesIn('file_name')
                                 ->maxSize(20480)
                                 ->columnSpanFull(),
 
