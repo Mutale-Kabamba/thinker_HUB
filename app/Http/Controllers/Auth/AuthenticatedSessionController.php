@@ -58,6 +58,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = Auth::user();
+        if ($user && ($user->isInstructor() || $user->isAdmin())) {
+            $request->session()->put('just_logged_in_instructor', true);
+            $request->session()->forget('instructor_reminder_dismissed_session');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

@@ -39,6 +39,51 @@
         }"
         class="space-y-6 font-sans"
     >
+        {{-- Smart Reminder Action Ribbon if tasks require attention --}}
+        @if (! empty($remindersSummary['has_pending']) && (($remindersSummary['total_actionable'] ?? 0) > 0))
+            <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-teal-500/10 to-rose-500/10 border border-amber-500/30 dark:border-amber-400/20 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 font-black">
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ ($remindersSummary['has_overdue'] ?? false) ? 'bg-rose-500' : 'bg-amber-500' }}"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 {{ ($remindersSummary['has_overdue'] ?? false) ? 'bg-rose-600' : 'bg-amber-500' }}"></span>
+                        </span>
+                    </div>
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black uppercase tracking-wider {{ ($remindersSummary['has_overdue'] ?? false) ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400' }}">
+                                Action Required
+                            </span>
+                            <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                                • {{ $remindersSummary['total_actionable'] }} item{{ $remindersSummary['total_actionable'] === 1 ? '' : 's' }} pending review
+                            </span>
+                        </div>
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200">
+                            @if (($remindersSummary['unmarked_count'] ?? 0) > 0)
+                                <span class="text-rose-600 dark:text-rose-400 font-extrabold">{{ $remindersSummary['unmarked_count'] }} attendance register{{ $remindersSummary['unmarked_count'] === 1 ? '' : 's' }}</span> need marking.
+                            @endif
+                            @if (($remindersSummary['pending_assignments_count'] ?? 0) > 0)
+                                <span class="text-amber-600 dark:text-amber-400 font-extrabold">{{ $remindersSummary['pending_assignments_count'] }} assignment{{ $remindersSummary['pending_assignments_count'] === 1 ? '' : 's' }}</span> waiting for grading.
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <button
+                        type="button"
+                        onclick="window.dispatchEvent(new CustomEvent('open-instructor-reminders'))"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black text-white bg-slate-900 hover:bg-slate-800 dark:bg-teal-600 dark:hover:bg-teal-500 shadow-sm transition-all cursor-pointer"
+                    >
+                        <span>View Reminders Popup</span>
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        @endif
+
         {{-- ============================================================ --}}
         {{-- 1. MAIN TOP HERO BANNER CAROUSEL & INSTRUCTOR PROFILE CARD   --}}
         {{-- ============================================================ --}}
