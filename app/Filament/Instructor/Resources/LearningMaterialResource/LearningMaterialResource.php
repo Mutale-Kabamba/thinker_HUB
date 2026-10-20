@@ -208,7 +208,7 @@ class LearningMaterialResource extends Resource
                         'Quiz Preps' => 'warning',
                         'Answer Kits' => 'info',
                         'Project Guides' => 'indigo',
-                        'Cheat Sheets' => 'purple',
+                        'Cheat Sheets' => 'emerald',
                         'Practice Exercises' => 'teal',
                         'Past Papers' => 'amber',
                         'Rules' => 'danger',

@@ -4,7 +4,7 @@
         {{-- 1. TOP INTERACTIVE TIMETABLE CONTROL BAR --}}
         <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-4 sm:p-5 border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 flex items-center justify-center shadow-2xs border border-purple-100 dark:border-purple-900/60">
+                <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 flex items-center justify-center shadow-2xs border border-teal-100 dark:border-teal-900/60">
                     <x-heroicon-o-calendar-days class="w-5 h-5" />
                 </div>
                 <div>
@@ -20,7 +20,7 @@
                         <button 
                             type="button"
                             wire:click="setRangeMode('{{ $modeKey }}')"
-                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $rangeMode === $modeKey ? 'bg-[#7C3AED] text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}"
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $rangeMode === $modeKey ? 'bg-teal-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}"
                         >
                             {{ $modeLabel }}
                         </button>
@@ -55,7 +55,7 @@
                         </button>
                     </div>
 
-                    <div class="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/50 text-xs font-black text-[#7C3AED] dark:text-purple-300">
+                    <div class="px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-100 dark:border-teal-900/50 text-xs font-black text-teal-700 dark:text-teal-300">
                         {{ $periodTitle }}
                     </div>
                 </div>
@@ -71,16 +71,16 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             @if ($rangeMode === 'month')
-                                <x-heroicon-o-calendar class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
+                                <x-heroicon-o-calendar class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                                 <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Monthly Calendar</h3>
                             @elseif ($rangeMode === 'week')
-                                <x-heroicon-o-calendar-days class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
+                                <x-heroicon-o-calendar-days class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                                 <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Weekly Timetable</h3>
                             @elseif ($rangeMode === 'day')
-                                <x-heroicon-o-clock class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
+                                <x-heroicon-o-clock class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                                 <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Daily Agenda</h3>
                             @else
-                                <x-heroicon-o-calendar-days class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
+                                <x-heroicon-o-calendar-days class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                                 <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Custom Timetable</h3>
                             @endif
                         </div>
@@ -135,18 +135,18 @@
                                         @foreach ($week as $day)
                                             <div 
                                                 class="min-h-[88px] p-1.5 rounded-xl border transition-all relative flex flex-col justify-between
-                                                    {{ $day['is_today'] ? 'border-purple-300 dark:border-purple-800 bg-purple-50/40 dark:bg-purple-950/20 shadow-2xs' : ($day['in_month'] ? 'border-slate-100 dark:border-[#233842] bg-white dark:bg-[#102028]/60 hover:border-slate-200' : 'border-transparent bg-slate-50/40 dark:bg-slate-900/30 opacity-40') }}"
+                                                    {{ $day['is_today'] ? 'border-teal-300 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/20 shadow-2xs' : ($day['in_month'] ? 'border-slate-100 dark:border-[#233842] bg-white dark:bg-[#102028]/60 hover:border-slate-200' : 'border-transparent bg-slate-50/40 dark:bg-slate-900/30 opacity-40') }}"
                                                 @if (count($day['sessions']) > 0)
                                                     wire:click="openSessionDetails({{ $day['sessions'][0]['id'] }})"
                                                     style="cursor: pointer;"
                                                 @endif
                                             >
                                                 <div class="flex items-center justify-between">
-                                                    <span class="text-xs font-extrabold {{ $day['is_today'] ? 'w-6 h-6 rounded-full bg-[#7C3AED] text-white flex items-center justify-center shadow-2xs' : ($day['in_month'] ? 'text-slate-800 dark:text-slate-200 pl-1' : 'text-slate-400') }}">
+                                                    <span class="text-xs font-extrabold {{ $day['is_today'] ? 'w-6 h-6 rounded-full bg-teal-600 text-white flex items-center justify-center shadow-2xs' : ($day['in_month'] ? 'text-slate-800 dark:text-slate-200 pl-1' : 'text-slate-400') }}">
                                                         {{ $day['date'] }}
                                                     </span>
                                                     @if (count($day['sessions']) > 1)
-                                                        <span class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                                                        <span class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300">
                                                             +{{ count($day['sessions']) }}
                                                         </span>
                                                     @endif
@@ -184,11 +184,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-2">
                             @foreach ($weekDays as $day)
                                 <div class="rounded-xl border p-2.5 flex flex-col justify-between space-y-2
-                                    {{ $day['is_today'] ? 'border-purple-300 dark:border-purple-800 bg-purple-50/40 dark:bg-purple-950/20 ring-2 ring-[#7C3AED]/20' : 'border-slate-100 dark:border-[#233842] bg-white dark:bg-[#102028]' }}"
+                                    {{ $day['is_today'] ? 'border-teal-300 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/20 ring-2 ring-teal-500/20' : 'border-slate-100 dark:border-[#233842] bg-white dark:bg-[#102028]' }}"
                                 >
                                     <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-[#233842]">
                                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ $day['day_name'] }}</span>
-                                        <span class="text-xs font-black {{ $day['is_today'] ? 'text-[#7C3AED]' : 'text-slate-800 dark:text-slate-200' }}">{{ $day['date_num'] }}</span>
+                                        <span class="text-xs font-black {{ $day['is_today'] ? 'text-teal-600 dark:text-teal-400' : 'text-slate-800 dark:text-slate-200' }}">{{ $day['date_num'] }}</span>
                                     </div>
 
                                     <div class="space-y-1.5 min-h-[140px]">
@@ -233,7 +233,7 @@
                                     <p class="text-xs text-slate-400">{{ count($dayViewData['sessions'] ?? []) }} session(s) scheduled for today</p>
                                 </div>
                                 @if (!empty($dayViewData['is_today']))
-                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-[#7C3AED] text-white">Today</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-teal-600 text-white">Today</span>
                                 @endif
                             </div>
 
@@ -283,11 +283,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                             @foreach ($customDays as $day)
                                 <div class="rounded-xl border p-3 flex flex-col justify-between space-y-2
-                                    {{ $day['is_today'] ? 'border-purple-300 dark:border-purple-800 bg-purple-50/30 dark:bg-purple-950/20' : 'border-slate-100 dark:border-[#233842] bg-white dark:bg-[#102028]' }}"
+                                    {{ $day['is_today'] ? 'border-teal-300 dark:border-teal-800 bg-teal-50/30 dark:bg-teal-950/20' : 'border-slate-100 dark:border-[#233842] bg-white dark:bg-[#102028]' }}"
                                 >
                                     <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-[#233842]">
                                         <span class="text-[10px] font-bold text-slate-400 uppercase">{{ $day['day_name'] }}</span>
-                                        <span class="text-xs font-black {{ $day['is_today'] ? 'text-[#7C3AED]' : 'text-slate-800 dark:text-slate-200' }}">{{ $day['date_num'] }}</span>
+                                        <span class="text-xs font-black {{ $day['is_today'] ? 'text-teal-600 dark:text-teal-400' : 'text-slate-800 dark:text-slate-200' }}">{{ $day['date_num'] }}</span>
                                     </div>
                                     <div class="space-y-1.5">
                                         @forelse ($day['sessions'] as $s)
@@ -318,10 +318,10 @@
                 <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <x-heroicon-o-funnel class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
+                            <x-heroicon-o-funnel class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                             <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Filter by Status</h3>
                         </div>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300 border border-purple-100 dark:border-purple-900">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-100 dark:border-teal-900">
                             {{ count($filteredSessions) }} in view
                         </span>
                     </div>
@@ -331,35 +331,35 @@
                         <button 
                             type="button"
                             wire:click="setFilterStatus('')"
-                            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all {{ $filterStatus === '' ? 'bg-[#7C3AED] text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' }}"
+                            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all {{ $filterStatus === '' ? 'bg-teal-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' }}"
                         >
                             All ({{ $statusCounts['all'] }})
                         </button>
                         <button 
                             type="button"
                             wire:click="setFilterStatus('scheduled')"
-                            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all {{ $filterStatus === 'scheduled' ? 'bg-[#7C3AED] text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' }}"
+                            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all {{ $filterStatus === 'scheduled' ? 'bg-teal-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' }}"
                         >
                             Scheduled ({{ $statusCounts['scheduled'] }})
                         </button>
                         <button 
                             type="button"
                             wire:click="setFilterStatus('completed')"
-                            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all {{ $filterStatus === 'completed' ? 'bg-[#7C3AED] text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' }}"
+                            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all {{ $filterStatus === 'completed' ? 'bg-teal-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' }}"
                         >
                             Completed ({{ $statusCounts['completed'] }})
                         </button>
                         <button 
                             type="button"
                             wire:click="setFilterStatus('rescheduled')"
-                            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all {{ $filterStatus === 'rescheduled' ? 'bg-[#7C3AED] text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' }}"
+                            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all {{ $filterStatus === 'rescheduled' ? 'bg-teal-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' }}"
                         >
                             Rescheduled ({{ $statusCounts['rescheduled'] }})
                         </button>
                         <button 
                             type="button"
                             wire:click="setFilterStatus('cancelled')"
-                            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all {{ $filterStatus === 'cancelled' ? 'bg-[#7C3AED] text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' }}"
+                            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all {{ $filterStatus === 'cancelled' ? 'bg-teal-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' }}"
                         >
                             Cancelled ({{ $statusCounts['cancelled'] }})
                         </button>
@@ -377,8 +377,8 @@
                                 <select
                                     wire:model.live="filterCourse"
                                     class="w-full pl-2.5 pr-7 py-1.5 rounded-xl border text-xs font-semibold appearance-none cursor-pointer transition-all
-                                        {{ $filterCourse ? 'border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/40 text-[#7C3AED] dark:text-purple-300' : 'border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300' }}
-                                        focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50"
+                                        {{ $filterCourse ? 'border-teal-300 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300' : 'border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300' }}
+                                        focus:outline-none focus:ring-2 focus:ring-teal-500/50"
                                 >
                                     <option value="">All Courses</option>
                                     @foreach ($courseLegend as $cLeg)
@@ -405,8 +405,8 @@
                                 <select
                                     wire:model.live="filterDay"
                                     class="w-full pl-2.5 pr-7 py-1.5 rounded-xl border text-xs font-semibold appearance-none cursor-pointer transition-all
-                                        {{ $filterDay ? 'border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/40 text-[#7C3AED] dark:text-purple-300' : 'border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300' }}
-                                        focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50"
+                                        {{ $filterDay ? 'border-teal-300 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300' : 'border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300' }}
+                                        focus:outline-none focus:ring-2 focus:ring-teal-500/50"
                                 >
                                     <option value="">All Days</option>
                                     <option value="Monday">Monday</option>
@@ -431,14 +431,14 @@
                         <div class="flex items-center gap-1.5 flex-wrap">
                             @if ($filterCourse)
                                 @php $activeCourse = collect($courseLegend)->firstWhere('id', (int) $filterCourse); @endphp
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
                                     <x-heroicon-o-book-open class="w-2.5 h-2.5" />
                                     {{ $activeCourse['code'] ?? '' }}{{ $activeCourse ? ($activeCourse['code'] ? ' – ' : '').Illuminate\Support\Str::limit($activeCourse['title'], 18) : '' }}
                                     <button type="button" wire:click="$set('filterCourse', '')" class="ml-0.5 hover:text-red-500 transition-colors">×</button>
                                 </span>
                             @endif
                             @if ($filterDay)
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
                                     <x-heroicon-o-calendar class="w-2.5 h-2.5" />
                                     {{ $filterDay }}
                                     <button type="button" wire:click="$set('filterDay', '')" class="ml-0.5 hover:text-red-500 transition-colors">×</button>
@@ -461,7 +461,7 @@
                             type="text"
                             wire:model.live.debounce.300ms="searchSession"
                             placeholder="Search topic, course or code..."
-                            class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+                            class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
                         >
                     </div>
 
@@ -509,7 +509,7 @@
                                                     @endif
                                                     <span class="font-bold text-slate-400">{{ $s['type_label'] ?? 'Group' }}</span>
                                                 </div>
-                                                <span class="px-2 py-0.5 rounded-full font-bold {{ $s['status'] === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' }}">
+                                                <span class="px-2 py-0.5 rounded-full font-bold {{ $s['status'] === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-teal-100 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300' }}">
                                                     {{ ucfirst($s['status']) }}
                                                 </span>
                                             </div>
@@ -545,10 +545,10 @@
 
         {{-- 3. BOTTOM SECTION: STUDENT RESCHEDULE REQUESTS --}}
         @if (count($pendingRescheduleRequests) > 0)
-            <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-purple-200/80 dark:border-purple-900/60 shadow-sm space-y-4">
+            <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-amber-200/80 dark:border-amber-900/60 shadow-sm space-y-4">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#233842]">
                     <div class="flex items-center gap-2">
-                        <x-heroicon-o-bell-alert class="w-5 h-5 text-[#7C3AED] dark:text-purple-400" />
+                        <x-heroicon-o-bell-alert class="w-5 h-5 text-amber-600 dark:text-amber-400" />
                         <div>
                             <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Student Reschedule Requests</h3>
                             <p class="text-xs text-slate-400">Action required for the following student scheduling inquiries</p>
@@ -570,7 +570,7 @@
                                     Reason: {{ $req['reason'] ?: 'None provided' }}
                                 </p>
                                 @if ($req['preferred_date'])
-                                    <p class="text-[10px] text-[#7C3AED] dark:text-purple-300 font-bold">
+                                    <p class="text-[10px] text-teal-600 dark:text-teal-300 font-bold">
                                         Requested: {{ $req['preferred_date'] }} @if ($req['preferred_time']) at {{ $req['preferred_time'] }} @endif
                                     </p>
                                 @endif
@@ -578,7 +578,7 @@
                             <button 
                                 type="button"
                                 wire:click="openDecisionWizard('{{ $req['id'] }}')"
-                                class="px-3 py-1.5 rounded-full text-xs font-extrabold text-white bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-purple-600 dark:hover:bg-purple-500 shadow-2xs transition flex-shrink-0"
+                                class="px-3 py-1.5 rounded-full text-xs font-extrabold text-white bg-teal-600 hover:bg-teal-700 shadow-2xs transition flex-shrink-0"
                             >
                                 Review Request
                             </button>
@@ -665,16 +665,16 @@
 
                     {{-- Virtual Meeting Link --}}
                     @if ($selectedSessionDetails['meeting_link'])
-                        <div class="p-3.5 rounded-xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 flex items-center justify-between gap-3">
+                        <div class="p-3.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-900 flex items-center justify-between gap-3">
                             <div class="min-w-0 flex-1">
-                                <p class="text-xs font-bold text-purple-900 dark:text-purple-200">Virtual Classroom</p>
-                                <p class="text-[11px] text-purple-700/80 dark:text-purple-300/80 truncate">{{ $selectedSessionDetails['meeting_link'] }}</p>
+                                <p class="text-xs font-bold text-teal-900 dark:text-teal-200">Virtual Classroom</p>
+                                <p class="text-[11px] text-teal-700/80 dark:text-teal-300/80 truncate">{{ $selectedSessionDetails['meeting_link'] }}</p>
                             </div>
                             <a 
                                 href="{{ $selectedSessionDetails['meeting_link'] }}" 
                                 target="_blank" 
                                 rel="noopener"
-                                class="px-4 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
+                                class="px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
                             >
                                 <x-heroicon-o-video-camera class="w-3.5 h-3.5" />
                                 <span>Start Class</span>
@@ -718,7 +718,7 @@
                     <button 
                         type="button" 
                         wire:click="closeSessionDetails"
-                        class="px-4 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold shadow-sm transition-all"
+                        class="px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all"
                     >
                         Done
                     </button>
@@ -733,7 +733,7 @@
             <div class="bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in duration-150">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#233842]">
                     <div class="flex items-center gap-2">
-                        <x-heroicon-o-arrow-path class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
+                        <x-heroicon-o-arrow-path class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                         <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Reschedule Session</h3>
                     </div>
                     <button type="button" wire:click="cancelReschedule" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
@@ -747,7 +747,7 @@
                         <input 
                             type="date"
                             wire:model="rescheduleDate"
-                            class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+                            class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
                         >
                     </div>
 
@@ -759,7 +759,7 @@
                             <input 
                                 type="time"
                                 wire:model="rescheduleStartTime"
-                                class="w-full p-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+                                class="w-full p-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
                             >
                         </div>
                         <div>
@@ -767,7 +767,7 @@
                             <input 
                                 type="time"
                                 wire:model="rescheduleEndTime"
-                                class="w-full p-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+                                class="w-full p-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
                             >
                         </div>
                     </div>
@@ -784,7 +784,7 @@
                     <button 
                         type="button"
                         wire:click="submitReschedule"
-                        class="px-4 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold shadow-sm transition-all"
+                        class="px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all"
                     >
                         Save &amp; Notify Students
                     </button>
@@ -799,7 +799,7 @@
             <div class="bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in duration-150">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#233842]">
                     <div class="flex items-center gap-2">
-                        <x-heroicon-o-bell-alert class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
+                        <x-heroicon-o-bell-alert class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                         <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Student Reschedule Request</h3>
                     </div>
                     <button type="button" wire:click="closeDecisionWizard" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
@@ -811,7 +811,7 @@
                             <p class="text-xs font-extrabold text-slate-900 dark:text-slate-100">{{ $decisionStudentName }}</p>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400">Reason: {{ $decisionReason ?: 'None provided' }}</p>
                             @if ($decisionPreferredDate)
-                                <p class="text-[11px] text-[#7C3AED] dark:text-purple-300 font-bold mt-1">
+                                <p class="text-[11px] text-teal-600 dark:text-teal-300 font-bold mt-1">
                                     Requested: {{ $decisionPreferredDate }} @if ($decisionPreferredTime) at {{ $decisionPreferredTime }} @endif
                                 </p>
                             @endif
@@ -828,7 +828,7 @@
                             <button 
                                 type="button"
                                 wire:click="setDecisionStep('accept')"
-                                class="px-4 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold shadow-sm transition-all"
+                                class="px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all"
                             >
                                 Accept &amp; Set Time
                             </button>
@@ -843,7 +843,7 @@
                             <input 
                                 type="date"
                                 wire:model="decisionDate"
-                                class="w-full p-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+                                class="w-full p-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
                             >
                         </div>
                         <div class="grid grid-cols-2 gap-3">
@@ -854,7 +854,7 @@
                                 <input 
                                 type="time"
                                 wire:model="decisionStartTime"
-                                class="w-full p-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+                                class="w-full p-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
                                 >
                             </div>
                             <div>
@@ -862,7 +862,7 @@
                                 <input 
                                 type="time"
                                 wire:model="decisionEndTime"
-                                class="w-full p-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+                                class="w-full p-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
                                 >
                             </div>
                         </div>
@@ -878,7 +878,7 @@
                             <button 
                                 type="button"
                                 wire:click="acceptRescheduleRequest"
-                                class="px-4 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold shadow-sm transition-all"
+                                class="px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all"
                             >
                                 Confirm Acceptance
                             </button>
@@ -894,7 +894,7 @@
                                 wire:model="declineReason"
                                 rows="3"
                                 placeholder="Explain why this time slot cannot be accommodated..."
-                                class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#7C3AED] focus:outline-none"
+                                class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             ></textarea>
                         </div>
 
