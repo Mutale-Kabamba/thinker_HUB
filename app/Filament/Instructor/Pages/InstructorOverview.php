@@ -139,7 +139,7 @@ class InstructorOverview extends Page
             'initials' => Str::upper(substr($sub->user?->name ?? 'ST', 0, 2)),
             'submitted_at' => $sub->submitted_at ? $sub->submitted_at->diffForHumans() : 'Recently',
             'url' => AssessmentSubmissionResource::getUrl('edit', ['record' => $sub->id]),
-            'badge_color' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300',
+            'badge_color' => 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300',
         ]);
 
         $this->recentSubmissions = $recentAssignSubmissions->concat($recentAssessSubmissions)->take(5)->values()->all();
@@ -195,7 +195,7 @@ class InstructorOverview extends Page
                 'cta_url' => AssignmentSubmissionResource::getUrl(),
                 'metric_label' => 'Submissions Queue',
                 'metric_value' => (string) $this->pendingSubmissionsCount,
-                'css_gradient' => 'linear-gradient(135deg, #1e1b4b 0%, #312e81 45%, #0f172a 100%)',
+                'css_gradient' => 'linear-gradient(135deg, #0f172a 0%, #115e59 50%, #042f2e 100%)',
                 'avatar' => $userPhoto,
             ],
             [
@@ -204,7 +204,7 @@ class InstructorOverview extends Page
                     : 'Schedule Your Next Live Class',
                 'description' => 'Coordinate interactive workshops, 1-on-1 office hours, and group webinars seamlessly on your calendar.',
                 'badge' => 'Live Classes',
-                'badge_color' => 'bg-indigo-500/20 text-indigo-300 border-indigo-400/30',
+                'badge_color' => 'bg-sky-500/20 text-sky-300 border-sky-400/30',
                 'cta_label' => 'Open Schedule',
                 'cta_url' => route('filament.instructor.pages.schedule'),
                 'metric_label' => 'Upcoming Sessions',
@@ -221,35 +221,35 @@ class InstructorOverview extends Page
                 'icon' => 'heroicon-o-clipboard-document-check',
                 'url' => AssignmentSubmissionResource::getUrl(),
                 'badge' => $this->pendingSubmissionsCount > 0 ? (string) $this->pendingSubmissionsCount : null,
-                'color' => 'bg-teal-500 text-white',
+                'color' => 'bg-teal-600 text-white',
             ],
             [
                 'label' => 'Schedule Class',
                 'icon' => 'heroicon-o-calendar-days',
                 'url' => route('filament.instructor.pages.schedule'),
                 'badge' => null,
-                'color' => 'bg-indigo-500 text-white',
+                'color' => 'bg-emerald-600 text-white',
             ],
             [
                 'label' => 'Student Results',
                 'icon' => 'heroicon-o-chart-bar-square',
                 'url' => route('filament.instructor.pages.student-results'),
                 'badge' => null,
-                'color' => 'bg-emerald-500 text-white',
+                'color' => 'bg-teal-700 text-white',
             ],
             [
                 'label' => 'Send Broadcast',
                 'icon' => 'heroicon-o-megaphone',
                 'url' => route('filament.instructor.pages.broadcasts'),
                 'badge' => null,
-                'color' => 'bg-purple-500 text-white',
+                'color' => 'bg-cyan-600 text-white',
             ],
             [
                 'label' => 'Analytics',
                 'icon' => 'heroicon-o-presentation-chart-line',
                 'url' => route('filament.instructor.pages.analytics'),
                 'badge' => null,
-                'color' => 'bg-sky-500 text-white',
+                'color' => 'bg-slate-700 text-white',
             ],
         ];
     }

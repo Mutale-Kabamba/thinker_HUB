@@ -130,7 +130,7 @@
                                 type="button"
                                 x-on:click="goToSlide({{ $idx }})"
                                 class="carousel-indicator-dot rounded-full transition-all duration-300 focus:outline-none !min-h-0 !min-w-0"
-                                :class="currentSlide === {{ $idx }} ? '!w-6 bg-[#7C3AED] dark:bg-purple-400 shadow-xs' : '!w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'"
+                                :class="currentSlide === {{ $idx }} ? '!w-6 bg-teal-600 dark:bg-teal-400 shadow-xs' : '!w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'"
                                 style="height: 5px !important; min-height: 5px !important; max-height: 5px !important; padding: 0 !important; border: none !important;"
                                 aria-label="Go to slide {{ $idx + 1 }}"
                             ></button>
@@ -171,7 +171,7 @@
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">Teaching Profile</h2>
                     </div>
-                    <span class="text-xs font-extrabold text-[#7C3AED] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2.5 py-0.5 rounded-full border border-purple-100 dark:border-purple-900/50">
+                    <span class="text-xs font-extrabold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/50 px-2.5 py-0.5 rounded-full border border-teal-200/60 dark:border-teal-800/60">
                         {{ count($courses ?? []) }} Classes
                     </span>
                 </div>
@@ -181,7 +181,7 @@
                         @if (auth()->user()?->profile_photo_path)
                             <img src="{{ auth()->user()?->getFilamentAvatarUrl() }}" alt="{{ auth()->user()?->name ?? 'Instructor' }}" class="w-12 h-12 rounded-xl object-cover shadow-2xs border border-slate-200 dark:border-[#233842]" />
                         @else
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#7C3AED] to-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-2xs">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center font-black text-sm shadow-2xs">
                                 {{ Str::upper(substr(auth()->user()?->name ?? 'IN', 0, 2)) }}
                             </div>
                         @endif
@@ -212,7 +212,7 @@
                 <div class="pt-2 border-t border-slate-100 dark:border-[#233842]">
                     <a 
                         href="{{ \App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl() }}" 
-                        class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-extrabold text-white bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-purple-600 dark:hover:bg-purple-500 shadow-sm hover:shadow-md transition transform hover:-translate-y-0.5"
+                        class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 dark:from-teal-600 dark:to-teal-700 shadow-sm hover:shadow-md transition transform hover:-translate-y-0.5"
                     >
                         <span>Open Submission Queue</span>
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -390,9 +390,9 @@
                     @foreach ($quickActions as $action)
                         <a
                             href="{{ $action['url'] }}"
-                            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800/70 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 hover:text-[#7C3AED] dark:hover:text-purple-300 border border-slate-200/70 dark:border-slate-700/60 transition whitespace-nowrap transform hover:-translate-y-0.5 shadow-2xs"
+                            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800/70 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-200 hover:text-teal-700 dark:hover:text-teal-300 border border-slate-200/70 dark:border-slate-700/60 transition whitespace-nowrap transform hover:-translate-y-0.5 shadow-2xs"
                         >
-                            <x-filament::icon :icon="$action['icon']" class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
+                            <x-filament::icon :icon="$action['icon']" class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                             <span>{{ $action['label'] }}</span>
                             @if (!empty($action['badge']))
                                 <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white">
@@ -426,7 +426,7 @@
                         </div>
                         <a 
                             href="{{ route('filament.instructor.pages.student-results') }}" 
-                            class="text-xs font-extrabold text-[#7C3AED] dark:text-purple-400 hover:text-purple-700 flex items-center gap-1"
+                            class="text-xs font-extrabold text-teal-600 dark:text-teal-400 hover:text-teal-700 flex items-center gap-1"
                         >
                             <span>View All Grades</span>
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -440,7 +440,7 @@
                             <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#111b21] hover:shadow-md transition-all space-y-3">
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="space-y-0.5">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300">
+                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200/50 dark:border-teal-900/50">
                                             {{ $course['code'] }}
                                         </span>
                                         <h4 class="font-extrabold text-slate-900 dark:text-white text-sm line-clamp-1">
@@ -471,7 +471,7 @@
                                             @if (!empty($st['profile_photo_path']))
                                                 <img class="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 object-cover" src="{{ asset('storage/' . $st['profile_photo_path']) }}" alt="{{ $st['name'] }}">
                                             @else
-                                                <span class="inline-flex items-center justify-center h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 bg-[#7C3AED] text-[10px] font-bold text-white">
+                                                <span class="inline-flex items-center justify-center h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 bg-teal-700 text-[10px] font-bold text-white">
                                                     {{ Str::upper(substr($st['name'], 0, 1)) }}
                                                 </span>
                                             @endif
@@ -481,14 +481,14 @@
                                     <div class="flex items-center gap-1.5">
                                         <a 
                                             href="{{ \App\Filament\Instructor\Resources\AssignmentResource\AssignmentResource::getUrl() }}" 
-                                            class="p-1.5 rounded-lg text-slate-400 hover:text-[#7C3AED] hover:bg-purple-50 dark:hover:bg-slate-700 transition"
+                                            class="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition"
                                             title="Assignments"
                                         >
                                             <x-filament::icon icon="heroicon-o-document-text" class="w-4 h-4" />
                                         </a>
                                         <a 
                                             href="{{ route('filament.instructor.pages.student-results') }}" 
-                                            class="px-2.5 py-1 rounded-full text-[11px] font-bold text-[#7C3AED] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 transition"
+                                            class="px-2.5 py-1 rounded-full text-[11px] font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/40 border border-teal-200/60 dark:border-teal-800/60 transition"
                                         >
                                             Roster &rarr;
                                         </a>
@@ -523,7 +523,7 @@
 
                         <a 
                             href="{{ \App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl() }}" 
-                            class="text-xs font-extrabold text-[#7C3AED] dark:text-purple-400 hover:text-purple-700 flex items-center gap-1"
+                            class="text-xs font-extrabold text-teal-600 dark:text-teal-400 hover:text-teal-700 flex items-center gap-1"
                         >
                             <span>Open Full Queue</span>
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -565,7 +565,7 @@
                                     </span>
                                     <a 
                                         href="{{ $submission['url'] }}" 
-                                        class="px-3.5 py-1.5 rounded-full text-xs font-extrabold text-white bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-purple-600 dark:hover:bg-purple-500 shadow-2xs transition transform hover:-translate-y-0.5"
+                                        class="px-3.5 py-1.5 rounded-full text-xs font-extrabold text-white bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 shadow-2xs transition transform hover:-translate-y-0.5"
                                     >
                                         Grade &rarr;
                                     </a>
@@ -591,7 +591,7 @@
                 <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-3">
                     <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-[#233842]">
                         <div class="flex items-center gap-2">
-                            <x-heroicon-o-calendar-days class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
+                            <x-heroicon-o-calendar-days class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                             <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">
                                 {{ $calendarMonthName }}
                             </h2>
@@ -627,8 +627,8 @@
                                 <button
                                     type="button"
                                     x-on:click="selectDay('{{ $day['date_full'] }}')"
-                                    class="h-8 rounded-lg relative flex flex-col items-center justify-center transition font-semibold {{ $day['in_month'] ? 'text-slate-800 dark:text-slate-200' : 'text-slate-300 dark:text-slate-600' }} {{ $day['is_today'] ? 'bg-[#7C3AED] text-white font-black shadow-2xs' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}"
-                                    :class="selectedDate === '{{ $day['date_full'] }}' ? 'ring-2 ring-[#7C3AED] bg-purple-50 dark:bg-purple-950/60 font-black' : ''"
+                                    class="h-8 rounded-lg relative flex flex-col items-center justify-center transition font-semibold {{ $day['in_month'] ? 'text-slate-800 dark:text-slate-200' : 'text-slate-300 dark:text-slate-600' }} {{ $day['is_today'] ? 'bg-teal-600 text-white font-black shadow-2xs' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}"
+                                    :class="selectedDate === '{{ $day['date_full'] }}' ? 'ring-2 ring-teal-500 bg-teal-50 dark:bg-teal-950/60 font-black' : ''"
                                 >
                                     <span>{{ $day['date'] }}</span>
                                     @if (!empty($day['sessions']))
@@ -653,13 +653,13 @@
                                 Sessions on <strong x-text="selectedDate"></strong>:
                             </span>
                             <template x-for="item in events[selectedDate]" :key="item.title + item.start_time">
-                                <div class="p-2.5 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200/50 dark:border-purple-800/40 text-left space-y-1">
+                                <div class="p-2.5 rounded-xl bg-teal-50/70 dark:bg-teal-950/40 border border-teal-200/50 dark:border-teal-800/40 text-left space-y-1">
                                     <div class="flex items-start justify-between gap-2">
                                         <div class="flex-1 min-w-0">
-                                            <span class="font-bold text-xs text-purple-950 dark:text-purple-200 leading-snug break-words block" x-text="item.title"></span>
-                                            <p class="text-[11px] text-purple-700 dark:text-purple-400 leading-tight mt-0.5" x-text="item.course_title"></p>
+                                            <span class="font-bold text-xs text-teal-950 dark:text-teal-200 leading-snug break-words block" x-text="item.title"></span>
+                                            <p class="text-[11px] text-teal-700 dark:text-teal-400 leading-tight mt-0.5" x-text="item.course_title"></p>
                                         </div>
-                                        <span class="text-[10px] font-black text-[#7C3AED] dark:text-purple-300 shrink-0 whitespace-nowrap" x-text="item.start_time"></span>
+                                        <span class="text-[10px] font-black text-teal-600 dark:text-teal-300 shrink-0 whitespace-nowrap" x-text="item.start_time"></span>
                                     </div>
                                 </div>
                             </template>
@@ -675,7 +675,7 @@
                         </h2>
                         <a 
                             href="{{ route('filament.instructor.pages.schedule') }}" 
-                            class="text-[11px] font-extrabold text-[#7C3AED] dark:text-purple-400 hover:text-purple-700"
+                            class="text-[11px] font-extrabold text-teal-600 dark:text-teal-400 hover:text-teal-700"
                         >
                             Schedule &rarr;
                         </a>
@@ -703,7 +703,7 @@
                                         </p>
                                     </div>
                                     <div class="flex flex-col items-end shrink-0 gap-1 text-right">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap {{ $session['is_today'] ? 'bg-[#7C3AED] text-white font-black shadow-2xs' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' }}">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap {{ $session['is_today'] ? 'bg-teal-600 text-white font-black shadow-2xs' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' }}">
                                             {{ $session['date'] }}
                                         </span>
                                         <span class="text-[11px] font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">
@@ -715,7 +715,7 @@
                         @empty
                             <div class="py-4 text-center text-slate-400 dark:text-slate-500 text-xs">
                                 <p>No upcoming live sessions.</p>
-                                <a href="{{ route('filament.instructor.pages.schedule') }}" class="text-[#7C3AED] dark:text-purple-400 font-extrabold mt-1 inline-block">
+                                <a href="{{ route('filament.instructor.pages.schedule') }}" class="text-teal-600 dark:text-teal-400 font-extrabold mt-1 inline-block">
                                     + Schedule Session
                                 </a>
                             </div>
