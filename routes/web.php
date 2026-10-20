@@ -623,6 +623,20 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profiles/{user}', [ProfileController::class, 'update'])->name('profiles.update');
     Route::put('/profiles/{user}/enrollments', [ProfileController::class, 'syncEnrollments'])->name('profiles.enrollments.sync');
 
+    Route::post('/teach/api/dismiss-reminder', function (Request $request) {
+        $user = Auth::user();
+        abort_unless($user && ($user->isInstructor() || $user->isAdmin()), 403);
+
+        $duration = (string) $request->input('duration', 'session');
+        if ($duration === 'day') {
+            session(['instructor_reminder_dismissed_until' => now()->endOfDay()->timestamp]);
+        } else {
+            session(['instructor_reminder_dismissed_session' => true]);
+        }
+
+        return response()->json(['status' => 'ok', 'duration' => $duration]);
+    })->name('teach.dismiss-reminder');
+
     Route::prefix('student')->name('student.')->group(function () {
         Route::redirect('/overview', '/learn/overview')->name('overview');
         Route::redirect('/courses', '/learn/courses')->name('courses');

@@ -97,9 +97,13 @@ class InstructorPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,
-                fn (): string => view('filament.partials.top-search', [
+                fn (): string => view('filament.instructor.partials.topbar-reminders')->render() . view('filament.partials.top-search', [
                     'action' => route('filament.instructor.pages.search'),
                 ])->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.instructor.partials.smart-reminder-popup')->render(),
             )
             // FIX 2: Gracefully handle expired CSRF/sessions on background calls
             ->renderHook(

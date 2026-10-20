@@ -64,6 +64,8 @@ class InstructorOverview extends Page
 
     public array $stats = [];
 
+    public array $remindersSummary = [];
+
     public ?string $selectedDate = null;
 
     public function mount(): void
@@ -149,12 +151,17 @@ class InstructorOverview extends Page
         $gradedSubmissions = max(0, $totalSubmissions - $this->pendingSubmissionsCount);
         $gradingPercent = $totalSubmissions > 0 ? (int) round(($gradedSubmissions / $totalSubmissions) * 100) : 100;
 
+        $reminderService = app(\App\Services\InstructorReminderService::class);
+        $this->remindersSummary = $reminderService->getRemindersData($user);
+        $unmarkedRegistersCount = (int) ($this->remindersSummary['unmarked_count'] ?? 0);
+
         $this->stats = [
             'classes_total' => count($this->courses),
             'students_total' => $this->totalStudents,
             'assignments_total' => $this->totalAssignments,
             'assessments_total' => $this->totalAssessments,
             'pending_reviews' => $this->pendingSubmissionsCount,
+            'unmarked_registers' => $unmarkedRegistersCount,
             'grading_percent' => $gradingPercent,
             'upcoming_sessions' => $this->upcomingSessionCount,
         ];
@@ -214,8 +221,30 @@ class InstructorOverview extends Page
             ],
         ];
 
+        if ($unmarkedRegistersCount > 0) {
+            $this->heroBanners[] = [
+                'title' => "{$unmarkedRegistersCount} Attendance Register" . ($unmarkedRegistersCount === 1 ? '' : 's') . " Awaiting Marking",
+                'description' => "Stay on top of cohort engagement! Mark attendance registers for recently held class sessions.",
+                'badge' => 'Register Marking Required',
+                'badge_color' => 'bg-rose-500/20 text-rose-300 border-rose-400/30',
+                'cta_label' => 'Mark Register Now',
+                'cta_url' => route('filament.instructor.pages.attendance-register'),
+                'metric_label' => 'Unmarked Registers',
+                'metric_value' => (string) $unmarkedRegistersCount,
+                'css_gradient' => 'linear-gradient(135deg, #881337 0%, #be123c 45%, #4c0519 100%)',
+                'avatar' => $userPhoto,
+            ];
+        }
+
         // Quick Actions Shortcuts
         $this->quickActions = [
+            [
+                'label' => 'Mark Register',
+                'icon' => 'heroicon-o-clipboard-document-check',
+                'url' => route('filament.instructor.pages.attendance-register'),
+                'badge' => $unmarkedRegistersCount > 0 ? (string) $unmarkedRegistersCount : null,
+                'color' => $unmarkedRegistersCount > 0 ? 'bg-rose-600 text-white' : 'bg-teal-600 text-white',
+            ],
             [
                 'label' => 'Review Submissions',
                 'icon' => 'heroicon-o-clipboard-document-check',
