@@ -127,7 +127,7 @@ class InstructorOverview extends Page
             'student_photo' => $sub->user?->profile_photo_url ?? null,
             'initials' => Str::upper(substr($sub->user?->name ?? 'ST', 0, 2)),
             'submitted_at' => $sub->submitted_at ? $sub->submitted_at->diffForHumans() : 'Recently',
-            'url' => AssignmentSubmissionResource::getUrl('edit', ['record' => $sub->id]),
+            'url' => AssignmentSubmissionResource::getUrl('edit', ['record' => $sub->id], panel: 'instructor'),
             'badge_color' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300',
         ]);
 
@@ -140,7 +140,7 @@ class InstructorOverview extends Page
             'student_photo' => $sub->user?->profile_photo_url ?? null,
             'initials' => Str::upper(substr($sub->user?->name ?? 'ST', 0, 2)),
             'submitted_at' => $sub->submitted_at ? $sub->submitted_at->diffForHumans() : 'Recently',
-            'url' => AssessmentSubmissionResource::getUrl('edit', ['record' => $sub->id]),
+            'url' => AssessmentSubmissionResource::getUrl('edit', ['record' => $sub->id], panel: 'instructor'),
             'badge_color' => 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300',
         ]);
 
@@ -199,7 +199,7 @@ class InstructorOverview extends Page
                 'badge' => $this->pendingSubmissionsCount > 0 ? 'Pending Reviews' : 'All Clear',
                 'badge_color' => $this->pendingSubmissionsCount > 0 ? 'bg-amber-500/20 text-amber-300 border-amber-400/30' : 'bg-teal-500/20 text-teal-300 border-teal-400/30',
                 'cta_label' => 'Review Submissions',
-                'cta_url' => AssignmentSubmissionResource::getUrl(),
+                'cta_url' => AssignmentSubmissionResource::getUrl(panel: 'instructor'),
                 'metric_label' => 'Submissions Queue',
                 'metric_value' => (string) $this->pendingSubmissionsCount,
                 'css_gradient' => 'linear-gradient(135deg, #0f172a 0%, #115e59 50%, #042f2e 100%)',

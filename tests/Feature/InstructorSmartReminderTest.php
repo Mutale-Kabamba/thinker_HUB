@@ -122,8 +122,48 @@ class InstructorSmartReminderTest extends TestCase
         $this->assertTrue(in_array($response->getStatusCode(), [200, 302]));
 
         if ($response->getStatusCode() === 200) {
-            $response->assertSee('Tasks');
-            $response->assertSee('open-instructor-reminders');
+            // Top tasks button should be removed
+            $response->assertDontSee('hub-topbar-reminder-btn');
+            // The smart reminder popup should be rendered in the body
+            $response->assertSee('Instructor Dispatch');
         }
+    }
+
+    public function test_service_detects_today_sessions_and_auto_popup_flags(): void
+    {
+        $instructor = User::factory()->create([
+            'name' => 'Dr. Ada Lovelace',
+            'email' => 'ada@example.com',
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+
+        $course = Course::create([
+            'title' => 'Algorithms 101',
+            'slug' => 'algorithms-101',
+            'code' => 'CS101',
+            'is_active' => true,
+        ]);
+
+        $instructor->instructorCourses()->attach($course->id);
+
+        $todaySession = CourseSession::create([
+            'course_id' => $course->id,
+            'instructor_id' => $instructor->id,
+            'title' => 'Live Lecture: Sorting Algorithms',
+            'session_date' => Carbon::today(),
+            'start_time' => '10:00:00',
+            'end_time' => '11:30:00',
+            'status' => 'scheduled',
+            'type' => 'group',
+        ]);
+
+        $service = app(InstructorReminderService::class);
+        $data = $service->getRemindersData($instructor);
+
+        $this->assertEquals(1, $data['today_sessions_count']);
+        $this->assertEquals('Live Lecture: Sorting Algorithms', $data['today_sessions'][0]['title']);
+        $this->assertEquals('Ada', $data['instructor_name']);
+        $this->assertTrue($service->shouldShowPopup($instructor, $data));
     }
 }
