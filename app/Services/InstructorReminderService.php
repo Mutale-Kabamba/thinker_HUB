@@ -23,20 +23,39 @@ class InstructorReminderService
     {
         if ($instructor->isAdmin()) {
             return Course::query()
-                ->where('is_active', true)
                 ->pluck('id')
                 ->map(fn ($id) => (int) $id)
                 ->all();
         }
 
-        return Course::query()
+        $courseIds = Course::query()
             ->where(function ($query) use ($instructor) {
                 $query->where('course_by', (string) $instructor->id)
                     ->orWhere('course_by', (string) $instructor->name)
                     ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $instructor->id));
             })
             ->pluck('id')
-            ->merge($instructor->instructorCourses()->pluck('courses.id'))
+            ->merge($instructor->instructorCourses()->pluck('courses.id'));
+
+        // Also include courses from course_class_instructor pivot if available
+        if (Schema::hasTable('course_class_instructor') && Schema::hasTable('course_classes')) {
+            $classCourseIds = \Illuminate\Support\Facades\DB::table('course_class_instructor')
+                ->join('course_classes', 'course_classes.id', '=', 'course_class_instructor.course_class_id')
+                ->where('course_class_instructor.user_id', $instructor->id)
+                ->pluck('course_classes.course_id');
+            $courseIds = $courseIds->merge($classCourseIds);
+        }
+
+        // Also include courses from CourseSession assigned to this instructor
+        if (Schema::hasTable('course_sessions')) {
+            $sessionCourseIds = CourseSession::query()
+                ->where('instructor_id', $instructor->id)
+                ->pluck('course_id');
+            $courseIds = $courseIds->merge($sessionCourseIds);
+        }
+
+        return $courseIds
+            ->filter()
             ->unique()
             ->map(fn ($id) => (int) $id)
             ->values()
@@ -57,8 +76,8 @@ class InstructorReminderService
 
         $courseIds = $this->getInstructorCourseIds($instructor);
         $today = Carbon::today();
-        // Look back up to 90 days for unmarked registers in current and recent cohorts
-        $lookbackDate = Carbon::today()->subDays(90);
+        // Look back up to 180 days for unmarked registers in current and recent cohorts
+        $lookbackDate = Carbon::today()->subDays(180);
 
         $query = CourseSession::query()
             ->where(function ($q) use ($instructor, $courseIds) {
@@ -68,8 +87,10 @@ class InstructorReminderService
                 }
             })
             ->where('status', '!=', 'cancelled')
-            ->whereDate('session_date', '<=', $today)
-            ->whereDate('session_date', '>=', $lookbackDate)
+            ->where(function ($q) use ($today, $lookbackDate) {
+                $q->whereDate('session_date', '<=', $today)
+                    ->whereDate('session_date', '>=', $lookbackDate);
+            })
             ->where(function ($q) {
                 // Either status is still scheduled (not yet completed)
                 // OR it has no attendance records created at all
@@ -93,9 +114,14 @@ class InstructorReminderService
                 ? 'Today'
                 : ($daysAgo === 1 ? 'Yesterday' : $effectiveDate->format('M j, Y'));
 
-            $startTimeDisplay = filled($session->start_time)
-                ? Carbon::parse($session->start_time)->format('g:i A')
-                : 'TBD';
+            $startTimeDisplay = 'TBD';
+            if (filled($session->start_time)) {
+                try {
+                    $startTimeDisplay = Carbon::parse($session->start_time)->format('g:i A');
+                } catch (\Throwable) {
+                    $startTimeDisplay = (string) $session->start_time;
+                }
+            }
 
             return [
                 'id' => $session->id,
@@ -148,6 +174,10 @@ class InstructorReminderService
         return $query->limit($limit)->get()->map(function (AssignmentSubmission $sub) {
             $submittedAt = $sub->submitted_at;
             $studentName = $sub->user?->name ?? 'Student';
+            $photo = null;
+            if ($sub->user) {
+                $photo = $sub->user->profile_photo_url ?? ($sub->user->profile_photo_path ? asset('storage/' . $sub->user->profile_photo_path) : null);
+            }
 
             return [
                 'id' => $sub->id,
@@ -157,7 +187,7 @@ class InstructorReminderService
                 'course_code' => $sub->assignment?->course?->code ?? '',
                 'student_name' => $studentName,
                 'student_initials' => Str::upper(substr($studentName, 0, 2)),
-                'student_photo' => $sub->user?->profile_photo_url ?? null,
+                'student_photo' => $photo,
                 'submitted_at_diff' => $submittedAt ? $submittedAt->diffForHumans() : 'Recently',
                 'submitted_at_formatted' => $submittedAt ? $submittedAt->format('M j, g:i A') : 'Recently',
                 'status' => $sub->status ?: 'Submitted',
@@ -194,6 +224,10 @@ class InstructorReminderService
         return $query->limit($limit)->get()->map(function (AssessmentSubmission $sub) {
             $submittedAt = $sub->submitted_at;
             $studentName = $sub->user?->name ?? 'Student';
+            $photo = null;
+            if ($sub->user) {
+                $photo = $sub->user->profile_photo_url ?? ($sub->user->profile_photo_path ? asset('storage/' . $sub->user->profile_photo_path) : null);
+            }
 
             return [
                 'id' => $sub->id,
@@ -203,7 +237,7 @@ class InstructorReminderService
                 'course_code' => $sub->assessment?->course?->code ?? '',
                 'student_name' => $studentName,
                 'student_initials' => Str::upper(substr($studentName, 0, 2)),
-                'student_photo' => $sub->user?->profile_photo_url ?? null,
+                'student_photo' => $photo,
                 'submitted_at_diff' => $submittedAt ? $submittedAt->diffForHumans() : 'Recently',
                 'submitted_at_formatted' => $submittedAt ? $submittedAt->format('M j, g:i A') : 'Recently',
                 'status' => $sub->status ?: 'Submitted',
@@ -225,6 +259,7 @@ class InstructorReminderService
 
         $courseIds = $this->getInstructorCourseIds($instructor);
         $today = Carbon::today();
+        $todayStr = $today->toDateString();
 
         return CourseSession::query()
             ->where(function ($q) use ($instructor, $courseIds) {
@@ -233,19 +268,45 @@ class InstructorReminderService
                     $q->orWhereIn('course_id', $courseIds);
                 }
             })
-            ->whereDate('session_date', $today)
             ->where('status', '!=', 'cancelled')
+            ->where(function ($q) use ($today, $todayStr) {
+                $q->where(function ($sub) use ($today, $todayStr) {
+                    $sub->where(function ($s) {
+                        $s->where('status', '!=', 'rescheduled')
+                            ->orWhereNull('rescheduled_date');
+                    })->where(function ($d) use ($today, $todayStr) {
+                        $d->whereDate('session_date', $today)
+                            ->orWhere('session_date', 'like', $todayStr . '%');
+                    });
+                })->orWhere(function ($sub) use ($today, $todayStr) {
+                    $sub->where('status', 'rescheduled')
+                        ->where(function ($d) use ($today, $todayStr) {
+                            $d->whereDate('rescheduled_date', $today)
+                                ->orWhere('rescheduled_date', 'like', $todayStr . '%');
+                        });
+                });
+            })
             ->with(['course', 'intake', 'student'])
             ->orderBy('start_time', 'asc')
             ->get()
             ->map(function (CourseSession $s) {
+                $startTime = $s->getEffectiveStartTime();
+                $timeDisplay = 'TBD';
+                if (filled($startTime) && $startTime !== '00:00:00') {
+                    try {
+                        $timeDisplay = Carbon::parse($startTime)->format('g:i A');
+                    } catch (\Throwable) {
+                        $timeDisplay = (string) $startTime;
+                    }
+                }
+
                 return [
                     'id' => $s->id,
                     'title' => $s->title ?: ($s->course?->title ?? 'Class Session'),
                     'course_title' => $s->course?->title ?? 'Course',
                     'course_code' => $s->course?->code ?? '',
-                    'start_time' => $s->start_time,
-                    'time_display' => filled($s->start_time) ? Carbon::parse($s->start_time)->format('g:i A') : 'TBD',
+                    'start_time' => $startTime,
+                    'time_display' => $timeDisplay,
                     'type' => $s->type ?? 'group',
                     'student_name' => $s->student?->name,
                     'status' => $s->status,
@@ -261,84 +322,87 @@ class InstructorReminderService
      */
     public function getRemindersData(User $instructor): array
     {
+        $nameParts = array_values(array_filter(explode(' ', trim($instructor->name ?? 'Instructor'))));
+        $firstWord = $nameParts[0] ?? 'Instructor';
+        $titles = ['dr.', 'dr', 'prof.', 'prof', 'mr.', 'mr', 'mrs.', 'mrs', 'ms.', 'ms'];
+        if (in_array(strtolower($firstWord), $titles, true) && isset($nameParts[1])) {
+            $firstName = $nameParts[1];
+        } else {
+            $firstName = $firstWord;
+        }
+
+        $avatar = null;
+        try {
+            $avatar = $instructor->profile_photo_url ?? ($instructor->profile_photo_path ? asset('storage/' . $instructor->profile_photo_path) : null);
+        } catch (\Throwable) {
+            $avatar = null;
+        }
+
+        $unmarkedSessions = collect();
         try {
             $unmarkedSessions = $this->getUnmarkedSessions($instructor);
-            $pendingAssignments = $this->getPendingAssignments($instructor);
-            $pendingAssessments = $this->getPendingAssessments($instructor);
-            $todaySessions = $this->getTodaySessions($instructor);
-
-            $unmarkedCount = $unmarkedSessions->count();
-            $assignmentsCount = $pendingAssignments->count();
-            $assessmentsCount = $pendingAssessments->count();
-            $todaySessionsCount = $todaySessions->count();
-
-            $totalActionable = $unmarkedCount + $assignmentsCount + $assessmentsCount;
-            $hasOverdue = $unmarkedSessions->contains('is_overdue', true);
-
-            $urgencyLevel = 'clear';
-            if ($totalActionable > 0) {
-                $urgencyLevel = $hasOverdue ? 'critical' : 'warning';
-            } elseif ($todaySessionsCount > 0) {
-                $urgencyLevel = 'info';
-            }
-
-            $nameParts = array_values(array_filter(explode(' ', trim($instructor->name))));
-            $firstWord = $nameParts[0] ?? 'Instructor';
-            $titles = ['dr.', 'dr', 'prof.', 'prof', 'mr.', 'mr', 'mrs.', 'mrs', 'ms.', 'ms'];
-            if (in_array(strtolower($firstWord), $titles, true) && isset($nameParts[1])) {
-                $firstName = $nameParts[1];
-            } else {
-                $firstName = $firstWord;
-            }
-
-            return [
-                'instructor_name' => $firstName,
-                'full_name' => $instructor->name,
-                'avatar' => $instructor->profile_photo_url ?? null,
-                'has_pending' => ($totalActionable > 0 || $todaySessionsCount > 0),
-                'total_actionable' => $totalActionable,
-                'has_overdue' => $hasOverdue,
-                'urgency_level' => $urgencyLevel,
-                'unmarked_sessions' => $unmarkedSessions->values()->all(),
-                'unmarked_count' => $unmarkedCount,
-                'pending_assignments' => $pendingAssignments->values()->all(),
-                'pending_assignments_count' => $assignmentsCount,
-                'pending_assessments' => $pendingAssessments->values()->all(),
-                'pending_assessments_count' => $assessmentsCount,
-                'today_sessions' => $todaySessions->values()->all(),
-                'today_sessions_count' => $todaySessionsCount,
-                'today_date_formatted' => Carbon::now()->format('l, F j, Y'),
-                'attendance_register_url' => url('/teach/attendance-register'),
-                'assignments_url' => url('/teach/assignment-submissions'),
-                'assessments_url' => url('/teach/assessment-submissions'),
-                'schedule_url' => url('/teach/schedule'),
-            ];
         } catch (\Throwable $e) {
             report($e);
-
-            return [
-                'instructor_name' => 'Instructor',
-                'full_name' => $instructor->name,
-                'avatar' => null,
-                'has_pending' => false,
-                'total_actionable' => 0,
-                'has_overdue' => false,
-                'urgency_level' => 'clear',
-                'unmarked_sessions' => [],
-                'unmarked_count' => 0,
-                'pending_assignments' => [],
-                'pending_assignments_count' => 0,
-                'pending_assessments' => [],
-                'pending_assessments_count' => 0,
-                'today_sessions' => [],
-                'today_sessions_count' => 0,
-                'today_date_formatted' => Carbon::now()->format('l, F j, Y'),
-                'attendance_register_url' => url('/teach/attendance-register'),
-                'assignments_url' => url('/teach/assignment-submissions'),
-                'assessments_url' => url('/teach/assessment-submissions'),
-                'schedule_url' => url('/teach/schedule'),
-            ];
         }
+
+        $pendingAssignments = collect();
+        try {
+            $pendingAssignments = $this->getPendingAssignments($instructor);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        $pendingAssessments = collect();
+        try {
+            $pendingAssessments = $this->getPendingAssessments($instructor);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        $todaySessions = collect();
+        try {
+            $todaySessions = $this->getTodaySessions($instructor);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        $unmarkedCount = $unmarkedSessions->count();
+        $assignmentsCount = $pendingAssignments->count();
+        $assessmentsCount = $pendingAssessments->count();
+        $todaySessionsCount = $todaySessions->count();
+
+        $totalActionable = $unmarkedCount + $assignmentsCount + $assessmentsCount;
+        $hasOverdue = $unmarkedSessions->contains('is_overdue', true);
+
+        $urgencyLevel = 'clear';
+        if ($totalActionable > 0) {
+            $urgencyLevel = $hasOverdue ? 'critical' : 'warning';
+        } elseif ($todaySessionsCount > 0) {
+            $urgencyLevel = 'info';
+        }
+
+        return [
+            'instructor_name' => $firstName,
+            'full_name' => $instructor->name,
+            'avatar' => $avatar,
+            'has_pending' => ($totalActionable > 0 || $todaySessionsCount > 0),
+            'total_actionable' => $totalActionable,
+            'has_overdue' => $hasOverdue,
+            'urgency_level' => $urgencyLevel,
+            'unmarked_sessions' => $unmarkedSessions->values()->all(),
+            'unmarked_count' => $unmarkedCount,
+            'pending_assignments' => $pendingAssignments->values()->all(),
+            'pending_assignments_count' => $assignmentsCount,
+            'pending_assessments' => $pendingAssessments->values()->all(),
+            'pending_assessments_count' => $assessmentsCount,
+            'today_sessions' => $todaySessions->values()->all(),
+            'today_sessions_count' => $todaySessionsCount,
+            'today_date_formatted' => Carbon::now()->format('l, F j, Y'),
+            'attendance_register_url' => url('/teach/attendance-register'),
+            'assignments_url' => url('/teach/assignment-submissions'),
+            'assessments_url' => url('/teach/assessment-submissions'),
+            'schedule_url' => url('/teach/schedule'),
+        ];
     }
 
     /**
@@ -350,28 +414,13 @@ class InstructorReminderService
             return false;
         }
 
-        // Only auto-open if there is actually something actionable or classes today
-        if (! ($data['has_pending'] ?? false)) {
-            return false;
-        }
-
         // Check if explicitly dismissed for today
         $dismissedUntil = session('instructor_reminder_dismissed_until');
         if ($dismissedUntil && now()->timestamp < (int) $dismissedUntil) {
             return false;
         }
 
-        // Check if dismissed for the current session
-        if (session('instructor_reminder_dismissed_session', false)) {
-            return false;
-        }
-
-        // If the user just logged in this session, always show
-        if (session('just_logged_in_instructor', false)) {
-            return true;
-        }
-
-        // If not dismissed, show on first visit of the session
+        // Automatically show on page load unless dismissed for today
         return true;
     }
 }

@@ -46,19 +46,12 @@
             this.isOpen = false;
             if (this.dontShowToday) {
                 this.dismissForDay();
-            } else {
-                this.dismissForSession();
             }
         },
 
         dismissForDay() {
             localStorage.setItem('thinker_instructor_reminder_dismissed_date', this.todayDateStr);
             this.sendDismissRequest('day');
-            this.isOpen = false;
-        },
-
-        dismissForSession() {
-            this.sendDismissRequest('session');
             this.isOpen = false;
         },
 

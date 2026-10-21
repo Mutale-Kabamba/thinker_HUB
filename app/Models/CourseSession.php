@@ -74,7 +74,9 @@ class CourseSession extends Model
 
     public function getEffectiveDate(): Carbon
     {
-        $date = $this->session_date ?: $this->rescheduled_date;
+        $date = ($this->status === 'rescheduled' && $this->rescheduled_date)
+            ? $this->rescheduled_date
+            : ($this->session_date ?: $this->rescheduled_date);
 
         if ($date instanceof Carbon) {
             return $date;
@@ -93,14 +95,18 @@ class CourseSession extends Model
 
     public function getEffectiveStartTime(): string
     {
-        $time = $this->start_time ?: $this->rescheduled_start_time;
+        $time = ($this->status === 'rescheduled' && filled($this->rescheduled_start_time))
+            ? $this->rescheduled_start_time
+            : ($this->start_time ?: $this->rescheduled_start_time);
 
         return filled($time) ? (string) $time : '00:00:00';
     }
 
     public function getEffectiveEndTime(): string
     {
-        $time = $this->end_time ?: $this->rescheduled_end_time;
+        $time = ($this->status === 'rescheduled' && filled($this->rescheduled_end_time))
+            ? $this->rescheduled_end_time
+            : ($this->end_time ?: $this->rescheduled_end_time);
 
         return filled($time) ? (string) $time : '23:59:59';
     }
