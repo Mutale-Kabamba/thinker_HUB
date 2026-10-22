@@ -71,6 +71,11 @@ class InstructorPanelProvider extends PanelProvider
                     ->url('/contribute')
                     ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToContributor())),
                 MenuItem::make()
+                    ->label('Parents Portal')
+                    ->icon('heroicon-o-user-group')
+                    ->url('/parent')
+                    ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToParent())),
+                MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')
                     ->url(fn (): string => route('filament.instructor.pages.settings')),

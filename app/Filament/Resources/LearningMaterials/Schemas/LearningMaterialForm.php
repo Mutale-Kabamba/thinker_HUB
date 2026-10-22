@@ -10,6 +10,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class LearningMaterialForm
@@ -18,163 +19,179 @@ class LearningMaterialForm
     {
         return $schema
             ->components([
-                TextInput::make('title')
-                    ->required()
-                    ->maxLength(255),
+                Section::make('Material Information & Content')
+                    ->description('Essential metadata, classification, media format, and file asset.')
+                    ->icon('heroicon-o-document-text')
+                    ->schema([
+                        TextInput::make('title')
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('e.g. Week 1 Lecture Slides & Cheatsheet'),
 
-                Select::make('category')
-                    ->label('Category')
-                    ->required()
-                    ->searchable()
-                    ->options(LearningMaterial::categoryOptions())
-                    ->default('Study Material'),
+                        Select::make('category')
+                            ->label('Category')
+                            ->required()
+                            ->searchable()
+                            ->options(LearningMaterial::categoryOptions())
+                            ->default('Study Material'),
 
-                Textarea::make('description')
-                    ->label('Description')
-                    ->rows(3)
-                    ->columnSpanFull(),
+                        Select::make('material_type')
+                            ->label('Material Type')
+                            ->required()
+                            ->options([
+                                'Document' => 'Document',
+                                'Image' => 'Image',
+                                'Video' => 'Video',
+                                'Link' => 'Link',
+                            ])
+                            ->default('Document')
+                            ->live(),
 
-                Select::make('material_type')
-                    ->label('Material Type')
-                    ->required()
-                    ->options([
-                        'Document' => 'Document',
-                        'Image' => 'Image',
-                        'Video' => 'Video',
-                        'Link' => 'Link',
-                    ])
-                    ->default('Document')
-                    ->live(),
+                        TextInput::make('video_url')
+                            ->label('Video URL (YouTube, Vimeo, etc.)')
+                            ->url()
+                            ->visible(fn (callable $get): bool => $get('material_type') === 'Video')
+                            ->placeholder('https://www.youtube.com/watch?v=...')
+                            ->helperText('Provide a video URL or upload a file below (or both).'),
 
-                Select::make('course_id')
-                    ->label('Course')
-                    ->required()
-                    ->searchable()
-                    ->options(fn (): array => Course::query()->where('is_active', true)->orderBy('title')->pluck('title', 'id')->toArray())
-                    ->live(),
+                        TextInput::make('link_url')
+                            ->label('External Resource Link')
+                            ->url()
+                            ->visible(fn (callable $get): bool => $get('material_type') === 'Link')
+                            ->required(fn (callable $get): bool => $get('material_type') === 'Link')
+                            ->placeholder('https://...'),
 
-                Select::make('course_intake_id')
-                    ->label('Target Intake / Class')
-                    ->nullable()
-                    ->searchable()
-                    ->options(function (callable $get): array {
-                        $courseId = $get('course_id');
-                        if (! $courseId) {
-                            return [];
-                        }
+                        Textarea::make('description')
+                            ->label('Description & Study Notes')
+                            ->rows(3)
+                            ->placeholder('Summary of contents, key topics covered, or instructions for students...')
+                            ->columnSpanFull(),
 
-                        return CourseIntake::query()
-                            ->where('course_id', $courseId)
-                            ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
-                            ->orderBy('start_date', 'desc')
-                            ->pluck('name', 'id')
-                            ->toArray();
-                    })
-                    ->placeholder('All Intakes / Entire Course')
-                    ->helperText('Leave empty to share with all cohorts across the course.'),
-
-                Select::make('scope')
-                    ->label('Scope')
-                    ->required()
-                    ->options([
-                        'all' => 'All Students in Course',
-                        'level' => 'Specific Level / Track',
-                        'personal' => 'Specific Student',
-                    ])
-                    ->default('all')
-                    ->live(),
-
-                Select::make('target_track')
-                    ->label('Target Track / Level')
-                    ->options([
-                        'Beginner' => 'Beginner',
-                        'Intermediate' => 'Intermediate',
-                        'Advanced' => 'Advanced',
-                    ])
-                    ->visible(fn (callable $get): bool => in_array($get('scope'), ['level', 'personal']))
-                    ->required(fn (callable $get): bool => $get('scope') === 'level')
-                    ->live(),
-
-                Select::make('target_user_id')
-                    ->label('Target Student')
-                    ->searchable()
-                    ->options(function (callable $get): array {
-                        $courseId = $get('course_id');
-                        $track = $get('target_track');
-
-                        if (! $courseId) {
-                            return [];
-                        }
-
-                        $query = User::query()
-                            ->where(function ($q): void {
-                                $q->whereNull('role')->orWhere('role', '!=', 'admin');
+                        FileUpload::make('file_path')
+                            ->label(fn (callable $get): string => match ($get('material_type')) {
+                                'Image' => 'Upload Image File',
+                                'Video' => 'Upload Video File',
+                                default => 'Upload Document / File',
                             })
-                            ->whereHas('courses', fn ($q) => $q->where('courses.id', $courseId));
+                            ->disk('public')
+                            ->directory('materials')
+                            ->storeFileNamesIn('file_name')
+                            ->openable()
+                            ->downloadable()
+                            ->maxSize(20480)
+                            ->acceptedFileTypes(fn (callable $get): array => match ($get('material_type')) {
+                                'Image' => [
+                                    'image/jpeg',
+                                    'image/png',
+                                    'image/gif',
+                                    'image/webp',
+                                    'image/svg+xml',
+                                ],
+                                'Video' => [
+                                    'video/mp4',
+                                    'video/webm',
+                                    'video/ogg',
+                                    'video/avi',
+                                    'video/quicktime',
+                                ],
+                                default => [
+                                    'application/pdf',
+                                    'application/msword',
+                                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                    'application/vnd.ms-powerpoint',
+                                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                                    'application/vnd.ms-excel',
+                                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                    'text/plain',
+                                    'text/csv',
+                                ],
+                            })
+                            ->visible(fn (callable $get): bool => in_array($get('material_type'), ['Document', 'Image', 'Video']))
+                            ->required(fn (callable $get, string $operation): bool => $operation === 'create' && ($get('material_type') === 'Document' || $get('material_type') === 'Image'))
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(['default' => 1, 'sm' => 2]),
 
-                        if ($track) {
-                            $query->where('track', $track);
-                        }
+                Section::make('Course Assignment & Access Scope')
+                    ->description('Designate cohort distribution, course binding, and student visibility.')
+                    ->icon('heroicon-o-users')
+                    ->schema([
+                        Select::make('course_id')
+                            ->label('Course')
+                            ->required()
+                            ->searchable()
+                            ->options(fn (): array => Course::query()->where('is_active', true)->orderBy('title')->pluck('title', 'id')->toArray())
+                            ->live(),
 
-                        return $query->orderBy('name')->pluck('name', 'id')->toArray();
-                    })
-                    ->visible(fn (callable $get): bool => $get('scope') === 'personal')
-                    ->required(fn (callable $get): bool => $get('scope') === 'personal'),
+                        Select::make('course_intake_id')
+                            ->label('Target Intake / Class Cohort')
+                            ->nullable()
+                            ->searchable()
+                            ->options(function (callable $get): array {
+                                $courseId = $get('course_id');
+                                if (! $courseId) {
+                                    return [];
+                                }
 
-                FileUpload::make('file_path')
-                    ->label(fn (callable $get): string => match ($get('material_type')) {
-                        'Image' => 'Upload Image',
-                        'Video' => 'Upload Video',
-                        default => 'Upload File',
-                    })
-                    ->disk('public')
-                    ->directory('materials')
-                    ->storeFileNamesIn('file_name')
-                    ->openable()
-                    ->downloadable()
-                    ->maxSize(20480)
-                    ->acceptedFileTypes(fn (callable $get): array => match ($get('material_type')) {
-                        'Image' => [
-                            'image/jpeg',
-                            'image/png',
-                            'image/gif',
-                            'image/webp',
-                            'image/svg+xml',
-                        ],
-                        'Video' => [
-                            'video/mp4',
-                            'video/webm',
-                            'video/ogg',
-                            'video/avi',
-                            'video/quicktime',
-                        ],
-                        default => [
-                            'application/pdf',
-                            'application/msword',
-                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                            'application/vnd.ms-powerpoint',
-                            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                            'application/vnd.ms-excel',
-                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                            'text/plain',
-                            'text/csv',
-                        ],
-                    })
-                    ->visible(fn (callable $get): bool => in_array($get('material_type'), ['Document', 'Image', 'Video']))
-                    ->required(fn (callable $get, string $operation): bool => $operation === 'create' && ($get('material_type') === 'Document' || $get('material_type') === 'Image'))
-                    ->columnSpanFull(),
+                                return CourseIntake::query()
+                                    ->where('course_id', $courseId)
+                                    ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
+                                    ->orderBy('start_date', 'desc')
+                                    ->pluck('name', 'id')
+                                    ->toArray();
+                            })
+                            ->placeholder('All Intakes / Entire Course')
+                            ->helperText('Leave empty to share with all cohorts across the course.'),
 
-                TextInput::make('video_url')
-                    ->label('Video URL (YouTube, Vimeo, etc.)')
-                    ->url()
-                    ->visible(fn (callable $get): bool => $get('material_type') === 'Video')
-                    ->helperText('Provide a URL or upload a video file above, or both.'),
+                        Select::make('scope')
+                            ->label('Student Access Scope')
+                            ->required()
+                            ->options([
+                                'all' => 'All Students in Course',
+                                'level' => 'Specific Level / Track',
+                                'personal' => 'Specific Student',
+                            ])
+                            ->default('all')
+                            ->live(),
 
-                TextInput::make('link_url')
-                    ->label('Link URL')
-                    ->url()
-                    ->visible(fn (callable $get): bool => $get('material_type') === 'Link')
-                    ->required(fn (callable $get): bool => $get('material_type') === 'Link'),
+                        Select::make('target_track')
+                            ->label('Target Track / Level')
+                            ->options([
+                                'Beginner' => 'Beginner',
+                                'Intermediate' => 'Intermediate',
+                                'Advanced' => 'Advanced',
+                            ])
+                            ->visible(fn (callable $get): bool => in_array($get('scope'), ['level', 'personal']))
+                            ->required(fn (callable $get): bool => $get('scope') === 'level')
+                            ->live(),
+
+                        Select::make('target_user_id')
+                            ->label('Target Student')
+                            ->searchable()
+                            ->options(function (callable $get): array {
+                                $courseId = $get('course_id');
+                                $track = $get('target_track');
+
+                                if (! $courseId) {
+                                    return [];
+                                }
+
+                                $query = User::query()
+                                    ->where(function ($q): void {
+                                        $q->whereNull('role')->orWhere('role', '!=', 'admin');
+                                    })
+                                    ->whereHas('courses', fn ($q) => $q->where('courses.id', $courseId));
+
+                                if ($track) {
+                                    $query->where('track', $track);
+                                }
+
+                                return $query->orderBy('name')->pluck('name', 'id')->toArray();
+                            })
+                            ->visible(fn (callable $get): bool => $get('scope') === 'personal')
+                            ->required(fn (callable $get): bool => $get('scope') === 'personal'),
+                    ])
+                    ->columns(['default' => 1, 'sm' => 2]),
             ]);
     }
 }

@@ -57,6 +57,11 @@ class CourseResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn (?bool $state): string => $state === false ? 'Locked' : 'Open')
                     ->color(fn (?bool $state): string => $state === false ? 'gray' : 'success'),
+                TextColumn::make('is_for_kids')
+                    ->label('Audience')
+                    ->badge()
+                    ->formatStateUsing(fn (?bool $state): string => $state ? 'Kids Course' : 'General')
+                    ->color(fn (?bool $state): string => $state ? 'info' : 'gray'),
                 TextColumn::make('is_active')
                     ->label('Status')
                     ->badge()
@@ -87,6 +92,12 @@ class CourseResource extends Resource
                                 ->orWhereNull('is_open_enrollment');
                         });
                     }),
+                SelectFilter::make('is_for_kids')
+                    ->label('Target Audience')
+                    ->options([
+                        '1' => 'Kids Courses',
+                        '0' => 'General Courses',
+                    ]),
             ])
             ->recordActions([
                 EditAction::make(),

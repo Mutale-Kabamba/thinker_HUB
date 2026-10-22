@@ -13,7 +13,7 @@
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 20px;">
                     <tr>
                         <td align="center">
-                            <a href="{{ config('app.url') }}" style="display: inline-block; text-decoration: none; font-size: 24px; font-weight: 800; color: #0a2d27; letter-spacing: -0.03em;">
+                            <a href="http://thinkerhub.online" style="display: inline-block; text-decoration: none; font-size: 24px; font-weight: 800; color: #0a2d27; letter-spacing: -0.03em;">
                                 think.er <span style="color: #0f766e;">HUB</span>
                             </a>
                         </td>
@@ -111,7 +111,7 @@
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                                 <tr>
                                     <td style="font-size:11px;line-height:1.6;color:#94a3b8;">
-                                        This email was generated from the <a href="{{ config('app.url') }}" style="color:#0f766e;text-decoration:underline;">think.er HUB</a> contact form and delivered to <strong style="color:#64748b;">{{ config('mail.contact_to', config('mail.from.address')) }}</strong>.
+                                        This email was generated from the <a href="http://thinkerhub.online" style="color:#0f766e;text-decoration:underline;">think.er HUB</a> contact form and delivered to <strong style="color:#64748b;">{{ config('mail.contact_to', config('mail.from.address')) }}</strong>.
                                     </td>
                                 </tr>
                             </table>
@@ -122,7 +122,7 @@
 
                 <!-- Bottom Branding -->
                 <p style="margin:16px 0 0;font-size:11px;color:#94a3b8;text-align:center;">
-                    &copy; {{ date('Y') }} think.er HUB &bull; Livingstone, Zambia
+                    &copy; {{ date('Y') }} <a href="http://thinkerhub.online" style="color:#0f766e;text-decoration:underline;">think.er HUB</a> &bull; Livingstone, Zambia
                 </p>
             </td>
         </tr>

@@ -69,6 +69,10 @@ class ChatRoom extends Model
      */
     public function displayNameFor(User $viewer): string
     {
+        if ($this->type === 'course_parents') {
+            return $this->name ?? ($this->course?->title ? $this->course->title . ' — Parents Forum' : 'Parents Forum');
+        }
+
         if ($this->type === 'course') {
             return $this->course?->code
                 ?? $this->name
@@ -77,7 +81,7 @@ class ChatRoom extends Model
 
         $other = $this->otherMemberFor($viewer);
 
-        return $other?->first_name ?? 'Direct chat';
+        return $other?->first_name ?? $other?->name ?? 'Direct chat';
     }
 
     public function otherMemberFor(User $viewer): ?User
@@ -87,7 +91,7 @@ class ChatRoom extends Model
 
     public function avatarUrlFor(User $viewer): ?string
     {
-        if ($this->type === 'course') {
+        if ($this->type === 'course' || $this->type === 'course_parents') {
             return PublicDiskPath::url($this->course?->image_path);
         }
 

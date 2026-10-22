@@ -57,8 +57,21 @@ class PaymentController extends Controller
 
         $initialPromoCode = strtoupper(trim((string) $request->query('promo', $request->query('code', ''))));
 
+        $existingKidId = $request->query('kid_id', $request->query('existing_kid_id'));
+        $existingKid = null;
+        if ($existingKidId) {
+            $currentUser = Auth::user();
+            if ($currentUser) {
+                $existingKid = $currentUser->kids()->where('users.id', $existingKidId)->first() ?: User::find($existingKidId);
+            } else {
+                $existingKid = User::find($existingKidId);
+            }
+        }
+
         return view('pages.checkout', [
             'course' => $course,
+            'isForKids' => (bool) ($course->is_for_kids || $existingKid),
+            'existingKid' => $existingKid,
             'feeAmount' => $feeAmount,
             'selectedLevel' => $selectedLevel,
             'selectedMode' => $selectedMode,
@@ -176,13 +189,64 @@ class PaymentController extends Controller
             'card_cvv' => ['nullable', 'string', 'max:5'],
         ];
 
-        if (! $currentUser) {
-            $rules['name'] = ['required', 'string', 'max:255'];
-            $rules['email'] = ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class];
-            $rules['password'] = ['required', 'confirmed', Password::defaults()];
+        $existingKidId = $request->input('existing_kid_id') ?: $request->input('kid_id');
+        $existingKid = null;
+        if ($existingKidId) {
+            if ($currentUser) {
+                $existingKid = $currentUser->kids()->where('users.id', $existingKidId)->first() ?: User::find($existingKidId);
+            } else {
+                $existingKid = User::find($existingKidId);
+            }
+        }
+
+        $isKidsCourse = (bool) ($course->is_for_kids || $request->input('is_for_kids') === '1' || $request->filled('kid_name') || $existingKid);
+        if ($isKidsCourse && ! $course->is_for_kids) {
+            $course->update(['is_for_kids' => true]);
+        }
+
+        if ($isKidsCourse) {
+            if ($existingKid) {
+                $rules['existing_kid_id'] = ['nullable', 'exists:users,id'];
+                $rules['kid_id'] = ['nullable', 'exists:users,id'];
+                $rules['relationship'] = ['nullable', 'string', 'max:50'];
+            } else {
+                $rules['kid_name'] = ['required', 'string', 'max:255'];
+                $rules['kid_age'] = ['required', 'integer', 'min:3', 'max:18'];
+                $rules['kid_school'] = ['required', 'string', 'max:255'];
+                $rules['kid_grade'] = ['required', 'string', 'max:100'];
+                $rules['relationship'] = ['required', 'string', 'max:50'];
+                $rules['kid_password'] = ['required', 'string', 'min:6'];
+            }
+
+            if (! $currentUser) {
+                $rules['parent_name'] = ['required', 'string', 'max:255'];
+                $rules['parent_email'] = ['required', 'string', 'lowercase', 'email', 'max:255'];
+                $rules['parent_password'] = ['required', 'string', 'min:6'];
+                $rules['parent_phone'] = ['required', 'string', 'max:30'];
+                $rules['parent_occupation'] = ['required', 'string', 'max:150'];
+                $rules['parent_company'] = ['required', 'string', 'max:150'];
+                $rules['parent_address'] = ['required', 'string', 'max:255'];
+            } else {
+                $rules['parent_phone'] = ['nullable', 'string', 'max:30'];
+                $rules['parent_occupation'] = ['nullable', 'string', 'max:150'];
+                $rules['parent_company'] = ['nullable', 'string', 'max:150'];
+                $rules['parent_address'] = ['nullable', 'string', 'max:255'];
+            }
+        } else {
+            if (! $currentUser) {
+                $rules['name'] = ['required', 'string', 'max:255'];
+                $rules['email'] = ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class];
+                $rules['password'] = ['required', 'confirmed', Password::defaults()];
+            }
         }
 
         $validated = $request->validate($rules);
+
+        if ($existingKid) {
+            $validated['existing_kid_id'] = $existingKid->id;
+            $validated['kid_name'] = $existingKid->name;
+            $validated['kid_id'] = $existingKid->id;
+        }
 
         if ($isFree && empty($validated['payment_method'])) {
             $validated['payment_method'] = 'promo_code';

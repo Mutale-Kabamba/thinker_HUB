@@ -26,4 +26,4 @@ Visit {{ route('dashboard') }} and sign in to access all coursework, sessions, a
 If you have any questions, reach us at {{ config('mail.contact_to', 'thinkerhub@oristudiozm.com') }}.
 
 think.er HUB • 10A Off Natwange Street, Airport, Livingstone, Zambia
-https://oristudiozm.com
+http://thinkerhub.online
