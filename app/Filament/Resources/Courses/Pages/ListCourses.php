@@ -122,9 +122,16 @@ class ListCourses extends ListRecords
         $requirements = Arr::get($row, 'requirements');
         $levels = Arr::get($row, 'levels_progression', Arr::get($row, 'level_progression'));
 
+        $offeringMode = mb_strtolower(trim((string) Arr::get($row, 'offering_mode', 'once_off')));
+        if (! in_array($offeringMode, ['once_off', 'ongoing'], true)) {
+            $offeringMode = 'once_off';
+        }
+
         return [
             'title' => trim((string) Arr::get($row, 'title', '')),
             'code' => trim((string) Arr::get($row, 'code', '')),
+            'course_by' => $this->normalizeText(Arr::get($row, 'course_by')),
+            'offering_mode' => $offeringMode,
             'description' => $this->normalizeText(Arr::get($row, 'description')),
             'overview' => $this->normalizeText(Arr::get($row, 'overview')),
             'timeline' => $this->normalizeText(Arr::get($row, 'timeline')),
@@ -132,6 +139,8 @@ class ListCourses extends ListRecords
             'requirements' => $this->normalizeList($requirements),
             'level_progression' => $this->normalizeLevels($levels),
             'key_outcome' => $this->normalizeText(Arr::get($row, 'key_outcome')),
+            'is_open_enrollment' => (bool) Arr::get($row, 'is_open_enrollment', true),
+            'is_for_kids' => (bool) Arr::get($row, 'is_for_kids', false),
             'is_active' => (bool) Arr::get($row, 'is_active', true),
         ];
     }

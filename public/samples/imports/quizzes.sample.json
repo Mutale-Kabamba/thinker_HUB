@@ -1,6 +1,7 @@
 [
   {
     "course_code": "WEB-101",
+    "intake": "Cohort Alpha",
     "title": "HTML, CSS & JavaScript Fundamentals Assessment",
     "description": "Comprehensive assessment covering semantic markup, CSS Flexbox/Grid, and modern JavaScript ES6+ features.",
     "publish_at": "2026-09-01 09:00:00",
@@ -86,6 +87,7 @@
   },
   {
     "course_code": "PY-201",
+    "intake": "Cohort Alpha",
     "title": "Python Data Structures & Operations Quiz",
     "description": "Evaluate understanding of lists, dictionaries, tuples, sets, list comprehensions, and basic Pandas DataFrames.",
     "publish_at": "2026-09-05 10:00:00",
