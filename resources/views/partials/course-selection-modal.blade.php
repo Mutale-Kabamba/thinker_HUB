@@ -158,14 +158,14 @@
         </div>
 
         {{-- Footer CTA --}}
-        <div class="bg-slate-50/80 px-5 py-3 border-t border-slate-100 flex items-center justify-between gap-3">
-            <div class="text-xs min-w-0 flex-1">
+        <div class="bg-slate-50/80 px-5 py-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs min-w-0 flex-1 w-full sm:w-auto">
                 <template x-if="selectedOption">
-                    <div class="truncate">
-                        <span class="text-slate-400 text-[11px]">Selected:</span>
-                        <strong class="text-slate-800 text-xs ml-1" x-text="selectedOption.level"></strong>
-                        <span class="mx-1 text-slate-300">&bull;</span>
-                        <strong class="text-teal-700 text-xs tabular-nums" x-text="selectedOption.formatted_amount"></strong>
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="text-slate-400 text-[11px] shrink-0">Selected:</span>
+                        <strong class="text-slate-800 text-xs truncate" :title="selectedOption.level" x-text="selectedOption.level"></strong>
+                        <span class="text-slate-300 shrink-0">&bull;</span>
+                        <strong class="text-teal-700 text-xs tabular-nums shrink-0 whitespace-nowrap" x-text="selectedOption.formatted_amount"></strong>
                     </div>
                 </template>
             </div>
@@ -174,7 +174,7 @@
                 type="button"
                 @click="proceedToCheckout()"
                 :disabled="!selectedOption"
-                class="inline-flex items-center justify-center gap-1.5 rounded-full bg-yellow-400 px-5 py-2 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-full bg-yellow-400 px-5 py-2.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
             >
                 <span>Proceed to Checkout</span>
                 <i class="fa-solid fa-arrow-right text-[10px]"></i>
