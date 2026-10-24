@@ -149,14 +149,67 @@ class CoursePublicViewAlignmentAndModalTest extends TestCase
         // 2. Verify Advanced (Intermediate to Advanced) only gets Intermediate and Advanced descriptions
         $this->assertStringContainsString('Advanced (Intermediate to Advanced)', $content);
 
-        // Find the window.openSkillLevelModal call for Advanced (Intermediate to Advanced)
-        $pos = strpos($content, 'Advanced (Intermediate to Advanced)');
-        $this->assertNotFalse($pos);
-        $snippet = substr($content, max(0, $pos - 100), 1200);
+        // Find the window.openSkillLevelModal call specifically for Advanced (Intermediate to Advanced)
+        $pos = strpos($content, 'window.openSkillLevelModal');
+        while ($pos !== false) {
+            $chunk = substr($content, $pos, 1500);
+            if (str_contains($chunk, 'Advanced (Intermediate to Advanced)')) {
+                $snippet = $chunk;
+                break;
+            }
+            $pos = strpos($content, 'window.openSkillLevelModal', $pos + 1);
+        }
 
+        $this->assertNotNull($snippet ?? null, 'Skill level modal for Advanced (Intermediate to Advanced) not found');
         $this->assertStringNotContainsString('Beginner Milestone', $snippet);
         $this->assertStringContainsString('Intermediate Milestone', $snippet);
         $this->assertStringContainsString('Advanced Milestone', $snippet);
+    }
+
+    public function test_fee_options_preserve_compound_levels_and_checkout_accepts_them(): void
+    {
+        $course = Course::create([
+            'title' => 'Fullstack Mastery Test',
+            'code' => 'TEST-301',
+            'overview' => 'Fullstack description',
+            'description' => 'Fullstack description',
+            'key_outcome' => 'Deploy fullstack app',
+            'is_active' => true,
+            'is_open_enrollment' => true,
+            'fees' => json_encode([
+                'group' => [
+                    [
+                        'level' => 'Advanced (Beginner to Advanced)',
+                        'amount' => 'K1500.00',
+                        'duration' => '10 Weeks',
+                    ],
+                    [
+                        'level' => 'Beginner',
+                        'amount' => 'K500.00',
+                        'duration' => '4 Weeks',
+                    ],
+                ],
+            ]),
+        ]);
+
+        $feeOptions = $course->getFeeOptions();
+        $this->assertCount(2, $feeOptions);
+        $this->assertSame('Advanced (Beginner to Advanced)', $feeOptions[0]['level']);
+        $this->assertSame(1500.0, $feeOptions[0]['amount']);
+        $this->assertSame('Beginner', $feeOptions[1]['level']);
+        $this->assertSame(500.0, $feeOptions[1]['amount']);
+
+        // Test checkout page with compound track
+        $checkoutUrl = route('checkout.show', [
+            'course' => $course->id,
+            'track' => 'Advanced (Beginner to Advanced)',
+            'mode' => 'group',
+        ]);
+
+        $response = $this->get($checkoutUrl);
+        $response->assertOk();
+        $response->assertSee('Advanced (Beginner to Advanced)');
+        $response->assertSee('1,500.00');
     }
 }
 

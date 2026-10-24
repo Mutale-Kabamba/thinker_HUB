@@ -121,7 +121,7 @@
                         {{-- Details --}}
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2 mb-1">
-                                <span class="text-sm font-black text-slate-900" x-text="opt.level + ' Level'"></span>
+                                <span class="text-sm font-black text-slate-900" x-text="opt.level.toLowerCase().includes('level') ? opt.level : opt.level + ' Level'"></span>
                                 <span
                                     class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold"
                                     :class="opt.category === 'one_on_one'
@@ -231,15 +231,18 @@ function courseOptionModalHandler() {
 
             // Auto-select preferred or first option
             if (this.options.length > 0) {
-                const defaultTrack = data.defaultTrack ? String(data.defaultTrack).toLowerCase() : 'beginner';
+                const defaultTrack = data.defaultTrack ? String(data.defaultTrack).toLowerCase() : null;
                 const defaultMode = data.defaultMode ? String(data.defaultMode).toLowerCase() : null;
 
                 let match = null;
-                if (defaultMode) {
+                if (defaultMode && defaultTrack) {
                     match = this.options.find(o => (o.category || o.mode) === defaultMode && String(o.level).toLowerCase() === defaultTrack);
                 }
-                if (!match) {
+                if (!match && defaultTrack) {
                     match = this.options.find(o => String(o.level).toLowerCase() === defaultTrack);
+                }
+                if (!match && defaultMode) {
+                    match = this.options.find(o => (o.category || o.mode) === defaultMode);
                 }
                 this.selectedOption = match || this.options[0];
             } else {

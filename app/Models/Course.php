@@ -357,11 +357,7 @@ class Course extends Model
         };
 
         $normalizeLevel = static function (string $raw): string {
-            $lvl = strtolower(trim($raw));
-            if (str_contains($lvl, 'beginner')) return 'Beginner';
-            if (str_contains($lvl, 'intermediate')) return 'Intermediate';
-            if (str_contains($lvl, 'advanced')) return 'Advanced';
-            return trim($raw) !== '' ? ucwords(trim($raw)) : 'Beginner';
+            return \App\Filament\Resources\Courses\Schemas\CourseForm::normalizeLevel($raw);
         };
 
         $parseAmount = static function (mixed $raw): float {
@@ -372,6 +368,8 @@ class Course extends Model
             }
             return 0.0;
         };
+
+        $levelRegex = 'Advanced\s*\(\s*Beginner\s+to\s+Advanced\s*\)|Advanced\s*\(\s*Intermediate\s+to\s+Advanced\s*\)|Intermediate\s*\(\s*Beginner\s+to\s+Intermediate\s*\)|Beginner|Intermediate|Advanced';
 
         if (is_array($parsed)) {
             // 1. Check categorized dictionary: ['group' => [...], 'one_on_one' => [...], 'self_paced' => [...]]
@@ -385,7 +383,7 @@ class Course extends Model
                             $duration = trim((string) ($entry['duration'] ?? $defaultDuration));
                             if ($amount > 0) {
                                 $options[] = [
-                                    'id' => $catKey . '_' . strtolower($level),
+                                    'id' => $catKey . '_' . \Illuminate\Support\Str::slug($level, '_'),
                                     'category' => $catKey,
                                     'mode' => $catKey,
                                     'mode_label' => $modeLabel,
@@ -413,7 +411,7 @@ class Course extends Model
                         $duration = trim((string) ($entry['duration'] ?? $defaultDuration));
                         if ($amount > 0) {
                             $options[] = [
-                                'id' => $catKey . '_' . strtolower($level),
+                                'id' => $catKey . '_' . \Illuminate\Support\Str::slug($level, '_'),
                                 'category' => $catKey,
                                 'mode' => $catKey,
                                 'mode_label' => $modeLabel,
@@ -438,7 +436,7 @@ class Course extends Model
                             $level = $normalizeLevel($k);
                             [$catKey, $modeLabel, $modeBadge, $highlight] = $normalizeCategory('group');
                             $options[] = [
-                                'id' => 'group_' . strtolower($level),
+                                'id' => 'group_' . \Illuminate\Support\Str::slug($level, '_'),
                                 'category' => 'group',
                                 'mode' => 'group',
                                 'mode_label' => $modeLabel,
@@ -472,14 +470,14 @@ class Course extends Model
                 }
                 [$catKey, $modeLabel, $modeBadge, $highlight] = $normalizeCategory($rawCat);
 
-                if (preg_match_all('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:Beginner|Intermediate|Advanced)\s*[:\-]|$)/i', $line, $matches, PREG_SET_ORDER) > 0) {
+                if (preg_match_all('/(?:^|[\s|;])(' . $levelRegex . ')\s*[:\-]\s*([^()|;]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:' . $levelRegex . ')\s*[:\-]|$|[\s|;])/i', $line, $matches, PREG_SET_ORDER) > 0) {
                     foreach ($matches as $match) {
                         $level = $normalizeLevel((string) ($match[1] ?? ''));
                         $amount = $parseAmount($match[2] ?? 0);
                         $dur = trim((string) ($match[3] ?? $defaultDuration));
                         if ($amount > 0) {
                             $options[] = [
-                                'id' => $catKey . '_' . strtolower($level),
+                                'id' => $catKey . '_' . \Illuminate\Support\Str::slug($level, '_'),
                                 'category' => $catKey,
                                 'mode' => $catKey,
                                 'mode_label' => $modeLabel,
@@ -495,12 +493,12 @@ class Course extends Model
                     continue;
                 }
 
-                if (preg_match('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*(?:ZMW|K|USD|\$)?\s*([\d,]+(?:\.\d+)?)/i', $line, $match) === 1) {
+                if (preg_match('/(' . $levelRegex . ')\s*[:\-]\s*(?:ZMW|K|USD|\$)?\s*([\d,]+(?:\.\d+)?)/i', $line, $match) === 1) {
                     $level = $normalizeLevel((string) $match[1]);
                     $amount = $parseAmount($match[2]);
                     if ($amount > 0) {
                         $options[] = [
-                            'id' => $catKey . '_' . strtolower($level),
+                            'id' => $catKey . '_' . \Illuminate\Support\Str::slug($level, '_'),
                             'category' => $catKey,
                             'mode' => $catKey,
                             'mode_label' => $modeLabel,

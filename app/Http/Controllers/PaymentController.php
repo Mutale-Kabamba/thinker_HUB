@@ -32,8 +32,10 @@ class PaymentController extends Controller
 
         $course->loadMissing(['instructors:id,name,email,whatsapp']);
 
-        $selectedLevel = (string) $request->query('track', $request->query('level', Auth::user()?->track ?? 'Beginner'));
-        if (! in_array($selectedLevel, ['Beginner', 'Intermediate', 'Advanced'], true)) {
+        $rawTrack = (string) $request->query('track', $request->query('level', Auth::user()?->track ?? 'Beginner'));
+        $selectedLevel = \App\Filament\Resources\Courses\Schemas\CourseForm::normalizeLevel($rawTrack);
+        $validLevels = array_keys(\App\Filament\Resources\Courses\Schemas\CourseForm::getLevelOptions());
+        if (! in_array($selectedLevel, $validLevels, true)) {
             $selectedLevel = 'Beginner';
         }
 
@@ -176,8 +178,11 @@ class PaymentController extends Controller
 
         $isFree = $promoValidation && $promoValidation['is_free'];
 
+        $validLevels = array_keys(\App\Filament\Resources\Courses\Schemas\CourseForm::getLevelOptions());
+        $validLevelsRule = implode(',', $validLevels);
+
         $rules = [
-            'track' => ['required', 'in:Beginner,Intermediate,Advanced'],
+            'track' => ['required', 'string', 'in:' . $validLevelsRule],
             'mode' => ['nullable', 'string', 'max:50'],
             'promo_code' => ['nullable', 'string', 'max:50'],
             'payment_method' => [$isFree ? 'nullable' : 'required', 'string', 'in:mobile_money,card,demo,promo_code'],
