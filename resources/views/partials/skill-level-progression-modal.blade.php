@@ -74,13 +74,32 @@
         <div class="p-6 overflow-y-auto space-y-5 text-slate-700 text-sm flex-1">
             
             {{-- Course Specific Note (if course has customized progression notes) --}}
-            <template x-if="courseDetails">
-                <div class="rounded-2xl border border-teal-200 bg-teal-50/70 p-4 space-y-1.5">
+            <template x-if="(levelSections && levelSections.length > 0) || courseDetails">
+                <div class="rounded-2xl border border-teal-200 bg-teal-50/70 p-4 sm:p-5 space-y-3">
                     <div class="flex items-center gap-2 text-teal-900 font-bold text-xs uppercase tracking-wide">
-                        <i class="fa-solid fa-circle-check text-teal-600"></i>
-                        <span>Course Milestone Outcomes: <span x-text="courseTitle"></span></span>
+                        <i class="fa-solid fa-circle-check text-teal-600 text-sm"></i>
+                        <span>Course Milestone Outcomes: <span class="font-black text-teal-950" x-text="courseTitle"></span></span>
                     </div>
-                    <p class="text-xs sm:text-sm text-slate-700 leading-relaxed text-justify" x-text="courseDetails"></p>
+
+                    {{-- Structured breakdown for combined levels (e.g. Beginner + Intermediate + Advanced) --}}
+                    <template x-if="levelSections && levelSections.length > 0">
+                        <div class="space-y-2.5">
+                            <template x-for="(sec, sIdx) in levelSections" :key="sIdx">
+                                <div class="rounded-xl border border-teal-200/80 bg-white p-3.5 space-y-1 shadow-2xs">
+                                    <div class="flex items-center gap-2 font-bold text-teal-900 text-xs">
+                                        <span class="w-2 h-2 rounded-full bg-teal-500 flex-shrink-0"></span>
+                                        <span x-text="sec.level"></span>
+                                    </div>
+                                    <p class="text-xs sm:text-sm text-slate-700 leading-relaxed text-justify" x-text="sec.details"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    {{-- Fallback single text block if levelSections is empty --}}
+                    <template x-if="(!levelSections || levelSections.length === 0) && courseDetails">
+                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed text-justify whitespace-pre-line" x-text="courseDetails"></p>
+                    </template>
                 </div>
             </template>
 
@@ -150,6 +169,7 @@
             trackType: '',
             courseDetails: '',
             courseTitle: '',
+            levelSections: [],
 
             openModal(detail) {
                 this.levelName = detail.levelName || 'Skill Level';
@@ -162,6 +182,7 @@
                 this.trackType = detail.trackType || '';
                 this.courseDetails = detail.courseDetails || '';
                 this.courseTitle = detail.courseTitle || '';
+                this.levelSections = Array.isArray(detail.levelSections) ? detail.levelSections : [];
                 this.isOpen = true;
                 document.body.style.overflow = 'hidden';
             },
