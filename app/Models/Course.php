@@ -34,6 +34,7 @@ class Course extends Model
         'key_outcome',
         'level_progression',
         'is_open_enrollment',
+        'is_for_kids',
         'is_active',
         'gamification_settings',
         'average_rating',
@@ -45,10 +46,31 @@ class Course extends Model
         return [
             'is_active' => 'boolean',
             'is_open_enrollment' => 'boolean',
+            'is_for_kids' => 'boolean',
             'gamification_settings' => 'array',
             'average_rating' => 'decimal:2',
             'review_count' => 'integer',
         ];
+    }
+
+    /**
+     * Determine if this course is designated for Kids (parent-supervised, private community).
+     */
+    public function isForKids(): bool
+    {
+        return (bool) $this->is_for_kids;
+    }
+
+    public function scopeForKids($query)
+    {
+        return $query->where('is_for_kids', true);
+    }
+
+    public function scopeGeneral($query)
+    {
+        return $query->where(function ($q): void {
+            $q->where('is_for_kids', false)->orWhereNull('is_for_kids');
+        });
     }
 
     public function getTimelineAttribute($value): ?string
@@ -290,6 +312,11 @@ class Course extends Model
         }
 
         return 0.0;
+    }
+
+    public function getPriceAttribute(): float
+    {
+        return $this->getNumericFee();
     }
 
     /**

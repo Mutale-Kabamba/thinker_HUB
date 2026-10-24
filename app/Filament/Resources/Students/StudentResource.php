@@ -100,6 +100,89 @@ class StudentResource extends Resource
                     ->searchable()
                     ->preload(),
 
+                Toggle::make('is_kid')
+                    ->label('Junior Learner / Kid Account')
+                    ->helperText('Enable if registering a minor student requiring parent management.')
+                    ->live(),
+
+                TextInput::make('unique_code')
+                    ->label('Kid Unique Login Code')
+                    ->default(fn () => User::generateKidUniqueCode())
+                    ->helperText('Unique code child uses to sign in. Cannot be changed by the kid.')
+                    ->visible(fn (callable $get): bool => (bool) $get('is_kid')),
+
+                TextInput::make('age')
+                    ->label('Kid Age')
+                    ->numeric()
+                    ->minValue(3)
+                    ->maxValue(18)
+                    ->required(fn (callable $get): bool => (bool) $get('is_kid'))
+                    ->visible(fn (callable $get): bool => (bool) $get('is_kid')),
+
+                TextInput::make('school')
+                    ->label('School Attending')
+                    ->placeholder('e.g. Baobab College / Lusaka Boys')
+                    ->required(fn (callable $get): bool => (bool) $get('is_kid'))
+                    ->visible(fn (callable $get): bool => (bool) $get('is_kid')),
+
+                TextInput::make('grade')
+                    ->label('Grade / Year')
+                    ->placeholder('e.g. Grade 5')
+                    ->required(fn (callable $get): bool => (bool) $get('is_kid'))
+                    ->visible(fn (callable $get): bool => (bool) $get('is_kid')),
+
+                Select::make('parents')
+                    ->label('Linked Parent / Guardian')
+                    ->relationship('parents', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->helperText('Select an existing parent or click + to register parent/guardian details.')
+                    ->createOptionForm([
+                        TextInput::make('name')
+                            ->label('Parent Full Name')
+                            ->required(),
+                        TextInput::make('email')
+                            ->label('Parent Email')
+                            ->email()
+                            ->required()
+                            ->unique('users', 'email'),
+                        TextInput::make('phone_number')
+                            ->label('WhatsApp / Phone')
+                            ->required(),
+                        TextInput::make('occupation')
+                            ->label('Occupation')
+                            ->required(),
+                        TextInput::make('company')
+                            ->label('Employer / Organization')
+                            ->required(),
+                        TextInput::make('address')
+                            ->label('Home Address')
+                            ->required(),
+                        TextInput::make('password')
+                            ->label('Parent Initial Password')
+                            ->password()
+                            ->default('Parent123!')
+                            ->required(),
+                    ])
+                    ->createOptionUsing(function (array $data): int {
+                        $parent = User::create([
+                            'name' => $data['name'],
+                            'email' => $data['email'],
+                            'phone_number' => $data['phone_number'] ?? null,
+                            'occupation' => $data['occupation'] ?? null,
+                            'company' => $data['company'] ?? null,
+                            'address' => $data['address'] ?? null,
+                            'password' => \Illuminate\Support\Facades\Hash::make($data['password'] ?? 'Parent123!'),
+                            'role' => 'parent',
+                            'default_portal' => 'parent',
+                            'is_active' => true,
+                            'email_verified_at' => now(),
+                        ]);
+
+                        return $parent->id;
+                    })
+                    ->visible(fn (callable $get): bool => (bool) $get('is_kid')),
+
                 Toggle::make('is_active')
                     ->label('Active')
                     ->default(true),

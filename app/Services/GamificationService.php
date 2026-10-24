@@ -1376,7 +1376,9 @@ class GamificationService
         } else {
             $query = User::query()
                 ->where('role', 'student')
-                ->where('is_active', true);
+                ->where('is_active', true)
+                ->where('is_kid', false)
+                ->whereDoesntHave('courses', fn ($q) => $q->where('courses.is_for_kids', true));
         }
 
         $students = $query->get();

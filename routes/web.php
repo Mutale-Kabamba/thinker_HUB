@@ -588,6 +588,9 @@ Route::get('/sitemap.xml', function () {
 
 Route::redirect('/enroll', '/register')->name('enroll');
 Route::redirect('/become-student', '/register')->name('become-student');
+Route::redirect('/parents', '/parent');
+Route::redirect('/parent-portal', '/parent');
+Route::redirect('/parents-portal', '/parent');
 
 Route::get('/dashboard', function () {
     $user = Auth::user();
@@ -636,6 +639,44 @@ Route::middleware('auth')->group(function () {
 
         return response()->json(['status' => 'ok', 'duration' => $duration]);
     })->name('teach.dismiss-reminder');
+
+    // Parent Account Switching to Child Learning Space
+    Route::match(['GET', 'POST'], '/parent/switch-to-kid/{kid}', function (Request $request, User $kid) {
+        $parent = Auth::user();
+        if (! $parent) {
+            return redirect()->route('login');
+        }
+
+        // Only linked parents or admins can switch
+        $isLinked = $parent->kids()->where('users.id', $kid->id)->exists();
+        if (! $isLinked && ! $parent->isAdmin()) {
+            abort(403, 'You are only authorized to switch into your own children\'s accounts.');
+        }
+
+        if (! $kid->is_kid) {
+            abort(400, 'Target user is not a child account.');
+        }
+
+        session(['impersonating_parent_id' => $parent->id]);
+        Auth::login($kid);
+
+        return redirect()->route('filament.student.pages.overview')
+            ->with('status', 'Switched to ' . $kid->name . '\'s learning workspace.');
+    })->name('parent.switch-to-kid');
+
+    Route::match(['GET', 'POST'], '/parent/switch-back', function () {
+        $parentId = session('impersonating_parent_id');
+        if (! $parentId) {
+            return redirect()->route('dashboard');
+        }
+
+        session()->forget('impersonating_parent_id');
+        $parent = User::findOrFail($parentId);
+        Auth::login($parent);
+
+        return redirect()->route('filament.parent.pages.manage-kids')
+            ->with('status', 'Returned to Parent Portal.');
+    })->name('parent.switch-back');
 
     Route::prefix('student')->name('student.')->group(function () {
         Route::redirect('/overview', '/learn/overview')->name('overview');
@@ -719,6 +760,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/materials/{material}', \App\Livewire\MaterialReader::class)->name('materials.show');
         Route::get('/lessons/{lesson}', \App\Livewire\VideoPlayer::class)->name('lessons.show');
         Route::get('/videos/{video}', \App\Livewire\VideoPlayer::class)->name('videos.show');
+        Route::get('/sessions/{session}/view', \App\Livewire\SessionViewer::class)->name('sessions.view');
+        Route::get('/sessions/{session}/watch', \App\Livewire\SessionViewer::class)->name('sessions.watch');
+        Route::get('/sessions/{session}/read', \App\Livewire\SessionViewer::class)->name('sessions.read');
     });
 
     // Serve files from storage without requiring the storage:link symlink.
@@ -838,6 +882,11 @@ Route::middleware('auth')->group(function () {
             } else {
                 $path = $paths['cv'] ?? reset($paths);
             }
+        } elseif ($type === 'session-reading' || $type === 'session-video') {
+            $session = \App\Models\CourseSession::query()->findOrFail($id);
+            $canView = $user->isAdmin() || $user->isInstructor() || $user->isEnrolledInCourse($session->course_id);
+            abort_unless($canView, 403);
+            $path = $type === 'session-reading' ? $session->reading_file_path : $session->video_file_path;
         } else {
             abort(404);
         }

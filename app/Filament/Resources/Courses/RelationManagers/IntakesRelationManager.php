@@ -84,34 +84,37 @@ class IntakesRelationManager extends RelationManager
                             ->label('Intake Name')
                             ->placeholder('e.g. Intake 1 - Jan 2026, Cohort Alpha')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->columnSpanFull(),
                         DatePicker::make('start_date')
                             ->label('Start Date')
                             ->required(),
                         DatePicker::make('end_date')
                             ->label('End Date')
                             ->afterOrEqual('start_date'),
+                        DatePicker::make('registration_deadline')
+                            ->label('Registration Deadline'),
                         DatePicker::make('next_intake_start_date')
                             ->label('Next Intake Start Date')
                             ->helperText('When the subsequent cohort/intake will start.'),
-                        DatePicker::make('registration_deadline')
-                            ->label('Registration Deadline'),
                         Select::make('status')
                             ->options(CourseIntake::STATUSES)
                             ->default(CourseIntake::STATUS_UPCOMING)
                             ->required(),
-                        Toggle::make('is_active')
-                            ->label('Set as Current Active Intake')
-                            ->helperText('If enabled, this becomes the live active intake for new enrollments.')
-                            ->default(false),
                         TextInput::make('max_capacity')
                             ->numeric()
                             ->minValue(1)
                             ->placeholder('Optional capacity limit'),
+                        Toggle::make('is_active')
+                            ->label('Set as Current Active Intake')
+                            ->helperText('If enabled, this becomes the live active intake for new enrollments.')
+                            ->default(false)
+                            ->columnSpanFull(),
                         Textarea::make('notes')
                             ->rows(2)
                             ->columnSpanFull(),
                     ])
+                    ->columns(['default' => 1, 'sm' => 2])
                     ->after(function (CourseIntake $record, array $data): void {
                         if (! empty($data['is_active']) || ($data['status'] ?? '') === CourseIntake::STATUS_ACTIVE) {
                             $record->activate();
@@ -199,29 +202,32 @@ class IntakesRelationManager extends RelationManager
                             TextInput::make('name')
                                 ->label('Intake Name')
                                 ->required()
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->columnSpanFull(),
                             DatePicker::make('start_date')
                                 ->label('Start Date')
                                 ->required(),
                             DatePicker::make('end_date')
                                 ->label('End Date')
                                 ->afterOrEqual('start_date'),
-                            DatePicker::make('next_intake_start_date')
-                                ->label('Next Intake Start Date'),
                             DatePicker::make('registration_deadline')
                                 ->label('Registration Deadline'),
+                            DatePicker::make('next_intake_start_date')
+                                ->label('Next Intake Start Date'),
                             Select::make('status')
                                 ->options(CourseIntake::STATUSES)
                                 ->required(),
-                            Toggle::make('is_active')
-                                ->label('Set as Current Active Intake'),
                             TextInput::make('max_capacity')
                                 ->numeric()
                                 ->minValue(1),
+                            Toggle::make('is_active')
+                                ->label('Set as Current Active Intake')
+                                ->columnSpanFull(),
                             Textarea::make('notes')
                                 ->rows(2)
                                 ->columnSpanFull(),
                         ])
+                        ->columns(['default' => 1, 'sm' => 2])
                         ->after(function (CourseIntake $record, array $data): void {
                             if (! empty($data['is_active'])) {
                                 $record->activate();

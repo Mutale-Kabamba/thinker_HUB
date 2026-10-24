@@ -69,6 +69,14 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        if ($this->app->environment('local')) {
+            if (! $this->app->runningInConsole()) {
+                @ini_set('max_execution_time', '120');
+            } else {
+                @ini_set('max_execution_time', '0');
+            }
+        }
+
         // Align 'public' disk configuration with Laravel Cloud automatic disk or default cloud storage
         $rawCloudConfig = $_SERVER['LARAVEL_CLOUD_DISK_CONFIG']
             ?? $_ENV['LARAVEL_CLOUD_DISK_CONFIG']

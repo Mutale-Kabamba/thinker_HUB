@@ -30,7 +30,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required_without:login', 'nullable', 'string'],
+            'login' => ['required_without:email', 'nullable', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -44,7 +45,18 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $loginInput = trim((string) ($this->input('email') ?: $this->input('login')));
+        $password = (string) $this->input('password');
+        $remember = $this->boolean('remember');
+
+        $candidateUser = User::findKidByCodeOrEmail($loginInput);
+        if ($candidateUser) {
+            $authenticated = Auth::attempt(['id' => $candidateUser->id, 'password' => $password], $remember);
+        } else {
+            $authenticated = Auth::attempt(['email' => $loginInput, 'password' => $password], $remember);
+        }
+
+        if (! $authenticated) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -97,6 +109,7 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        $loginInput = (string) ($this->input('email') ?: $this->input('login'));
+        return Str::transliterate(Str::lower($loginInput).'|'.$this->ip());
     }
 }

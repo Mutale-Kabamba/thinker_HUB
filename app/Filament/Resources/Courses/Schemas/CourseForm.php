@@ -12,7 +12,11 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
 
@@ -22,262 +26,345 @@ class CourseForm
     {
         return $schema
             ->components([
-                TextInput::make('title')
-                    ->required(),
-                TextInput::make('code')
-                    ->required(),
-                Select::make('offering_mode')
-                    ->label('Course Offering Structure')
-                    ->options([
-                        'once_off' => 'Once-off (Single Instance / Self-Paced)',
-                        'ongoing' => 'Ongoing (Intakes / Classes / Cohorts)',
-                    ])
-                    ->default('once_off')
-                    ->helperText('Ongoing courses feature scheduled Intakes/Classes with start/end dates, next intake tracking, and cohort archiving.')
-                    ->required(),
-                TextInput::make('course_by')
-                    ->label('Course By')
-                    ->placeholder('think.er HUB / Organization / Individual')
-                    ->maxLength(255),
-                FileUpload::make('image_path')
-                    ->label('Course Image')
-                    ->disk('public')
-                    ->directory('course-images')
-                    ->image()
-                    ->imageEditor()
-                    ->maxSize(2048)
-                    ->helperText('Course image displayed on public course cards, course details, and group chats.')
-                    ->columnSpanFull(),
-                Textarea::make('description')
-                    ->columnSpanFull(),
-                Textarea::make('overview')
-                    ->helperText('High-level introduction shown in the course details modal.')
-                    ->rows(4)
-                    ->columnSpanFull(),
-                TextInput::make('timeline')
-                    ->helperText('Example: 4 Weeks (approx. 4-5 hours per week)')
-                    ->columnSpanFull(),
-                Repeater::make('fees')
-                    ->label('Fees')
-                    ->helperText('Add fee entries with +. Category is One-On-One, Group, or Self-Paced; level is Beginner, Intermediate, or Advanced.')
-                    ->schema([
-                        Select::make('category')
-                            ->options([
-                                'one_on_one' => 'One-On-One',
-                                'group' => 'Group',
-                                'self_paced' => 'Self-Paced',
-                            ])
-                            ->required(),
-                        Select::make('level')
-                            ->options([
-                                'Beginner' => 'Beginner',
-                                'Intermediate' => 'Intermediate',
-                                'Advanced' => 'Advanced',
-                            ])
-                            ->required(),
-                        TextInput::make('amount')
-                            ->required()
-                            ->placeholder('K450'),
-                        TextInput::make('duration')
-                            ->placeholder('6 Weeks'),
-                    ])
-                    ->columns(['default' => 1, 'sm' => 2, 'lg' => 4])
-                    ->itemLabel(fn (array $state): string => trim(sprintf(
-                        '%s - %s (%s)',
-                        match ($state['category'] ?? 'one_on_one') {
-                            'group' => 'Group',
-                            'self_paced' => 'Self-Paced',
-                            default => 'One-On-One',
-                        },
-                        $state['level'] ?? 'Level',
-                        $state['amount'] ?? '-',
-                    )))
-                    ->compact()
-                    ->collapsible()
-                    ->collapsed()
-                    ->reorderable(false)
-                    ->cloneable(false)
-                    ->defaultItems(0)
-                    ->addAction(fn (Action $action): Action => $action
-                        ->label('Add fee entry')
-                        ->icon('heroicon-o-plus')
-                        ->color('primary')
-                        ->modalHeading('Add Fee Entry')
-                        ->modalSubmitActionLabel('Add Entry')
-                        ->form([
-                            Select::make('category')
-                                ->options([
-                                    'one_on_one' => 'One-On-One',
-                                    'group' => 'Group',
-                                    'self_paced' => 'Self-Paced',
-                                ])
-                                ->required(),
-                            Select::make('level')
-                                ->options([
-                                    'Beginner' => 'Beginner',
-                                    'Intermediate' => 'Intermediate',
-                                    'Advanced' => 'Advanced',
-                                ])
-                                ->required(),
-                            TextInput::make('amount')
-                                ->required()
-                                ->placeholder('K450'),
-                            TextInput::make('duration')
-                                ->placeholder('6 Weeks'),
-                        ])
-                        ->action(function (array $data, Repeater $component): void {
-                            $items = $component->getRawState() ?? [];
-                            $items[(string) Str::uuid()] = [
-                                'category' => self::normalizeCategory((string) ($data['category'] ?? 'one_on_one')),
-                                'level' => self::normalizeLevel((string) ($data['level'] ?? '')),
-                                'amount' => trim((string) ($data['amount'] ?? '')),
-                                'duration' => trim((string) ($data['duration'] ?? '')),
-                            ];
-
-                            $component->rawState($items);
-                            $component->callAfterStateUpdated();
-                            $component->partiallyRender();
-                        }))
-                    ->afterStateHydrated(function (Repeater $component, mixed $state): void {
-                        $component->state(self::parseFeesState($state));
-                    })
-                    ->columnSpanFull(),
-                Textarea::make('requirements')
-                    ->helperText('Add each requirement on a new line.')
-                    ->rows(4)
-                    ->columnSpanFull(),
-                Repeater::make('level_progression')
-                    ->label('Level Progression')
-                    ->helperText('Add each level with + and provide the progression description.')
-                    ->schema([
-                        Select::make('level')
-                            ->options([
-                                'Beginner' => 'Beginner',
-                                'Intermediate' => 'Intermediate',
-                                'Advanced' => 'Advanced',
-                            ])
-                            ->required(),
-                        Textarea::make('details')
-                            ->rows(2)
-                            ->required(),
-                    ])
-                    ->columns(['default' => 1, 'md' => 2])
-                    ->itemLabel(fn (array $state): string => (string) ($state['level'] ?? 'Level'))
-                    ->compact()
-                    ->collapsible()
-                    ->collapsed()
-                    ->reorderable(false)
-                    ->cloneable(false)
-                    ->defaultItems(0)
-                    ->addAction(fn (Action $action): Action => $action
-                        ->label('Add level entry')
-                        ->icon('heroicon-o-plus')
-                        ->color('primary')
-                        ->modalHeading('Add Level Progression Entry')
-                        ->modalSubmitActionLabel('Add Entry')
-                        ->form([
-                            Select::make('level')
-                                ->options([
-                                    'Beginner' => 'Beginner',
-                                    'Intermediate' => 'Intermediate',
-                                    'Advanced' => 'Advanced',
-                                ])
-                                ->required(),
-                            Textarea::make('details')
-                                ->rows(3)
-                                ->required(),
-                        ])
-                        ->action(function (array $data, Repeater $component): void {
-                            $items = $component->getRawState() ?? [];
-                            $items[(string) Str::uuid()] = [
-                                'level' => self::normalizeLevel((string) ($data['level'] ?? '')),
-                                'details' => trim((string) ($data['details'] ?? '')),
-                            ];
-
-                            $component->rawState($items);
-                            $component->callAfterStateUpdated();
-                            $component->partiallyRender();
-                        }))
-                    ->afterStateHydrated(function (Repeater $component, mixed $state): void {
-                        $component->state(self::parseLevelProgressionState($state));
-                    })
-                    ->columnSpanFull(),
-                Textarea::make('key_outcome')
-                    ->helperText('Summarize expected learning outcome after completion.')
-                    ->rows(3)
-                    ->columnSpanFull(),
-                Toggle::make('is_open_enrollment')
-                    ->label('Open For Public Enrollment')
-                    ->helperText('Turn off to lock enrollment to selected participants only.')
-                    ->default(true)
-                    ->live()
-                    ->required(),
-                Select::make('selected_participant_ids')
-                    ->label('Selected Participants')
-                    ->helperText('Only these participants can enroll when public enrollment is locked.')
-                    ->options(fn (): array => User::query()
-                        ->where('role', 'student')
-                        ->orderBy('name')
-                        ->pluck('name', 'id')
-                        ->all())
-                    ->multiple()
-                    ->searchable()
-                    ->preload()
-                    ->visible(fn (callable $get): bool => ! (bool) $get('is_open_enrollment'))
-                    ->columnSpanFull(),
-                Repeater::make('sections')
-                    ->relationship('sections')
-                    ->orderColumn('order_column')
-                    ->label('Curriculum & Sequential Learning Path')
-                    ->helperText('Define sections and ordered lessons (Video, Reading, Quiz, Task/Assignment).')
-                    ->schema([
-                        TextInput::make('title')->required()->label('Section Title'),
-
-                        Repeater::make('lessons')
-                            ->relationship('lessons')
-                            ->orderColumn('order_column')
-                            ->label('Lessons')
+                Tabs::make('Course Studio')
+                    ->tabs([
+                        Tab::make('Overview & Details')
+                            ->icon('heroicon-o-document-text')
                             ->schema([
-                                TextInput::make('title')->required()->label('Lesson Title'),
+                                Section::make('Course Identity & Classification')
+                                    ->description('Essential identification, catalog code, and offering structure.')
+                                    ->icon('heroicon-o-identification')
+                                    ->schema([
+                                        TextInput::make('title')
+                                            ->required()
+                                            ->placeholder('e.g. Full-Stack Web Development Mastery')
+                                            ->maxLength(255)
+                                            ->columnSpan(['default' => 1, 'sm' => 2]),
 
-                                Select::make('type')
-                                    ->options([
-                                        'video' => 'Video',
-                                        'reading' => 'Reading Article',
-                                        'quiz' => 'Quiz',
-                                        'assignment' => 'Task / Assignment',
+                                        TextInput::make('code')
+                                            ->required()
+                                            ->placeholder('e.g. CS-101')
+                                            ->maxLength(50)
+                                            ->helperText('Unique catalog code or course reference.'),
+
+                                        TextInput::make('course_by')
+                                            ->label('Course By')
+                                            ->placeholder('think.er HUB / Organization / Individual')
+                                            ->maxLength(255),
+
+                                        TextInput::make('timeline')
+                                            ->label('Timeline & Pacing')
+                                            ->placeholder('e.g. 8 Weeks (approx. 4-5 hours/week)')
+                                            ->helperText('Estimated commitment required for student completion.')
+                                            ->maxLength(255),
+
+                                        Select::make('offering_mode')
+                                            ->label('Offering Structure')
+                                            ->options([
+                                                'once_off' => 'Once-off (Single Instance / Self-Paced)',
+                                                'ongoing' => 'Ongoing (Intakes / Classes / Cohorts)',
+                                            ])
+                                            ->default('once_off')
+                                            ->helperText('Ongoing courses feature scheduled Intakes/Classes with start/end dates.')
+                                            ->required(),
                                     ])
-                                    ->reactive()
-                                    ->required(),
+                                    ->columns(['default' => 1, 'sm' => 2, 'lg' => 3]),
 
-                                // Displayed conditionally for Reading
-                                RichEditor::make('reading_body')
-                                    ->visible(fn ($get) => $get('type') === 'reading')
-                                    ->columnSpanFull(),
+                                Section::make('Course Media & Visual Cover')
+                                    ->description('Cover visual showcased across public cards, course details, and group chats.')
+                                    ->icon('heroicon-o-photo')
+                                    ->schema([
+                                        FileUpload::make('image_path')
+                                            ->label('Cover Image')
+                                            ->disk('public')
+                                            ->directory('course-images')
+                                            ->image()
+                                            ->imageEditor()
+                                            ->maxSize(2048)
+                                            ->helperText('Recommended 16:9 ratio. JPG, PNG or WebP up to 2MB.')
+                                            ->columnSpanFull(),
+                                    ]),
 
-                                // Polymorphic relationship link for quizzes/assignments/videos
-                                MorphToSelect::make('content')
-                                    ->types([
-                                        MorphToSelect\Type::make(\App\Models\ResourceVideo::class)->titleAttribute('title'),
-                                        MorphToSelect\Type::make(\App\Models\Quiz::class)->titleAttribute('title'),
-                                        MorphToSelect\Type::make(\App\Models\Assignment::class)->titleAttribute('title'),
+                                Section::make('Narrative & Learning Outcomes')
+                                    ->description('Set clear expectations, prerequisites, and tangible takeaways.')
+                                    ->icon('heroicon-o-sparkles')
+                                    ->schema([
+                                        Textarea::make('overview')
+                                            ->label('Course Overview / Teaser')
+                                            ->helperText('High-level introduction shown in the course preview modal.')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
+                                        Textarea::make('description')
+                                            ->label('Detailed Description')
+                                            ->rows(4)
+                                            ->columnSpanFull(),
+                                        Textarea::make('requirements')
+                                            ->label('Requirements & Prerequisites')
+                                            ->helperText('Add each requirement on a new line.')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
+                                        Textarea::make('key_outcome')
+                                            ->label('Key Learning Outcomes')
+                                            ->helperText('Summarize expected competencies gained after completion.')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                Section::make('Publishing & Enrollment Controls')
+                                    ->description('Control live catalog visibility, enrollment gates, and student privacy.')
+                                    ->icon('heroicon-o-globe-alt')
+                                    ->schema([
+                                        Toggle::make('is_active')
+                                            ->label('Active / Published')
+                                            ->helperText(fn () => auth()->user()?->isAdmin() ? 'Course is active and published to the public catalog.' : 'Requires Admin approval before becoming active and published.')
+                                            ->disabled(fn () => ! (bool) auth()->user()?->isAdmin())
+                                            ->dehydrated(fn () => (bool) auth()->user()?->isAdmin())
+                                            ->default(false),
+
+                                        Toggle::make('is_open_enrollment')
+                                            ->label('Open For Public Enrollment')
+                                            ->helperText('Turn off to lock enrollment to selected participants only.')
+                                            ->default(true)
+                                            ->live()
+                                            ->required(),
+
+                                        Toggle::make('is_for_kids')
+                                            ->label('Designated for Kids (Parent Supervised)')
+                                            ->helperText('Protects child privacy: enrolled kids are not visible to the general public community.')
+                                            ->default(false),
+
+                                        Select::make('selected_participant_ids')
+                                            ->label('Restricted Students')
+                                            ->helperText('Only these participants can enroll when public enrollment is locked.')
+                                            ->options(fn (): array => User::query()
+                                                ->where('role', 'student')
+                                                ->orderBy('name')
+                                                ->pluck('name', 'id')
+                                                ->all())
+                                            ->multiple()
+                                            ->searchable()
+                                            ->preload()
+                                            ->visible(fn (callable $get): bool => ! (bool) $get('is_open_enrollment'))
+                                            ->columnSpanFull(),
                                     ])
-                                    ->visible(fn ($get) => in_array($get('type'), ['video', 'quiz', 'assignment']))
-                                    ->columnSpanFull(),
-                            ])
-                            ->collapsible()
-                            ->defaultItems(1),
-                    ])
-                    ->collapsible()
-                    ->defaultItems(0)
-                    ->columnSpanFull(),
-                Toggle::make('is_active')
-                    ->label('Active / Published')
-                    ->helperText(fn () => auth()->user()?->isAdmin() ? 'Course is active and published to the public catalog.' : 'Requires Admin approval before becoming active and published.')
-                    ->disabled(fn () => ! (bool) auth()->user()?->isAdmin())
-                    ->dehydrated(fn () => (bool) auth()->user()?->isAdmin())
-                    ->default(false),
-            ]);
+                                    ->columns(['default' => 1, 'sm' => 3]),
+                            ]),
+
+                                    Tab::make('Curriculum & Path')
+                                        ->icon('heroicon-o-academic-cap')
+                                        ->schema([
+                                            Section::make('Sequential Learning Path')
+                                                ->description('Organize curriculum modules, sequential sections, and lessons (Videos, Readings, Quizzes, Assignments).')
+                                                ->icon('heroicon-o-queue-list')
+                                                ->schema([
+                                                    Repeater::make('sections')
+                                                        ->relationship('sections')
+                                                        ->orderColumn('order_column')
+                                                        ->label('Curriculum Sections')
+                                                        ->helperText('Define sections and ordered lessons (Video, Reading, Quiz, Task/Assignment).')
+                                                        ->schema([
+                                                            TextInput::make('title')->required()->label('Section Title'),
+
+                                                            Repeater::make('lessons')
+                                                                ->relationship('lessons')
+                                                                ->orderColumn('order_column')
+                                                                ->label('Lessons')
+                                                                ->schema([
+                                                                    TextInput::make('title')->required()->label('Lesson Title'),
+
+                                                                    Select::make('type')
+                                                                        ->options([
+                                                                            'video' => 'Video',
+                                                                            'reading' => 'Reading Article',
+                                                                            'quiz' => 'Quiz',
+                                                                            'assignment' => 'Task / Assignment',
+                                                                        ])
+                                                                        ->reactive()
+                                                                        ->required(),
+
+                                                                    // Displayed conditionally for Reading
+                                                                    RichEditor::make('reading_body')
+                                                                        ->visible(fn ($get) => $get('type') === 'reading')
+                                                                        ->columnSpanFull(),
+
+                                                                    // Polymorphic relationship link for quizzes/assignments/videos
+                                                                    MorphToSelect::make('content')
+                                                                        ->types([
+                                                                            MorphToSelect\Type::make(\App\Models\ResourceVideo::class)->titleAttribute('title'),
+                                                                            MorphToSelect\Type::make(\App\Models\Quiz::class)->titleAttribute('title'),
+                                                                            MorphToSelect\Type::make(\App\Models\Assignment::class)->titleAttribute('title'),
+                                                                        ])
+                                                                        ->visible(fn ($get) => in_array($get('type'), ['video', 'quiz', 'assignment']))
+                                                                        ->columnSpanFull(),
+                                                                ])
+                                                                ->collapsible()
+                                                                ->defaultItems(1),
+                                                        ])
+                                                        ->collapsible()
+                                                        ->defaultItems(0)
+                                                        ->columnSpanFull(),
+                                                ]),
+                                        ]),
+
+                                    Tab::make('Tuition & Levels')
+                                        ->icon('heroicon-o-banknotes')
+                                        ->schema([
+                                            Section::make('Tuition & Fee Structure')
+                                                ->description('Manage fee tiers across categories (One-On-One, Group, Self-Paced) and proficiency levels.')
+                                                ->icon('heroicon-o-currency-dollar')
+                                                ->schema([
+                                                    Repeater::make('fees')
+                                                        ->label('Fees')
+                                                        ->helperText('Add fee entries with +. Category is One-On-One, Group, or Self-Paced; level is Beginner, Intermediate, or Advanced.')
+                                                        ->schema([
+                                                            Select::make('category')
+                                                                ->options([
+                                                                    'one_on_one' => 'One-On-One',
+                                                                    'group' => 'Group',
+                                                                    'self_paced' => 'Self-Paced',
+                                                                ])
+                                                                ->required(),
+                                                            Select::make('level')
+                                                                ->options([
+                                                                    'Beginner' => 'Beginner',
+                                                                    'Intermediate' => 'Intermediate',
+                                                                    'Advanced' => 'Advanced',
+                                                                ])
+                                                                ->required(),
+                                                            TextInput::make('amount')
+                                                                ->required()
+                                                                ->placeholder('K450'),
+                                                            TextInput::make('duration')
+                                                                ->placeholder('6 Weeks'),
+                                                        ])
+                                                        ->columns(['default' => 1, 'sm' => 2, 'lg' => 4])
+                                                        ->itemLabel(fn (array $state): string => trim(sprintf(
+                                                            '%s - %s (%s)',
+                                                            match ($state['category'] ?? 'one_on_one') {
+                                                                'group' => 'Group',
+                                                                'self_paced' => 'Self-Paced',
+                                                                default => 'One-On-One',
+                                                            },
+                                                            $state['level'] ?? 'Level',
+                                                            $state['amount'] ?? '-',
+                                                        )))
+                                                        ->compact()
+                                                        ->collapsible()
+                                                        ->collapsed()
+                                                        ->reorderable(false)
+                                                        ->cloneable(false)
+                                                        ->defaultItems(0)
+                                                        ->addAction(fn (Action $action): Action => $action
+                                                            ->label('Add fee entry')
+                                                            ->icon('heroicon-o-plus')
+                                                            ->color('primary')
+                                                            ->modalHeading('Add Fee Entry')
+                                                            ->modalSubmitActionLabel('Add Entry')
+                                                            ->form([
+                                                                Select::make('category')
+                                                                    ->options([
+                                                                        'one_on_one' => 'One-On-One',
+                                                                        'group' => 'Group',
+                                                                        'self_paced' => 'Self-Paced',
+                                                                    ])
+                                                                    ->required(),
+                                                                Select::make('level')
+                                                                    ->options([
+                                                                        'Beginner' => 'Beginner',
+                                                                        'Intermediate' => 'Intermediate',
+                                                                        'Advanced' => 'Advanced',
+                                                                    ])
+                                                                    ->required(),
+                                                                TextInput::make('amount')
+                                                                    ->required()
+                                                                    ->placeholder('K450'),
+                                                                TextInput::make('duration')
+                                                                    ->placeholder('6 Weeks'),
+                                                            ])
+                                                            ->action(function (array $data, Repeater $component): void {
+                                                                $items = $component->getRawState() ?? [];
+                                                                $items[(string) Str::uuid()] = [
+                                                                    'category' => self::normalizeCategory((string) ($data['category'] ?? 'one_on_one')),
+                                                                    'level' => self::normalizeLevel((string) ($data['level'] ?? '')),
+                                                                    'amount' => trim((string) ($data['amount'] ?? '')),
+                                                                    'duration' => trim((string) ($data['duration'] ?? '')),
+                                                                ];
+
+                                                                $component->rawState($items);
+                                                                $component->callAfterStateUpdated();
+                                                                $component->partiallyRender();
+                                                            }))
+                                                        ->afterStateHydrated(function (Repeater $component, mixed $state): void {
+                                                            $component->state(self::parseFeesState($state));
+                                                        })
+                                                        ->columnSpanFull(),
+                                                ]),
+
+                                            Section::make('Skill Level Progression Roadmap')
+                                                ->description('Define what students learn and master across Beginner, Intermediate, and Advanced tiers.')
+                                                ->icon('heroicon-o-chart-bar')
+                                                ->schema([
+                                                    Repeater::make('level_progression')
+                                                        ->label('Level Progression')
+                                                        ->helperText('Add each level with + and provide the progression description.')
+                                                        ->schema([
+                                                            Select::make('level')
+                                                                ->options([
+                                                                    'Beginner' => 'Beginner',
+                                                                    'Intermediate' => 'Intermediate',
+                                                                    'Advanced' => 'Advanced',
+                                                                ])
+                                                                ->required(),
+                                                            Textarea::make('details')
+                                                                ->rows(2)
+                                                                ->required(),
+                                                        ])
+                                                        ->columns(['default' => 1, 'md' => 2])
+                                                        ->itemLabel(fn (array $state): string => (string) ($state['level'] ?? 'Level'))
+                                                        ->compact()
+                                                        ->collapsible()
+                                                        ->collapsed()
+                                                        ->reorderable(false)
+                                                        ->cloneable(false)
+                                                        ->defaultItems(0)
+                                                        ->addAction(fn (Action $action): Action => $action
+                                                            ->label('Add level entry')
+                                                            ->icon('heroicon-o-plus')
+                                                            ->color('primary')
+                                                            ->modalHeading('Add Level Progression Entry')
+                                                            ->modalSubmitActionLabel('Add Entry')
+                                                            ->form([
+                                                                Select::make('level')
+                                                                    ->options([
+                                                                        'Beginner' => 'Beginner',
+                                                                        'Intermediate' => 'Intermediate',
+                                                                        'Advanced' => 'Advanced',
+                                                                    ])
+                                                                    ->required(),
+                                                                Textarea::make('details')
+                                                                    ->rows(3)
+                                                                    ->required(),
+                                                            ])
+                                                            ->action(function (array $data, Repeater $component): void {
+                                                                $items = $component->getRawState() ?? [];
+                                                                $items[(string) Str::uuid()] = [
+                                                                    'level' => self::normalizeLevel((string) ($data['level'] ?? '')),
+                                                                    'details' => trim((string) ($data['details'] ?? '')),
+                                                                ];
+
+                                                                $component->rawState($items);
+                                                                $component->callAfterStateUpdated();
+                                                                $component->partiallyRender();
+                                                            }))
+                                                        ->afterStateHydrated(function (Repeater $component, mixed $state): void {
+                                                            $component->state(self::parseLevelProgressionState($state));
+                                                        })
+                                                        ->columnSpanFull(),
+                                                ]),
+                                        ]),
+                                ])
+                                ->columnSpanFull(),
+                        ]);
     }
 
     /**

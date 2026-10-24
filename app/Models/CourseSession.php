@@ -12,11 +12,31 @@ class CourseSession extends Model
 {
     use HasFactory;
 
+    public const DELIVERY_LIVE_VIRTUAL = 'live_virtual';
+    public const DELIVERY_LIVE_PHYSICAL = 'live_physical';
+    public const DELIVERY_VIDEO = 'video';
+    public const DELIVERY_READ = 'read';
+
+    public const DELIVERY_MODES = [
+        self::DELIVERY_LIVE_VIRTUAL => 'Live Virtual (Online)',
+        self::DELIVERY_LIVE_PHYSICAL => 'Live Physical (In-Person)',
+        self::DELIVERY_VIDEO => 'Video Guide / Stream',
+        self::DELIVERY_READ => 'Reading Material',
+    ];
+
     protected $fillable = [
         'course_id',
         'course_intake_id',
         'instructor_id',
         'type',
+        'delivery_mode',
+        'meeting_link',
+        'physical_address',
+        'video_url',
+        'video_file_path',
+        'reading_file_path',
+        'reading_content',
+        'required_duration_minutes',
         'student_id',
         'title',
         'session_date',
@@ -34,7 +54,44 @@ class CourseSession extends Model
         return [
             'session_date' => 'date',
             'rescheduled_date' => 'date',
+            'required_duration_minutes' => 'integer',
         ];
+    }
+
+    public function isLiveVirtual(): bool
+    {
+        return ($this->delivery_mode ?? self::DELIVERY_LIVE_VIRTUAL) === self::DELIVERY_LIVE_VIRTUAL;
+    }
+
+    public function isLivePhysical(): bool
+    {
+        return $this->delivery_mode === self::DELIVERY_LIVE_PHYSICAL;
+    }
+
+    public function isVideo(): bool
+    {
+        return $this->delivery_mode === self::DELIVERY_VIDEO;
+    }
+
+    public function isRead(): bool
+    {
+        return $this->delivery_mode === self::DELIVERY_READ;
+    }
+
+    public function isSelfPaced(): bool
+    {
+        return $this->isVideo() || $this->isRead();
+    }
+
+    public function getYoutubeIdAttribute(): ?string
+    {
+        if (empty($this->video_url)) {
+            return null;
+        }
+
+        preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/', (string) $this->video_url, $matches);
+
+        return $matches[1] ?? null;
     }
 
     public function course(): BelongsTo
