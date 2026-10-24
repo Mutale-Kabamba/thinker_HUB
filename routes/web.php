@@ -760,6 +760,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/materials/{material}', \App\Livewire\MaterialReader::class)->name('materials.show');
         Route::get('/lessons/{lesson}', \App\Livewire\VideoPlayer::class)->name('lessons.show');
         Route::get('/videos/{video}', \App\Livewire\VideoPlayer::class)->name('videos.show');
+        Route::get('/sessions/{session}/view', \App\Livewire\SessionViewer::class)->name('sessions.view');
+        Route::get('/sessions/{session}/watch', \App\Livewire\SessionViewer::class)->name('sessions.watch');
+        Route::get('/sessions/{session}/read', \App\Livewire\SessionViewer::class)->name('sessions.read');
     });
 
     // Serve files from storage without requiring the storage:link symlink.
@@ -879,6 +882,11 @@ Route::middleware('auth')->group(function () {
             } else {
                 $path = $paths['cv'] ?? reset($paths);
             }
+        } elseif ($type === 'session-reading' || $type === 'session-video') {
+            $session = \App\Models\CourseSession::query()->findOrFail($id);
+            $canView = $user->isAdmin() || $user->isInstructor() || $user->isEnrolledInCourse($session->course_id);
+            abort_unless($canView, 403);
+            $path = $type === 'session-reading' ? $session->reading_file_path : $session->video_file_path;
         } else {
             abort(404);
         }

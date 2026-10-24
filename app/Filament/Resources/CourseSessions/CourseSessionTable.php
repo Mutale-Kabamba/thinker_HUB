@@ -37,6 +37,21 @@ class CourseSessionTable
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => $state === 'one_on_one' ? 'One-On-One' : 'Group')
                     ->color(fn (string $state): string => $state === 'group' ? 'success' : 'info'),
+                TextColumn::make('delivery_mode')
+                    ->label('Delivery')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'live_physical' => 'In-Person',
+                        'video' => 'Video',
+                        'read' => 'Reading',
+                        default => 'Virtual',
+                    })
+                    ->color(fn (?string $state): string => match ($state) {
+                        'live_physical' => 'warning',
+                        'video' => 'primary',
+                        'read' => 'info',
+                        default => 'success',
+                    }),
                 TextColumn::make('student.name')
                     ->label('Student')
                     ->placeholder('All enrolled')

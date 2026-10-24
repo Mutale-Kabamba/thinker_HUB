@@ -296,7 +296,14 @@ class Schedule extends Page
             'start_time' => filled($startTime) ? Carbon::parse($startTime)->format('g:i A') : '—',
             'end_time' => filled($endTime) ? Carbon::parse($endTime)->format('g:i A') : '—',
             'status' => $session->status,
+            'delivery_mode' => $session->delivery_mode ?? \App\Models\CourseSession::DELIVERY_LIVE_VIRTUAL,
             'meeting_link' => $session->meeting_link,
+            'physical_address' => $session->physical_address,
+            'video_url' => $session->video_url,
+            'viewer_url' => in_array($session->delivery_mode, [\App\Models\CourseSession::DELIVERY_VIDEO, \App\Models\CourseSession::DELIVERY_READ], true)
+                ? route('sessions.view', ['session' => $session->id])
+                : null,
+            'required_duration_minutes' => $session->required_duration_minutes ?? 15,
             'notes' => $session->notes,
             'is_today' => $effectiveDate->isToday(),
             'is_past' => $effectiveDate->isPast() && ! $effectiveDate->isToday(),

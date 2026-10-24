@@ -664,10 +664,13 @@
                     </div>
 
                     {{-- Virtual Meeting Link --}}
-                    @if ($selectedSessionDetails['meeting_link'])
+                    @if (($selectedSessionDetails['delivery_mode'] ?? 'live_virtual') === 'live_virtual' && $selectedSessionDetails['meeting_link'])
                         <div class="p-3.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-900 flex items-center justify-between gap-3">
                             <div class="min-w-0 flex-1">
-                                <p class="text-xs font-bold text-teal-900 dark:text-teal-200">Virtual Classroom</p>
+                                <p class="text-xs font-bold text-teal-900 dark:text-teal-200 flex items-center gap-1.5">
+                                    <x-heroicon-o-video-camera class="w-4 h-4 text-teal-600" />
+                                    <span>Virtual Classroom</span>
+                                </p>
                                 <p class="text-[11px] text-teal-700/80 dark:text-teal-300/80 truncate">{{ $selectedSessionDetails['meeting_link'] }}</p>
                             </div>
                             <a 
@@ -676,9 +679,70 @@
                                 rel="noopener"
                                 class="px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
                             >
-                                <x-heroicon-o-video-camera class="w-3.5 h-3.5" />
+                                <x-heroicon-o-arrow-top-right-on-square class="w-3.5 h-3.5" />
                                 <span>Start Class</span>
                             </a>
+                        </div>
+                    @endif
+
+                    {{-- Physical Class Address --}}
+                    @if (($selectedSessionDetails['delivery_mode'] ?? '') === 'live_physical' && $selectedSessionDetails['physical_address'])
+                        <div class="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
+                                <x-heroicon-o-map-pin class="w-4 h-4" />
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-amber-900 dark:text-amber-200">Physical Venue / Address</p>
+                                <p class="text-xs text-amber-800/90 dark:text-amber-300/90 font-medium whitespace-pre-line">{{ $selectedSessionDetails['physical_address'] }}</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Video Guide Session --}}
+                    @if (($selectedSessionDetails['delivery_mode'] ?? '') === 'video')
+                        <div class="p-3.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900 flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+                                    <x-heroicon-o-play-circle class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                    <span>Video Guide Session</span>
+                                </p>
+                                <p class="text-[11px] text-indigo-700/80 dark:text-indigo-300/80">
+                                    Self-paced session: required watch time is {{ $selectedSessionDetails['required_duration_minutes'] ?? 15 }} minutes.
+                                </p>
+                            </div>
+                            @if (!empty($selectedSessionDetails['viewer_url']))
+                                <a 
+                                    href="{{ $selectedSessionDetails['viewer_url'] }}" 
+                                    class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
+                                >
+                                    <x-heroicon-o-play class="w-3.5 h-3.5" />
+                                    <span>Preview Video</span>
+                                </a>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- Reading Material Session --}}
+                    @if (($selectedSessionDetails['delivery_mode'] ?? '') === 'read')
+                        <div class="p-3.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-900 flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-teal-900 dark:text-teal-200 flex items-center gap-1.5">
+                                    <x-heroicon-o-book-open class="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                                    <span>Reading Material Session</span>
+                                </p>
+                                <p class="text-[11px] text-teal-700/80 dark:text-teal-300/80">
+                                    Self-paced reading: required time is {{ $selectedSessionDetails['required_duration_minutes'] ?? 15 }} minutes.
+                                </p>
+                            </div>
+                            @if (!empty($selectedSessionDetails['viewer_url']))
+                                <a 
+                                    href="{{ $selectedSessionDetails['viewer_url'] }}" 
+                                    class="px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
+                                >
+                                    <x-heroicon-o-document-text class="w-3.5 h-3.5" />
+                                    <span>Preview Reading</span>
+                                </a>
+                            @endif
                         </div>
                     @endif
 
