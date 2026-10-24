@@ -13,12 +13,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
     <style>
-        @media (max-width: 640px) {
-            .hub-fee-row {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                gap: 0.25rem !important;
-            }
+        .hub-fee-row {
+            transition: all 0.2s ease-in-out;
         }
     </style>
 </head>
@@ -399,6 +395,158 @@
                 $progressionCards,
                 static fn (array $item): bool => filled($item['level'] ?? null) && filled($item['details'] ?? null)
             ));
+
+            $skillLevelGuidelines = [
+                'Beginner' => [
+                    'tier' => '1. Foundational Tier',
+                    'badge' => 'Beginner',
+                    'badgeColor' => 'emerald',
+                    'target' => 'Absolute beginners with zero prior background or novices seeking structured, crystal-clear fundamentals.',
+                    'focus' => 'Core fundamentals, foundational terminology, workspace and tool configuration, syntax rules, principles, and guided hands-on exercises.',
+                    'milestones' => [
+                        'Environment & tools configuration from ground zero',
+                        'Core terminology, conceptual foundations, and key principles',
+                        'Guided hands-on challenges and structured problem-solving',
+                        'Confidence building with direct tutor mentorship',
+                    ],
+                    'trackType' => 'Standard Foundational Track',
+                ],
+                'Intermediate' => [
+                    'tier' => '2. Practical Competency Tier',
+                    'badge' => 'Intermediate',
+                    'badgeColor' => 'blue',
+                    'target' => 'Learners with foundational knowledge looking to build practical real-world capability and autonomous problem-solving.',
+                    'focus' => 'Practical problem-solving, modular code organization, APIs, database integration, robust error handling, and independent mini-projects.',
+                    'milestones' => [
+                        'Clean, modular architecture & industry-standard conventions',
+                        'API integration, data persistence & state handling',
+                        'Independent troubleshooting, error handling & debugging',
+                        'Completion of functional portfolio-ready mini-projects',
+                    ],
+                    'trackType' => 'Standard Practical Competency Track',
+                ],
+                'Advanced' => [
+                    'tier' => '3. Professional Mastery Tier',
+                    'badge' => 'Advanced',
+                    'badgeColor' => 'purple',
+                    'target' => 'Experienced practitioners, developers, and professionals aiming for senior-level depth, architectural mastery, and leadership.',
+                    'focus' => 'Complex system architecture, performance optimization, security best practices, automated testing, CI/CD, and enterprise-grade delivery.',
+                    'milestones' => [
+                        'Scalable design patterns & complex data architecture',
+                        'Production hardening, caching & latency reduction',
+                        'Security compliance, authentication & audit logging',
+                        'Automated testing & CI/CD deployment workflows',
+                    ],
+                    'trackType' => 'Standard Professional Mastery Track',
+                ],
+                'Advanced (Beginner to Advanced)' => [
+                    'tier' => '4. Zero-to-Hero Track',
+                    'badge' => 'Zero-to-Hero',
+                    'badgeColor' => 'amber',
+                    'target' => 'Ambitious learners wanting a comprehensive, unbroken progression journey starting at ground zero and graduating with advanced mastery.',
+                    'focus' => 'Comprehensive end-to-end curriculum bridging foundational concepts, intermediate building blocks, and advanced system engineering in one cohesive journey.',
+                    'milestones' => [
+                        'Phase 1: Zero-friction fundamental setup & basic principles',
+                        'Phase 2: Transition into modular development & database-backed projects',
+                        'Phase 3: Deep dive into enterprise architecture, security & scaling',
+                        'Capstone: Full end-to-end production application deployment',
+                    ],
+                    'trackType' => 'Comprehensive Journey (Zero-to-Hero)',
+                ],
+                'Advanced (Intermediate to Advanced)' => [
+                    'tier' => '5. Specialist Acceleration Track',
+                    'badge' => 'Specialist Acceleration',
+                    'badgeColor' => 'indigo',
+                    'target' => 'Proficient developers and practitioners who already possess strong fundamentals and want to fast-track directly into advanced specialisation.',
+                    'focus' => 'Skips beginner setup to accelerate skilled learners into senior/lead developer capabilities, advanced design patterns, and system resilience.',
+                    'milestones' => [
+                        'Advanced design patterns & distributed architectures',
+                        'Deep performance profiling, bottleneck detection & concurrency',
+                        'Production resilience, microservices & automated pipelines',
+                        'Industry-standard code reviews & architectural defense',
+                    ],
+                    'trackType' => 'Accelerated Specialist Track',
+                ],
+                'Intermediate (Beginner to Intermediate)' => [
+                    'tier' => '6. Bridge Track',
+                    'badge' => 'Bridge Track',
+                    'badgeColor' => 'teal',
+                    'target' => 'Novices who want more than basic syntax and need a guided bridge into self-sufficient, job-ready project creation.',
+                    'focus' => 'Guides novices past the beginner plateau, grounding them in real-world habits, modular design, and confident autonomy.',
+                    'milestones' => [
+                        'Step-by-step bridging from elementary syntax to multi-file projects',
+                        'Practical problem deconstruction and algorithmic thinking',
+                        'Working with version control, third-party libraries & APIs',
+                        'Building 2+ autonomous, working projects without guided templates',
+                    ],
+                    'trackType' => 'Guided Practical Bridge Track',
+                ],
+            ];
+
+            $getLevelGuidelines = static function (string $rawLevelName) use ($skillLevelGuidelines, $progressionItems, $course): array {
+                $rawTrim = trim($rawLevelName);
+                $matchedKey = null;
+
+                foreach (array_keys($skillLevelGuidelines) as $key) {
+                    if (strcasecmp($rawTrim, $key) === 0) {
+                        $matchedKey = $key;
+                        break;
+                    }
+                }
+
+                if ($matchedKey === null) {
+                    if (stripos($rawTrim, 'beginner to advanced') !== false) {
+                        $matchedKey = 'Advanced (Beginner to Advanced)';
+                    } elseif (stripos($rawTrim, 'intermediate to advanced') !== false) {
+                        $matchedKey = 'Advanced (Intermediate to Advanced)';
+                    } elseif (stripos($rawTrim, 'beginner to intermediate') !== false) {
+                        $matchedKey = 'Intermediate (Beginner to Intermediate)';
+                    } elseif (stripos($rawTrim, 'beginner') !== false) {
+                        $matchedKey = 'Beginner';
+                    } elseif (stripos($rawTrim, 'advanced') !== false) {
+                        $matchedKey = 'Advanced';
+                    } elseif (stripos($rawTrim, 'intermediate') !== false) {
+                        $matchedKey = 'Intermediate';
+                    }
+                }
+
+                $framework = $skillLevelGuidelines[$matchedKey] ?? [
+                    'tier' => 'Skill Level Tier',
+                    'badge' => $rawTrim,
+                    'badgeColor' => 'teal',
+                    'target' => 'Learners enrolled in the '.$rawTrim.' track.',
+                    'focus' => 'Specialized competencies and progression outcomes for '.$rawTrim.'.',
+                    'milestones' => [
+                        'Core track competencies & skill building',
+                        'Guided problem solving and hands-on exercises',
+                        'Real-world practical assignments and feedback',
+                        'Milestone evaluation and progression certification',
+                    ],
+                    'trackType' => 'Targeted Progression Track',
+                ];
+
+                $courseDetails = '';
+                foreach ($progressionItems as $pItem) {
+                    $pLevel = trim((string) ($pItem['level'] ?? ''));
+                    if ($pLevel !== '' && (strcasecmp($pLevel, $rawTrim) === 0 || ($matchedKey && strcasecmp($pLevel, $matchedKey) === 0))) {
+                        $courseDetails = trim((string) ($pItem['details'] ?? ''));
+                        break;
+                    }
+                }
+
+                return [
+                    'levelName' => $rawTrim !== '' ? $rawTrim : ($matchedKey ?? 'Skill Level'),
+                    'tier' => $framework['tier'],
+                    'badge' => $framework['badge'],
+                    'badgeColor' => $framework['badgeColor'],
+                    'target' => $framework['target'],
+                    'focus' => $framework['focus'],
+                    'milestones' => $framework['milestones'],
+                    'trackType' => $framework['trackType'],
+                    'courseDetails' => $courseDetails,
+                    'courseTitle' => $course->title,
+                ];
+            };
         @endphp
 
         {{-- Dark Banner Section --}}
@@ -420,7 +568,7 @@
                     @endif
                 </div>
                 <h1 class="mt-4 max-w-4xl text-4xl font-black text-white sm:text-5xl">{{ $course->title }}</h1>
-                <p class="mt-5 max-w-3xl text-slate-300">{{ $course->overview ?: $course->description }}</p>
+                <p class="mt-5 max-w-3xl text-slate-300 text-justify">{{ $course->overview ?: $course->description }}</p>
                 @php
                     $avgRating = (float) ($course->average_rating ?? ($course->ratings_avg_rating ?? 0));
                     $ratingCount = (int) ($course->review_count ?? ($course->ratings_count ?? 0));
@@ -480,7 +628,7 @@
                     @if (filled($course->overview))
                         <div class="space-y-3">
                             <h2 class="text-xl font-bold text-slate-900">Course Overview</h2>
-                            <p class="leading-relaxed text-slate-600">{{ $course->overview }}</p>
+                            <p class="leading-relaxed text-slate-600 text-justify">{{ $course->overview }}</p>
                         </div>
                     @endif
 
@@ -546,7 +694,7 @@
                     @if (filled($course->key_outcome))
                         <div class="space-y-3">
                             <h3 class="text-lg font-bold text-slate-900">Key Outcome</h3>
-                            <p class="leading-relaxed text-slate-600">{{ $course->key_outcome }}</p>
+                            <p class="leading-relaxed text-slate-600 text-justify">{{ $course->key_outcome }}</p>
                         </div>
                     @endif
 
@@ -564,10 +712,43 @@
                                         </div>
                                         <div class="space-y-2">
                                             @foreach ($section['rows'] as $row)
-                                                <div class="hub-fee-row flex w-full items-center justify-between gap-4 rounded-xl border border-slate-200/80 bg-white px-4 py-3">
-                                                    <span class="text-sm font-semibold text-slate-800">{{ $row['level'] !== '' ? $row['level'] : '-' }}</span>
-                                                    <span class="text-sm font-bold text-slate-900">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</span>
-                                                    <span class="text-sm text-slate-500">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</span>
+                                                @php
+                                                    $levelName = $row['level'] !== '' ? $row['level'] : 'Level';
+                                                    $levelInfo = $getLevelGuidelines($levelName);
+                                                @endphp
+                                                <div class="hub-fee-row grid grid-cols-[1fr_100px_80px] sm:grid-cols-[1fr_140px_110px] w-full items-center gap-2 sm:gap-4 rounded-2xl border border-slate-200/80 bg-white px-4 sm:px-5 py-3.5 transition hover:border-teal-300 hover:shadow-xs">
+                                                    {{-- Level: Left Aligned with Hover (Click to View) & Modal Trigger --}}
+                                                    <div class="min-w-0 text-left">
+                                                        <button
+                                                            type="button"
+                                                            onclick="window.openSkillLevelModal(@js($levelInfo))"
+                                                            @click.prevent="window.openSkillLevelModal(@js($levelInfo))"
+                                                            class="group/level inline-flex items-center gap-2 text-left focus:outline-none cursor-pointer max-w-full"
+                                                            title="Click to view {{ $levelName }} Progression Roadmap Framework & Guidelines"
+                                                        >
+                                                            <span class="text-sm font-semibold text-slate-800 group-hover/level:text-teal-700 group-hover/level:underline decoration-teal-500/50 underline-offset-4 transition">
+                                                                {{ $row['level'] !== '' ? $row['level'] : '-' }}
+                                                            </span>
+                                                            <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200/80 px-2 py-0.5 text-[10px] font-bold text-teal-700 opacity-0 group-hover/level:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-xs">
+                                                                <i class="fa-regular fa-eye text-[10px] text-teal-600"></i>
+                                                                (Click to View)
+                                                            </span>
+                                                        </button>
+                                                    </div>
+
+                                                    {{-- Amount: Right Aligned --}}
+                                                    <div class="text-right">
+                                                        <span class="text-sm font-bold text-slate-900 tabular-nums block">
+                                                            {{ $row['amount'] !== '' ? $row['amount'] : '-' }}
+                                                        </span>
+                                                    </div>
+
+                                                    {{-- Duration: Right Aligned --}}
+                                                    <div class="text-right">
+                                                        <span class="text-sm text-slate-500 tabular-nums block">
+                                                            {{ $row['duration'] !== '' ? $row['duration'] : '-' }}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -805,6 +986,7 @@
             ],
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
     </script>
+    @include('partials.skill-level-progression-modal')
     @include('partials.course-selection-modal')
     @include('partials.legal-modals')
 </body>
