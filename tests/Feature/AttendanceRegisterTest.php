@@ -601,5 +601,84 @@ class AttendanceRegisterTest extends TestCase
         $cumCsv = ob_get_clean();
         $this->assertStringContainsString(',C,', $cumCsv);
     }
+
+    public function test_marking_attendance_via_service_syncs_session_as_completed(): void
+    {
+        Attendance::syncForSession($this->session);
+        $this->assertSame('scheduled', $this->session->status);
+
+        $attendance = Attendance::where('course_session_id', $this->session->id)->first();
+        app(AttendanceService::class)->markAttendance($attendance->id, 'present');
+
+        $this->session->refresh();
+        $this->assertSame('completed', $this->session->status);
+    }
+
+    public function test_batch_marking_attendance_via_service_syncs_session_as_completed(): void
+    {
+        Attendance::syncForSession($this->session);
+        $this->assertSame('scheduled', $this->session->status);
+
+        app(AttendanceService::class)->markBatchAttendance($this->session, 'present');
+
+        $this->session->refresh();
+        $this->assertSame('completed', $this->session->status);
+    }
+
+    public function test_marking_attendance_on_register_page_syncs_session_as_completed(): void
+    {
+        $this->actingAs($this->admin);
+        Attendance::syncForSession($this->session);
+        $this->assertSame('scheduled', $this->session->status);
+
+        $attendance = Attendance::where('course_session_id', $this->session->id)->first();
+
+        Livewire::test(AdminAttendanceRegister::class, ['session_id' => $this->session->id])
+            ->call('markStatus', $attendance->id, 'late')
+            ->assertHasNoErrors();
+
+        $this->session->refresh();
+        $this->assertSame('completed', $this->session->status);
+    }
+
+    public function test_bulk_marking_attendance_on_register_page_syncs_session_as_completed(): void
+    {
+        $this->actingAs($this->admin);
+        Attendance::syncForSession($this->session);
+        $this->assertSame('scheduled', $this->session->status);
+
+        Livewire::test(AdminAttendanceRegister::class, ['session_id' => $this->session->id])
+            ->call('markAll', 'present')
+            ->assertHasNoErrors();
+
+        $this->session->refresh();
+        $this->assertSame('completed', $this->session->status);
+    }
+
+    public function test_direct_complete_session_action_on_register_page(): void
+    {
+        $this->actingAs($this->admin);
+        $this->assertSame('scheduled', $this->session->status);
+
+        Livewire::test(AdminAttendanceRegister::class, ['session_id' => $this->session->id])
+            ->call('completeSession')
+            ->assertHasNoErrors();
+
+        $this->session->refresh();
+        $this->assertSame('completed', $this->session->status);
+    }
+
+    public function test_updating_attendance_record_status_triggers_observer_to_sync_session_as_completed(): void
+    {
+        Attendance::syncForSession($this->session);
+        $this->assertSame('scheduled', $this->session->status);
+
+        $attendance = Attendance::where('course_session_id', $this->session->id)->first();
+        // Change status to trigger observer updated event
+        $attendance->update(['status' => 'apology']);
+
+        $this->session->refresh();
+        $this->assertSame('completed', $this->session->status);
+    }
 }
 

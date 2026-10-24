@@ -99,6 +99,12 @@ class AttendanceService
 
         $attendance->update($data);
 
+        // When a register is marked, sync the session as completed
+        if ($attendance->course_session_id) {
+            $session = $attendance->session ?? CourseSession::find($attendance->course_session_id);
+            $session?->syncAsCompleted();
+        }
+
         return $attendance->fresh(['student', 'session']);
     }
 
@@ -123,6 +129,9 @@ class AttendanceService
             $attendance->update(['status' => $status]);
             $count++;
         }
+
+        // When a register is marked, sync the session as completed
+        $session->syncAsCompleted();
 
         return $count;
     }
