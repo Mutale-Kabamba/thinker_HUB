@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Courses\RelationManagers;
 
+use App\Models\Course;
+use App\Models\InstructorApplication;
 use App\Models\User;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
@@ -12,6 +14,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class InstructorsRelationManager extends RelationManager
 {
@@ -76,11 +79,39 @@ class InstructorsRelationManager extends RelationManager
                     ->recordSelectSearchColumns(['name', 'email']),
             ])
             ->recordActions([
-                DetachAction::make()->label('Unassign'),
+                DetachAction::make()
+                    ->label('Unassign')
+                    ->modalHeading('Unassign Instructor')
+                    ->modalDescription(fn (User $record): string => "Are you sure you want to unassign {$record->name} from this course?")
+                    ->after(function (User $record, InstructorsRelationManager $livewire): void {
+                        /** @var Course $course */
+                        $course = $livewire->getOwnerRecord();
+                        InstructorApplication::query()
+                            ->where('user_id', $record->id)
+                            ->where('assigned_course_id', $course->id)
+                            ->update([
+                                'assigned_course_id' => null,
+                                'course_assignment_action' => 'unassign',
+                            ]);
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DetachBulkAction::make()->label('Unassign Selected'),
+                    DetachBulkAction::make()
+                        ->label('Unassign Selected')
+                        ->modalHeading('Unassign Selected Instructors')
+                        ->modalDescription('Are you sure you want to unassign the selected instructors from this course?')
+                        ->after(function (Collection $records, InstructorsRelationManager $livewire): void {
+                            /** @var Course $course */
+                            $course = $livewire->getOwnerRecord();
+                            InstructorApplication::query()
+                                ->whereIn('user_id', $records->pluck('id'))
+                                ->where('assigned_course_id', $course->id)
+                                ->update([
+                                    'assigned_course_id' => null,
+                                    'course_assignment_action' => 'unassign',
+                                ]);
+                        }),
                 ]),
             ]);
     }

@@ -3,10 +3,13 @@
 namespace App\Filament\Resources\Courses\Tables;
 
 use App\Models\Course;
+use App\Models\InstructorApplication;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -39,6 +42,13 @@ class CoursesTable
                     ->badge()
                     ->formatStateUsing(fn (?string $state): string => ($state ?? 'once_off') === 'ongoing' ? 'Ongoing (Intakes)' : 'Once-off')
                     ->color(fn (?string $state): string => ($state ?? 'once_off') === 'ongoing' ? 'info' : 'gray')
+                    ->visibleFrom('md'),
+                TextColumn::make('instructors.name')
+                    ->label('Instructor(s)')
+                    ->badge()
+                    ->color('info')
+                    ->placeholder('TBA (Unassigned)')
+                    ->searchable()
                     ->visibleFrom('md'),
                 TextColumn::make('activeIntake.name')
                     ->label('Active Intake')
@@ -168,6 +178,75 @@ class CoursesTable
                             'progressionCards' => self::levelProgressionCards($record->level_progression),
                         ])),
                     EditAction::make()->icon('heroicon-m-pencil-square'),
+                    Action::make('unassign_instructor')
+                        ->label('Unassign Instructor')
+                        ->icon('heroicon-m-user-minus')
+                        ->color('danger')
+                        ->visible(fn (Course $record): bool => $record->instructors()->exists())
+                        ->form([
+                            Select::make('instructor_id')
+                                ->label('Select Instructor to Unassign')
+                                ->options(fn (Course $record) => $record->instructors()->pluck('name', 'users.id'))
+                                ->required()
+                                ->default(fn (Course $record) => $record->instructors()->count() === 1 ? $record->instructors()->first()?->id : null),
+                        ])
+                        ->requiresConfirmation()
+                        ->modalHeading('Unassign Instructor from Course')
+                        ->modalDescription(fn (Course $record): string => "Select which instructor to unassign from {$record->title}.")
+                        ->action(function (Course $record, array $data): void {
+                            $instructorId = (int) $data['instructor_id'];
+                            $instructor = User::find($instructorId);
+                            $record->instructors()->detach($instructorId);
+
+                            InstructorApplication::query()
+                                ->where('user_id', $instructorId)
+                                ->where('assigned_course_id', $record->id)
+                                ->update([
+                                    'assigned_course_id' => null,
+                                    'course_assignment_action' => 'unassign',
+                                ]);
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Instructor Unassigned')
+                                ->body(($instructor?->name ?? 'Instructor') . " has been unassigned from {$record->title}.")
+                                ->success()
+                                ->send();
+                        }),
+                    Action::make('assign_instructor')
+                        ->label('Assign Instructor')
+                        ->icon('heroicon-m-user-plus')
+                        ->color('success')
+                        ->form([
+                            Select::make('instructor_id')
+                                ->label('Select Instructor to Assign')
+                                ->options(fn () => User::query()
+                                    ->where('is_active', true)
+                                    ->where(fn ($q) => $q
+                                        ->where('role', 'instructor')
+                                        ->orWhere('role', 'admin')
+                                        ->orWhereHas('instructorApplication', fn ($sub) => $sub->where('status', 'approved'))
+                                        ->orWhereHas('instructorCourses')
+                                    )
+                                    ->orderBy('name')
+                                    ->pluck('name', 'id')
+                                )
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+                        ])
+                        ->modalHeading('Assign Instructor to Course')
+                        ->modalDescription(fn (Course $record): string => "Select an instructor to assign to {$record->title}.")
+                        ->action(function (Course $record, array $data): void {
+                            $instructorId = (int) $data['instructor_id'];
+                            $instructor = User::find($instructorId);
+                            $record->instructors()->syncWithoutDetaching([$instructorId]);
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Instructor Assigned')
+                                ->body(($instructor?->name ?? 'Instructor') . " has been assigned to {$record->title}.")
+                                ->success()
+                                ->send();
+                        }),
                 ])
                 ->icon('heroicon-m-ellipsis-vertical')
                 ->color('gray'),

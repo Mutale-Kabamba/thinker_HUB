@@ -4,12 +4,14 @@ namespace App\Filament\Instructor\Pages;
 
 use App\Filament\Instructor\Resources\AssessmentSubmissionResource\AssessmentSubmissionResource;
 use App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource;
+use App\Filament\Instructor\Resources\CourseResource\CourseResource;
 use App\Models\Assessment;
 use App\Models\AssessmentSubmission;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\Course;
 use App\Models\CourseSession;
+use App\Models\InstructorApplication;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -65,6 +67,8 @@ class InstructorOverview extends Page
     public array $stats = [];
 
     public array $remindersSummary = [];
+
+    public array $courseCreationPrompt = [];
 
     public ?string $selectedDate = null;
 
@@ -236,6 +240,35 @@ class InstructorOverview extends Page
             ];
         }
 
+        // Check if instructor was prompted to build a new course with the guide
+        $promptApp = InstructorApplication::query()
+            ->where('user_id', $user->id)
+            ->where('prompt_course_creation', true)
+            ->latest('prompted_at')
+            ->first();
+
+        if ($promptApp) {
+            $this->courseCreationPrompt = [
+                'has_prompt' => true,
+                'guidance' => $promptApp->course_creation_guidance,
+                'prompted_at' => $promptApp->prompted_at ? $promptApp->prompted_at->diffForHumans() : 'Recently',
+                'create_url' => CourseResource::getUrl('create', panel: 'instructor'),
+            ];
+
+            array_unshift($this->heroBanners, [
+                'title' => 'Course Creation Invited',
+                'description' => 'Thinker Hub Admin invited you to design your new course. Follow our Course Build Structure Guide to draft and submit your curriculum.',
+                'badge' => 'Course Build Request',
+                'badge_color' => 'bg-amber-500/20 text-amber-300 border-amber-400/30',
+                'cta_label' => 'Create Course Now',
+                'cta_url' => CourseResource::getUrl('create', panel: 'instructor'),
+                'metric_label' => 'Status',
+                'metric_value' => 'Guide Ready',
+                'css_gradient' => 'linear-gradient(135deg, #1e1b4b 0%, #312e81 45%, #0f172a 100%)',
+                'avatar' => $userPhoto,
+            ]);
+        }
+
         // Quick Actions Shortcuts
         $this->quickActions = [
             [
@@ -281,6 +314,16 @@ class InstructorOverview extends Page
                 'color' => 'bg-slate-700 text-white',
             ],
         ];
+
+        if (! empty($this->courseCreationPrompt['has_prompt'])) {
+            array_unshift($this->quickActions, [
+                'label' => 'Create Course',
+                'icon' => 'heroicon-o-plus-circle',
+                'url' => CourseResource::getUrl('create', panel: 'instructor'),
+                'badge' => 'Invited',
+                'color' => 'bg-amber-600 text-white',
+            ]);
+        }
     }
 
     public function selectDate(?string $date): void

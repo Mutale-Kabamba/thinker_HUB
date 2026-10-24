@@ -8,6 +8,7 @@
             calendarMonth: @js($calendarMonthName ?? ''),
             events: @js($calendarEvents ?? []),
             activeTab: 'active',
+            showCourseGuideModal: false,
             init() {
                 this.startTimer();
             },
@@ -39,6 +40,56 @@
         }"
         class="space-y-6 font-sans"
     >
+        {{-- Course Creation Request Banner (if admin prompted this instructor) --}}
+        @if (! empty($courseCreationPrompt['has_prompt']))
+            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-indigo-500/10 to-teal-500/15 border-2 border-amber-500/40 dark:border-amber-400/30 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+                <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 font-black shadow-inner">
+                        <i class="fa-solid fa-graduation-cap text-xl"></i>
+                    </div>
+                    <div class="space-y-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500 text-white shadow-xs">
+                                Course Creation Request
+                            </span>
+                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                Prompted by Administration &bull; {{ $courseCreationPrompt['prompted_at'] ?? 'Recently' }}
+                            </span>
+                        </div>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                            You're invited to design a new course for Thinker Hub!
+                        </h3>
+                        <p class="text-xs text-slate-600 dark:text-slate-300">
+                            Please use our standardized Course Build Structure Guide to draft and submit your curriculum for admin review.
+                        </p>
+                        @if (! empty($courseCreationPrompt['guidance']))
+                            <div class="mt-2 p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-amber-300/40 dark:border-amber-400/20 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                                <strong class="text-amber-700 dark:text-amber-400">Admin Instructions:</strong> {{ $courseCreationPrompt['guidance'] }}
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2.5 flex-shrink-0 flex-wrap sm:flex-nowrap">
+                    <button
+                        type="button"
+                        @click="showCourseGuideModal = true"
+                        class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-900 bg-white hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-xs transition active:scale-95 cursor-pointer"
+                    >
+                        <i class="fa-solid fa-book-open text-amber-500"></i>
+                        <span>View Structure Guide</span>
+                    </button>
+
+                    <a
+                        href="{{ $courseCreationPrompt['create_url'] ?? \App\Filament\Instructor\Resources\CourseResource\CourseResource::getUrl('create', panel: 'instructor') }}"
+                        class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 shadow-sm transition active:scale-95"
+                    >
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>Create Course Now</span>
+                    </a>
+                </div>
+            </div>
+        @endif
         {{-- Smart Reminder Action Ribbon if tasks require attention --}}
         @if (! empty($remindersSummary['has_pending']) && (($remindersSummary['total_actionable'] ?? 0) > 0))
             <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-teal-500/10 to-rose-500/10 border border-amber-500/30 dark:border-amber-400/20 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
@@ -766,6 +817,57 @@
                             </div>
                         @endforelse
                     </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Course Structure Guide Modal --}}
+        <div
+            x-show="showCourseGuideModal"
+            x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs"
+            style="display: none;"
+            x-cloak
+        >
+            <div
+                @click.outside="showCourseGuideModal = false"
+                class="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col"
+            >
+                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4 bg-slate-50/50 dark:bg-slate-800/50">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-book-open text-sm"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white">Course Build Structure Guide</h3>
+                    </div>
+                    <button
+                        type="button"
+                        @click="showCourseGuideModal = false"
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    >
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 overflow-y-auto space-y-4">
+                    @include('filament.components.course-creation-guide-modal')
+                </div>
+
+                <div class="border-t border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+                    <button
+                        type="button"
+                        @click="showCourseGuideModal = false"
+                        class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                    >
+                        Close
+                    </button>
+                    <a
+                        href="{{ $courseCreationPrompt['create_url'] ?? \App\Filament\Instructor\Resources\CourseResource\CourseResource::getUrl('create', panel: 'instructor') }}"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 transition shadow-sm"
+                    >
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>Start Course Creation</span>
+                    </a>
                 </div>
             </div>
         </div>
