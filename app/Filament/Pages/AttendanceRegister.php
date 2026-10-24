@@ -183,6 +183,9 @@ class AttendanceRegister extends Page
             $attendance = Attendance::where('course_session_id', $session->id)->findOrFail($attendanceId);
             app(AttendanceService::class)->markAttendance($attendance->id, $status);
 
+            // Sync session as completed on register marking
+            $session->syncAsCompleted();
+
             Notification::make()
                 ->title('Attendance updated')
                 ->body(($attendance->student?->name ?? 'Student') . ' marked as ' . ucfirst($status) . '.')
@@ -230,9 +233,30 @@ class AttendanceRegister extends Page
 
         $count = app(AttendanceService::class)->markBatchAttendance($session, $status);
 
+        // Sync session as completed on batch register marking
+        $session->syncAsCompleted();
+
         Notification::make()
             ->title("All students marked as " . ucfirst($status))
             ->body("{$count} attendance records updated.")
+            ->success()
+            ->send();
+    }
+
+    public function completeSession(): void
+    {
+        $session = $this->selectedSession;
+        if (! $session) {
+            Notification::make()->title('No active session selected.')->warning()->send();
+
+            return;
+        }
+
+        $session->syncAsCompleted();
+
+        Notification::make()
+            ->title('Session Completed')
+            ->body("'{$session->title}' has been marked as completed on the attendance register.")
             ->success()
             ->send();
     }

@@ -162,16 +162,34 @@
                             </div>
                         </div>
 
-                        {{-- Sync Roster Action --}}
+                        {{-- Sync & Completion Actions --}}
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem;">
-                            <button type="button"
-                                    wire:click="syncRoster"
-                                    wire:loading.attr="disabled"
-                                    style="font-size: 0.72rem; font-weight: 600; padding: 0.4rem 0.85rem; background: var(--hub-surface); border: 1px solid var(--hub-primary); color: var(--hub-primary); border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;"
-                                    title="Synchronize attendance register with enrolled student roster">
-                                <x-heroicon-o-arrow-path style="width: 0.85rem; height: 0.85rem;" wire:loading.class="animate-spin" />
-                                <span>Sync Session Roster</span>
-                            </button>
+                            <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                                @if($session->status !== 'completed')
+                                    <button type="button"
+                                            wire:click="completeSession"
+                                            wire:loading.attr="disabled"
+                                            style="font-size: 0.72rem; font-weight: 700; padding: 0.4rem 0.85rem; background: #059669; border: 1px solid #059669; color: #ffffff; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;"
+                                            title="Mark this session and register as completed">
+                                        <x-heroicon-m-check-badge style="width: 0.85rem; height: 0.85rem;" />
+                                        <span>Mark Completed</span>
+                                    </button>
+                                @else
+                                    <span style="font-size: 0.72rem; font-weight: 700; padding: 0.35rem 0.75rem; background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                        <x-heroicon-m-check-circle style="width: 0.85rem; height: 0.85rem; color: #059669;" />
+                                        <span>Register Completed</span>
+                                    </span>
+                                @endif
+
+                                <button type="button"
+                                        wire:click="syncRoster"
+                                        wire:loading.attr="disabled"
+                                        style="font-size: 0.72rem; font-weight: 600; padding: 0.4rem 0.85rem; background: var(--hub-surface); border: 1px solid var(--hub-primary); color: var(--hub-primary); border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;"
+                                        title="Synchronize attendance register with enrolled student roster">
+                                    <x-heroicon-o-arrow-path style="width: 0.85rem; height: 0.85rem;" wire:loading.class="animate-spin" />
+                                    <span>Sync Session Roster</span>
+                                </button>
+                            </div>
                             <span style="font-size: 0.68rem; color: var(--hub-muted);">
                                 Auto-synced with course enrollments
                             </span>

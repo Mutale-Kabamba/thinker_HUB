@@ -17,6 +17,11 @@ class CourseSession extends Model
     public const DELIVERY_VIDEO = 'video';
     public const DELIVERY_READ = 'read';
 
+    public const STATUS_SCHEDULED = 'scheduled';
+    public const STATUS_RESCHEDULED = 'rescheduled';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_CANCELLED = 'cancelled';
+
     public const DELIVERY_MODES = [
         self::DELIVERY_LIVE_VIRTUAL => 'Live Virtual (Online)',
         self::DELIVERY_LIVE_PHYSICAL => 'Live Physical (In-Person)',
@@ -81,6 +86,20 @@ class CourseSession extends Model
     public function isSelfPaced(): bool
     {
         return $this->isVideo() || $this->isRead();
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED;
+    }
+
+    public function syncAsCompleted(): bool
+    {
+        if ($this->status !== self::STATUS_COMPLETED) {
+            return (bool) $this->update(['status' => self::STATUS_COMPLETED]);
+        }
+
+        return false;
     }
 
     public function getYoutubeIdAttribute(): ?string

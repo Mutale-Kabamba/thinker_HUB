@@ -43,7 +43,10 @@ class AttendancesRelationManager extends RelationManager
                         Attendance::STATUS_LATE => 'Late',
                         Attendance::STATUS_APOLOGY => 'Apology',
                     ])
-                    ->selectablePlaceholder(false),
+                    ->selectablePlaceholder(false)
+                    ->afterStateUpdated(function (Attendance $record): void {
+                        $record->session?->syncAsCompleted();
+                    }),
                 TextInputColumn::make('notes')
                     ->label('Notes')
                     ->placeholder('Optional note'),
@@ -54,6 +57,20 @@ class AttendancesRelationManager extends RelationManager
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->headerActions([
+                \Filament\Actions\Action::make('mark_session_completed')
+                    ->label('Mark Session Completed')
+                    ->icon('heroicon-m-check-badge')
+                    ->color('success')
+                    ->visible(fn (): bool => $this->ownerRecord && $this->ownerRecord->status !== 'completed')
+                    ->requiresConfirmation()
+                    ->action(function (): void {
+                        $this->ownerRecord?->syncAsCompleted();
+                        \Filament\Notifications\Notification::make()
+                            ->title('Session Completed')
+                            ->body('This session has been marked as completed.')
+                            ->success()
+                            ->send();
+                    }),
                 \Filament\Actions\Action::make('open_register')
                     ->label('Open Dedicated Register')
                     ->icon('heroicon-m-arrow-top-right-on-square')
