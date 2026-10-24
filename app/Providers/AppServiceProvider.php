@@ -184,6 +184,11 @@ class AppServiceProvider extends ServiceProvider
                 } catch (\Throwable $e) {
                     report($e);
                 }
+
+                if (session()) {
+                    session()->forget('instructor_reminder_shown_for_session');
+                    session()->forget('instructor_reminder_dismissed_session');
+                }
             }
         });
 

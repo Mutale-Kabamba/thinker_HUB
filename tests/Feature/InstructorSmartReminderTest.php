@@ -166,4 +166,85 @@ class InstructorSmartReminderTest extends TestCase
         $this->assertEquals('Ada', $data['instructor_name']);
         $this->assertTrue($service->shouldShowPopup($instructor, $data));
     }
+
+    public function test_reminder_popup_does_not_show_when_no_activities_are_due(): void
+    {
+        $instructor = User::factory()->create([
+            'name' => 'Prof. No Work',
+            'email' => 'nowork@example.com',
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+
+        $service = app(InstructorReminderService::class);
+        $data = $service->getRemindersData($instructor);
+
+        // All activities are 0
+        $this->assertEquals(0, $data['total_actionable']);
+        $this->assertFalse($service->shouldShowPopup($instructor, $data));
+    }
+
+    public function test_reminder_popup_only_shows_once_per_login_session(): void
+    {
+        $instructor = User::factory()->create([
+            'name' => 'Prof. Busy Bee',
+            'email' => 'busy@example.com',
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+
+        $course = Course::create([
+            'title' => 'Web Dev 101',
+            'slug' => 'web-dev-101',
+            'code' => 'WEB101',
+            'is_active' => true,
+        ]);
+        $instructor->instructorCourses()->attach($course->id);
+
+        // Create an unmarked session so total_actionable > 0
+        CourseSession::create([
+            'course_id' => $course->id,
+            'instructor_id' => $instructor->id,
+            'title' => 'CSS Grid Session',
+            'session_date' => Carbon::yesterday(),
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+            'status' => 'scheduled',
+            'type' => 'group',
+        ]);
+
+        $service = app(InstructorReminderService::class);
+        $data = $service->getRemindersData($instructor);
+        $this->assertGreaterThan(0, $data['total_actionable']);
+
+        // First check in session: should show
+        $this->assertTrue($service->shouldShowPopup($instructor, $data));
+
+        // Mark shown for this session
+        $service->markPopupShownForSession();
+
+        // Second check in same session: should NOT show
+        $this->assertFalse($service->shouldShowPopup($instructor, $data));
+    }
+
+    public function test_new_login_clears_shown_session_flag(): void
+    {
+        $instructor = User::factory()->create([
+            'name' => 'Prof. Fresh Session',
+            'email' => 'fresh@example.com',
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+
+        // Simulate existing session where reminder was already shown
+        session(['instructor_reminder_shown_for_session' => true]);
+        session(['instructor_reminder_dismissed_session' => true]);
+
+        // Fire login event
+        event(new \Illuminate\Auth\Events\Login('web', $instructor, false));
+
+        // Session flags should be cleared
+        $this->assertFalse(session()->has('instructor_reminder_shown_for_session'));
+        $this->assertFalse(session()->has('instructor_reminder_dismissed_session'));
+    }
 }
