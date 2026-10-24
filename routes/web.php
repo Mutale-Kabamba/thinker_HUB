@@ -15,6 +15,7 @@ use App\Models\ChatRoom;
 use App\Models\Course;
 use App\Models\CourseRating;
 use App\Models\HubPost;
+use App\Models\InstructorApplication;
 use App\Models\LearningMaterial;
 use App\Models\Media;
 use App\Models\Review;
@@ -344,15 +345,30 @@ Route::get('/courses', function () use ($loadPublicCourses, $loadRecentCourseRev
 Route::get('/hub', App\Livewire\Public\HubIndex::class)->name('hub.index');
 Route::get('/hub/{post:slug}', App\Livewire\Public\HubShow::class)->name('hub.show');
 Route::get('/media/{media}/download', function (App\Models\Media $media) {
-    if (! Illuminate\Support\Facades\Storage::disk($media->disk)->exists($media->path)) {
-        abort(404, 'Requested media file not found.');
-    }
-
-    return Illuminate\Support\Facades\Storage::disk($media->disk)->download($media->path, $media->original_name);
+    return \App\Support\DocumentResponse::serve(
+        rawPath: $media->path,
+        downloadName: $media->original_name,
+        isDownload: true,
+        preferredDisk: $media->disk
+    );
 })->name('media.download');
+
+Route::get('/media/{media}/view', function (App\Models\Media $media, Request $request) {
+    return \App\Support\DocumentResponse::serve(
+        rawPath: $media->path,
+        downloadName: $media->original_name,
+        isDownload: (bool) $request->query('download'),
+        preferredDisk: $media->disk,
+        extraHeaders: [
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Content-Security-Policy' => "frame-ancestors 'self'",
+        ]
+    );
+})->name('media.view');
 
 Route::get('/checkout/{course}', [PaymentController::class, 'showCheckout'])->name('checkout.show');
 Route::get('/courses/{course}/enroll', [PaymentController::class, 'showCheckout']);
+Route::post('/checkout/{course}/apply-promo', [PaymentController::class, 'applyPromoCode'])->name('checkout.apply-promo');
 Route::post('/courses/{course}/pay', [PaymentController::class, 'processPayment'])->name('checkout.process');
 Route::get('/payments/receipt/{reference}', [PaymentController::class, 'showReceipt'])->name('payment.receipt');
 Route::get('/payments/status/{reference}', [PaymentController::class, 'checkStatus'])->name('payment.status');
@@ -390,7 +406,7 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
         ->whereKeyNot($courseModel->id)
         ->latest()
         ->limit(3)
-        ->get(['id', 'title', 'code', 'overview'])
+        ->get(['id', 'title', 'code', 'overview', 'image_path'])
         ->each(function (Course $item) use ($courseSlug) {
             $item->setAttribute('seo_slug', $courseSlug($item));
         });
@@ -572,6 +588,9 @@ Route::get('/sitemap.xml', function () {
 
 Route::redirect('/enroll', '/register')->name('enroll');
 Route::redirect('/become-student', '/register')->name('become-student');
+Route::redirect('/parents', '/parent');
+Route::redirect('/parent-portal', '/parent');
+Route::redirect('/parents-portal', '/parent');
 
 Route::get('/dashboard', function () {
     $user = Auth::user();
@@ -607,6 +626,58 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profiles/{user}', [ProfileController::class, 'update'])->name('profiles.update');
     Route::put('/profiles/{user}/enrollments', [ProfileController::class, 'syncEnrollments'])->name('profiles.enrollments.sync');
 
+    Route::post('/teach/api/dismiss-reminder', function (Request $request) {
+        $user = Auth::user();
+        abort_unless($user && ($user->isInstructor() || $user->isAdmin()), 403);
+
+        $duration = (string) $request->input('duration', 'session');
+        if ($duration === 'day') {
+            session(['instructor_reminder_dismissed_until' => now()->endOfDay()->timestamp]);
+        } else {
+            session(['instructor_reminder_dismissed_session' => true]);
+        }
+
+        return response()->json(['status' => 'ok', 'duration' => $duration]);
+    })->name('teach.dismiss-reminder');
+
+    // Parent Account Switching to Child Learning Space
+    Route::match(['GET', 'POST'], '/parent/switch-to-kid/{kid}', function (Request $request, User $kid) {
+        $parent = Auth::user();
+        if (! $parent) {
+            return redirect()->route('login');
+        }
+
+        // Only linked parents or admins can switch
+        $isLinked = $parent->kids()->where('users.id', $kid->id)->exists();
+        if (! $isLinked && ! $parent->isAdmin()) {
+            abort(403, 'You are only authorized to switch into your own children\'s accounts.');
+        }
+
+        if (! $kid->is_kid) {
+            abort(400, 'Target user is not a child account.');
+        }
+
+        session(['impersonating_parent_id' => $parent->id]);
+        Auth::login($kid);
+
+        return redirect()->route('filament.student.pages.overview')
+            ->with('status', 'Switched to ' . $kid->name . '\'s learning workspace.');
+    })->name('parent.switch-to-kid');
+
+    Route::match(['GET', 'POST'], '/parent/switch-back', function () {
+        $parentId = session('impersonating_parent_id');
+        if (! $parentId) {
+            return redirect()->route('dashboard');
+        }
+
+        session()->forget('impersonating_parent_id');
+        $parent = User::findOrFail($parentId);
+        Auth::login($parent);
+
+        return redirect()->route('filament.parent.pages.manage-kids')
+            ->with('status', 'Returned to Parent Portal.');
+    })->name('parent.switch-back');
+
     Route::prefix('student')->name('student.')->group(function () {
         Route::redirect('/overview', '/learn/overview')->name('overview');
         Route::redirect('/courses', '/learn/courses')->name('courses');
@@ -626,6 +697,61 @@ Route::middleware('auth')->group(function () {
         Route::redirect('/assignments', '/manage/assignments')->name('assignments');
         Route::redirect('/assessments', '/manage/assessments')->name('assessments');
         Route::redirect('/materials', '/manage/learning-materials')->name('materials');
+
+        Route::get('/storage-check', function () {
+            $user = Auth::user();
+            abort_unless($user && ($user->isAdmin() || $user->isInstructor()), 403);
+
+            $defaultDisk = config('filesystems.default');
+            $publicDriver = config('filesystems.disks.public.driver');
+            $publicBucket = config('filesystems.disks.public.bucket');
+            $publicEndpoint = config('filesystems.disks.public.endpoint');
+
+            $cloudEnvPresent = isset($_SERVER['LARAVEL_CLOUD_DISK_CONFIG']);
+            $manualKeyPresent = ! empty(config('filesystems.disks.s3.key'));
+
+            $writeSuccess = false;
+            $readSuccess = false;
+            $deleteSuccess = false;
+            $error = null;
+
+            $testFileName = '_healthcheck_' . time() . '.txt';
+            $testContent = 'storage_ok_' . time();
+
+            try {
+                $testConfig = (array) config('filesystems.disks.public', []);
+                $testConfig['throw'] = true;
+                $testDisk = Storage::build($testConfig);
+
+                $writeSuccess = $testDisk->put($testFileName, $testContent);
+                if ($writeSuccess) {
+                    $readContent = $testDisk->get($testFileName);
+                    $readSuccess = ($readContent === $testContent);
+                    $testDisk->delete($testFileName);
+                    $deleteSuccess = true;
+                }
+            } catch (\Throwable $e) {
+                $error = get_class($e) . ': ' . $e->getMessage();
+            }
+
+            return response()->json([
+                'status' => ($writeSuccess && $readSuccess) ? 'CONNECTED_AND_WORKING' : 'STORAGE_FAILED',
+                'storage' => [
+                    'default_disk' => $defaultDisk,
+                    'public_driver' => $publicDriver,
+                    'public_bucket' => $publicBucket,
+                    'public_endpoint' => $publicEndpoint,
+                    'laravel_cloud_injected' => $cloudEnvPresent,
+                    'manual_aws_vars_defined' => $manualKeyPresent,
+                ],
+                'operations' => [
+                    'write' => $writeSuccess,
+                    'read' => $readSuccess,
+                    'delete' => $deleteSuccess,
+                ],
+                'error' => $error,
+            ], ($writeSuccess && $readSuccess) ? 200 : 500);
+        })->name('storage-check');
     });
 
     Route::middleware('auth')->group(function () {
@@ -634,6 +760,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/materials/{material}', \App\Livewire\MaterialReader::class)->name('materials.show');
         Route::get('/lessons/{lesson}', \App\Livewire\VideoPlayer::class)->name('lessons.show');
         Route::get('/videos/{video}', \App\Livewire\VideoPlayer::class)->name('videos.show');
+        Route::get('/sessions/{session}/view', \App\Livewire\SessionViewer::class)->name('sessions.view');
+        Route::get('/sessions/{session}/watch', \App\Livewire\SessionViewer::class)->name('sessions.watch');
+        Route::get('/sessions/{session}/read', \App\Livewire\SessionViewer::class)->name('sessions.read');
     });
 
     // Serve files from storage without requiring the storage:link symlink.
@@ -651,7 +780,7 @@ Route::middleware('auth')->group(function () {
             $material = ($user->isAdmin() || $user->isInstructor())
                 ? LearningMaterial::query()->findOrFail($id)
                 : LearningMaterial::query()->visibleTo($user)->findOrFail($id);
-            $path = $material->file_path;
+            $path = $material->file_path ?: $material->file_name;
 
             if ($user->role === 'student' || $user->isStudent()) {
                 try {
@@ -731,38 +860,49 @@ Route::middleware('auth')->group(function () {
             } else {
                 $path = $attachments[0]['path'] ?? $chatMessage->attachment_path;
             }
+        } elseif ($type === 'instructor-application') {
+            $application = InstructorApplication::query()->findOrFail($id);
+            $canAccess = $user->isAdmin()
+                || ($application->user_id && $application->user_id === $user->id)
+                || (filled($application->email) && strtolower((string) $application->email) === strtolower((string) $user->email));
+            abort_unless($canAccess, 403);
+
+            $doc = $request->query('doc') ?: $request->query('attachment');
+            $paths = array_filter([
+                'cv' => $application->cv_path,
+                'roadmap' => $application->roadmap_path,
+                'full_roadmap' => $application->full_roadmap_path,
+                'curriculum' => $application->curriculum_path,
+            ]);
+
+            if ($doc && isset($paths[$doc])) {
+                $path = $paths[$doc];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths['cv'] ?? reset($paths);
+            }
+        } elseif ($type === 'session-reading' || $type === 'session-video') {
+            $session = \App\Models\CourseSession::query()->findOrFail($id);
+            $canView = $user->isAdmin() || $user->isInstructor() || $user->isEnrolledInCourse($session->course_id);
+            abort_unless($canView, 403);
+            $path = $type === 'session-reading' ? $session->reading_file_path : $session->video_file_path;
         } else {
             abort(404);
         }
 
-        $path = PublicDiskPath::normalize($path);
+        $downloadName = $request->query('name') ?: basename((string) $path);
+        $isDownload = (bool) $request->query('download');
 
-        if ($path && ! $disk->exists($path)) {
-            if ($disk->exists('submissions/' . basename($path))) {
-                $path = 'submissions/' . basename($path);
-            }
-        }
-
-        if (! $path || ! $disk->exists($path)) {
-            return response(
-                '<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:#6b7280;background:#f9fafb;">'
-                .'<div style="text-align:center;padding:2rem;"><svg xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;margin:0 auto 1rem;color:#d1d5db;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>'
-                .'<p style="margin:0 0 0.5rem;font-size:1rem;font-weight:600;">File not found</p>'
-                .'<p style="margin:0;font-size:0.85rem;">The file may have been removed or is not yet available.</p></div></body></html>',
-                404,
-                ['Content-Type' => 'text/html']
-            );
-        }
-
-        if ($request->query('download')) {
-            $downloadName = $request->query('name') ?: basename($path);
-            return $disk->download($path, $downloadName);
-        }
-
-        return $disk->response($path, basename($path), [
-            'X-Frame-Options' => 'SAMEORIGIN',
-            'Content-Security-Policy' => "frame-ancestors 'self'",
-        ]);
+        return \App\Support\DocumentResponse::serve(
+            rawPath: $path,
+            downloadName: $downloadName,
+            isDownload: $isDownload,
+            extraHeaders: [
+                'X-Frame-Options' => 'SAMEORIGIN',
+                'Content-Security-Policy' => "frame-ancestors 'self'",
+            ]
+        );
     })->name('file.view');
 
     Route::get('/file/download/{type}/{id}', function (Request $request, string $type, int $id) {
@@ -780,7 +920,7 @@ Route::middleware('auth')->group(function () {
             $material = ($user->isAdmin() || $user->isInstructor())
                 ? LearningMaterial::query()->findOrFail($id)
                 : LearningMaterial::query()->visibleTo($user)->findOrFail($id);
-            $path = $material->file_path;
+            $path = $material->file_path ?: $material->file_name;
             $downloadName = $material->file_name ?: ($material->title ? $material->title . '.' . pathinfo($path, PATHINFO_EXTENSION) : basename($path));
         } elseif ($type === 'assignment') {
             $assignment = ($user->isAdmin() || $user->isInstructor())
@@ -860,25 +1000,47 @@ Route::middleware('auth')->group(function () {
                 $path = $attachments[0]['path'] ?? $chatMessage->attachment_path;
                 $downloadName = $attachments[0]['name'] ?? ($chatMessage->attachment_name ?: basename($path));
             }
+        } elseif ($type === 'instructor-application') {
+            $application = InstructorApplication::query()->findOrFail($id);
+            $canAccess = $user->isAdmin()
+                || ($application->user_id && $application->user_id === $user->id)
+                || (filled($application->email) && strtolower((string) $application->email) === strtolower((string) $user->email));
+            abort_unless($canAccess, 403);
+
+            $doc = $request->query('doc') ?: $request->query('attachment');
+            $paths = array_filter([
+                'cv' => $application->cv_path,
+                'roadmap' => $application->roadmap_path,
+                'full_roadmap' => $application->full_roadmap_path,
+                'curriculum' => $application->curriculum_path,
+            ]);
+
+            if ($doc && isset($paths[$doc])) {
+                $path = $paths[$doc];
+                $docKey = $doc;
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+                $docKey = array_search($fileParam, $paths, true);
+            } else {
+                $path = $paths['cv'] ?? reset($paths);
+                $docKey = 'cv';
+            }
+
+            $applicantSlug = Str::slug($application->name ?: 'Applicant', '_');
+            $ext = pathinfo((string) $path, PATHINFO_EXTENSION);
+            $extSuffix = $ext ? '.' . $ext : '';
+            $downloadName = "{$applicantSlug}_{$docKey}{$extSuffix}";
         } else {
             abort(404);
         }
 
-        $path = PublicDiskPath::normalize($path);
+        $downloadName = $downloadName ?: basename((string) $path);
 
-        if ($path && ! $disk->exists($path)) {
-            if ($disk->exists('submissions/' . basename($path))) {
-                $path = 'submissions/' . basename($path);
-            }
-        }
-
-        if (! $path || ! $disk->exists($path)) {
-            abort(404);
-        }
-
-        $downloadName = $downloadName ?: basename($path);
-
-        return $disk->download($path, $downloadName);
+        return \App\Support\DocumentResponse::serve(
+            rawPath: $path,
+            downloadName: $downloadName,
+            isDownload: true
+        );
     })->name('file.download');
 
     // Signed URL route for viewing Office documents via Google Docs Viewer.
@@ -958,26 +1120,42 @@ Route::middleware('auth')->group(function () {
             } else {
                 $path = $paths[0] ?? $submission->file_path;
             }
+        } elseif ($type === 'instructor-application') {
+            $application = InstructorApplication::query()->findOrFail($id);
+            $canAccess = $user->isAdmin()
+                || ($application->user_id && $application->user_id === $user->id)
+                || (filled($application->email) && strtolower((string) $application->email) === strtolower((string) $user->email));
+            abort_unless($canAccess, 403);
+
+            $doc = $request->query('doc') ?: $request->query('attachment');
+            $paths = array_filter([
+                'cv' => $application->cv_path,
+                'roadmap' => $application->roadmap_path,
+                'full_roadmap' => $application->full_roadmap_path,
+                'curriculum' => $application->curriculum_path,
+            ]);
+
+            if ($doc && isset($paths[$doc])) {
+                $path = $paths[$doc];
+            } elseif ($fileParam && in_array($fileParam, $paths, true)) {
+                $path = $fileParam;
+            } else {
+                $path = $paths['cv'] ?? reset($paths);
+            }
         } else {
             abort(404);
         }
 
-        $path = PublicDiskPath::normalize($path);
+        [$resolvedDisk, $resolvedPath] = \App\Support\DocumentResponse::resolveFile($path);
 
-        if ($path && ! $disk->exists($path)) {
-            if ($disk->exists('submissions/' . basename($path))) {
-                $path = 'submissions/' . basename($path);
-            }
-        }
-
-        if (! $path || ! $disk->exists($path)) {
+        if (! $resolvedPath || ! $resolvedDisk) {
             abort(404);
         }
 
         $signedUrl = URL::temporarySignedRoute(
             'file.public',
             now()->addMinutes(30),
-            ['path' => $path]
+            ['path' => $resolvedPath]
         );
 
         return response()->json(['url' => $signedUrl]);
@@ -990,6 +1168,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/student/{student}', [\App\Http\Controllers\ReportController::class, 'studentReport'])->name('student');
         Route::get('/course/{course}', [\App\Http\Controllers\ReportController::class, 'courseReport'])->name('course');
         Route::get('/intake/{intake}', [\App\Http\Controllers\ReportController::class, 'intakeReport'])->name('intake');
+        Route::get('/instructor-application/{application}', [\App\Http\Controllers\ReportController::class, 'instructorApplicationReport'])->name('instructor-application');
+        Route::get('/instructor-application/{application}/attachment/{type}', [\App\Http\Controllers\ReportController::class, 'instructorApplicationAttachment'])->name('instructor-application.attachment');
+        Route::get('/instructor-application/{application}/attachments-zip', [\App\Http\Controllers\ReportController::class, 'instructorApplicationAttachmentsZip'])->name('instructor-application.attachments-zip');
     });
 });
 
@@ -1000,14 +1181,17 @@ Route::get('/file/public', function (Request $request) {
     }
 
     $path = PublicDiskPath::normalize((string) $request->query('path', ''));
-    $disk = Storage::disk('public');
 
     // Prevent path traversal attacks.
-    if (! $path || str_contains($path, '..') || ! $disk->exists($path)) {
+    if (! $path || str_contains($path, '..')) {
         abort(404);
     }
 
-    return $disk->response($path);
+    return \App\Support\DocumentResponse::serve(
+        rawPath: $path,
+        downloadName: basename($path),
+        isDownload: false
+    );
 })->name('file.public');
 
 // Sequential E-Learning Classroom & Course Player

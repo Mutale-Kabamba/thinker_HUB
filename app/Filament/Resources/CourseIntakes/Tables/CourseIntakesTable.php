@@ -230,7 +230,8 @@ class CourseIntakesTable
                             TextInput::make('next_name')
                                 ->label('New Intake Name')
                                 ->placeholder('e.g. Intake 2 - April 2026, Cohort Beta')
-                                ->required(),
+                                ->required()
+                                ->columnSpanFull(),
                             DatePicker::make('next_start_date')
                                 ->label('New Intake Start Date')
                                 ->default(fn (CourseIntake $record) => $record->next_intake_start_date ?? now()->toDateString())
@@ -238,8 +239,10 @@ class CourseIntakesTable
                             DatePicker::make('next_end_date')
                                 ->label('New Intake End Date'),
                             DatePicker::make('subsequent_intake_start_date')
-                                ->label('Subsequent (Next) Intake Start Date'),
+                                ->label('Subsequent (Next) Intake Start Date')
+                                ->columnSpanFull(),
                         ])
+                        ->columns(['default' => 1, 'sm' => 2])
                         ->modalHeading('Archive Current Cohort & Start Next')
                         ->modalDescription('This will archive the current intake, preserving all student records, and immediately create the new cohort as active on a blank slate.')
                         ->action(function (CourseIntake $record, array $data): void {

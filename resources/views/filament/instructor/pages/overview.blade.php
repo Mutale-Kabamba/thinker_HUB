@@ -2,12 +2,13 @@
     <div
         x-data="{
             currentSlide: 0,
-            slidesCount: {{ count($heroBanners) }},
+            slidesCount: {{ count($heroBanners ?? []) }},
             timer: null,
             selectedDate: null,
-            calendarMonth: @js($calendarMonthName),
-            events: @js($calendarEvents),
+            calendarMonth: @js($calendarMonthName ?? ''),
+            events: @js($calendarEvents ?? []),
             activeTab: 'active',
+            showCourseGuideModal: false,
             init() {
                 this.startTimer();
             },
@@ -39,6 +40,101 @@
         }"
         class="space-y-6 font-sans"
     >
+        {{-- Course Creation Request Banner (if admin prompted this instructor) --}}
+        @if (! empty($courseCreationPrompt['has_prompt']))
+            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-indigo-500/10 to-teal-500/15 border-2 border-amber-500/40 dark:border-amber-400/30 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+                <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 font-black shadow-inner">
+                        <i class="fa-solid fa-graduation-cap text-xl"></i>
+                    </div>
+                    <div class="space-y-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500 text-white shadow-xs">
+                                Course Creation Request
+                            </span>
+                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                Prompted by Administration &bull; {{ $courseCreationPrompt['prompted_at'] ?? 'Recently' }}
+                            </span>
+                        </div>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                            You're invited to design a new course for Thinker Hub!
+                        </h3>
+                        <p class="text-xs text-slate-600 dark:text-slate-300">
+                            Please use our standardized Course Build Structure Guide to draft and submit your curriculum for admin review.
+                        </p>
+                        @if (! empty($courseCreationPrompt['guidance']))
+                            <div class="mt-2 p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-amber-300/40 dark:border-amber-400/20 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                                <strong class="text-amber-700 dark:text-amber-400">Admin Instructions:</strong> {{ $courseCreationPrompt['guidance'] }}
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2.5 flex-shrink-0 flex-wrap sm:flex-nowrap">
+                    <button
+                        type="button"
+                        @click="showCourseGuideModal = true"
+                        class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-900 bg-white hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-xs transition active:scale-95 cursor-pointer"
+                    >
+                        <i class="fa-solid fa-book-open text-amber-500"></i>
+                        <span>View Structure Guide</span>
+                    </button>
+
+                    <a
+                        href="{{ $courseCreationPrompt['create_url'] ?? \App\Filament\Instructor\Resources\CourseResource\CourseResource::getUrl('create', panel: 'instructor') }}"
+                        class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 shadow-sm transition active:scale-95"
+                    >
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>Create Course Now</span>
+                    </a>
+                </div>
+            </div>
+        @endif
+        {{-- Smart Reminder Action Ribbon if tasks require attention --}}
+        @if (! empty($remindersSummary['has_pending']) && (($remindersSummary['total_actionable'] ?? 0) > 0))
+            <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-teal-500/10 to-rose-500/10 border border-amber-500/30 dark:border-amber-400/20 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 font-black">
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ ($remindersSummary['has_overdue'] ?? false) ? 'bg-rose-500' : 'bg-amber-500' }}"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 {{ ($remindersSummary['has_overdue'] ?? false) ? 'bg-rose-600' : 'bg-amber-500' }}"></span>
+                        </span>
+                    </div>
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black uppercase tracking-wider {{ ($remindersSummary['has_overdue'] ?? false) ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400' }}">
+                                Action Required
+                            </span>
+                            <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                                • {{ $remindersSummary['total_actionable'] }} item{{ $remindersSummary['total_actionable'] === 1 ? '' : 's' }} pending review
+                            </span>
+                        </div>
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200">
+                            @if (($remindersSummary['unmarked_count'] ?? 0) > 0)
+                                <span class="text-rose-600 dark:text-rose-400 font-extrabold">{{ $remindersSummary['unmarked_count'] }} attendance register{{ $remindersSummary['unmarked_count'] === 1 ? '' : 's' }}</span> need marking.
+                            @endif
+                            @if (($remindersSummary['pending_assignments_count'] ?? 0) > 0)
+                                <span class="text-amber-600 dark:text-amber-400 font-extrabold">{{ $remindersSummary['pending_assignments_count'] }} assignment{{ $remindersSummary['pending_assignments_count'] === 1 ? '' : 's' }}</span> waiting for grading.
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <button
+                        type="button"
+                        onclick="window.dispatchEvent(new CustomEvent('open-instructor-reminders'))"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black text-white bg-slate-900 hover:bg-slate-800 dark:bg-teal-600 dark:hover:bg-teal-500 shadow-sm transition-all cursor-pointer"
+                    >
+                        <span>View Reminders Popup</span>
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        @endif
+
         {{-- ============================================================ --}}
         {{-- 1. MAIN TOP HERO BANNER CAROUSEL & INSTRUCTOR PROFILE CARD   --}}
         {{-- ============================================================ --}}
@@ -52,7 +148,7 @@
                     x-on:mouseenter="pause()"
                     x-on:mouseleave="resume()"
                 >
-                    @foreach ($heroBanners as $idx => $banner)
+                    @foreach (($heroBanners ?? []) as $idx => $banner)
                         <div
                             x-show="currentSlide === {{ $idx }}"
                             x-cloak
@@ -72,7 +168,7 @@
                                         {{ $banner['badge'] }}
                                     </span>
                                     <span class="text-[10px] sm:text-[11px] font-bold text-white/80">
-                                        {{ $idx + 1 }} of {{ count($heroBanners) }}
+                                        {{ ($idx ?? 0) + 1 }} of {{ count($heroBanners ?? []) }}
                                     </span>
                                 </div>
 
@@ -108,12 +204,12 @@
                                     @if (!empty($banner['avatar']))
                                         <img 
                                             src="{{ $banner['avatar'] }}" 
-                                            alt="{{ auth()->user()->name }}" 
+                                            alt="{{ auth()->user()?->name ?? 'Instructor' }}" 
                                             class="w-full h-full object-cover rounded-full shadow-inner border border-white/50"
                                         />
                                     @else
                                         <div class="w-full h-full rounded-full bg-teal-800 text-white font-black text-2xl sm:text-3xl md:text-4xl flex items-center justify-center shadow-inner border border-white/50">
-                                            {{ Str::upper(substr(auth()->user()->name ?? 'IN', 0, 2)) }}
+                                            {{ Str::upper(substr(auth()->user()?->name ?? 'IN', 0, 2)) }}
                                         </div>
                                     @endif
                                 </div>
@@ -125,12 +221,12 @@
                 {{-- Carousel Indicator Dots & Controls --}}
                 <div class="flex items-center justify-between px-1 py-1">
                     <div class="flex items-center gap-1.5">
-                        @foreach ($heroBanners as $idx => $banner)
+                        @foreach (($heroBanners ?? []) as $idx => $banner)
                             <button
                                 type="button"
                                 x-on:click="goToSlide({{ $idx }})"
                                 class="carousel-indicator-dot rounded-full transition-all duration-300 focus:outline-none !min-h-0 !min-w-0"
-                                :class="currentSlide === {{ $idx }} ? '!w-6 bg-[#7C3AED] dark:bg-purple-400 shadow-xs' : '!w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'"
+                                :class="currentSlide === {{ $idx }} ? '!w-6 bg-teal-600 dark:bg-teal-400 shadow-xs' : '!w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'"
                                 style="height: 5px !important; min-height: 5px !important; max-height: 5px !important; padding: 0 !important; border: none !important;"
                                 aria-label="Go to slide {{ $idx + 1 }}"
                             ></button>
@@ -171,26 +267,26 @@
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">Teaching Profile</h2>
                     </div>
-                    <span class="text-xs font-extrabold text-[#7C3AED] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2.5 py-0.5 rounded-full border border-purple-100 dark:border-purple-900/50">
-                        {{ count($courses) }} Classes
+                    <span class="text-xs font-extrabold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/50 px-2.5 py-0.5 rounded-full border border-teal-200/60 dark:border-teal-800/60">
+                        {{ count($courses ?? []) }} Classes
                     </span>
                 </div>
 
                 <div class="space-y-3">
                     <div class="flex items-center gap-3">
-                        @if (auth()->user()->profile_photo_path)
-                            <img src="{{ auth()->user()->getFilamentAvatarUrl() }}" alt="{{ auth()->user()->name }}" class="w-12 h-12 rounded-xl object-cover shadow-2xs border border-slate-200 dark:border-[#233842]" />
+                        @if (auth()->user()?->profile_photo_path)
+                            <img src="{{ auth()->user()?->getFilamentAvatarUrl() }}" alt="{{ auth()->user()?->name ?? 'Instructor' }}" class="w-12 h-12 rounded-xl object-cover shadow-2xs border border-slate-200 dark:border-[#233842]" />
                         @else
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#7C3AED] to-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-2xs">
-                                {{ Str::upper(substr(auth()->user()->name ?? 'IN', 0, 2)) }}
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center font-black text-sm shadow-2xs">
+                                {{ Str::upper(substr(auth()->user()?->name ?? 'IN', 0, 2)) }}
                             </div>
                         @endif
                         <div class="min-w-0 flex-1">
                             <h3 class="font-black text-slate-900 dark:text-white text-sm truncate">
-                                {{ auth()->user()->name }}
+                                {{ auth()->user()?->name ?? 'Instructor' }}
                             </h3>
                             <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                {{ auth()->user()->email }}
+                                {{ auth()->user()?->email ?? '' }}
                             </p>
                         </div>
                     </div>
@@ -212,7 +308,7 @@
                 <div class="pt-2 border-t border-slate-100 dark:border-[#233842]">
                     <a 
                         href="{{ \App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl() }}" 
-                        class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-extrabold text-white bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-purple-600 dark:hover:bg-purple-500 shadow-sm hover:shadow-md transition transform hover:-translate-y-0.5"
+                        class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 dark:from-teal-600 dark:to-teal-700 shadow-sm hover:shadow-md transition transform hover:-translate-y-0.5"
                     >
                         <span>Open Submission Queue</span>
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -256,7 +352,7 @@
 
                     <div class="mt-3">
                         <div class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                            {{ sprintf('%02d', count($courses)) }}
+                            {{ sprintf('%02d', count($courses ?? [])) }}
                         </div>
                         <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 group-hover:text-[#B45309] dark:group-hover:text-amber-300 transition-colors">
                             Total Classes &rarr;
@@ -390,9 +486,9 @@
                     @foreach ($quickActions as $action)
                         <a
                             href="{{ $action['url'] }}"
-                            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800/70 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 hover:text-[#7C3AED] dark:hover:text-purple-300 border border-slate-200/70 dark:border-slate-700/60 transition whitespace-nowrap transform hover:-translate-y-0.5 shadow-2xs"
+                            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800/70 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-200 hover:text-teal-700 dark:hover:text-teal-300 border border-slate-200/70 dark:border-slate-700/60 transition whitespace-nowrap transform hover:-translate-y-0.5 shadow-2xs"
                         >
-                            <x-filament::icon :icon="$action['icon']" class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
+                            <x-filament::icon :icon="$action['icon']" class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                             <span>{{ $action['label'] }}</span>
                             @if (!empty($action['badge']))
                                 <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white">
@@ -426,7 +522,7 @@
                         </div>
                         <a 
                             href="{{ route('filament.instructor.pages.student-results') }}" 
-                            class="text-xs font-extrabold text-[#7C3AED] dark:text-purple-400 hover:text-purple-700 flex items-center gap-1"
+                            class="text-xs font-extrabold text-teal-600 dark:text-teal-400 hover:text-teal-700 flex items-center gap-1"
                         >
                             <span>View All Grades</span>
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -440,7 +536,7 @@
                             <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#111b21] hover:shadow-md transition-all space-y-3">
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="space-y-0.5">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300">
+                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200/50 dark:border-teal-900/50">
                                             {{ $course['code'] }}
                                         </span>
                                         <h4 class="font-extrabold text-slate-900 dark:text-white text-sm line-clamp-1">
@@ -471,7 +567,7 @@
                                             @if (!empty($st['profile_photo_path']))
                                                 <img class="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 object-cover" src="{{ asset('storage/' . $st['profile_photo_path']) }}" alt="{{ $st['name'] }}">
                                             @else
-                                                <span class="inline-flex items-center justify-center h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 bg-[#7C3AED] text-[10px] font-bold text-white">
+                                                <span class="inline-flex items-center justify-center h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 bg-teal-700 text-[10px] font-bold text-white">
                                                     {{ Str::upper(substr($st['name'], 0, 1)) }}
                                                 </span>
                                             @endif
@@ -481,14 +577,14 @@
                                     <div class="flex items-center gap-1.5">
                                         <a 
                                             href="{{ \App\Filament\Instructor\Resources\AssignmentResource\AssignmentResource::getUrl() }}" 
-                                            class="p-1.5 rounded-lg text-slate-400 hover:text-[#7C3AED] hover:bg-purple-50 dark:hover:bg-slate-700 transition"
+                                            class="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition"
                                             title="Assignments"
                                         >
                                             <x-filament::icon icon="heroicon-o-document-text" class="w-4 h-4" />
                                         </a>
                                         <a 
                                             href="{{ route('filament.instructor.pages.student-results') }}" 
-                                            class="px-2.5 py-1 rounded-full text-[11px] font-bold text-[#7C3AED] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 transition"
+                                            class="px-2.5 py-1 rounded-full text-[11px] font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/40 border border-teal-200/60 dark:border-teal-800/60 transition"
                                         >
                                             Roster &rarr;
                                         </a>
@@ -523,7 +619,7 @@
 
                         <a 
                             href="{{ \App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource::getUrl() }}" 
-                            class="text-xs font-extrabold text-[#7C3AED] dark:text-purple-400 hover:text-purple-700 flex items-center gap-1"
+                            class="text-xs font-extrabold text-teal-600 dark:text-teal-400 hover:text-teal-700 flex items-center gap-1"
                         >
                             <span>Open Full Queue</span>
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -565,7 +661,7 @@
                                     </span>
                                     <a 
                                         href="{{ $submission['url'] }}" 
-                                        class="px-3.5 py-1.5 rounded-full text-xs font-extrabold text-white bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-purple-600 dark:hover:bg-purple-500 shadow-2xs transition transform hover:-translate-y-0.5"
+                                        class="px-3.5 py-1.5 rounded-full text-xs font-extrabold text-white bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 shadow-2xs transition transform hover:-translate-y-0.5"
                                     >
                                         Grade &rarr;
                                     </a>
@@ -591,7 +687,7 @@
                 <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-3">
                     <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-[#233842]">
                         <div class="flex items-center gap-2">
-                            <x-heroicon-o-calendar-days class="w-4 h-4 text-[#7C3AED] dark:text-purple-400" />
+                            <x-heroicon-o-calendar-days class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                             <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">
                                 {{ $calendarMonthName }}
                             </h2>
@@ -627,8 +723,8 @@
                                 <button
                                     type="button"
                                     x-on:click="selectDay('{{ $day['date_full'] }}')"
-                                    class="h-8 rounded-lg relative flex flex-col items-center justify-center transition font-semibold {{ $day['in_month'] ? 'text-slate-800 dark:text-slate-200' : 'text-slate-300 dark:text-slate-600' }} {{ $day['is_today'] ? 'bg-[#7C3AED] text-white font-black shadow-2xs' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}"
-                                    :class="selectedDate === '{{ $day['date_full'] }}' ? 'ring-2 ring-[#7C3AED] bg-purple-50 dark:bg-purple-950/60 font-black' : ''"
+                                    class="h-8 rounded-lg relative flex flex-col items-center justify-center transition font-semibold {{ $day['in_month'] ? 'text-slate-800 dark:text-slate-200' : 'text-slate-300 dark:text-slate-600' }} {{ $day['is_today'] ? 'bg-teal-600 text-white font-black shadow-2xs' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}"
+                                    :class="selectedDate === '{{ $day['date_full'] }}' ? 'ring-2 ring-teal-500 bg-teal-50 dark:bg-teal-950/60 font-black' : ''"
                                 >
                                     <span>{{ $day['date'] }}</span>
                                     @if (!empty($day['sessions']))
@@ -653,13 +749,13 @@
                                 Sessions on <strong x-text="selectedDate"></strong>:
                             </span>
                             <template x-for="item in events[selectedDate]" :key="item.title + item.start_time">
-                                <div class="p-2.5 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200/50 dark:border-purple-800/40 text-left space-y-1">
+                                <div class="p-2.5 rounded-xl bg-teal-50/70 dark:bg-teal-950/40 border border-teal-200/50 dark:border-teal-800/40 text-left space-y-1">
                                     <div class="flex items-start justify-between gap-2">
                                         <div class="flex-1 min-w-0">
-                                            <span class="font-bold text-xs text-purple-950 dark:text-purple-200 leading-snug break-words block" x-text="item.title"></span>
-                                            <p class="text-[11px] text-purple-700 dark:text-purple-400 leading-tight mt-0.5" x-text="item.course_title"></p>
+                                            <span class="font-bold text-xs text-teal-950 dark:text-teal-200 leading-snug break-words block" x-text="item.title"></span>
+                                            <p class="text-[11px] text-teal-700 dark:text-teal-400 leading-tight mt-0.5" x-text="item.course_title"></p>
                                         </div>
-                                        <span class="text-[10px] font-black text-[#7C3AED] dark:text-purple-300 shrink-0 whitespace-nowrap" x-text="item.start_time"></span>
+                                        <span class="text-[10px] font-black text-teal-600 dark:text-teal-300 shrink-0 whitespace-nowrap" x-text="item.start_time"></span>
                                     </div>
                                 </div>
                             </template>
@@ -675,7 +771,7 @@
                         </h2>
                         <a 
                             href="{{ route('filament.instructor.pages.schedule') }}" 
-                            class="text-[11px] font-extrabold text-[#7C3AED] dark:text-purple-400 hover:text-purple-700"
+                            class="text-[11px] font-extrabold text-teal-600 dark:text-teal-400 hover:text-teal-700"
                         >
                             Schedule &rarr;
                         </a>
@@ -703,7 +799,7 @@
                                         </p>
                                     </div>
                                     <div class="flex flex-col items-end shrink-0 gap-1 text-right">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap {{ $session['is_today'] ? 'bg-[#7C3AED] text-white font-black shadow-2xs' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' }}">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap {{ $session['is_today'] ? 'bg-teal-600 text-white font-black shadow-2xs' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' }}">
                                             {{ $session['date'] }}
                                         </span>
                                         <span class="text-[11px] font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">
@@ -715,12 +811,63 @@
                         @empty
                             <div class="py-4 text-center text-slate-400 dark:text-slate-500 text-xs">
                                 <p>No upcoming live sessions.</p>
-                                <a href="{{ route('filament.instructor.pages.schedule') }}" class="text-[#7C3AED] dark:text-purple-400 font-extrabold mt-1 inline-block">
+                                <a href="{{ route('filament.instructor.pages.schedule') }}" class="text-teal-600 dark:text-teal-400 font-extrabold mt-1 inline-block">
                                     + Schedule Session
                                 </a>
                             </div>
                         @endforelse
                     </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Course Structure Guide Modal --}}
+        <div
+            x-show="showCourseGuideModal"
+            x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs"
+            style="display: none;"
+            x-cloak
+        >
+            <div
+                @click.outside="showCourseGuideModal = false"
+                class="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col"
+            >
+                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4 bg-slate-50/50 dark:bg-slate-800/50">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-book-open text-sm"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white">Course Build Structure Guide</h3>
+                    </div>
+                    <button
+                        type="button"
+                        @click="showCourseGuideModal = false"
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    >
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 overflow-y-auto space-y-4">
+                    @include('filament.components.course-creation-guide-modal')
+                </div>
+
+                <div class="border-t border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+                    <button
+                        type="button"
+                        @click="showCourseGuideModal = false"
+                        class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                    >
+                        Close
+                    </button>
+                    <a
+                        href="{{ $courseCreationPrompt['create_url'] ?? \App\Filament\Instructor\Resources\CourseResource\CourseResource::getUrl('create', panel: 'instructor') }}"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 transition shadow-sm"
+                    >
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>Start Course Creation</span>
+                    </a>
                 </div>
             </div>
         </div>

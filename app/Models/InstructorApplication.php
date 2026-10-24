@@ -44,6 +44,11 @@ class InstructorApplication extends Model
         'course_concept_note',
         'proposed_curriculum',
         'preferred_course_id',
+        'course_assignment_action',
+        'assigned_course_id',
+        'prompt_course_creation',
+        'course_creation_guidance',
+        'prompted_at',
         'status',
         'admin_notes',
         'reviewed_by',
@@ -55,6 +60,8 @@ class InstructorApplication extends Model
     {
         return [
             'reviewed_at' => 'datetime',
+            'prompted_at' => 'datetime',
+            'prompt_course_creation' => 'boolean',
             'proposed_course_is_open_enrollment' => 'boolean',
         ];
     }
@@ -74,6 +81,11 @@ class InstructorApplication extends Model
         return $this->belongsTo(Course::class, 'preferred_course_id');
     }
 
+    public function assignedCourse(): BelongsTo
+    {
+        return $this->belongsTo(Course::class, 'assigned_course_id');
+    }
+
     public function isPending(): bool
     {
         return $this->status === 'pending';
@@ -87,5 +99,10 @@ class InstructorApplication extends Model
     public function isRejected(): bool
     {
         return $this->status === 'rejected';
+    }
+
+    public function isPromptedToCreateCourse(): bool
+    {
+        return (bool) $this->prompt_course_creation;
     }
 }

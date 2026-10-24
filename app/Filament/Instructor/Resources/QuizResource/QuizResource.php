@@ -2,6 +2,7 @@
 
 namespace App\Filament\Instructor\Resources\QuizResource;
 
+use App\Filament\Actions\ExportQuizzesAction;
 use App\Filament\Instructor\Concerns\ScopedToInstructor;
 use App\Filament\Instructor\Resources\QuizResource\Pages\CreateQuiz;
 use App\Filament\Instructor\Resources\QuizResource\Pages\EditQuiz;
@@ -45,158 +46,17 @@ class QuizResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        $courseIds = static::instructorCourseIds();
-
-        return $schema
-            ->components([
-                Section::make('Quiz Details')
-                    ->columns(2)
-                    ->schema([
-                        Select::make('course_id')
-                            ->label('Course')
-                            ->required()
-                            ->searchable()
-                            ->options(
-                                fn (): array => Course::query()
-                                    ->whereIn('id', $courseIds)
-                                    ->orderBy('title')
-                                    ->get()
-                                    ->mapWithKeys(fn (Course $c) => [
-                                        $c->id => $c->title . ' (' . $c->code . ')',
-                                    ])
-                                    ->toArray()
-                            )
-                            ->helperText('Only your assigned courses are shown.')
-                            ->live()
-                            ->columnSpanFull(),
-
-                        Select::make('course_intake_id')
-                            ->label('Target Intake / Class')
-                            ->nullable()
-                            ->searchable()
-                            ->options(function (callable $get): array {
-                                $courseId = $get('course_id');
-                                if (! $courseId) {
-                                    return [];
-                                }
-
-                                return \App\Models\CourseIntake::query()
-                                    ->where('course_id', $courseId)
-                                    ->where('status', '!=', \App\Models\CourseIntake::STATUS_ARCHIVED)
-                                    ->orderBy('start_date', 'desc')
-                                    ->pluck('name', 'id')
-                                    ->toArray();
-                            })
-                            ->placeholder('All Intakes / Entire Course')
-                            ->helperText('Leave empty to make quiz available to all cohorts across the course.')
-                            ->columnSpanFull(),
-
-                        TextInput::make('title')
-                            ->required()
-                            ->maxLength(255),
-
-                        TextInput::make('time_limit_minutes')
-                            ->label('Time Limit (minutes)')
-                            ->numeric()
-                            ->minValue(1)
-                            ->maxValue(300)
-                            ->placeholder('No time limit'),
-
-                        Textarea::make('description')
-                            ->rows(3)
-                            ->columnSpanFull(),
-
-                        DateTimePicker::make('publish_at')
-                            ->label('Publish At')
-                            ->helperText('Leave empty to publish immediately. Set a future date/time to auto-release to students.')
-                            ->columnSpanFull(),
-
-                        TextInput::make('pass_percentage')
-                            ->label('Pass Percentage')
-                            ->numeric()
-                            ->default(50)
-                            ->minValue(0)
-                            ->maxValue(100)
-                            ->suffix('%'),
-
-                        Toggle::make('shuffle_questions')
-                            ->label('Shuffle Questions')
-                            ->default(false),
-
-                        Toggle::make('show_results')
-                            ->label('Show Results After Completion')
-                            ->default(true),
-
-                        Toggle::make('is_active')
-                            ->label('Active')
-                            ->default(true),
-                    ]),
-
-                Section::make('Questions')
-                    ->schema([
-                        Repeater::make('questions')
-                            ->relationship()
-                            ->schema([
-                                Select::make('type')
-                                    ->options([
-                                        'multiple_choice' => 'Multiple Choice',
-                                        'theory' => 'Theory (Written Answer)',
-                                        'practical' => 'Practical (Code/Task)',
-                                    ])
-                                    ->required()
-                                    ->live()
-                                    ->default('multiple_choice'),
-
-                                Textarea::make('question')
-                                    ->required()
-                                    ->rows(3)
-                                    ->columnSpanFull(),
-
-                                TextInput::make('points')
-                                    ->numeric()
-                                    ->default(1)
-                                    ->minValue(1)
-                                    ->maxValue(100),
-
-                                Textarea::make('explanation')
-                                    ->label('Explanation (shown after answering)')
-                                    ->rows(2)
-                                    ->columnSpanFull(),
-
-                                Repeater::make('options')
-                                    ->relationship()
-                                    ->orderColumn('sort_order')
-                                    ->schema([
-                                        TextInput::make('option_text')
-                                            ->label('Option')
-                                            ->required()
-                                            ->maxLength(500),
-
-                                        Checkbox::make('is_correct')
-                                            ->label('Correct Answer'),
-                                    ])
-                                    ->columns(2)
-                                    ->minItems(2)
-                                    ->maxItems(6)
-                                    ->defaultItems(4)
-                                    ->visible(fn (callable $get): bool => $get('type') === 'multiple_choice')
-                                    ->columnSpanFull()
-                                    ->reorderable()
-                                    ->collapsible(),
-                            ])
-                            ->columns(2)
-                            ->defaultItems(1)
-                            ->reorderable()
-                            ->collapsible()
-                            ->cloneable()
-                            ->orderColumn('sort_order')
-                            ->itemLabel(fn (array $state): ?string => ($state['question'] ?? null)
-                                ? Str::limit($state['question'], 60)
-                                : 'New Question'
-                            )
-                            ->columnSpanFull(),
-                    ]),
-            ]);
+        return \App\Filament\Resources\Quizzes\Schemas\QuizForm::configure(
+            $schema,
+            fn (): array => Course::query()
+                ->whereIn('id', static::instructorCourseIds())
+                ->orderBy('title')
+                ->get()
+                ->mapWithKeys(fn (Course $c) => [
+                    $c->id => $c->title . ' (' . $c->code . ')',
+                ])
+                ->toArray()
+        );
     }
 
     public static function table(Table $table): Table
@@ -244,9 +104,11 @@ class QuizResource extends Resource
             )
             ->recordActions([
                 EditAction::make(),
+                ExportQuizzesAction::makeRowAction(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    ExportQuizzesAction::makeBulkAction(static::instructorCourseIds()),
                     DeleteBulkAction::make(),
                 ]),
             ]);

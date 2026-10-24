@@ -61,10 +61,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 return redirect('/manage');
             }
 
-            if ($user?->isInstructor() && $user->is_active) {
-                return redirect('/teach/instructor-overview');
-            }
-
             return redirect('/learn/overview');
         });
     })->create();

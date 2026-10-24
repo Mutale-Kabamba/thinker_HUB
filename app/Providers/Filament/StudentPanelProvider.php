@@ -65,6 +65,11 @@ class StudentPanelProvider extends PanelProvider
                     ->url('/contribute')
                     ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToContributor())),
                 MenuItem::make()
+                    ->label('Parents Portal')
+                    ->icon('heroicon-o-user-group')
+                    ->url('/parent')
+                    ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToParent())),
+                MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')
                     ->url(fn (): string => route('filament.student.pages.settings')),
@@ -81,7 +86,7 @@ class StudentPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::BODY_START,
-                fn (): string => view('partials.app-preloader')->render(),
+                fn (): string => view('filament.partials.impersonation-banner')->render() . view('partials.app-preloader')->render(),
             )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,

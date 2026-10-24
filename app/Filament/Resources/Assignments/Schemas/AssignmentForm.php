@@ -43,6 +43,8 @@ class AssignmentForm
                             ->directory('assignments')
                             ->multiple()
                             ->reorderable()
+                            ->openable()
+                            ->downloadable()
                             ->maxSize(10240)
                             ->acceptedFileTypes([
                                 'application/pdf',

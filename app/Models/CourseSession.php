@@ -12,11 +12,36 @@ class CourseSession extends Model
 {
     use HasFactory;
 
+    public const DELIVERY_LIVE_VIRTUAL = 'live_virtual';
+    public const DELIVERY_LIVE_PHYSICAL = 'live_physical';
+    public const DELIVERY_VIDEO = 'video';
+    public const DELIVERY_READ = 'read';
+
+    public const STATUS_SCHEDULED = 'scheduled';
+    public const STATUS_RESCHEDULED = 'rescheduled';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_CANCELLED = 'cancelled';
+
+    public const DELIVERY_MODES = [
+        self::DELIVERY_LIVE_VIRTUAL => 'Live Virtual (Online)',
+        self::DELIVERY_LIVE_PHYSICAL => 'Live Physical (In-Person)',
+        self::DELIVERY_VIDEO => 'Video Guide / Stream',
+        self::DELIVERY_READ => 'Reading Material',
+    ];
+
     protected $fillable = [
         'course_id',
         'course_intake_id',
         'instructor_id',
         'type',
+        'delivery_mode',
+        'meeting_link',
+        'physical_address',
+        'video_url',
+        'video_file_path',
+        'reading_file_path',
+        'reading_content',
+        'required_duration_minutes',
         'student_id',
         'title',
         'session_date',
@@ -34,7 +59,58 @@ class CourseSession extends Model
         return [
             'session_date' => 'date',
             'rescheduled_date' => 'date',
+            'required_duration_minutes' => 'integer',
         ];
+    }
+
+    public function isLiveVirtual(): bool
+    {
+        return ($this->delivery_mode ?? self::DELIVERY_LIVE_VIRTUAL) === self::DELIVERY_LIVE_VIRTUAL;
+    }
+
+    public function isLivePhysical(): bool
+    {
+        return $this->delivery_mode === self::DELIVERY_LIVE_PHYSICAL;
+    }
+
+    public function isVideo(): bool
+    {
+        return $this->delivery_mode === self::DELIVERY_VIDEO;
+    }
+
+    public function isRead(): bool
+    {
+        return $this->delivery_mode === self::DELIVERY_READ;
+    }
+
+    public function isSelfPaced(): bool
+    {
+        return $this->isVideo() || $this->isRead();
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED;
+    }
+
+    public function syncAsCompleted(): bool
+    {
+        if ($this->status !== self::STATUS_COMPLETED) {
+            return (bool) $this->update(['status' => self::STATUS_COMPLETED]);
+        }
+
+        return false;
+    }
+
+    public function getYoutubeIdAttribute(): ?string
+    {
+        if (empty($this->video_url)) {
+            return null;
+        }
+
+        preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/', (string) $this->video_url, $matches);
+
+        return $matches[1] ?? null;
     }
 
     public function course(): BelongsTo
@@ -74,7 +150,9 @@ class CourseSession extends Model
 
     public function getEffectiveDate(): Carbon
     {
-        $date = $this->session_date ?: $this->rescheduled_date;
+        $date = ($this->status === 'rescheduled' && $this->rescheduled_date)
+            ? $this->rescheduled_date
+            : ($this->session_date ?: $this->rescheduled_date);
 
         if ($date instanceof Carbon) {
             return $date;
@@ -93,14 +171,18 @@ class CourseSession extends Model
 
     public function getEffectiveStartTime(): string
     {
-        $time = $this->start_time ?: $this->rescheduled_start_time;
+        $time = ($this->status === 'rescheduled' && filled($this->rescheduled_start_time))
+            ? $this->rescheduled_start_time
+            : ($this->start_time ?: $this->rescheduled_start_time);
 
         return filled($time) ? (string) $time : '00:00:00';
     }
 
     public function getEffectiveEndTime(): string
     {
-        $time = $this->end_time ?: $this->rescheduled_end_time;
+        $time = ($this->status === 'rescheduled' && filled($this->rescheduled_end_time))
+            ? $this->rescheduled_end_time
+            : ($this->end_time ?: $this->rescheduled_end_time);
 
         return filled($time) ? (string) $time : '23:59:59';
     }
@@ -167,6 +249,14 @@ class CourseSession extends Model
                         });
                 });
             });
+    }
+
+    public function scopeScheduledFirst(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query
+            ->orderByRaw("CASE WHEN status = 'scheduled' THEN 0 WHEN status = 'rescheduled' THEN 1 WHEN status = 'completed' THEN 2 WHEN status = 'cancelled' THEN 3 ELSE 4 END")
+            ->orderBy('session_date', 'asc')
+            ->orderBy('start_time', 'asc');
     }
 
     public function getColorScheme(): array

@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\Payment;
 use App\Models\User;
 use App\Services\Payment\PaymentService;
+use App\Services\Payment\PromoCodeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -54,20 +55,82 @@ class PaymentController extends Controller
             $feeAmount = 1500.00;
         }
 
+        $initialPromoCode = strtoupper(trim((string) $request->query('promo', $request->query('code', ''))));
+
+        $existingKidId = $request->query('kid_id', $request->query('existing_kid_id'));
+        $existingKid = null;
+        if ($existingKidId) {
+            $currentUser = Auth::user();
+            if ($currentUser) {
+                $existingKid = $currentUser->kids()->where('users.id', $existingKidId)->first() ?: User::find($existingKidId);
+            } else {
+                $existingKid = User::find($existingKidId);
+            }
+        }
+
         return view('pages.checkout', [
             'course' => $course,
+            'isForKids' => (bool) ($course->is_for_kids || $existingKid),
+            'existingKid' => $existingKid,
             'feeAmount' => $feeAmount,
             'selectedLevel' => $selectedLevel,
             'selectedMode' => $selectedMode,
             'feeOptions' => $feeOptions,
             'user' => Auth::user(),
+            'initialPromoCode' => $initialPromoCode,
         ]);
     }
 
     /**
-     * Process payment transaction via Lenco by BroadPay.
+     * Validate and preview a promo code for a course via AJAX.
      */
-    public function processPayment(Request $request, Course $course): JsonResponse|RedirectResponse
+    public function applyPromoCode(Request $request, Course $course, PromoCodeService $promoCodeService): JsonResponse
+    {
+        $code = (string) $request->input('code', $request->input('promo_code', ''));
+        $track = (string) $request->input('track', 'Beginner');
+        $mode = (string) $request->input('mode', 'group');
+        $email = $request->input('email') ? (string) $request->input('email') : (Auth::user()?->email);
+
+        $feeAmount = $course->getNumericFeeForOption($track, $mode);
+        if ($feeAmount <= 0) {
+            $feeAmount = $course->getNumericFee();
+        }
+        if ($feeAmount <= 0) {
+            $feeAmount = 1500.00;
+        }
+
+        $result = $promoCodeService->validateCode(
+            code: $code,
+            course: $course,
+            amount: $feeAmount,
+            user: Auth::user(),
+            email: $email
+        );
+
+        $status = $result['valid'] ? 200 : 422;
+
+        return response()->json([
+            'valid' => $result['valid'],
+            'success' => $result['valid'],
+            'message' => $result['message'],
+            'code' => $result['code'],
+            'discount_type' => $result['discount_type'],
+            'discount_value' => $result['discount_value'],
+            'original_amount' => $result['original_amount'],
+            'discount_amount' => $result['discount_amount'],
+            'final_amount' => $result['final_amount'],
+            'is_free' => $result['is_free'],
+            'formatted_discount' => $result['formatted_discount'],
+            'formatted_original_amount' => 'ZMW ' . number_format($result['original_amount'], 2),
+            'formatted_discount_amount' => 'ZMW ' . number_format($result['discount_amount'], 2),
+            'formatted_final_amount' => 'ZMW ' . number_format($result['final_amount'], 2),
+        ], $status);
+    }
+
+    /**
+     * Process payment transaction via Lenco by BroadPay or direct promo enrollment.
+     */
+    public function processPayment(Request $request, Course $course, PromoCodeService $promoCodeService): JsonResponse|RedirectResponse
     {
         if ($course->is_open_enrollment === false) {
             if ($request->expectsJson()) {
@@ -77,11 +140,47 @@ class PaymentController extends Controller
         }
 
         $currentUser = Auth::user();
+        $promoCode = $request->input('promo_code');
+        $promoValidation = null;
+
+        if (! empty($promoCode)) {
+            $track = (string) $request->input('track', 'Beginner');
+            $mode = (string) $request->input('mode', 'group');
+            $feeAmount = $course->getNumericFeeForOption($track, $mode);
+            if ($feeAmount <= 0) {
+                $feeAmount = $course->getNumericFee();
+            }
+            if ($feeAmount <= 0) {
+                $feeAmount = 1500.00;
+            }
+
+            $email = $currentUser ? $currentUser->email : (string) $request->input('email');
+            $promoValidation = $promoCodeService->validateCode(
+                code: (string) $promoCode,
+                course: $course,
+                amount: $feeAmount,
+                user: $currentUser,
+                email: $email
+            );
+
+            if (! $promoValidation['valid']) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $promoValidation['message'] ?? 'Invalid promo code.',
+                    ], 422);
+                }
+                return redirect()->back()->withErrors(['promo_code' => $promoValidation['message']]);
+            }
+        }
+
+        $isFree = $promoValidation && $promoValidation['is_free'];
 
         $rules = [
             'track' => ['required', 'in:Beginner,Intermediate,Advanced'],
             'mode' => ['nullable', 'string', 'max:50'],
-            'payment_method' => ['required', 'in:mobile_money,card,demo'],
+            'promo_code' => ['nullable', 'string', 'max:50'],
+            'payment_method' => [$isFree ? 'nullable' : 'required', 'string', 'in:mobile_money,card,demo,promo_code'],
             'provider' => ['nullable', 'string', 'max:50'],
             'phone_number' => ['nullable', 'string', 'max:30'],
             'card_number' => ['nullable', 'string', 'max:30'],
@@ -90,13 +189,68 @@ class PaymentController extends Controller
             'card_cvv' => ['nullable', 'string', 'max:5'],
         ];
 
-        if (! $currentUser) {
-            $rules['name'] = ['required', 'string', 'max:255'];
-            $rules['email'] = ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class];
-            $rules['password'] = ['required', 'confirmed', Password::defaults()];
+        $existingKidId = $request->input('existing_kid_id') ?: $request->input('kid_id');
+        $existingKid = null;
+        if ($existingKidId) {
+            if ($currentUser) {
+                $existingKid = $currentUser->kids()->where('users.id', $existingKidId)->first() ?: User::find($existingKidId);
+            } else {
+                $existingKid = User::find($existingKidId);
+            }
+        }
+
+        $isKidsCourse = (bool) ($course->is_for_kids || $request->input('is_for_kids') === '1' || $request->filled('kid_name') || $existingKid);
+        if ($isKidsCourse && ! $course->is_for_kids) {
+            $course->update(['is_for_kids' => true]);
+        }
+
+        if ($isKidsCourse) {
+            if ($existingKid) {
+                $rules['existing_kid_id'] = ['nullable', 'exists:users,id'];
+                $rules['kid_id'] = ['nullable', 'exists:users,id'];
+                $rules['relationship'] = ['nullable', 'string', 'max:50'];
+            } else {
+                $rules['kid_name'] = ['required', 'string', 'max:255'];
+                $rules['kid_age'] = ['required', 'integer', 'min:3', 'max:18'];
+                $rules['kid_school'] = ['required', 'string', 'max:255'];
+                $rules['kid_grade'] = ['required', 'string', 'max:100'];
+                $rules['relationship'] = ['required', 'string', 'max:50'];
+                $rules['kid_password'] = ['required', 'string', 'min:6'];
+            }
+
+            if (! $currentUser) {
+                $rules['parent_name'] = ['required', 'string', 'max:255'];
+                $rules['parent_email'] = ['required', 'string', 'lowercase', 'email', 'max:255'];
+                $rules['parent_password'] = ['required', 'string', 'min:6'];
+                $rules['parent_phone'] = ['required', 'string', 'max:30'];
+                $rules['parent_occupation'] = ['required', 'string', 'max:150'];
+                $rules['parent_company'] = ['required', 'string', 'max:150'];
+                $rules['parent_address'] = ['required', 'string', 'max:255'];
+            } else {
+                $rules['parent_phone'] = ['nullable', 'string', 'max:30'];
+                $rules['parent_occupation'] = ['nullable', 'string', 'max:150'];
+                $rules['parent_company'] = ['nullable', 'string', 'max:150'];
+                $rules['parent_address'] = ['nullable', 'string', 'max:255'];
+            }
+        } else {
+            if (! $currentUser) {
+                $rules['name'] = ['required', 'string', 'max:255'];
+                $rules['email'] = ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class];
+                $rules['password'] = ['required', 'confirmed', Password::defaults()];
+            }
         }
 
         $validated = $request->validate($rules);
+
+        if ($existingKid) {
+            $validated['existing_kid_id'] = $existingKid->id;
+            $validated['kid_name'] = $existingKid->name;
+            $validated['kid_id'] = $existingKid->id;
+        }
+
+        if ($isFree && empty($validated['payment_method'])) {
+            $validated['payment_method'] = 'promo_code';
+        }
 
         $result = $this->paymentService->processCheckout($course, $validated, $request);
 
@@ -114,10 +268,11 @@ class PaymentController extends Controller
             if ($result->isCompleted()) {
                 return response()->json([
                     'success' => true,
+                    'is_free' => (bool) $isFree,
                     'status' => 'completed',
                     'reference' => $result->reference,
                     'redirect_url' => route('payment.receipt', $result->reference),
-                    'message' => 'Payment approved and enrollment confirmed!',
+                    'message' => $isFree ? 'Free enrollment confirmed with promo code!' : 'Payment approved and enrollment confirmed!',
                 ]);
             }
 

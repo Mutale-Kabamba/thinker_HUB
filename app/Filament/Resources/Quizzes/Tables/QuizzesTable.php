@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Quizzes\Tables;
 
+use App\Filament\Actions\ExportQuizzesAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -53,9 +54,11 @@ class QuizzesTable
             ])
             ->recordActions([
                 EditAction::make(),
+                ExportQuizzesAction::makeRowAction(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    ExportQuizzesAction::makeBulkAction(),
                     DeleteBulkAction::make(),
                 ]),
             ]);

@@ -51,6 +51,21 @@ class InstructorApplicationForm
                             ->label('Portfolio')
                             ->disabled(),
 
+                        TextInput::make('cv_path')
+                            ->label('Attached CV / Resume')
+                            ->disabled()
+                            ->suffixActions([
+                                \Filament\Actions\Action::make('view_cv')
+                                    ->icon('heroicon-m-eye')
+                                    ->tooltip('View CV')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->viewSingleAttachment($record, 'cv')),
+                                \Filament\Actions\Action::make('download_cv')
+                                    ->icon('heroicon-m-arrow-down-tray')
+                                    ->tooltip('Download CV')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->downloadSingleAttachment($record, 'cv')),
+                            ])
+                            ->visible(fn ($record) => filled($record?->cv_path)),
+
                         Textarea::make('bio')
                             ->disabled()
                             ->columnSpanFull()
@@ -104,6 +119,16 @@ class InstructorApplicationForm
                             ->label('Roadmap PDF')
                             ->disabled()
                             ->columnSpanFull()
+                            ->suffixActions([
+                                \Filament\Actions\Action::make('view_roadmap')
+                                    ->icon('heroicon-m-eye')
+                                    ->tooltip('View Roadmap')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->viewSingleAttachment($record, 'roadmap')),
+                                \Filament\Actions\Action::make('download_roadmap')
+                                    ->icon('heroicon-m-arrow-down-tray')
+                                    ->tooltip('Download Roadmap')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->downloadSingleAttachment($record, 'roadmap')),
+                            ])
                             ->visible(fn ($record) => $record?->proposal_type === 'existing' && $record?->roadmap_path),
 
                         // New course fields
@@ -179,11 +204,31 @@ class InstructorApplicationForm
                         TextInput::make('full_roadmap_path')
                             ->label('Full Roadmap PDF')
                             ->disabled()
+                            ->suffixActions([
+                                \Filament\Actions\Action::make('view_full_roadmap')
+                                    ->icon('heroicon-m-eye')
+                                    ->tooltip('View Full Roadmap')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->viewSingleAttachment($record, 'full_roadmap')),
+                                \Filament\Actions\Action::make('download_full_roadmap')
+                                    ->icon('heroicon-m-arrow-down-tray')
+                                    ->tooltip('Download Full Roadmap')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->downloadSingleAttachment($record, 'full_roadmap')),
+                            ])
                             ->visible(fn ($record) => $record?->proposal_type === 'new' && $record?->full_roadmap_path),
 
                         TextInput::make('curriculum_path')
                             ->label('Curriculum PDF')
                             ->disabled()
+                            ->suffixActions([
+                                \Filament\Actions\Action::make('view_curriculum')
+                                    ->icon('heroicon-m-eye')
+                                    ->tooltip('View Curriculum')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->viewSingleAttachment($record, 'curriculum')),
+                                \Filament\Actions\Action::make('download_curriculum')
+                                    ->icon('heroicon-m-arrow-down-tray')
+                                    ->tooltip('Download Curriculum')
+                                    ->action(fn ($record) => app(\App\Services\InstructorApplicationAttachmentService::class)->downloadSingleAttachment($record, 'curriculum')),
+                            ])
                             ->visible(fn ($record) => $record?->proposal_type === 'new' && $record?->curriculum_path),
 
                         // Legacy fields (for older applications)
@@ -200,6 +245,48 @@ class InstructorApplicationForm
                             ->rows(5)
                             ->columnSpanFull()
                             ->visible(fn ($record) => $record?->proposed_curriculum && !$record?->proposal_type),
+                    ]),
+
+                Section::make('Course Assignment Decision (Admin)')
+                    ->description('Assign this instructor to an existing course or prompt them to build a new one with the guide.')
+                    ->schema([
+                        Select::make('course_assignment_action')
+                            ->label('Course Assignment Decision')
+                            ->options([
+                                'assign_existing' => 'Assign to an Existing Course',
+                                'prompt_create_course' => 'Prompt Instructor to Create Course (with Guide)',
+                                'keep_proposal' => 'Approve Applicant\'s Proposed Course (New Course Flow)',
+                                'unassign' => 'Unassign / No Course Assigned',
+                            ])
+                            ->live()
+                            ->default(fn ($record) => $record?->course_assignment_action ?? ($record?->proposal_type === 'new' ? 'keep_proposal' : ($record?->assigned_course_id ? 'assign_existing' : 'unassign')))
+                            ->helperText('Choose whether to assign the instructor to an existing course, prompt them to build one using the guide, approve their proposed course, or leave them unassigned.')
+                            ->columnSpanFull(),
+
+                        Select::make('assigned_course_id')
+                            ->label('Select Existing Course to Assign')
+                            ->options(fn () => \App\Models\Course::query()->orderBy('title')->get()->mapWithKeys(fn ($c) => [$c->id => "{$c->title}" . ($c->code ? " ({$c->code})" : '')]))
+                            ->searchable()
+                            ->preload()
+                            ->default(fn ($record) => $record?->assigned_course_id ?? $record?->preferred_course_id)
+                            ->visible(fn ($get) => $get('course_assignment_action') === 'assign_existing')
+                            ->required(fn ($get) => $get('course_assignment_action') === 'assign_existing')
+                            ->helperText('This course will be assigned to the instructor in their portal and activated upon application approval.')
+                            ->columnSpanFull(),
+
+                        Textarea::make('course_creation_guidance')
+                            ->label('Custom Instructions / Guidance for Instructor (Optional)')
+                            ->placeholder('e.g. Please design a course focused on Next.js 15 and Server Actions for web development learners...')
+                            ->rows(3)
+                            ->visible(fn ($get) => $get('course_assignment_action') === 'prompt_create_course')
+                            ->helperText('This guidance note will be displayed prominently on the instructor\'s dashboard banner and notifications.')
+                            ->columnSpanFull(),
+
+                        ViewField::make('guide_preview')
+                            ->label('Course Build Structure Guide Preview')
+                            ->view('filament.components.course-creation-guide-modal')
+                            ->visible(fn ($get) => $get('course_assignment_action') === 'prompt_create_course')
+                            ->columnSpanFull(),
                     ]),
 
                 Section::make('Review Decision')

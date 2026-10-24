@@ -154,7 +154,8 @@ class ViewCourseIntake extends ViewRecord
                     TextInput::make('next_name')
                         ->label('New Cohort / Intake Name')
                         ->placeholder('e.g. Intake 2 - April 2026, Cohort Beta')
-                        ->required(),
+                        ->required()
+                        ->columnSpanFull(),
                     DatePicker::make('next_start_date')
                         ->label('New Cohort Start Date')
                         ->default(fn () => $this->record->next_intake_start_date ?? now()->toDateString())
@@ -162,8 +163,10 @@ class ViewCourseIntake extends ViewRecord
                     DatePicker::make('next_end_date')
                         ->label('New Cohort End Date'),
                     DatePicker::make('subsequent_intake_start_date')
-                        ->label('Subsequent Intake Start Date'),
+                        ->label('Subsequent Intake Start Date')
+                        ->columnSpanFull(),
                 ])
+                ->columns(['default' => 1, 'sm' => 2])
                 ->modalHeading('Archive Current Cohort & Start Next')
                 ->modalDescription('This will archive the current intake, preserving all student records, and immediately launch the new cohort as active on a blank slate.')
                 ->action(function (array $data): void {

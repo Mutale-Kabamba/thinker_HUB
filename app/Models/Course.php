@@ -34,6 +34,7 @@ class Course extends Model
         'key_outcome',
         'level_progression',
         'is_open_enrollment',
+        'is_for_kids',
         'is_active',
         'gamification_settings',
         'average_rating',
@@ -45,10 +46,31 @@ class Course extends Model
         return [
             'is_active' => 'boolean',
             'is_open_enrollment' => 'boolean',
+            'is_for_kids' => 'boolean',
             'gamification_settings' => 'array',
             'average_rating' => 'decimal:2',
             'review_count' => 'integer',
         ];
+    }
+
+    /**
+     * Determine if this course is designated for Kids (parent-supervised, private community).
+     */
+    public function isForKids(): bool
+    {
+        return (bool) $this->is_for_kids;
+    }
+
+    public function scopeForKids($query)
+    {
+        return $query->where('is_for_kids', true);
+    }
+
+    public function scopeGeneral($query)
+    {
+        return $query->where(function ($q): void {
+            $q->where('is_for_kids', false)->orWhereNull('is_for_kids');
+        });
     }
 
     public function getTimelineAttribute($value): ?string
@@ -58,6 +80,26 @@ class Course extends Model
         }
 
         return trim(preg_replace('/\s*\(.*\)/', '', $value));
+    }
+
+    /**
+     * Determine if this course is affiliated with Play it Forward (e.g. Digital Skills Program DSP-PIF).
+     */
+    public function isPlayItForward(): bool
+    {
+        $code = strtoupper((string) $this->code);
+        $title = strtoupper((string) $this->title);
+        $desc = strtoupper((string) $this->description);
+        $overview = strtoupper((string) $this->overview);
+
+        return str_contains($code, 'PIF')
+            || str_contains($code, 'PLAY IT FORWARD')
+            || str_contains($title, 'PLAY IT FORWARD')
+            || str_contains($code, 'DS_PIZ')
+            || str_contains($code, 'DSP')
+            || str_contains($title, 'DIGITAL SKILLS')
+            || str_contains($desc, 'PLAY IT FORWARD')
+            || str_contains($overview, 'PLAY IT FORWARD');
     }
 
     public function getCourseOwnerLabelAttribute(): string
@@ -247,6 +289,11 @@ class Course extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function promoCodes(): HasMany
+    {
+        return $this->hasMany(PromoCode::class);
+    }
+
     public function getNumericFee(): float
     {
         $fees = trim((string) $this->fees);
@@ -265,6 +312,11 @@ class Course extends Model
         }
 
         return 0.0;
+    }
+
+    public function getPriceAttribute(): float
+    {
+        return $this->getNumericFee();
     }
 
     /**
@@ -863,4 +915,58 @@ class Course extends Model
     {
         return static::getColorSchemeFor($this->id, (string) ($this->title ?? ''), (string) ($this->code ?? ''));
     }
+
+    /**
+     * Get the resolved URL for the uploaded course image, or a themed fallback.
+     */
+    public function getCourseImageUrlAttribute(): string
+    {
+        if (! empty($this->image_path)) {
+            $url = \App\Support\PublicDiskPath::url($this->image_path);
+            if ($url) {
+                return $url;
+            }
+        }
+
+        $courseImages = [
+            'images/courses/computer.png',
+            'images/courses/office.png',
+            'images/courses/design.png',
+            'images/courses/data.png',
+            'images/courses/media_ai.png',
+        ];
+
+        $courseImageKeywords = [
+            'images/courses/office.png' => ['office', 'excel', 'word', 'powerpoint'],
+            'images/courses/design.png' => ['design', 'graphics', 'ui', 'ux', 'canva', 'photoshop'],
+            'images/courses/data.png' => ['data', 'analytics', 'analysis', 'sql', 'power bi', 'tableau'],
+            'images/courses/media_ai.png' => ['social', 'media', 'marketing', 'content', 'ai'],
+            'images/courses/computer.png' => ['computer', 'digital', 'ict', 'literacy', 'fundamentals'],
+        ];
+
+        $searchText = strtolower(trim((string) ($this->title.' '.$this->code)));
+
+        foreach ($courseImageKeywords as $imagePath => $keywords) {
+            foreach ($keywords as $keyword) {
+                if (str_contains($searchText, $keyword)) {
+                    return asset($imagePath);
+                }
+            }
+        }
+
+        $seed = $this->id ?? (crc32($this->code ?: $this->title) & 0x7FFFFFFF);
+        $fallback = $courseImages[abs((int) $seed) % count($courseImages)];
+
+        return asset($fallback);
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! empty($this->image_path)) {
+            return \App\Support\PublicDiskPath::url($this->image_path);
+        }
+
+        return null;
+    }
 }
+

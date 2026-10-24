@@ -64,6 +64,67 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Case: Parent account registration linking an existing registered child by unique code
+        // Skips kid info and skips payment because admin registered the child manually (already paid)
+        if ($request->input('account_type') === 'parent' || $request->filled('kid_unique_code')) {
+            $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+                'kid_unique_code' => ['required', 'string', 'max:50'],
+                'relationship' => ['required', 'string', 'max:50'],
+                'phone_number' => ['nullable', 'string', 'max:30'],
+                'occupation' => ['nullable', 'string', 'max:150'],
+                'company' => ['nullable', 'string', 'max:150'],
+                'address' => ['nullable', 'string', 'max:255'],
+                'accept_terms' => ['accepted'],
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            ]);
+
+            $kid = User::findKidByCodeOrEmail($request->kid_unique_code);
+
+            if (! $kid) {
+                throw ValidationException::withMessages([
+                    'kid_unique_code' => 'No enrolled child was found matching code "' . $request->kid_unique_code . '". Please verify the unique code provided by the administrator.',
+                ]);
+            }
+
+            $kid->update(['is_kid' => true]);
+
+            $parent = User::create([
+                'name' => trim((string) $request->name),
+                'email' => strtolower(trim((string) $request->email)),
+                'password' => $request->password,
+                'role' => 'parent',
+                'default_portal' => 'parent',
+                'is_kid' => false,
+                'is_active' => true,
+                'phone_number' => $request->phone_number ? trim((string) $request->phone_number) : null,
+                'whatsapp' => $request->phone_number ? trim((string) $request->phone_number) : null,
+                'occupation' => $request->occupation ? trim((string) $request->occupation) : null,
+                'company' => $request->company ? trim((string) $request->company) : null,
+                'employer' => $request->company ? trim((string) $request->company) : null,
+                'address' => $request->address ? trim((string) $request->address) : null,
+                'email_verified_at' => now(),
+            ]);
+
+            $parent->kids()->syncWithoutDetaching([
+                $kid->id => [
+                    'relationship' => trim((string) $request->relationship),
+                    'school' => $kid->school,
+                    'grade' => $kid->grade,
+                    'age' => $kid->age,
+                    'notes' => 'Linked by parent upon registration using code ' . $kid->unique_code,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+            ]);
+
+            Auth::login($parent);
+
+            return redirect()->route('filament.parent.pages.manage-kids')
+                ->with('status', 'Welcome to Thinker HUB! Your parent account has been created and successfully linked to ' . $kid->name . '.');
+        }
+
         $hasOpenEnrollmentColumn = Schema::hasColumn('courses', 'is_open_enrollment');
 
         $courseExistsRule = Rule::exists('courses', 'id')
@@ -83,6 +144,8 @@ class RegisteredUserController extends Controller
                 $courseExistsRule,
             ],
             'track' => ['required', 'in:Beginner,Intermediate,Advanced'],
+            'gender' => ['nullable', 'string', 'in:Male,Female,Other,male,female,other'],
+            'nrc_passport' => ['nullable', 'string', 'max:50'],
             'accept_terms' => ['accepted'],
             'accept_requirements' => ['accepted'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -100,12 +163,29 @@ class RegisteredUserController extends Controller
 
         $course = $courseQuery->firstOrFail();
 
+        if ($course->is_for_kids) {
+            $request->session()->put('pending_registration', [
+                'name' => $request->string('name')->toString(),
+                'email' => $request->string('email')->toString(),
+                'gender' => $request->gender ? ucfirst(strtolower($request->gender)) : null,
+                'nrc_passport' => $request->nrc_passport ? trim((string) $request->nrc_passport) : null,
+                'password' => $request->string('password')->toString(),
+                'track' => $request->string('track')->toString() ?: 'Beginner',
+                'course_id' => $course->id,
+            ]);
+
+            return redirect()->route('checkout.show', [$course, 'track' => $request->string('track')->toString() ?: 'Beginner'])
+                ->with('status', 'Complete your child details and enrollment to activate parent and learner accounts.');
+        }
+
         $requiresPaymentApproval = $course->requiresPaymentApproval();
 
         if ($requiresPaymentApproval) {
             $request->session()->put('pending_registration', [
                 'name' => $request->string('name')->toString(),
                 'email' => $request->string('email')->toString(),
+                'gender' => $request->gender ? ucfirst(strtolower($request->gender)) : null,
+                'nrc_passport' => $request->nrc_passport ? trim((string) $request->nrc_passport) : null,
                 'password' => $request->string('password')->toString(),
                 'track' => $request->string('track')->toString() ?: 'Beginner',
                 'course_id' => $course->id,
@@ -118,6 +198,8 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'gender' => $request->gender ? ucfirst(strtolower($request->gender)) : null,
+            'nrc_passport' => $request->nrc_passport ? trim((string) $request->nrc_passport) : null,
             'track' => $request->string('track')->toString() ?: 'Beginner',
             'role' => 'student',
             'is_active' => true,
