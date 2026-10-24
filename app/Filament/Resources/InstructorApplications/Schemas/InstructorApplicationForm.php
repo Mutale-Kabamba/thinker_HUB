@@ -256,10 +256,11 @@ class InstructorApplicationForm
                                 'assign_existing' => 'Assign to an Existing Course',
                                 'prompt_create_course' => 'Prompt Instructor to Create Course (with Guide)',
                                 'keep_proposal' => 'Approve Applicant\'s Proposed Course (New Course Flow)',
+                                'unassign' => 'Unassign / No Course Assigned',
                             ])
                             ->live()
-                            ->default(fn ($record) => $record?->course_assignment_action ?? ($record?->proposal_type === 'new' ? 'keep_proposal' : 'assign_existing'))
-                            ->helperText('Choose whether to assign the instructor to an existing course, prompt them to build one using the guide, or approve their proposed course.')
+                            ->default(fn ($record) => $record?->course_assignment_action ?? ($record?->proposal_type === 'new' ? 'keep_proposal' : ($record?->assigned_course_id ? 'assign_existing' : 'unassign')))
+                            ->helperText('Choose whether to assign the instructor to an existing course, prompt them to build one using the guide, approve their proposed course, or leave them unassigned.')
                             ->columnSpanFull(),
 
                         Select::make('assigned_course_id')

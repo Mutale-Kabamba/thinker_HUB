@@ -146,6 +146,45 @@ class InstructorApplicationsTable
                             ->send();
                     }),
 
+                Action::make('unassign_course')
+                    ->label('Unassign Course')
+                    ->icon('heroicon-o-user-minus')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Unassign Course from Instructor')
+                    ->modalDescription(fn (InstructorApplication $record): string =>
+                        "Are you sure you want to un-assign " . ($record->assignedCourse?->title ?? $record->preferredCourse?->title ?? 'the course') . " from {$record->name}?"
+                    )
+                    ->visible(fn (InstructorApplication $record): bool =>
+                        filled($record->assigned_course_id) || ($record->user && $record->user->instructorCourses()->exists())
+                    )
+                    ->action(function (InstructorApplication $record) {
+                        $user = $record->user;
+                        $courseId = $record->assigned_course_id ?: ($record->preferred_course_id ? (int) $record->preferred_course_id : null);
+
+                        if ($user) {
+                            if ($courseId) {
+                                $user->instructorCourses()->detach($courseId);
+                            } else {
+                                $user->instructorCourses()->detach();
+                            }
+                        }
+
+                        $record->update([
+                            'assigned_course_id' => null,
+                            'course_assignment_action' => 'unassign',
+                            'prompt_course_creation' => false,
+                            'reviewed_by' => auth()->id(),
+                            'reviewed_at' => now(),
+                        ]);
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Course Unassigned')
+                            ->body("{$record->name} has been unassigned from the course.")
+                            ->success()
+                            ->send();
+                    }),
+
                 Action::make('prompt_course')
                     ->label('Prompt with Guide')
                     ->icon('heroicon-o-document-plus')

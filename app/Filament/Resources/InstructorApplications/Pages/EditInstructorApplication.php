@@ -117,6 +117,55 @@ class EditInstructorApplication extends BaseEditRecord
                     $this->refreshFormData(['status', 'assigned_course_id', 'course_assignment_action']);
                 }),
 
+            Action::make('unassign_course')
+                ->label('Unassign Course')
+                ->icon('heroicon-o-user-minus')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->modalHeading('Unassign Course from Instructor')
+                ->modalDescription(function () {
+                    /** @var InstructorApplication $record */
+                    $record = $this->record;
+                    $courseTitle = $record->assignedCourse?->title ?? $record->preferredCourse?->title ?? 'the currently assigned course';
+                    return "Are you sure you want to un-assign {$courseTitle} from this instructor? They will no longer be assigned to teach this course.";
+                })
+                ->visible(function () {
+                    /** @var InstructorApplication $record */
+                    $record = $this->record;
+                    return filled($record->assigned_course_id)
+                        || ($record->user && $record->user->instructorCourses()->exists());
+                })
+                ->action(function () {
+                    /** @var InstructorApplication $application */
+                    $application = $this->record;
+                    $user = $application->user;
+                    $courseId = $application->assigned_course_id ?: ($application->preferred_course_id ? (int) $application->preferred_course_id : null);
+
+                    if ($user) {
+                        if ($courseId) {
+                            $user->instructorCourses()->detach($courseId);
+                        } else {
+                            $user->instructorCourses()->detach();
+                        }
+                    }
+
+                    $application->update([
+                        'assigned_course_id' => null,
+                        'course_assignment_action' => 'unassign',
+                        'prompt_course_creation' => false,
+                        'reviewed_by' => auth()->id(),
+                        'reviewed_at' => now(),
+                    ]);
+
+                    Notification::make()
+                        ->title('Course Unassigned')
+                        ->body('The course has been successfully unassigned from this instructor.')
+                        ->success()
+                        ->send();
+
+                    $this->refreshFormData(['assigned_course_id', 'course_assignment_action', 'prompt_course_creation']);
+                }),
+
             Action::make('prompt_create_course')
                 ->label('Prompt to Create Course with Guide')
                 ->icon('heroicon-o-document-plus')
@@ -217,7 +266,18 @@ class EditInstructorApplication extends BaseEditRecord
                 $action = $application->course_assignment_action;
                 $assignedCourseId = $application->assigned_course_id ?: ($application->proposal_type === 'existing' ? $application->preferred_course_id : null);
 
-                if ($action === 'assign_existing' || (! $action && $assignedCourseId)) {
+                if ($action === 'unassign') {
+                    if ($application->assigned_course_id) {
+                        $user->instructorCourses()->detach($application->assigned_course_id);
+                    }
+                    if ($application->preferred_course_id) {
+                        $user->instructorCourses()->detach((int) $application->preferred_course_id);
+                    }
+                    $application->updateQuietly([
+                        'assigned_course_id' => null,
+                        'prompt_course_creation' => false,
+                    ]);
+                } elseif ($action === 'assign_existing' || (! $action && $assignedCourseId)) {
                     if ($assignedCourseId) {
                         $user->instructorCourses()->syncWithoutDetaching([$assignedCourseId]);
 

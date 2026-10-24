@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Instructor\Pages\InstructorOverview;
 use App\Filament\Instructor\Resources\CourseResource\Pages\CreateCourse;
+use App\Filament\Resources\Courses\Pages\ListCourses;
 use App\Filament\Resources\InstructorApplications\Pages\EditInstructorApplication;
 use App\Filament\Resources\InstructorApplications\Pages\ListInstructorApplications;
 use App\Models\Course;
@@ -268,5 +269,139 @@ class InstructorApplicationCourseAssignmentAndPromptTest extends TestCase
         Livewire::test(ListInstructorApplications::class)
             ->assertTableActionExists('assign_course')
             ->assertTableActionExists('prompt_course');
+    }
+
+    public function test_admin_can_unassign_course_from_instructor_via_application_form(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $this->actingAs($this->admin);
+
+        // Pre-assign instructor to existingCourseA
+        $this->applicantUser->update(['role' => 'instructor', 'is_active' => true]);
+        $this->applicantUser->instructorCourses()->sync([$this->existingCourseA->id]);
+
+        $application = InstructorApplication::query()->create([
+            'user_id' => $this->applicantUser->id,
+            'name' => $this->applicantUser->name,
+            'email' => $this->applicantUser->email,
+            'qualifications' => 'BSc Computer Science',
+            'status' => 'approved',
+            'course_assignment_action' => 'assign_existing',
+            'assigned_course_id' => $this->existingCourseA->id,
+        ]);
+
+        $this->assertTrue($this->applicantUser->instructorCourses()->where('courses.id', $this->existingCourseA->id)->exists());
+
+        Livewire::test(EditInstructorApplication::class, ['record' => $application->id])
+            ->fillForm([
+                'course_assignment_action' => 'unassign',
+                'status' => 'approved',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $application->refresh();
+        $this->applicantUser->refresh();
+
+        $this->assertSame('unassign', $application->course_assignment_action);
+        $this->assertNull($application->assigned_course_id);
+        $this->assertFalse($this->applicantUser->instructorCourses()->where('courses.id', $this->existingCourseA->id)->exists());
+    }
+
+    public function test_admin_can_unassign_course_from_instructor_via_header_action(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $this->actingAs($this->admin);
+
+        $this->applicantUser->update(['role' => 'instructor', 'is_active' => true]);
+        $this->applicantUser->instructorCourses()->sync([$this->existingCourseA->id]);
+
+        $application = InstructorApplication::query()->create([
+            'user_id' => $this->applicantUser->id,
+            'name' => $this->applicantUser->name,
+            'email' => $this->applicantUser->email,
+            'qualifications' => 'BSc Computer Science',
+            'status' => 'approved',
+            'course_assignment_action' => 'assign_existing',
+            'assigned_course_id' => $this->existingCourseA->id,
+        ]);
+
+        Livewire::test(EditInstructorApplication::class, ['record' => $application->id])
+            ->callAction('unassign_course')
+            ->assertHasNoActionErrors();
+
+        $application->refresh();
+        $this->applicantUser->refresh();
+
+        $this->assertSame('unassign', $application->course_assignment_action);
+        $this->assertNull($application->assigned_course_id);
+        $this->assertFalse($this->applicantUser->instructorCourses()->where('courses.id', $this->existingCourseA->id)->exists());
+    }
+
+    public function test_applications_table_has_unassign_action_and_unassigns_course(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $this->actingAs($this->admin);
+
+        $this->applicantUser->update(['role' => 'instructor', 'is_active' => true]);
+        $this->applicantUser->instructorCourses()->sync([$this->existingCourseA->id]);
+
+        $application = InstructorApplication::query()->create([
+            'user_id' => $this->applicantUser->id,
+            'name' => $this->applicantUser->name,
+            'email' => $this->applicantUser->email,
+            'qualifications' => 'Certified Scrum Master',
+            'status' => 'approved',
+            'course_assignment_action' => 'assign_existing',
+            'assigned_course_id' => $this->existingCourseA->id,
+        ]);
+
+        Livewire::test(ListInstructorApplications::class)
+            ->assertTableActionExists('assign_course')
+            ->assertTableActionExists('unassign_course')
+            ->callTableAction('unassign_course', $application)
+            ->assertHasNoTableActionErrors();
+
+        $application->refresh();
+        $this->applicantUser->refresh();
+
+        $this->assertSame('unassign', $application->course_assignment_action);
+        $this->assertNull($application->assigned_course_id);
+        $this->assertFalse($this->applicantUser->instructorCourses()->where('courses.id', $this->existingCourseA->id)->exists());
+    }
+
+    public function test_admin_can_unassign_instructor_via_courses_table(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $this->actingAs($this->admin);
+
+        $this->applicantUser->update(['role' => 'instructor', 'is_active' => true]);
+        $this->existingCourseA->instructors()->sync([$this->applicantUser->id]);
+
+        $application = InstructorApplication::query()->create([
+            'user_id' => $this->applicantUser->id,
+            'name' => $this->applicantUser->name,
+            'email' => $this->applicantUser->email,
+            'qualifications' => 'Certified Instructor',
+            'status' => 'approved',
+            'course_assignment_action' => 'assign_existing',
+            'assigned_course_id' => $this->existingCourseA->id,
+        ]);
+
+        $this->assertTrue($this->existingCourseA->instructors()->where('users.id', $this->applicantUser->id)->exists());
+
+        Livewire::test(ListCourses::class)
+            ->assertTableActionExists('unassign_instructor')
+            ->callTableAction('unassign_instructor', $this->existingCourseA, [
+                'instructor_id' => $this->applicantUser->id,
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $this->existingCourseA->refresh();
+        $application->refresh();
+
+        $this->assertFalse($this->existingCourseA->instructors()->where('users.id', $this->applicantUser->id)->exists());
+        $this->assertNull($application->assigned_course_id);
+        $this->assertSame('unassign', $application->course_assignment_action);
     }
 }
