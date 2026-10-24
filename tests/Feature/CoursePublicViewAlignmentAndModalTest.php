@@ -81,4 +81,82 @@ class CoursePublicViewAlignmentAndModalTest extends TestCase
         $response->assertSee('id="skill-level-progression-modal"', false);
         $response->assertSee('Skill Level Progression Roadmap Framework &amp; Guidelines', false);
     }
+
+    public function test_compound_skill_levels_combine_descriptions_appropriately(): void
+    {
+        $course = Course::create([
+            'title' => 'Python Mastery: From Zero to a Deployed REST API',
+            'slug' => 'python-mastery-from-zero-to-a-deployed-rest-api',
+            'code' => 'PY-REST-101',
+            'description' => 'Complete Python curriculum.',
+            'overview' => 'Detailed Python overview text.',
+            'key_outcome' => 'Deploy production ready FastAPI REST APIs.',
+            'is_active' => true,
+            'is_open_enrollment' => true,
+            'fees' => json_encode([
+                'group' => [
+                    [
+                        'level' => 'Advanced (Beginner to Advanced)',
+                        'amount' => 'K2000.00',
+                        'duration' => '12 Weeks',
+                    ],
+                    [
+                        'level' => 'Advanced (Intermediate to Advanced)',
+                        'amount' => 'K1400.00',
+                        'duration' => '8 Weeks',
+                    ],
+                    [
+                        'level' => 'Beginner',
+                        'amount' => 'K600.00',
+                        'duration' => '4 Weeks',
+                    ],
+                ],
+            ]),
+            'level_progression' => json_encode([
+                [
+                    'level' => 'Beginner',
+                    'details' => 'Learn syntax, data structures, variables, loops, and functions.',
+                ],
+                [
+                    'level' => 'Intermediate',
+                    'details' => 'OOP, modules, packaging, and building robust CLI tools.',
+                ],
+                [
+                    'level' => 'Advanced',
+                    'details' => 'FastAPI, SQLAlchemy, JWT auth, and Docker container deployment.',
+                ],
+            ]),
+        ]);
+
+        $url = route('landing.courses.show', [
+            'course' => $course->id,
+            'slug' => Str::slug($course->title),
+        ]);
+
+        $response = $this->get($url);
+        $response->assertOk();
+
+        $content = $response->getContent();
+
+        // 1. Verify Advanced (Beginner to Advanced) combines all 3 level descriptions
+        $this->assertStringContainsString('Advanced (Beginner to Advanced)', $content);
+        // The modal data for Advanced (Beginner to Advanced) must contain Beginner, Intermediate, and Advanced milestones
+        $this->assertMatchesRegularExpression(
+            '/window\.openSkillLevelModal\(.*Advanced \(Beginner to Advanced\).*Learn syntax.*OOP, modules.*FastAPI, SQLAlchemy/s',
+            $content
+        );
+
+        // 2. Verify Advanced (Intermediate to Advanced) only gets Intermediate and Advanced descriptions
+        $this->assertStringContainsString('Advanced (Intermediate to Advanced)', $content);
+
+        // Find the window.openSkillLevelModal call for Advanced (Intermediate to Advanced)
+        $pos = strpos($content, 'Advanced (Intermediate to Advanced)');
+        $this->assertNotFalse($pos);
+        $snippet = substr($content, max(0, $pos - 100), 1200);
+
+        $this->assertStringNotContainsString('Beginner Milestone', $snippet);
+        $this->assertStringContainsString('Intermediate Milestone', $snippet);
+        $this->assertStringContainsString('Advanced Milestone', $snippet);
+    }
 }
+

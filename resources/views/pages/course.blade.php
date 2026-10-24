@@ -483,7 +483,7 @@
                 ],
             ];
 
-            $getLevelGuidelines = static function (string $rawLevelName) use ($skillLevelGuidelines, $progressionItems, $course): array {
+            $getLevelGuidelines = static function (string $rawLevelName) use ($skillLevelGuidelines, $progressionItems, $progressionCards, $course): array {
                 $rawTrim = trim($rawLevelName);
                 $matchedKey = null;
 
@@ -525,13 +525,122 @@
                     'trackType' => 'Targeted Progression Track',
                 ];
 
-                $courseDetails = '';
-                foreach ($progressionItems as $pItem) {
-                    $pLevel = trim((string) ($pItem['level'] ?? ''));
-                    if ($pLevel !== '' && (strcasecmp($pLevel, $rawTrim) === 0 || ($matchedKey && strcasecmp($pLevel, $matchedKey) === 0))) {
-                        $courseDetails = trim((string) ($pItem['details'] ?? ''));
-                        break;
+                // Helper to extract description for base milestones (Beginner, Intermediate, Advanced)
+                $findBaseLevelDesc = static function (string $baseName) use ($progressionCards, $progressionItems): string {
+                    foreach ($progressionCards as $pCard) {
+                        if (strcasecmp($pCard['level'], $baseName) === 0 && filled($pCard['details'])) {
+                            return trim((string) $pCard['details']);
+                        }
                     }
+                    foreach ($progressionItems as $pItem) {
+                        $lvl = trim((string) ($pItem['level'] ?? ''));
+                        if (strcasecmp($lvl, $baseName) === 0 && filled($pItem['details'] ?? null)) {
+                            return trim((string) $pItem['details']);
+                        }
+                    }
+                    foreach ($progressionItems as $pItem) {
+                        $lvl = trim((string) ($pItem['level'] ?? ''));
+                        if (stripos($lvl, ' to ') === false && stripos($lvl, $baseName) !== false && filled($pItem['details'] ?? null)) {
+                            return trim((string) $pItem['details']);
+                        }
+                    }
+                    return '';
+                };
+
+                // Helper to extract direct explicit description if specifically registered in course
+                $findExplicitDesc = static function (string $targetLvl) use ($progressionItems): string {
+                    foreach ($progressionItems as $pItem) {
+                        $lvl = trim((string) ($pItem['level'] ?? ''));
+                        if (strcasecmp($lvl, $targetLvl) === 0 && filled($pItem['details'] ?? null)) {
+                            return trim((string) $pItem['details']);
+                        }
+                    }
+                    return '';
+                };
+
+                $beginnerDesc = $findBaseLevelDesc('Beginner');
+                $intermediateDesc = $findBaseLevelDesc('Intermediate');
+                $advancedDesc = $findBaseLevelDesc('Advanced');
+
+                $levelSections = [];
+
+                if ($matchedKey === 'Advanced (Beginner to Advanced)') {
+                    // Combine the description for ALL levels: Beginner, Intermediate, and Advanced
+                    $explicit = $findExplicitDesc('Advanced (Beginner to Advanced)');
+                    if ($explicit !== '') {
+                        $levelSections[] = ['level' => 'Comprehensive Track Overview', 'details' => $explicit];
+                    }
+                    if ($beginnerDesc !== '') {
+                        $levelSections[] = ['level' => 'Beginner Milestone', 'details' => $beginnerDesc];
+                    }
+                    if ($intermediateDesc !== '') {
+                        $levelSections[] = ['level' => 'Intermediate Milestone', 'details' => $intermediateDesc];
+                    }
+                    if ($advancedDesc !== '') {
+                        $levelSections[] = ['level' => 'Advanced Milestone', 'details' => $advancedDesc];
+                    }
+                } elseif ($matchedKey === 'Advanced (Intermediate to Advanced)') {
+                    // Only get the description for Intermediate and Advanced
+                    $explicit = $findExplicitDesc('Advanced (Intermediate to Advanced)');
+                    if ($explicit !== '') {
+                        $levelSections[] = ['level' => 'Specialist Track Overview', 'details' => $explicit];
+                    }
+                    if ($intermediateDesc !== '') {
+                        $levelSections[] = ['level' => 'Intermediate Milestone', 'details' => $intermediateDesc];
+                    }
+                    if ($advancedDesc !== '') {
+                        $levelSections[] = ['level' => 'Advanced Milestone', 'details' => $advancedDesc];
+                    }
+                } elseif ($matchedKey === 'Intermediate (Beginner to Intermediate)') {
+                    // Bridge track: combine Beginner and Intermediate
+                    $explicit = $findExplicitDesc('Intermediate (Beginner to Intermediate)');
+                    if ($explicit !== '') {
+                        $levelSections[] = ['level' => 'Bridge Track Overview', 'details' => $explicit];
+                    }
+                    if ($beginnerDesc !== '') {
+                        $levelSections[] = ['level' => 'Beginner Milestone', 'details' => $beginnerDesc];
+                    }
+                    if ($intermediateDesc !== '') {
+                        $levelSections[] = ['level' => 'Intermediate Milestone', 'details' => $intermediateDesc];
+                    }
+                } elseif ($matchedKey === 'Beginner') {
+                    if ($beginnerDesc !== '') {
+                        $levelSections[] = ['level' => 'Beginner Milestone', 'details' => $beginnerDesc];
+                    }
+                } elseif ($matchedKey === 'Intermediate') {
+                    if ($intermediateDesc !== '') {
+                        $levelSections[] = ['level' => 'Intermediate Milestone', 'details' => $intermediateDesc];
+                    }
+                } elseif ($matchedKey === 'Advanced') {
+                    if ($advancedDesc !== '') {
+                        $levelSections[] = ['level' => 'Advanced Milestone', 'details' => $advancedDesc];
+                    }
+                } else {
+                    $explicit = $findExplicitDesc($rawTrim);
+                    if ($explicit !== '') {
+                        $levelSections[] = ['level' => $rawTrim.' Milestone', 'details' => $explicit];
+                    }
+                }
+
+                // Fallback to any progression items if levelSections is still empty
+                if (empty($levelSections)) {
+                    foreach ($progressionItems as $pItem) {
+                        $pLevel = trim((string) ($pItem['level'] ?? ''));
+                        if (filled($pItem['details'] ?? null)) {
+                            $levelSections[] = [
+                                'level' => $pLevel !== '' ? $pLevel : 'Course Progression',
+                                'details' => trim((string) $pItem['details']),
+                            ];
+                        }
+                    }
+                }
+
+                $courseDetails = '';
+                if (! empty($levelSections)) {
+                    $courseDetails = implode("\n\n", array_map(
+                        static fn (array $sec): string => $sec['level'].":\n".$sec['details'],
+                        $levelSections
+                    ));
                 }
 
                 return [
@@ -545,6 +654,7 @@
                     'trackType' => $framework['trackType'],
                     'courseDetails' => $courseDetails,
                     'courseTitle' => $course->title,
+                    'levelSections' => $levelSections,
                 ];
             };
         @endphp
