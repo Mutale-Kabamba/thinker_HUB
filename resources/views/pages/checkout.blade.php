@@ -772,7 +772,7 @@
                             <div class="flex items-center justify-between pt-1">
                                 <div class="min-w-0 flex-1">
                                     <p class="text-base font-black text-[#0a2d27]">
-                                        <span x-text="track"></span> Level &bull; <span x-text="modeLabel"></span>
+                                        <span x-text="track.toLowerCase().includes('level') ? track : track + ' Level'"></span> &bull; <span x-text="modeLabel"></span>
                                     </p>
                                     <p class="text-xs text-slate-600 mt-0.5">Full access to curriculum modules, resources, and live mentor support.</p>
                                 </div>
