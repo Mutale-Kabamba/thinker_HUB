@@ -636,6 +636,7 @@ Route::middleware('auth')->group(function () {
         } else {
             session(['instructor_reminder_dismissed_session' => true]);
         }
+        session(['instructor_reminder_shown_for_session' => true]);
 
         return response()->json(['status' => 'ok', 'duration' => $duration]);
     })->name('teach.dismiss-reminder');

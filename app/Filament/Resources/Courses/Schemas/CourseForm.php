@@ -6,6 +6,7 @@ use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\MorphToSelect;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -192,8 +193,10 @@ class CourseForm
                                                                         ->types([
                                                                             MorphToSelect\Type::make(\App\Models\ResourceVideo::class)->titleAttribute('title'),
                                                                             MorphToSelect\Type::make(\App\Models\Quiz::class)->titleAttribute('title'),
-                                                                            MorphToSelect\Type::make(\App\Models\Assignment::class)->titleAttribute('title'),
+                                                                            MorphToSelect\Type::make(\App\Models\Assignment::class)->titleAttribute('name'),
                                                                         ])
+                                                                        ->searchable()
+                                                                        ->preload()
                                                                         ->visible(fn ($get) => in_array($get('type'), ['video', 'quiz', 'assignment']))
                                                                         ->columnSpanFull(),
                                                                 ])
@@ -215,7 +218,7 @@ class CourseForm
                                                 ->schema([
                                                     Repeater::make('fees')
                                                         ->label('Fees')
-                                                        ->helperText('Add fee entries with +. Category is One-On-One, Group, or Self-Paced; level is Beginner, Intermediate, or Advanced.')
+                                                        ->helperText('Add fee entries with +. Categories: One-On-One, Group, or Self-Paced; levels: Beginner, Intermediate, Advanced, Advanced (Beginner to Advanced), Advanced (Intermediate to Advanced), or Intermediate (Beginner to Intermediate).')
                                                         ->schema([
                                                             Select::make('category')
                                                                 ->options([
@@ -225,11 +228,7 @@ class CourseForm
                                                                 ])
                                                                 ->required(),
                                                             Select::make('level')
-                                                                ->options([
-                                                                    'Beginner' => 'Beginner',
-                                                                    'Intermediate' => 'Intermediate',
-                                                                    'Advanced' => 'Advanced',
-                                                                ])
+                                                                ->options(self::getLevelOptions())
                                                                 ->required(),
                                                             TextInput::make('amount')
                                                                 ->required()
@@ -269,11 +268,7 @@ class CourseForm
                                                                     ])
                                                                     ->required(),
                                                                 Select::make('level')
-                                                                    ->options([
-                                                                        'Beginner' => 'Beginner',
-                                                                        'Intermediate' => 'Intermediate',
-                                                                        'Advanced' => 'Advanced',
-                                                                    ])
+                                                                    ->options(self::getLevelOptions())
                                                                     ->required(),
                                                                 TextInput::make('amount')
                                                                     ->required()
@@ -282,7 +277,7 @@ class CourseForm
                                                                     ->placeholder('6 Weeks'),
                                                             ])
                                                             ->action(function (array $data, Repeater $component): void {
-                                                                $items = $component->getRawState() ?? [];
+                                                                $items = $component->getState() ?? [];
                                                                 $items[(string) Str::uuid()] = [
                                                                     'category' => self::normalizeCategory((string) ($data['category'] ?? 'one_on_one')),
                                                                     'level' => self::normalizeLevel((string) ($data['level'] ?? '')),
@@ -290,9 +285,8 @@ class CourseForm
                                                                     'duration' => trim((string) ($data['duration'] ?? '')),
                                                                 ];
 
-                                                                $component->rawState($items);
+                                                                $component->state($items);
                                                                 $component->callAfterStateUpdated();
-                                                                $component->partiallyRender();
                                                             }))
                                                         ->afterStateHydrated(function (Repeater $component, mixed $state): void {
                                                             $component->state(self::parseFeesState($state));
@@ -301,22 +295,60 @@ class CourseForm
                                                 ]),
 
                                             Section::make('Skill Level Progression Roadmap')
-                                                ->description('Define what students learn and master across Beginner, Intermediate, and Advanced tiers.')
+                                                ->description('Define what students learn and master across foundational, intermediate, and advanced progression tracks.')
                                                 ->icon('heroicon-o-chart-bar')
                                                 ->schema([
+                                                    Placeholder::make('roadmap_explanation')
+                                                        ->label('')
+                                                        ->content(new \Illuminate\Support\HtmlString('
+                                                            <div class="rounded-xl border border-teal-200 bg-teal-50/70 p-4 text-xs text-slate-700 space-y-3 dark:border-teal-900/50 dark:bg-teal-950/20 dark:text-slate-200">
+                                                                <div class="flex items-center gap-2 font-bold text-teal-900 dark:text-teal-300 text-sm">
+                                                                    <svg class="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                                    Skill Level Progression Roadmap Framework & Guidelines
+                                                                </div>
+                                                                <p class="leading-relaxed text-slate-600 dark:text-slate-300">
+                                                                    Map out clear milestone competencies, tools, and real-world project outcomes for each level offered in your course. Use the detailed guidelines below:
+                                                                </p>
+                                                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                                                                    <div class="rounded-lg border border-teal-100 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+                                                                        <span class="inline-block px-2 py-0.5 text-[11px] font-bold rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 mb-1">1. Beginner</span>
+                                                                        <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug"><strong>Target:</strong> Absolute beginners with zero prior background.<br><strong>Focus:</strong> Core fundamentals, syntax, terminology, setup of tools, and guided basic exercises.</p>
+                                                                    </div>
+                                                                    <div class="rounded-lg border border-teal-100 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+                                                                        <span class="inline-block px-2 py-0.5 text-[11px] font-bold rounded-md bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 mb-1">2. Intermediate</span>
+                                                                        <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug"><strong>Target:</strong> Learners with foundational knowledge.<br><strong>Focus:</strong> Practical problem-solving, modular code, APIs, database integration, and independent mini-projects.</p>
+                                                                    </div>
+                                                                    <div class="rounded-lg border border-teal-100 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+                                                                        <span class="inline-block px-2 py-0.5 text-[11px] font-bold rounded-md bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 mb-1">3. Advanced</span>
+                                                                        <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug"><strong>Target:</strong> Experienced practitioners.<br><strong>Focus:</strong> Complex architecture, performance optimization, security, CI/CD, and enterprise-grade delivery.</p>
+                                                                    </div>
+                                                                    <div class="rounded-lg border border-teal-100 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+                                                                        <span class="inline-block px-2 py-0.5 text-[11px] font-bold rounded-md bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 mb-1">4. Advanced (Beginner to Advanced)</span>
+                                                                        <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug"><strong>Zero-to-Hero Track:</strong> Comprehensive journey taking learners all the way from ground zero through advanced mastery.</p>
+                                                                    </div>
+                                                                    <div class="rounded-lg border border-teal-100 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+                                                                        <span class="inline-block px-2 py-0.5 text-[11px] font-bold rounded-md bg-indigo-100 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-300 mb-1">5. Advanced (Intermediate to Advanced)</span>
+                                                                        <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug"><strong>Specialist Track:</strong> Skips beginner setup to accelerate skilled learners into senior/lead specialist capabilities.</p>
+                                                                    </div>
+                                                                    <div class="rounded-lg border border-teal-100 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+                                                                        <span class="inline-block px-2 py-0.5 text-[11px] font-bold rounded-md bg-teal-100 text-teal-900 dark:bg-teal-950 dark:text-teal-300 mb-1">6. Intermediate (Beginner to Intermediate)</span>
+                                                                        <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug"><strong>Bridge Track:</strong> Guides novices through core principles into confident, autonomous, and job-ready practical execution.</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        '))
+                                                        ->columnSpanFull(),
+
                                                     Repeater::make('level_progression')
                                                         ->label('Level Progression')
-                                                        ->helperText('Add each level with + and provide the progression description.')
+                                                        ->helperText('Add each level with + and provide detailed progression milestones, technologies, and outcomes.')
                                                         ->schema([
                                                             Select::make('level')
-                                                                ->options([
-                                                                    'Beginner' => 'Beginner',
-                                                                    'Intermediate' => 'Intermediate',
-                                                                    'Advanced' => 'Advanced',
-                                                                ])
+                                                                ->options(self::getLevelOptions())
                                                                 ->required(),
                                                             Textarea::make('details')
-                                                                ->rows(2)
+                                                                ->rows(3)
+                                                                ->placeholder('e.g. Master fundamental syntax, environment setup, and complete 3 guided hands-on mini projects.')
                                                                 ->required(),
                                                         ])
                                                         ->columns(['default' => 1, 'md' => 2])
@@ -335,26 +367,22 @@ class CourseForm
                                                             ->modalSubmitActionLabel('Add Entry')
                                                             ->form([
                                                                 Select::make('level')
-                                                                    ->options([
-                                                                        'Beginner' => 'Beginner',
-                                                                        'Intermediate' => 'Intermediate',
-                                                                        'Advanced' => 'Advanced',
-                                                                    ])
+                                                                    ->options(self::getLevelOptions())
                                                                     ->required(),
                                                                 Textarea::make('details')
                                                                     ->rows(3)
+                                                                    ->placeholder('e.g. Master fundamental syntax, environment setup, and complete 3 guided hands-on mini projects.')
                                                                     ->required(),
                                                             ])
                                                             ->action(function (array $data, Repeater $component): void {
-                                                                $items = $component->getRawState() ?? [];
+                                                                $items = $component->getState() ?? [];
                                                                 $items[(string) Str::uuid()] = [
                                                                     'level' => self::normalizeLevel((string) ($data['level'] ?? '')),
                                                                     'details' => trim((string) ($data['details'] ?? '')),
                                                                 ];
 
-                                                                $component->rawState($items);
+                                                                $component->state($items);
                                                                 $component->callAfterStateUpdated();
-                                                                $component->partiallyRender();
                                                             }))
                                                         ->afterStateHydrated(function (Repeater $component, mixed $state): void {
                                                             $component->state(self::parseLevelProgressionState($state));
@@ -547,8 +575,10 @@ class CourseForm
         $normalizedLine = $normalizedLine === '' ? $line : $normalizedLine;
         $compactLine = trim((string) preg_replace('/\s+/', ' ', $normalizedLine));
 
+        $levelPattern = 'Advanced\s*\(\s*Beginner\s+to\s+Advanced\s*\)|Advanced\s*\(\s*Intermediate\s+to\s+Advanced\s*\)|Intermediate\s*\(\s*Beginner\s+to\s+Intermediate\s*\)|Beginner|Intermediate|Advanced';
+
         $multiMatches = [];
-        if (preg_match_all('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:Beginner|Intermediate|Advanced)\s*[:\-]|$)/i', $compactLine, $multiMatches, PREG_SET_ORDER) > 0) {
+        if (preg_match_all('/(' . $levelPattern . ')\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:' . $levelPattern . ')\s*[:\-]|$)/i', $compactLine, $multiMatches, PREG_SET_ORDER) > 0) {
             $entries = [];
 
             foreach ($multiMatches as $match) {
@@ -563,7 +593,7 @@ class CourseForm
             return array_values(array_filter($entries, fn (array $entry): bool => $entry['level'] !== '' || $entry['amount'] !== '' || $entry['duration'] !== ''));
         }
 
-        if (preg_match('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?$/i', $normalizedLine, $match) === 1) {
+        if (preg_match('/(' . $levelPattern . ')\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?$/i', $normalizedLine, $match) === 1) {
             return [[
                 'category' => $category,
                 'level' => self::normalizeLevel((string) ($match[1] ?? '')),
@@ -619,7 +649,15 @@ class CourseForm
         }
 
         $entries = [];
-        $defaultLevels = ['Beginner', 'Intermediate', 'Advanced'];
+        $defaultLevels = [
+            'Beginner',
+            'Intermediate',
+            'Advanced',
+            'Advanced (Beginner to Advanced)',
+            'Advanced (Intermediate to Advanced)',
+            'Intermediate (Beginner to Intermediate)',
+        ];
+        $levelPattern = 'Advanced\s*\(\s*Beginner\s+to\s+Advanced\s*\)|Advanced\s*\(\s*Intermediate\s+to\s+Advanced\s*\)|Intermediate\s*\(\s*Beginner\s+to\s+Intermediate\s*\)|Beginner|Intermediate|Advanced';
         $index = 0;
 
         foreach (preg_split('/\R+/', $trimmed) ?: [] as $line) {
@@ -632,7 +670,7 @@ class CourseForm
             $compactLine = trim((string) preg_replace('/\s+/', ' ', $line));
             $multiMatches = [];
 
-            if (preg_match_all('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([\s\S]*?)(?=\s*(?:Beginner|Intermediate|Advanced)\s*[:\-]|$)/i', $compactLine, $multiMatches, PREG_SET_ORDER) > 0) {
+            if (preg_match_all('/(' . $levelPattern . ')\s*[:\-]\s*([\s\S]*?)(?=\s*(?:' . $levelPattern . ')\s*[:\-]|$)/i', $compactLine, $multiMatches, PREG_SET_ORDER) > 0) {
                 foreach ($multiMatches as $match) {
                     $entries[] = [
                         'level' => self::normalizeLevel((string) ($match[1] ?? '')),
@@ -722,11 +760,60 @@ class CourseForm
         return 'one_on_one';
     }
 
-    private static function normalizeLevel(string $value): string
+    /**
+     * @return array<string, string>
+     */
+    public static function getLevelOptions(): array
     {
-        $normalized = strtolower(trim($value));
+        return [
+            'Beginner' => 'Beginner',
+            'Intermediate' => 'Intermediate',
+            'Advanced' => 'Advanced',
+            'Advanced (Beginner to Advanced)' => 'Advanced (Beginner to Advanced)',
+            'Advanced (Intermediate to Advanced)' => 'Advanced (Intermediate to Advanced)',
+            'Intermediate (Beginner to Intermediate)' => 'Intermediate (Beginner to Intermediate)',
+        ];
+    }
 
-        if (str_contains($normalized, 'beginner')) {
+    public static function normalizeLevel(string $value): string
+    {
+        $trimmed = trim($value);
+
+        if ($trimmed === '') {
+            return '';
+        }
+
+        $options = self::getLevelOptions();
+        if (isset($options[$trimmed])) {
+            return $trimmed;
+        }
+
+        $normalized = strtolower($trimmed);
+
+        if (
+            str_contains($normalized, 'beginner to advanced') ||
+            str_contains($normalized, 'beginer to advanced') ||
+            (str_contains($normalized, 'advanced') && (str_contains($normalized, 'beginner') || str_contains($normalized, 'beginer')))
+        ) {
+            return 'Advanced (Beginner to Advanced)';
+        }
+
+        if (
+            str_contains($normalized, 'intermediate to advanced') ||
+            (str_contains($normalized, 'advanced') && str_contains($normalized, 'intermediate'))
+        ) {
+            return 'Advanced (Intermediate to Advanced)';
+        }
+
+        if (
+            str_contains($normalized, 'beginner to intermediate') ||
+            str_contains($normalized, 'beginer to intermediate') ||
+            (str_contains($normalized, 'intermediate') && (str_contains($normalized, 'beginner') || str_contains($normalized, 'beginer')))
+        ) {
+            return 'Intermediate (Beginner to Intermediate)';
+        }
+
+        if (str_contains($normalized, 'beginner') || str_contains($normalized, 'beginer')) {
             return 'Beginner';
         }
 
@@ -738,7 +825,7 @@ class CourseForm
             return 'Advanced';
         }
 
-        return '';
+        return $trimmed;
     }
 
     private static function decodeJson(string $value): mixed

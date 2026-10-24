@@ -423,42 +423,17 @@ class CoursesTable
     public static function levelProgressionCards(?string $value): array
     {
         $entries = self::parseLevelProgressions($value);
+
+        if (! empty($entries)) {
+            return $entries;
+        }
+
         $levels = ['Beginner', 'Intermediate', 'Advanced'];
-        $sourceText = trim(implode("\n", array_map(
-            fn (array $entry): string => trim(($entry['level'] !== '' ? $entry['level'].': ' : '').$entry['details']),
-            $entries,
-        )));
 
-        return array_map(function (string $level, int $index) use ($entries, $levels, $sourceText): array {
-            foreach ($entries as $entry) {
-                if (str_contains(strtolower($entry['level']), strtolower($level)) && $entry['details'] !== '') {
-                    return ['level' => $level, 'details' => $entry['details']];
-                }
-            }
-
-            $nextLevel = $levels[$index + 1] ?? null;
-            $pattern = $nextLevel !== null
-                ? '/'.preg_quote($level, '/').'\s*[:\-]\s*([\s\S]*?)(?='.preg_quote($nextLevel, '/').'\s*[:\-]|$)/i'
-                : '/'.preg_quote($level, '/').'\s*[:\-]\s*([\s\S]*?)$/i';
-
-            if ($sourceText !== '' && preg_match($pattern, $sourceText, $match) === 1) {
-                $details = trim((string) ($match[1] ?? ''));
-
-                if ($details !== '') {
-                    return ['level' => $level, 'details' => $details];
-                }
-            }
-
-            if (count($entries) === 1 && $index === 0) {
-                $fallback = trim(($entries[0]['level'] !== '' ? $entries[0]['level'].': ' : '').$entries[0]['details']);
-
-                if ($fallback !== '') {
-                    return ['level' => $level, 'details' => $fallback];
-                }
-            }
-
-            return ['level' => $level, 'details' => 'Details coming soon.'];
-        }, $levels, array_keys($levels));
+        return array_map(fn (string $level): array => [
+            'level' => $level,
+            'details' => 'Details coming soon.',
+        ], $levels);
     }
 
     /**
@@ -470,9 +445,30 @@ class CoursesTable
             return [];
         }
 
+        $trimmed = trim($value);
+
+        if ((str_starts_with($trimmed, '[') && str_ends_with($trimmed, ']')) || (str_starts_with($trimmed, '{') && str_ends_with($trimmed, '}'))) {
+            $decoded = json_decode($trimmed, true);
+            if (is_array($decoded)) {
+                $entries = [];
+                foreach ($decoded as $item) {
+                    if (is_array($item)) {
+                        $level = trim((string) ($item['level'] ?? ''));
+                        $details = trim((string) ($item['details'] ?? ''));
+                        if ($level !== '' || $details !== '') {
+                            $entries[] = ['level' => $level, 'details' => $details];
+                        }
+                    }
+                }
+                if (! empty($entries)) {
+                    return $entries;
+                }
+            }
+        }
+
         $entries = [];
 
-        foreach (preg_split('/\R+/', $value) ?: [] as $line) {
+        foreach (preg_split('/\R+/', $trimmed) ?: [] as $line) {
             $line = trim((string) $line);
 
             if ($line === '') {

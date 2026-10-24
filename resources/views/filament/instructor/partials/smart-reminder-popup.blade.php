@@ -8,6 +8,12 @@
     $reminders = $reminderService->getRemindersData($currentUser);
     $shouldShowAuto = $reminderService->shouldShowPopup($currentUser, $reminders);
 
+    // If auto popup is eligible, mark it as shown in the session now so subsequent page
+    // navigations or refreshes during this same login do not pop up again.
+    if ($shouldShowAuto) {
+        $reminderService->markPopupShownForSession();
+    }
+
     // If just_logged_in_instructor flag was set in session, clear it now that the page is rendering
     if (session()->has('just_logged_in_instructor')) {
         session()->forget('just_logged_in_instructor');
@@ -28,9 +34,12 @@
 
         init() {
             const dismissedDate = localStorage.getItem('thinker_instructor_reminder_dismissed_date');
+            const sessionKey = 'thinker_instructor_reminder_shown_' + @js($currentUser->id) + '_' + @js(session()->getId());
+            const alreadyShownThisSession = sessionStorage.getItem(sessionKey);
             const autoTrigger = @js($shouldShowAuto);
 
-            if (autoTrigger && dismissedDate !== this.todayDateStr) {
+            if (autoTrigger && !alreadyShownThisSession && dismissedDate !== this.todayDateStr) {
+                sessionStorage.setItem(sessionKey, '1');
                 // Short organic delay so the dashboard loads smoothly before the reminder appears
                 setTimeout(() => {
                     this.isOpen = true;
@@ -46,6 +55,8 @@
             this.isOpen = false;
             if (this.dontShowToday) {
                 this.dismissForDay();
+            } else {
+                this.sendDismissRequest('session');
             }
         },
 

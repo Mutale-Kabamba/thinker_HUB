@@ -407,10 +407,26 @@ class InstructorReminderService
 
     /**
      * Determine if the smart popup should trigger automatically on this request.
+     *
+     * Rules:
+     * 1. Only show if there is an activity due (unmarked registers, pending assignments, or pending assessments).
+     * 2. Only show once per login session (subsequent page navigations will not re-trigger it).
+     * 3. Respect user dismissal for the day or session.
      */
     public function shouldShowPopup(User $instructor, array $data): bool
     {
         if (! $instructor->isInstructor() && ! $instructor->isAdmin()) {
+            return false;
+        }
+
+        // Rule 1: Only popup when there is an activity due
+        $totalActionable = (int) ($data['total_actionable'] ?? 0);
+        if ($totalActionable <= 0) {
+            return false;
+        }
+
+        // Rule 2: Only popup once per login session
+        if (session('instructor_reminder_shown_for_session') || session('instructor_reminder_dismissed_session')) {
             return false;
         }
 
@@ -420,7 +436,14 @@ class InstructorReminderService
             return false;
         }
 
-        // Automatically show on page load unless dismissed for today
         return true;
+    }
+
+    /**
+     * Mark the reminder popup as having been shown for the current login session.
+     */
+    public function markPopupShownForSession(): void
+    {
+        session(['instructor_reminder_shown_for_session' => true]);
     }
 }
