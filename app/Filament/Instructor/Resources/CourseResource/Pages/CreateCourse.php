@@ -35,11 +35,32 @@ class CreateCourse extends BaseCreateRecord
         return CourseForm::prepareDataForSave($data);
     }
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\Action::make('view_course_guide')
+                ->label('Course Build Structure Guide')
+                ->icon('heroicon-o-book-open')
+                ->color('info')
+                ->modalHeading('Course Build Structure Guide')
+                ->modalDescription('Follow this standardized 8-step structure when entering your course details.')
+                ->modalContent(view('filament.components.course-creation-guide-modal'))
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel('Close Guide'),
+        ];
+    }
+
     protected function afterCreate(): void
     {
         $instructorId = auth()->id();
         if ($instructorId) {
             $this->record->instructors()->syncWithoutDetaching([$instructorId]);
+
+            // Fulfill any active course creation prompt from application review
+            \App\Models\InstructorApplication::query()
+                ->where('user_id', $instructorId)
+                ->where('prompt_course_creation', true)
+                ->update(['prompt_course_creation' => false]);
         }
 
         if ($this->record->is_open_enrollment === false) {

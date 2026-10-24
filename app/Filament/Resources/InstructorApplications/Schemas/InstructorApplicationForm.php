@@ -247,6 +247,47 @@ class InstructorApplicationForm
                             ->visible(fn ($record) => $record?->proposed_curriculum && !$record?->proposal_type),
                     ]),
 
+                Section::make('Course Assignment Decision (Admin)')
+                    ->description('Assign this instructor to an existing course or prompt them to build a new one with the guide.')
+                    ->schema([
+                        Select::make('course_assignment_action')
+                            ->label('Course Assignment Decision')
+                            ->options([
+                                'assign_existing' => 'Assign to an Existing Course',
+                                'prompt_create_course' => 'Prompt Instructor to Create Course (with Guide)',
+                                'keep_proposal' => 'Approve Applicant\'s Proposed Course (New Course Flow)',
+                            ])
+                            ->live()
+                            ->default(fn ($record) => $record?->course_assignment_action ?? ($record?->proposal_type === 'new' ? 'keep_proposal' : 'assign_existing'))
+                            ->helperText('Choose whether to assign the instructor to an existing course, prompt them to build one using the guide, or approve their proposed course.')
+                            ->columnSpanFull(),
+
+                        Select::make('assigned_course_id')
+                            ->label('Select Existing Course to Assign')
+                            ->options(fn () => \App\Models\Course::query()->orderBy('title')->get()->mapWithKeys(fn ($c) => [$c->id => "{$c->title}" . ($c->code ? " ({$c->code})" : '')]))
+                            ->searchable()
+                            ->preload()
+                            ->default(fn ($record) => $record?->assigned_course_id ?? $record?->preferred_course_id)
+                            ->visible(fn ($get) => $get('course_assignment_action') === 'assign_existing')
+                            ->required(fn ($get) => $get('course_assignment_action') === 'assign_existing')
+                            ->helperText('This course will be assigned to the instructor in their portal and activated upon application approval.')
+                            ->columnSpanFull(),
+
+                        Textarea::make('course_creation_guidance')
+                            ->label('Custom Instructions / Guidance for Instructor (Optional)')
+                            ->placeholder('e.g. Please design a course focused on Next.js 15 and Server Actions for web development learners...')
+                            ->rows(3)
+                            ->visible(fn ($get) => $get('course_assignment_action') === 'prompt_create_course')
+                            ->helperText('This guidance note will be displayed prominently on the instructor\'s dashboard banner and notifications.')
+                            ->columnSpanFull(),
+
+                        ViewField::make('guide_preview')
+                            ->label('Course Build Structure Guide Preview')
+                            ->view('filament.components.course-creation-guide-modal')
+                            ->visible(fn ($get) => $get('course_assignment_action') === 'prompt_create_course')
+                            ->columnSpanFull(),
+                    ]),
+
                 Section::make('Review Decision')
                     ->schema([
                         Select::make('status')
