@@ -29,7 +29,7 @@ class RegisteredUserController extends Controller
     public function create(): View
     {
         $hasOpenEnrollmentColumn = Schema::hasColumn('courses', 'is_open_enrollment');
-        $columns = ['id', 'title', 'code', 'fees'];
+        $columns = ['id', 'title', 'code', 'fees', 'timeline'];
 
         if ($hasOpenEnrollmentColumn) {
             $columns[] = 'is_open_enrollment';
@@ -136,6 +136,8 @@ class RegisteredUserController extends Controller
                 ->orWhereNull('is_open_enrollment'));
         }
 
+        $validLevels = array_keys(\App\Filament\Resources\Courses\Schemas\CourseForm::getLevelOptions());
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
@@ -143,7 +145,8 @@ class RegisteredUserController extends Controller
                 'required',
                 $courseExistsRule,
             ],
-            'track' => ['required', 'in:Beginner,Intermediate,Advanced'],
+            'track' => ['required', 'string', 'in:'.implode(',', $validLevels)],
+            'mode' => ['nullable', 'string', 'max:50'],
             'gender' => ['nullable', 'string', 'in:Male,Female,Other,male,female,other'],
             'nrc_passport' => ['nullable', 'string', 'max:50'],
             'accept_terms' => ['accepted'],
@@ -163,6 +166,14 @@ class RegisteredUserController extends Controller
 
         $course = $courseQuery->firstOrFail();
 
+        $selectedTrack = $request->string('track')->toString() ?: 'Beginner';
+        $selectedMode = $request->string('mode')->toString() ?: null;
+        $checkoutParams = array_filter([
+            'course' => $course,
+            'track' => $selectedTrack,
+            'mode' => $selectedMode,
+        ], fn ($v) => $v !== null && $v !== '');
+
         if ($course->is_for_kids) {
             $request->session()->put('pending_registration', [
                 'name' => $request->string('name')->toString(),
@@ -170,11 +181,12 @@ class RegisteredUserController extends Controller
                 'gender' => $request->gender ? ucfirst(strtolower($request->gender)) : null,
                 'nrc_passport' => $request->nrc_passport ? trim((string) $request->nrc_passport) : null,
                 'password' => $request->string('password')->toString(),
-                'track' => $request->string('track')->toString() ?: 'Beginner',
+                'track' => $selectedTrack,
+                'mode' => $selectedMode,
                 'course_id' => $course->id,
             ]);
 
-            return redirect()->route('checkout.show', [$course, 'track' => $request->string('track')->toString() ?: 'Beginner'])
+            return redirect()->route('checkout.show', $checkoutParams)
                 ->with('status', 'Complete your child details and enrollment to activate parent and learner accounts.');
         }
 
@@ -187,11 +199,12 @@ class RegisteredUserController extends Controller
                 'gender' => $request->gender ? ucfirst(strtolower($request->gender)) : null,
                 'nrc_passport' => $request->nrc_passport ? trim((string) $request->nrc_passport) : null,
                 'password' => $request->string('password')->toString(),
-                'track' => $request->string('track')->toString() ?: 'Beginner',
+                'track' => $selectedTrack,
+                'mode' => $selectedMode,
                 'course_id' => $course->id,
             ]);
 
-            return redirect()->route('checkout.show', [$course, 'track' => $request->string('track')->toString() ?: 'Beginner'])
+            return redirect()->route('checkout.show', $checkoutParams)
                 ->with('status', 'Complete your course enrollment payment to activate your account.');
         }
 
