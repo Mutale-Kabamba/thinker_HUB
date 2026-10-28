@@ -242,7 +242,6 @@ class CourseIntakesTable
                                 ->label('Subsequent (Next) Intake Start Date')
                                 ->columnSpanFull(),
                         ])
-                        ->columns(['default' => 1, 'sm' => 2])
                         ->modalHeading('Archive Current Cohort & Start Next')
                         ->modalDescription('This will archive the current intake, preserving all student records, and immediately create the new cohort as active on a blank slate.')
                         ->action(function (CourseIntake $record, array $data): void {
