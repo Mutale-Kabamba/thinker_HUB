@@ -166,7 +166,6 @@ class ViewCourseIntake extends ViewRecord
                         ->label('Subsequent Intake Start Date')
                         ->columnSpanFull(),
                 ])
-                ->columns(['default' => 1, 'sm' => 2])
                 ->modalHeading('Archive Current Cohort & Start Next')
                 ->modalDescription('This will archive the current intake, preserving all student records, and immediately launch the new cohort as active on a blank slate.')
                 ->action(function (array $data): void {
