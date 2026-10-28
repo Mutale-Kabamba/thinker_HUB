@@ -730,15 +730,15 @@
         </section>
 
         {{-- Main Course Details --}}
-        <section class="py-12 lg:py-16">
-            <div class="mx-auto grid max-w-6xl items-start gap-10 px-6 lg:grid-cols-3 lg:gap-12 lg:px-8">
+        <section class="py-8 sm:py-12 lg:py-16">
+            <div class="mx-auto grid max-w-6xl items-start gap-8 sm:gap-10 px-4 sm:px-6 lg:grid-cols-3 lg:gap-12 lg:px-8">
                 
                 {{-- Left Content Column (Strictly Unboxed) --}}
-                <div class="min-w-0 lg:col-span-2 space-y-10">
+                <div class="min-w-0 lg:col-span-2 space-y-8 sm:space-y-10">
                     @if (filled($course->overview))
                         <div class="space-y-3">
                             <h2 class="text-xl font-bold text-slate-900">Course Overview</h2>
-                            <p class="leading-relaxed text-slate-600 text-justify">{{ $course->overview }}</p>
+                            <p class="leading-relaxed text-slate-600 text-left sm:text-justify">{{ $course->overview }}</p>
                         </div>
                     @endif
 
@@ -804,7 +804,7 @@
                     @if (filled($course->key_outcome))
                         <div class="space-y-3">
                             <h3 class="text-lg font-bold text-slate-900">Key Outcome</h3>
-                            <p class="leading-relaxed text-slate-600 text-justify">{{ $course->key_outcome }}</p>
+                            <p class="leading-relaxed text-slate-600 text-left sm:text-justify">{{ $course->key_outcome }}</p>
                         </div>
                     @endif
 
@@ -820,27 +820,27 @@
                                                 <span class="rounded-full bg-teal-50 px-2.5 py-0.5 text-[10px] font-semibold text-teal-700 border border-teal-200/60">{{ $section['badge'] }}</span>
                                             @endif
                                         </div>
-                                        <div class="space-y-2">
+                                        <div class="space-y-2.5">
                                             @foreach ($section['rows'] as $row)
                                                 @php
                                                     $levelName = $row['level'] !== '' ? $row['level'] : 'Level';
                                                     $levelInfo = $getLevelGuidelines($levelName);
                                                 @endphp
-                                                <div class="hub-fee-row grid grid-cols-[1fr_100px_80px] sm:grid-cols-[1fr_140px_110px] w-full items-center gap-2 sm:gap-4 rounded-2xl border border-slate-200/80 bg-white px-4 sm:px-5 py-3.5 transition hover:border-teal-300 hover:shadow-xs">
+                                                <div class="hub-fee-row grid grid-cols-[1fr_100px_80px] sm:grid-cols-[1fr_140px_110px] w-full items-center gap-2 sm:gap-4 rounded-xl sm:rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:px-5 sm:py-3.5 transition hover:border-teal-300 hover:shadow-xs">
                                                     {{-- Level: Left Aligned with Hover (Click to View) & Modal Trigger --}}
                                                     <div class="min-w-0 text-left">
                                                         <button
                                                             type="button"
                                                             onclick="window.openSkillLevelModal(@js($levelInfo))"
                                                             @click.prevent="window.openSkillLevelModal(@js($levelInfo))"
-                                                            class="group/level inline-flex items-center gap-2 text-left focus:outline-none cursor-pointer max-w-full"
+                                                            class="group/level inline-flex flex-wrap items-center gap-1.5 sm:gap-2 text-left focus:outline-none cursor-pointer max-w-full"
                                                             title="Click to view {{ $levelName }} Progression Roadmap Framework & Guidelines"
                                                         >
-                                                            <span class="text-sm font-semibold text-slate-800 group-hover/level:text-teal-700 group-hover/level:underline decoration-teal-500/50 underline-offset-4 transition">
+                                                            <span class="text-sm font-semibold text-slate-800 group-hover/level:text-teal-700 group-hover/level:underline decoration-teal-500/50 underline-offset-4 transition leading-snug">
                                                                 {{ $row['level'] !== '' ? $row['level'] : '-' }}
                                                             </span>
-                                                            <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200/80 px-2 py-0.5 text-[10px] font-bold text-teal-700 opacity-0 group-hover/level:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-xs">
-                                                                <i class="fa-regular fa-eye text-[10px] text-teal-600"></i>
+                                                            <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200/80 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold text-teal-700 opacity-0 group-hover/level:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-xs">
+                                                                <i class="fa-regular fa-eye text-[9px] sm:text-[10px] text-teal-600"></i>
                                                                 (Click to View)
                                                             </span>
                                                         </button>
@@ -855,7 +855,7 @@
 
                                                     {{-- Duration: Right Aligned --}}
                                                     <div class="text-right">
-                                                        <span class="text-sm text-slate-500 tabular-nums block">
+                                                        <span class="text-xs sm:text-sm text-slate-500 tabular-nums block leading-tight">
                                                             {{ $row['duration'] !== '' ? $row['duration'] : '-' }}
                                                         </span>
                                                     </div>
