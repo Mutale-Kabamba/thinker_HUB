@@ -103,8 +103,15 @@ class QuizResource extends Resource
                 fn (Builder $query) => $query->whereIn('course_id', static::instructorCourseIds())
             )
             ->recordActions([
-                EditAction::make(),
-                ExportQuizzesAction::makeRowAction(),
+                \Filament\Actions\ActionGroup::make([
+                    EditAction::make()
+                        ->icon('heroicon-m-pencil-square'),
+                    ExportQuizzesAction::makeRowAction(),
+                    \Filament\Actions\DeleteAction::make()
+                        ->icon('heroicon-m-trash'),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

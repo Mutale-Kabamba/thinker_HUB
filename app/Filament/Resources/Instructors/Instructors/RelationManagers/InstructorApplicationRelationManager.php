@@ -46,27 +46,31 @@ class InstructorApplicationRelationManager extends RelationManager
                     ->sortable(),
             ])
             ->recordActions([
-                Action::make('download_pdf')
-                    ->label('Download PDF')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('info')
-                    ->action(function (InstructorApplication $record) {
-                        $service = app(InstructorApplicationPdfService::class);
-                        $pdf = $service->renderApplicationPdf($record);
-                        $filename = $service->getPdfFilename($record);
+                \Filament\Actions\ActionGroup::make([
+                    Action::make('download_pdf')
+                        ->label('Download PDF')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('info')
+                        ->action(function (InstructorApplication $record) {
+                            $service = app(InstructorApplicationPdfService::class);
+                            $pdf = $service->renderApplicationPdf($record);
+                            $filename = $service->getPdfFilename($record);
 
-                        return response()->streamDownload(
-                            fn () => print($pdf->output()),
-                            $filename,
-                            ['Content-Type' => 'application/pdf']
-                        );
-                    }),
-                Action::make('download_attachments')
-                    ->label('Download Attachments (ZIP)')
-                    ->icon('heroicon-o-folder-arrow-down')
-                    ->color('success')
-                    ->visible(fn (InstructorApplication $record): bool => app(\App\Services\InstructorApplicationAttachmentService::class)->hasAttachments($record))
-                    ->action(fn (InstructorApplication $record) => app(\App\Services\InstructorApplicationAttachmentService::class)->downloadApplicationAttachmentsZip($record)),
+                            return response()->streamDownload(
+                                fn () => print($pdf->output()),
+                                $filename,
+                                ['Content-Type' => 'application/pdf']
+                            );
+                        }),
+                    Action::make('download_attachments')
+                        ->label('Download Attachments (ZIP)')
+                        ->icon('heroicon-o-folder-arrow-down')
+                        ->color('success')
+                        ->visible(fn (InstructorApplication $record): bool => app(\App\Services\InstructorApplicationAttachmentService::class)->hasAttachments($record))
+                        ->action(fn (InstructorApplication $record) => app(\App\Services\InstructorApplicationAttachmentService::class)->downloadApplicationAttachmentsZip($record)),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->color('gray'),
             ]);
     }
 }

@@ -142,6 +142,7 @@
                                 @php
                                     $isLockedCourse = $course->is_open_enrollment === false;
                                     $feesByLevel = method_exists($course, 'getLevelFees') ? $course->getLevelFees() : ['Beginner' => 1500, 'Intermediate' => 1500, 'Advanced' => 1500];
+                                    $courseFeeOptions = method_exists($course, 'getFeeOptions') ? $course->getFeeOptions() : [];
                                 @endphp
                                 <option
                                     value="{{ $course->id }}"
@@ -150,6 +151,7 @@
                                     data-title="{{ $course->title }}"
                                     data-fee="{{ method_exists($course, 'getNumericFee') ? $course->getNumericFee() : 1500 }}"
                                     data-fees-by-level="{{ json_encode($feesByLevel) }}"
+                                    data-fee-options="{{ json_encode($courseFeeOptions) }}"
                                     @selected((string) old('course_id') === (string) $course->id)
                                     @disabled($isLockedCourse)
                                 >
@@ -162,7 +164,8 @@
 
                     <div>
                         <x-input-label for="track" class="text-slate-700 dark:text-slate-300" :value="__('Level')" />
-                        <select id="track" name="track" required class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                        <input type="hidden" name="mode" id="reg_mode" value="{{ old('mode', '') }}">
+                        <select id="track" name="track" data-initial-value="{{ old('track', '') }}" required class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
                             <option value="">Select level</option>
                             @foreach (['Beginner', 'Intermediate', 'Advanced'] as $track)
                                 <option value="{{ $track }}" @selected(old('track') === $track)>{{ $track }}</option>
@@ -276,6 +279,7 @@
                             @php
                                 $isLockedCourse = $course->is_open_enrollment === false;
                                 $feesByLevel = method_exists($course, 'getLevelFees') ? $course->getLevelFees() : ['Beginner' => 1500, 'Intermediate' => 1500, 'Advanced' => 1500];
+                                $courseFeeOptions = method_exists($course, 'getFeeOptions') ? $course->getFeeOptions() : [];
                             @endphp
                             <option value="{{ $course->id }}"
                                 data-requires-payment="{{ ! empty($course->requires_payment_approval) ? '1' : '0' }}"
@@ -283,6 +287,7 @@
                                 data-title="{{ $course->title }}"
                                 data-fee="{{ method_exists($course, 'getNumericFee') ? $course->getNumericFee() : 1500 }}"
                                 data-fees-by-level="{{ json_encode($feesByLevel) }}"
+                                data-fee-options="{{ json_encode($courseFeeOptions) }}"
                                 @disabled($isLockedCourse)>
                                 {{ $course->code }} - {{ $course->title }}{{ $isLockedCourse ? ' (Locked)' : '' }}
                             </option>
@@ -374,11 +379,111 @@
             var modalLevelPill = document.getElementById('google-modal-selected-level-pill');
             var modalAmountDisplay = document.getElementById('google-modal-amount-display');
 
+            var pageModeInput = document.getElementById('reg_mode');
+
+            var populateTrackOptions = function (courseSelect, trackSelect, modeInput) {
+                if (!courseSelect || !trackSelect) return;
+                var opt = courseSelect.options[courseSelect.selectedIndex];
+                var currentVal = trackSelect.value || trackSelect.getAttribute('data-initial-value') || '';
+                var feeOptions = [];
+                var feesByLevel = {};
+
+                if (opt && courseSelect.value) {
+                    try {
+                        feeOptions = JSON.parse(opt.getAttribute('data-fee-options') || '[]') || [];
+                    } catch (e) {
+                        feeOptions = [];
+                    }
+                    try {
+                        feesByLevel = JSON.parse(opt.getAttribute('data-fees-by-level') || '{}') || {};
+                    } catch (e) {
+                        feesByLevel = {};
+                    }
+                }
+
+                trackSelect.innerHTML = '';
+                var placeholder = document.createElement('option');
+                placeholder.value = '';
+                placeholder.textContent = 'Select level';
+                trackSelect.appendChild(placeholder);
+
+                var items = [];
+                if (Array.isArray(feeOptions) && feeOptions.length > 0) {
+                    var hasMultipleModes = false;
+                    var firstCat = feeOptions[0].category || '';
+                    for (var i = 1; i < feeOptions.length; i++) {
+                        if ((feeOptions[i].category || '') !== firstCat) {
+                            hasMultipleModes = true;
+                            break;
+                        }
+                    }
+
+                    feeOptions.forEach(function (fo) {
+                        var amt = parseFloat(fo.amount || 0);
+                        var formatted = 'ZMW ' + Number(amt).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        var labelParts = [fo.level];
+                        if (hasMultipleModes && fo.mode_label) {
+                            labelParts.push(fo.mode_label);
+                        }
+                        labelParts.push(formatted + (fo.duration ? ' · ' + fo.duration : ''));
+                        items.push({
+                            level: fo.level,
+                            mode: fo.category || fo.mode || 'group',
+                            amount: amt,
+                            label: labelParts.join(' — ')
+                        });
+                    });
+                } else {
+                    ['Beginner', 'Intermediate', 'Advanced'].forEach(function (lvl) {
+                        var amt = feesByLevel[lvl] ? parseFloat(feesByLevel[lvl]) : (opt ? (parseFloat(opt.getAttribute('data-fee') || '0') || 1500) : 0);
+                        var formatted = amt > 0 ? ' — ZMW ' + Number(amt).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+                        items.push({
+                            level: lvl,
+                            mode: 'group',
+                            amount: amt,
+                            label: lvl + formatted
+                        });
+                    });
+                }
+
+                var matched = false;
+                items.forEach(function (item) {
+                    var o = document.createElement('option');
+                    o.value = item.level;
+                    o.setAttribute('data-amount', String(item.amount || 0));
+                    o.setAttribute('data-mode', item.mode || 'group');
+                    o.textContent = item.label;
+                    if (!matched && currentVal && item.level.toLowerCase() === currentVal.toLowerCase()) {
+                        o.selected = true;
+                        matched = true;
+                    }
+                    trackSelect.appendChild(o);
+                });
+
+                if (!matched && courseSelect.value && items.length > 0) {
+                    trackSelect.selectedIndex = 1;
+                }
+
+                if (modeInput) {
+                    var selOpt = trackSelect.options[trackSelect.selectedIndex];
+                    modeInput.value = selOpt ? (selOpt.getAttribute('data-mode') || '') : '';
+                }
+            };
+
             window.getFeeForSelection = function (courseSelect, trackSelect) {
                 if (!courseSelect || !courseSelect.value) return 0;
                 var opt = courseSelect.options[courseSelect.selectedIndex];
                 if (!opt) return 0;
-                var track = trackSelect ? trackSelect.value : 'Beginner';
+
+                if (trackSelect && trackSelect.selectedIndex >= 0) {
+                    var selTrackOpt = trackSelect.options[trackSelect.selectedIndex];
+                    if (selTrackOpt && selTrackOpt.hasAttribute('data-amount')) {
+                        var directAmt = parseFloat(selTrackOpt.getAttribute('data-amount') || '0');
+                        if (directAmt > 0) return directAmt;
+                    }
+                }
+
+                var track = trackSelect && trackSelect.value ? trackSelect.value : 'Beginner';
                 var defaultFee = parseFloat(opt.getAttribute('data-fee') || '0') || 1500;
                 try {
                     var map = JSON.parse(opt.getAttribute('data-fees-by-level') || '{}');
@@ -389,9 +494,14 @@
                 return defaultFee;
             };
 
-            var updateNotice = function (courseSelect, trackSelect, noticeEl, messageEl, amountCardEl, pillEl, amountDisplayEl) {
+            var updateNotice = function (courseSelect, trackSelect, noticeEl, messageEl, amountCardEl, pillEl, amountDisplayEl, modeInput) {
                 if (!courseSelect || !noticeEl || !messageEl) {
                     return;
+                }
+
+                if (modeInput && trackSelect && trackSelect.selectedIndex >= 0) {
+                    var selTrackOpt = trackSelect.options[trackSelect.selectedIndex];
+                    modeInput.value = selTrackOpt ? (selTrackOpt.getAttribute('data-mode') || '') : '';
                 }
 
                 var option = courseSelect.options[courseSelect.selectedIndex];
@@ -428,26 +538,34 @@
 
             if (pageCourseSelect && pagePaymentNotice && pagePaymentNoticeMessage) {
                 pageCourseSelect.addEventListener('change', function () {
-                    updateNotice(pageCourseSelect, pageTrackSelect, pagePaymentNotice, pagePaymentNoticeMessage, pageLevelAmount, pageLevelPill, pageAmountDisplay);
+                    populateTrackOptions(pageCourseSelect, pageTrackSelect, pageModeInput);
+                    updateNotice(pageCourseSelect, pageTrackSelect, pagePaymentNotice, pagePaymentNoticeMessage, pageLevelAmount, pageLevelPill, pageAmountDisplay, pageModeInput);
                 });
                 if (pageTrackSelect) {
                     pageTrackSelect.addEventListener('change', function () {
-                        updateNotice(pageCourseSelect, pageTrackSelect, pagePaymentNotice, pagePaymentNoticeMessage, pageLevelAmount, pageLevelPill, pageAmountDisplay);
+                        updateNotice(pageCourseSelect, pageTrackSelect, pagePaymentNotice, pagePaymentNoticeMessage, pageLevelAmount, pageLevelPill, pageAmountDisplay, pageModeInput);
                     });
                 }
-                updateNotice(pageCourseSelect, pageTrackSelect, pagePaymentNotice, pagePaymentNoticeMessage, pageLevelAmount, pageLevelPill, pageAmountDisplay);
+                if (pageCourseSelect.value) {
+                    populateTrackOptions(pageCourseSelect, pageTrackSelect, pageModeInput);
+                }
+                updateNotice(pageCourseSelect, pageTrackSelect, pagePaymentNotice, pagePaymentNoticeMessage, pageLevelAmount, pageLevelPill, pageAmountDisplay, pageModeInput);
             }
 
             if (modalCourseSelect && modalPaymentNotice && modalPaymentNoticeMessage) {
                 modalCourseSelect.addEventListener('change', function () {
-                    updateNotice(modalCourseSelect, modalTrackSelect, modalPaymentNotice, modalPaymentNoticeMessage, modalLevelAmount, modalLevelPill, modalAmountDisplay);
+                    populateTrackOptions(modalCourseSelect, modalTrackSelect, null);
+                    updateNotice(modalCourseSelect, modalTrackSelect, modalPaymentNotice, modalPaymentNoticeMessage, modalLevelAmount, modalLevelPill, modalAmountDisplay, null);
                 });
                 if (modalTrackSelect) {
                     modalTrackSelect.addEventListener('change', function () {
-                        updateNotice(modalCourseSelect, modalTrackSelect, modalPaymentNotice, modalPaymentNoticeMessage, modalLevelAmount, modalLevelPill, modalAmountDisplay);
+                        updateNotice(modalCourseSelect, modalTrackSelect, modalPaymentNotice, modalPaymentNoticeMessage, modalLevelAmount, modalLevelPill, modalAmountDisplay, null);
                     });
                 }
-                updateNotice(modalCourseSelect, modalTrackSelect, modalPaymentNotice, modalPaymentNoticeMessage, modalLevelAmount, modalLevelPill, modalAmountDisplay);
+                if (modalCourseSelect.value) {
+                    populateTrackOptions(modalCourseSelect, modalTrackSelect, null);
+                }
+                updateNotice(modalCourseSelect, modalTrackSelect, modalPaymentNotice, modalPaymentNoticeMessage, modalLevelAmount, modalLevelPill, modalAmountDisplay, null);
             }
 
             // Account type switcher (Student Learner vs Parent linking child)

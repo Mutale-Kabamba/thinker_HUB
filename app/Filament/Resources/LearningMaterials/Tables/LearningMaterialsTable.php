@@ -93,24 +93,31 @@ class LearningMaterialsTable
                     ]),
             ])
             ->recordActions([
-                Action::make('view_file')
-                    ->label('View')
-                    ->icon('heroicon-m-eye')
-                    ->color('info')
-                    ->visible(fn (LearningMaterial $record): bool => filled($record->file_path) || filled($record->link_url))
-                    ->url(fn (LearningMaterial $record): string => filled($record->file_path)
-                        ? route('file.view', ['type' => 'material', 'id' => $record->id])
-                        : $record->link_url
-                    )
-                    ->openUrlInNewTab(),
-                Action::make('download_file')
-                    ->label('Download')
-                    ->icon('heroicon-m-arrow-down-tray')
-                    ->color('gray')
-                    ->visible(fn (LearningMaterial $record): bool => filled($record->file_path))
-                    ->url(fn (LearningMaterial $record): string => route('file.download', ['type' => 'material', 'id' => $record->id]))
-                    ->openUrlInNewTab(),
-                EditAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    Action::make('view_file')
+                        ->label('View')
+                        ->icon('heroicon-m-eye')
+                        ->color('info')
+                        ->visible(fn (LearningMaterial $record): bool => filled($record->file_path) || filled($record->link_url))
+                        ->url(fn (LearningMaterial $record): string => filled($record->file_path)
+                            ? route('file.view', ['type' => 'material', 'id' => $record->id])
+                            : $record->link_url
+                        )
+                        ->openUrlInNewTab(),
+                    Action::make('download_file')
+                        ->label('Download')
+                        ->icon('heroicon-m-arrow-down-tray')
+                        ->color('gray')
+                        ->visible(fn (LearningMaterial $record): bool => filled($record->file_path))
+                        ->url(fn (LearningMaterial $record): string => route('file.download', ['type' => 'material', 'id' => $record->id]))
+                        ->openUrlInNewTab(),
+                    EditAction::make()
+                        ->icon('heroicon-m-pencil-square'),
+                    \Filament\Actions\DeleteAction::make()
+                        ->icon('heroicon-m-trash'),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
