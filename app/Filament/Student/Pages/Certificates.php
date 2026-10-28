@@ -29,6 +29,14 @@ class Certificates extends Page
             return;
         }
 
+        // Automatically issue certificates for any course the student has completed
+        $enrolledCourses = $user->courses()->get();
+        foreach ($enrolledCourses as $course) {
+            if ($user->hasCompletedCourse($course)) {
+                app(\App\Services\CertificateService::class)->issue($user, $course);
+            }
+        }
+
         $completedCourseIds = Enrollment::query()
             ->where('user_id', $user->id)
             ->whereNotNull('completed_at')

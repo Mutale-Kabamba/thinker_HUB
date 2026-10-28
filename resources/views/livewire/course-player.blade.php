@@ -39,12 +39,15 @@
                     @if($activeLesson->type === 'video')
                         @php
                             $videoUrl = $activeLesson->video_url;
-                            $youtubeId = $activeLesson->youtube_id;
+                            $parsedVideo = \App\Support\VideoEmbedParser::parse($videoUrl);
+                            $youtubeId = $parsedVideo['youtube_id'];
+                            $embedUrl = $parsedVideo['embed_url'];
+                            $isDirectFile = $parsedVideo['is_direct_file'];
                             $minPct = $activeLesson->min_watch_percentage ?: 90;
                             $resumeTime = $progressMap[$activeLesson->id]['last_watched_second'] ?? 0;
                         @endphp
 
-                        @if($youtubeId)
+                        @if($youtubeId || ($embedUrl && !$isDirectFile))
                             <div 
                                 x-data="{
                                     lastSaved: 0,
@@ -59,10 +62,10 @@
                                 <div class="relative aspect-video rounded-xl overflow-hidden bg-black shadow-2xl border border-slate-800">
                                     <iframe 
                                         class="w-full h-full"
-                                        src="https://www.youtube.com/embed/{{ $youtubeId }}?autoplay=1&enablejsapi=1" 
+                                        src="{{ $youtubeId ? 'https://www.youtube.com/embed/' . $youtubeId . '?autoplay=1&enablejsapi=1' : $embedUrl }}" 
                                         title="{{ $activeLesson->title }}"
                                         frameborder="0" 
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" 
                                         allowfullscreen
                                     ></iframe>
                                 </div>
@@ -165,6 +168,29 @@
                                     </button>
                                 </div>
                             @endif
+                        </div>
+                    @endif
+
+                    @if(!empty($activeLesson->attachments) && is_array($activeLesson->attachments))
+                        <div class="bg-slate-900/90 p-5 rounded-xl border border-slate-800 shadow space-y-3">
+                            <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                <span>Lesson Attachments & Resources</span>
+                            </h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                @foreach($activeLesson->attachments as $attIndex => $attPath)
+                                    @if(is_string($attPath) && filled($attPath))
+                                        <a
+                                            href="{{ route('file.download', ['type' => 'lesson', 'id' => $activeLesson->id, 'index' => $attIndex]) }}"
+                                            target="_blank"
+                                            class="flex items-center justify-between p-3 rounded-lg bg-slate-950/70 hover:bg-slate-800 border border-slate-800 transition text-xs text-slate-200"
+                                        >
+                                            <span class="truncate font-medium">{{ basename($attPath) }}</span>
+                                            <span class="ml-2 px-2 py-1 rounded bg-indigo-600/20 text-indigo-300 font-semibold shrink-0">Download</span>
+                                        </a>
+                                    @endif
+                                @endforeach
+                            </div>
                         </div>
                     @endif
                 @else

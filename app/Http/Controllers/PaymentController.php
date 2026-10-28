@@ -49,12 +49,55 @@ class PaymentController extends Controller
         }
 
         $feeOptions = $course->getFeeOptions();
-        $feeAmount = $course->getNumericFeeForOption($selectedLevel, $selectedMode);
-        if ($feeAmount <= 0) {
-            $feeAmount = $course->getNumericFee();
-        }
-        if ($feeAmount <= 0) {
-            $feeAmount = 1500.00;
+        $explicitModeRequested = $request->hasAny(['mode', 'category']);
+
+        if (! empty($feeOptions)) {
+            $matchedOption = null;
+
+            if ($explicitModeRequested) {
+                foreach ($feeOptions as $opt) {
+                    if ($opt['category'] === $selectedMode && strtolower((string) $opt['level']) === strtolower($selectedLevel)) {
+                        $matchedOption = $opt;
+                        break;
+                    }
+                }
+            }
+
+            if (! $matchedOption) {
+                foreach ($feeOptions as $opt) {
+                    if (strtolower((string) $opt['level']) === strtolower($selectedLevel)) {
+                        $matchedOption = $opt;
+                        break;
+                    }
+                }
+            }
+
+            if (! $matchedOption) {
+                $baseReq = strtolower(trim(explode('(', $selectedLevel)[0]));
+                foreach ($feeOptions as $opt) {
+                    $baseOpt = strtolower(trim(explode('(', (string) $opt['level'])[0]));
+                    if ($baseOpt !== '' && $baseOpt === $baseReq) {
+                        $matchedOption = $opt;
+                        break;
+                    }
+                }
+            }
+
+            if (! $matchedOption) {
+                $matchedOption = $feeOptions[0];
+            }
+
+            $selectedLevel = (string) $matchedOption['level'];
+            $selectedMode = (string) $matchedOption['category'];
+            $feeAmount = (float) $matchedOption['amount'];
+        } else {
+            $feeAmount = $course->getNumericFeeForOption($selectedLevel, $selectedMode);
+            if ($feeAmount <= 0) {
+                $feeAmount = $course->getNumericFee();
+            }
+            if ($feeAmount <= 0) {
+                $feeAmount = 1500.00;
+            }
         }
 
         $initialPromoCode = strtoupper(trim((string) $request->query('promo', $request->query('code', ''))));

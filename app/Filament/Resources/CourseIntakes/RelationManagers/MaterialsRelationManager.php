@@ -93,14 +93,15 @@ class MaterialsRelationManager extends RelationManager
                             ->required(),
 
                         FileUpload::make('file_path')
-                            ->label('Upload File')
+                            ->label('Upload File (PDF, PPTX, ZIP, .py, etc.)')
                             ->disk('public')
                             ->directory('learning-materials')
                             ->storeFileNamesIn('file_name')
-                            ->maxSize(20480)
+                            ->maxSize(10240)
+                            ->helperText('All file types supported up to 10 MB.')
                             ->columnSpanFull(),
 
-                        TextInput::make('external_url')
+                        TextInput::make('link_url')
                             ->label('External Link (Optional)')
                             ->url()
                             ->columnSpanFull(),
@@ -154,14 +155,15 @@ class MaterialsRelationManager extends RelationManager
                                 ->required(),
 
                             FileUpload::make('file_path')
-                                ->label('Upload File')
+                                ->label('Upload File (PDF, PPTX, ZIP, .py, etc.)')
                                 ->disk('public')
                                 ->directory('learning-materials')
                                 ->storeFileNamesIn('file_name')
-                                ->maxSize(20480)
+                                ->maxSize(10240)
+                                ->helperText('All file types supported up to 10 MB.')
                                 ->columnSpanFull(),
 
-                            TextInput::make('external_url')
+                            TextInput::make('link_url')
                                 ->label('External Link')
                                 ->url()
                                 ->columnSpanFull(),

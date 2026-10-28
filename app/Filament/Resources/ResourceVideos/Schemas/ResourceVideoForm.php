@@ -54,7 +54,7 @@ class ResourceVideoForm
                         ToggleButtons::make('video_source')
                             ->label('Video Source Format')
                             ->options([
-                                'youtube' => 'YouTube Stream / Embed',
+                                'youtube' => 'Embedded Video URL (YouTube, Vimeo, Loom, etc.)',
                                 'upload' => 'Upload Video File (Local/Storage)',
                             ])
                             ->icons([
@@ -71,10 +71,10 @@ class ResourceVideoForm
                             ->columnSpanFull(),
 
                         TextInput::make('youtube_url')
-                            ->label('YouTube Stream URL')
-                            ->placeholder('https://www.youtube.com/watch?v=...')
+                            ->label('Embedded Video URL (YouTube, Vimeo, Loom, etc.)')
+                            ->placeholder('https://www.youtube.com/watch?v=... or https://vimeo.com/...')
                             ->url()
-                            ->helperText('Paste any YouTube link (watch, youtu.be, shorts, or embed).')
+                            ->helperText('Paste any video link from YouTube, Vimeo, Loom, Dailymotion, Wistia, Google Drive, or other video platforms.')
                             ->maxLength(255)
                             ->visible(fn (callable $get): bool => $get('video_source') !== 'upload')
                             ->required(fn (callable $get): bool => $get('video_source') !== 'upload')
@@ -87,12 +87,14 @@ class ResourceVideoForm
                             ->content(function (callable $get, ?ResourceVideo $record): HtmlString {
                                 $url = $get('youtube_url') ?? $record?->youtube_url;
                                 if ($get('video_source') !== 'upload' && filled($url)) {
-                                    preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/', (string) $url, $matches);
-                                    $ytId = $matches[1] ?? null;
-                                    if ($ytId) {
+                                    $parsed = \App\Support\VideoEmbedParser::parse((string) $url);
+                                    $embedUrl = $parsed['embed_url'];
+                                    if ($embedUrl && ! $parsed['is_direct_file']) {
+                                        $escaped = htmlspecialchars($embedUrl, ENT_QUOTES, 'UTF-8');
+
                                         return new HtmlString("
                                             <div style='position: relative; max-width: 640px; padding-bottom: 36.25%; height: 0; overflow: hidden; border-radius: 0.75rem; border: 1px solid var(--hub-border, #334155); background: #000; box-shadow: 0 4px 14px rgba(0,0,0,0.15);'>
-                                                <iframe src='https://www.youtube.com/embed/{$ytId}' style='position: absolute; top:0; left: 0; width: 100%; height: 100%; border: 0;' allowfullscreen></iframe>
+                                                <iframe src='{$escaped}' style='position: absolute; top:0; left: 0; width: 100%; height: 100%; border: 0;' allowfullscreen></iframe>
                                             </div>
                                         ");
                                     }

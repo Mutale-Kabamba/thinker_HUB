@@ -70,43 +70,16 @@ class LearningMaterialForm
                         FileUpload::make('file_path')
                             ->label(fn (callable $get): string => match ($get('material_type')) {
                                 'Image' => 'Upload Image File',
-                                'Video' => 'Upload Video File',
-                                default => 'Upload Document / File',
+                                default => 'Upload Attachment / File (PDF, PPTX, ZIP, .py, etc.)',
                             })
                             ->disk('public')
                             ->directory('materials')
                             ->storeFileNamesIn('file_name')
                             ->openable()
                             ->downloadable()
-                            ->maxSize(20480)
-                            ->acceptedFileTypes(fn (callable $get): array => match ($get('material_type')) {
-                                'Image' => [
-                                    'image/jpeg',
-                                    'image/png',
-                                    'image/gif',
-                                    'image/webp',
-                                    'image/svg+xml',
-                                ],
-                                'Video' => [
-                                    'video/mp4',
-                                    'video/webm',
-                                    'video/ogg',
-                                    'video/avi',
-                                    'video/quicktime',
-                                ],
-                                default => [
-                                    'application/pdf',
-                                    'application/msword',
-                                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                                    'application/vnd.ms-powerpoint',
-                                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                                    'application/vnd.ms-excel',
-                                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                    'text/plain',
-                                    'text/csv',
-                                ],
-                            })
-                            ->visible(fn (callable $get): bool => in_array($get('material_type'), ['Document', 'Image', 'Video']))
+                            ->maxSize(10240)
+                            ->helperText('All file types supported (PDF, PPTX, ZIP, .py, notebooks, docs, etc.) — maximum 10 MB.')
+                            ->visible(fn (callable $get): bool => in_array($get('material_type'), ['Document', 'Image']))
                             ->required(fn (callable $get, string $operation): bool => $operation === 'create' && ($get('material_type') === 'Document' || $get('material_type') === 'Image'))
                             ->columnSpanFull(),
                     ])

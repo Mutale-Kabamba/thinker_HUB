@@ -92,21 +92,46 @@ class CourseForm
                                     ->schema([
                                         Textarea::make('overview')
                                             ->label('Course Overview / Teaser')
-                                            ->helperText('High-level introduction shown in the course preview modal.')
+                                            ->helperText('High-level introduction shown on the public course page (maximum 80 words).')
+                                            ->rules([
+                                                fn (): \Closure => function (string $attribute, $value, \Closure $fail): void {
+                                                    if (! filled($value)) {
+                                                        return;
+                                                    }
+                                                    $words = preg_split('/\s+/u', trim((string) $value), -1, PREG_SPLIT_NO_EMPTY);
+                                                    if (is_array($words) && count($words) > 80) {
+                                                        $fail('The Course Overview must not exceed 80 words (currently ' . count($words) . ' words).');
+                                                    }
+                                                },
+                                            ])
                                             ->rows(3)
                                             ->columnSpanFull(),
                                         Textarea::make('description')
                                             ->label('Detailed Description')
-                                            ->rows(4)
+                                            ->helperText('Concise detailed description shown on the public course page (maximum 150 characters).')
+                                            ->maxLength(150)
+                                            ->rows(3)
                                             ->columnSpanFull(),
                                         Textarea::make('requirements')
                                             ->label('Requirements & Prerequisites')
-                                            ->helperText('Add each requirement on a new line.')
-                                            ->rows(3)
+                                            ->helperText('Enter each requirement on a new line. Displayed as a list on the public course page.')
+                                            ->placeholder("Basic computer literacy\nPython 3.10+ installed\nA code editor (VS Code or PyCharm)")
+                                            ->rows(4)
                                             ->columnSpanFull(),
                                         Textarea::make('key_outcome')
                                             ->label('Key Learning Outcomes')
-                                            ->helperText('Summarize expected competencies gained after completion.')
+                                            ->helperText('Summarize expected competencies gained after completion (maximum 100 words).')
+                                            ->rules([
+                                                fn (): \Closure => function (string $attribute, $value, \Closure $fail): void {
+                                                    if (! filled($value)) {
+                                                        return;
+                                                    }
+                                                    $words = preg_split('/\s+/u', trim((string) $value), -1, PREG_SPLIT_NO_EMPTY);
+                                                    if (is_array($words) && count($words) > 100) {
+                                                        $fail('The Key Learning Outcomes must not exceed 100 words (currently ' . count($words) . ' words).');
+                                                    }
+                                                },
+                                            ])
                                             ->rows(3)
                                             ->columnSpanFull(),
                                     ]),
@@ -183,6 +208,15 @@ class CourseForm
                                                                         ->reactive()
                                                                         ->required(),
 
+                                                                    // Displayed conditionally for Video
+                                                                    TextInput::make('video_url')
+                                                                        ->label('Embedded Video URL (YouTube, Vimeo, Loom, etc.)')
+                                                                        ->placeholder('https://www.youtube.com/watch?v=... or https://vimeo.com/...')
+                                                                        ->url()
+                                                                        ->helperText('Paste a video link from YouTube, Vimeo, Loom, Dailymotion, Wistia, Google Drive, or any video platform.')
+                                                                        ->visible(fn ($get) => $get('type') === 'video')
+                                                                        ->columnSpanFull(),
+
                                                                     // Displayed conditionally for Reading
                                                                     RichEditor::make('reading_body')
                                                                         ->visible(fn ($get) => $get('type') === 'reading')
@@ -198,6 +232,18 @@ class CourseForm
                                                                         ->searchable()
                                                                         ->preload()
                                                                         ->visible(fn ($get) => in_array($get('type'), ['video', 'quiz', 'assignment']))
+                                                                        ->columnSpanFull(),
+
+                                                                    FileUpload::make('attachments')
+                                                                        ->label('Lesson Attachments (PDF, PPTX, ZIP, .py, etc.)')
+                                                                        ->disk('public')
+                                                                        ->directory('lesson-attachments')
+                                                                        ->multiple()
+                                                                        ->reorderable()
+                                                                        ->openable()
+                                                                        ->downloadable()
+                                                                        ->maxSize(10240)
+                                                                        ->helperText('Attach any file type (PDF, PPTX, ZIP, .py, code files, datasets, etc.) — max 10 MB per file.')
                                                                         ->columnSpanFull(),
                                                                 ])
                                                                 ->collapsible()

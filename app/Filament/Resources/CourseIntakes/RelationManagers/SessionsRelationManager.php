@@ -132,29 +132,20 @@ class SessionsRelationManager extends RelationManager
                             ->columnSpanFull(),
 
                         TextInput::make('video_url')
-                            ->label('Video Guide / YouTube Link')
-                            ->placeholder('https://www.youtube.com/watch?v=...')
+                            ->label('Embedded Video Link (YouTube, Vimeo, Loom, etc.)')
+                            ->placeholder('https://www.youtube.com/watch?v=... or https://vimeo.com/...')
                             ->url()
-                            ->visible(fn (callable $get): bool => $get('delivery_mode') === CourseSession::DELIVERY_VIDEO)
-                            ->columnSpanFull(),
-
-                        \Filament\Forms\Components\FileUpload::make('video_file_path')
-                            ->label('Or Upload Video File')
-                            ->disk('public')
-                            ->directory('session-videos')
-                            ->visibility('public')
-                            ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska'])
-                            ->maxSize(102400)
+                            ->helperText('Paste a video URL from YouTube, Vimeo, Loom, Dailymotion, Wistia, Google Drive, or any video platform.')
                             ->visible(fn (callable $get): bool => $get('delivery_mode') === CourseSession::DELIVERY_VIDEO)
                             ->columnSpanFull(),
 
                         \Filament\Forms\Components\FileUpload::make('reading_file_path')
-                            ->label('Upload Reading Material (PDF, Doc, Slide)')
+                            ->label('Upload Reading Material / Attachment (PDF, PPTX, ZIP, .py, etc.)')
                             ->disk('public')
                             ->directory('session-readings')
                             ->visibility('public')
-                            ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'])
-                            ->maxSize(51200)
+                            ->maxSize(10240)
+                            ->helperText('All file types supported up to 10 MB.')
                             ->visible(fn (callable $get): bool => $get('delivery_mode') === CourseSession::DELIVERY_READ)
                             ->columnSpanFull(),
 
@@ -250,29 +241,20 @@ class SessionsRelationManager extends RelationManager
                                 ->columnSpanFull(),
 
                             TextInput::make('video_url')
-                                ->label('Video Guide / YouTube Link')
-                                ->placeholder('https://www.youtube.com/watch?v=...')
+                                ->label('Embedded Video Link (YouTube, Vimeo, Loom, etc.)')
+                                ->placeholder('https://www.youtube.com/watch?v=... or https://vimeo.com/...')
                                 ->url()
-                                ->visible(fn (callable $get): bool => $get('delivery_mode') === CourseSession::DELIVERY_VIDEO)
-                                ->columnSpanFull(),
-
-                            \Filament\Forms\Components\FileUpload::make('video_file_path')
-                                ->label('Or Upload Video File')
-                                ->disk('public')
-                                ->directory('session-videos')
-                                ->visibility('public')
-                                ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska'])
-                                ->maxSize(102400)
+                                ->helperText('Paste a video URL from YouTube, Vimeo, Loom, Dailymotion, Wistia, Google Drive, or any video platform.')
                                 ->visible(fn (callable $get): bool => $get('delivery_mode') === CourseSession::DELIVERY_VIDEO)
                                 ->columnSpanFull(),
 
                             \Filament\Forms\Components\FileUpload::make('reading_file_path')
-                                ->label('Upload Reading Material (PDF, Doc, Slide)')
+                                ->label('Upload Reading Material / Attachment (PDF, PPTX, ZIP, .py, etc.)')
                                 ->disk('public')
                                 ->directory('session-readings')
                                 ->visibility('public')
-                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'])
-                                ->maxSize(51200)
+                                ->maxSize(10240)
+                                ->helperText('All file types supported up to 10 MB.')
                                 ->visible(fn (callable $get): bool => $get('delivery_mode') === CourseSession::DELIVERY_READ)
                                 ->columnSpanFull(),
 

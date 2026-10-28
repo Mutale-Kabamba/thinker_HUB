@@ -888,6 +888,12 @@ Route::middleware('auth')->group(function () {
             $canView = $user->isAdmin() || $user->isInstructor() || $user->isEnrolledInCourse($session->course_id);
             abort_unless($canView, 403);
             $path = $type === 'session-reading' ? $session->reading_file_path : $session->video_file_path;
+        } elseif ($type === 'lesson') {
+            $lesson = \App\Models\Lesson::query()->findOrFail($id);
+            $canView = $user->isAdmin() || $user->isInstructor() || $lesson->is_free_preview || ($lesson->course_id && $user->isEnrolledInCourse($lesson->course_id));
+            abort_unless($canView, 403);
+            $attachments = is_array($lesson->attachments) ? array_values($lesson->attachments) : [];
+            $path = ($index !== null && isset($attachments[(int) $index])) ? $attachments[(int) $index] : ($attachments[0] ?? null);
         } else {
             abort(404);
         }
@@ -1031,6 +1037,19 @@ Route::middleware('auth')->group(function () {
             $ext = pathinfo((string) $path, PATHINFO_EXTENSION);
             $extSuffix = $ext ? '.' . $ext : '';
             $downloadName = "{$applicantSlug}_{$docKey}{$extSuffix}";
+        } elseif ($type === 'session-reading' || $type === 'session-video') {
+            $session = \App\Models\CourseSession::query()->findOrFail($id);
+            $canView = $user->isAdmin() || $user->isInstructor() || $user->isEnrolledInCourse($session->course_id);
+            abort_unless($canView, 403);
+            $path = $type === 'session-reading' ? $session->reading_file_path : $session->video_file_path;
+            $downloadName = basename((string) $path);
+        } elseif ($type === 'lesson') {
+            $lesson = \App\Models\Lesson::query()->findOrFail($id);
+            $canView = $user->isAdmin() || $user->isInstructor() || $lesson->is_free_preview || ($lesson->course_id && $user->isEnrolledInCourse($lesson->course_id));
+            abort_unless($canView, 403);
+            $attachments = is_array($lesson->attachments) ? array_values($lesson->attachments) : [];
+            $path = ($index !== null && isset($attachments[(int) $index])) ? $attachments[(int) $index] : ($attachments[0] ?? null);
+            $downloadName = basename((string) $path);
         } else {
             abort(404);
         }
