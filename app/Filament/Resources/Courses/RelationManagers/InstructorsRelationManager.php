@@ -79,21 +79,26 @@ class InstructorsRelationManager extends RelationManager
                     ->recordSelectSearchColumns(['name', 'email']),
             ])
             ->recordActions([
-                DetachAction::make()
-                    ->label('Unassign')
-                    ->modalHeading('Unassign Instructor')
-                    ->modalDescription(fn (User $record): string => "Are you sure you want to unassign {$record->name} from this course?")
-                    ->after(function (User $record, InstructorsRelationManager $livewire): void {
-                        /** @var Course $course */
-                        $course = $livewire->getOwnerRecord();
-                        InstructorApplication::query()
-                            ->where('user_id', $record->id)
-                            ->where('assigned_course_id', $course->id)
-                            ->update([
-                                'assigned_course_id' => null,
-                                'course_assignment_action' => 'unassign',
-                            ]);
-                    }),
+                \Filament\Actions\ActionGroup::make([
+                    DetachAction::make()
+                        ->label('Unassign')
+                        ->icon('heroicon-m-user-minus')
+                        ->modalHeading('Unassign Instructor')
+                        ->modalDescription(fn (User $record): string => "Are you sure you want to unassign {$record->name} from this course?")
+                        ->after(function (User $record, InstructorsRelationManager $livewire): void {
+                            /** @var Course $course */
+                            $course = $livewire->getOwnerRecord();
+                            InstructorApplication::query()
+                                ->where('user_id', $record->id)
+                                ->where('assigned_course_id', $course->id)
+                                ->update([
+                                    'assigned_course_id' => null,
+                                    'course_assignment_action' => 'unassign',
+                                ]);
+                        }),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

@@ -53,8 +53,15 @@ class QuizzesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
-                EditAction::make(),
-                ExportQuizzesAction::makeRowAction(),
+                \Filament\Actions\ActionGroup::make([
+                    EditAction::make()
+                        ->icon('heroicon-m-pencil-square'),
+                    ExportQuizzesAction::makeRowAction(),
+                    \Filament\Actions\DeleteAction::make()
+                        ->icon('heroicon-m-trash'),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

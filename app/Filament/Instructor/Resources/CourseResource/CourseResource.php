@@ -100,7 +100,18 @@ class CourseResource extends Resource
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    EditAction::make()
+                        ->icon('heroicon-m-pencil-square'),
+                    \Filament\Actions\Action::make('view_public')
+                        ->label('Public Course Page')
+                        ->icon('heroicon-m-arrow-top-right-on-square')
+                        ->color('info')
+                        ->url(fn (Course $record): string => route('landing.courses.show', ['course' => $record->id, 'slug' => \Illuminate\Support\Str::slug($record->title ?: $record->code)]))
+                        ->openUrlInNewTab(),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->color('gray'),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('id', static::instructorCourseIds()));
     }

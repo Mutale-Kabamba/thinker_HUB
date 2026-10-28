@@ -5168,6 +5168,283 @@
     .fi-fo-radio input[type="radio"]:checked::before {
         transform: scale(1) !important;
     }
+
+    /* ==========================================================================
+       UI/UX REFINEMENT: COMPACT TABLES, NICE ACTIONS, CLEAR BUTTONS,
+       NICE CARDS & SMOOTH SPA NAVIGATION
+       ========================================================================== */
+
+    /* 1. Smooth SPA Navigation & Page Transitions */
+    #nprogress .bar {
+        background: linear-gradient(90deg, #0d9488, #14b8a6, #0ea5e9) !important;
+        height: 2.5px !important;
+    }
+
+    #nprogress .peg {
+        box-shadow: 0 0 8px #0d9488, 0 0 4px #14b8a6 !important;
+    }
+
+    .fi-main {
+        animation: hubSpaFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes hubSpaFadeIn {
+        from {
+            opacity: 0.92;
+            transform: translateY(2px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fi-sidebar-item-btn,
+    .fi-topbar-item-btn,
+    .fi-tabs-item {
+        transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease !important;
+    }
+
+    /* 2. Compact High-Density Tables */
+    .fi-ta-ctn {
+        border-radius: 14px !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+        overflow: hidden !important;
+    }
+
+    .dark .fi-ta-ctn {
+        border-color: #1f333f !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22) !important;
+    }
+
+    .fi-ta-header-toolbar {
+        padding: 0.55rem 0.9rem !important;
+        gap: 0.5rem !important;
+    }
+
+    .fi-ta-header {
+        padding: 0.65rem 0.95rem !important;
+    }
+
+    .fi-ta-header-cell,
+    .edtech-table th,
+    .hub-table th {
+        padding: 0.45rem 0.75rem !important;
+        font-size: 0.68rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.055em !important;
+        text-transform: uppercase !important;
+        line-height: 1.25 !important;
+        white-space: nowrap !important;
+    }
+
+    .fi-ta-cell,
+    .edtech-table td,
+    .hub-table td {
+        padding: 0.36rem 0.75rem !important;
+        font-size: 0.8rem !important;
+        line-height: 1.35 !important;
+        vertical-align: middle !important;
+    }
+
+    .fi-ta-text,
+    .fi-ta-text-item {
+        padding-top: 0.1rem !important;
+        padding-bottom: 0.1rem !important;
+        font-size: 0.8rem !important;
+        line-height: 1.35 !important;
+    }
+
+    .fi-ta-row {
+        transition: background-color 0.12s ease !important;
+    }
+
+    /* Compact Badges & Avatars inside Tables */
+    .fi-ta-cell .fi-badge {
+        padding: 0.12rem 0.48rem !important;
+        font-size: 0.68rem !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        line-height: 1.25 !important;
+    }
+
+    .fi-ta-cell .fi-ta-image img,
+    .fi-ta-cell .fi-avatar {
+        width: 1.85rem !important;
+        height: 1.85rem !important;
+    }
+
+    .fi-pagination {
+        padding: 0.5rem 0.9rem !important;
+    }
+
+    /* 3. Nice Table Actions & Crisp Dropdown Triggers */
+    td.fi-ta-actions-cell,
+    .fi-ta-cell:has(.fi-ta-actions) {
+        width: 1% !important;
+        white-space: nowrap !important;
+        text-align: right !important;
+        padding-right: 0.65rem !important;
+        padding-left: 0.35rem !important;
+    }
+
+    .fi-ta-actions {
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
+    }
+
+    /* ActionGroup 3-dot trigger button in tables */
+    .fi-ta-actions .fi-ac-icon-btn-group,
+    .fi-ta-actions .fi-icon-btn {
+        width: 1.9rem !important;
+        height: 1.9rem !important;
+        min-width: 1.9rem !important;
+        min-height: 1.9rem !important;
+        padding: 0 !important;
+        border-radius: 8px !important;
+        border: 1px solid #e2e8f0 !important;
+        background: #ffffff !important;
+        color: #475569 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+        transition: all 0.15s ease !important;
+    }
+
+    .fi-ta-actions .fi-ac-icon-btn-group:hover,
+    .fi-ta-actions .fi-icon-btn:hover {
+        border-color: #0d9488 !important;
+        background: #f0fdfa !important;
+        color: #0f766e !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 3px 6px rgba(13, 148, 136, 0.12) !important;
+    }
+
+    .dark .fi-ta-actions .fi-ac-icon-btn-group,
+    .dark .fi-ta-actions .fi-icon-btn {
+        background: #16232b !important;
+        border-color: #243c49 !important;
+        color: #cbd5e1 !important;
+    }
+
+    .dark .fi-ta-actions .fi-ac-icon-btn-group:hover,
+    .dark .fi-ta-actions .fi-icon-btn:hover {
+        background: rgba(20, 184, 166, 0.14) !important;
+        border-color: #14b8a6 !important;
+        color: #5eead4 !important;
+    }
+
+    /* Compact & Crisp Dropdown Menu Panels */
+    .fi-dropdown-panel {
+        min-width: 11.5rem !important;
+        border-radius: 12px !important;
+        padding: 0.3rem !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 4px 10px -4px rgba(15, 23, 42, 0.06) !important;
+    }
+
+    .dark .fi-dropdown-panel {
+        background: #111c23 !important;
+        border-color: #243c49 !important;
+        box-shadow: 0 14px 30px -6px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .fi-dropdown-list {
+        padding: 0.15rem !important;
+    }
+
+    .fi-dropdown-list-item {
+        border-radius: 8px !important;
+        padding: 0.4rem 0.65rem !important;
+        font-size: 0.79rem !important;
+        font-weight: 600 !important;
+        gap: 0.5rem !important;
+        transition: background-color 0.12s ease, color 0.12s ease !important;
+    }
+
+    .fi-dropdown-list-item-icon {
+        width: 1rem !important;
+        height: 1rem !important;
+    }
+
+    /* 4. Clear, Crisp Buttons */
+    .fi-btn {
+        border-radius: 10px !important;
+        padding: 0.42rem 0.9rem !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        line-height: 1.3 !important;
+        letter-spacing: 0.01em !important;
+        gap: 0.4rem !important;
+        transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .fi-btn-size-sm {
+        padding: 0.3rem 0.68rem !important;
+        font-size: 0.73rem !important;
+        border-radius: 8px !important;
+    }
+
+    .fi-ta-actions .fi-btn {
+        padding: 0.26rem 0.6rem !important;
+        font-size: 0.73rem !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+    }
+
+    /* 5. Nice, Balanced Cards & Sections */
+    .fi-section,
+    .fi-wi-stats-overview-stat,
+    .edtech-card,
+    .edtech-stat-card,
+    .hub-card {
+        border-radius: 14px !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease !important;
+    }
+
+    .dark .fi-section,
+    .dark .fi-wi-stats-overview-stat,
+    .dark .edtech-card,
+    .dark .edtech-stat-card,
+    .dark .hub-card {
+        border-color: #1f333f !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .fi-wi-stats-overview-stat:hover,
+    .edtech-stat-card:hover {
+        border-color: rgba(13, 148, 136, 0.38) !important;
+        box-shadow: 0 6px 16px -4px rgba(13, 148, 136, 0.1) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    .fi-section-header {
+        padding: 0.85rem 1.2rem !important;
+    }
+
+    .fi-section-content {
+        padding: 1.05rem 1.2rem !important;
+    }
+
+    .fi-wi-stats-overview-stat {
+        padding: 1rem 1.15rem !important;
+    }
+
+    .fi-header {
+        margin-bottom: 0.5rem !important;
+        gap: 0.75rem !important;
+    }
+
+    .fi-header-heading {
+        font-size: 1.35rem !important;
+        line-height: 1.25 !important;
+        letter-spacing: -0.02em !important;
+    }
 </style>
 
 <script>
