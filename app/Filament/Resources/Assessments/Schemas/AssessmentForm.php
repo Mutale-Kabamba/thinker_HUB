@@ -38,7 +38,7 @@ class AssessmentForm
                             ->columnSpanFull(),
 
                         FileUpload::make('file_paths')
-                            ->label('Assessment Document(s)')
+                            ->label('Assessment Attachment(s) (PDF, PPTX, ZIP, .py, etc.)')
                             ->disk('public')
                             ->directory('assessments')
                             ->multiple()
@@ -46,20 +46,7 @@ class AssessmentForm
                             ->openable()
                             ->downloadable()
                             ->maxSize(10240)
-                            ->acceptedFileTypes([
-                                'application/pdf',
-                                'application/msword',
-                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                                'application/vnd.ms-powerpoint',
-                                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                                'application/vnd.ms-excel',
-                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                'text/plain',
-                                'text/csv',
-                                'image/*',
-                                'application/zip',
-                            ])
-                            ->helperText('Attach one or more assessment files, question papers, or briefs (up to 10MB per file).')
+                            ->helperText('Attach one or more assessment files, code files (.py), archives (.zip), or question papers (all file types supported, up to 10MB per file).')
                             ->columnSpanFull(),
                     ])
                     ->columnSpan(['default' => 1, 'lg' => 2]),

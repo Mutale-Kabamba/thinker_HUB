@@ -308,6 +308,24 @@
                     <p class="text-xs text-slate-500 mt-0.5">
                         {{ $course->code }} &bull; Level: <span class="font-semibold text-slate-700" x-text="track"></span> &bull; <span class="font-semibold text-teal-700" x-text="modeLabel"></span>
                     </p>
+                    <template x-if="options && options.length > 1">
+                        <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Select Level:</span>
+                            <template x-for="opt in options" :key="'hdr_' + opt.id">
+                                <button
+                                    type="button"
+                                    @click="selectCourseOption(opt)"
+                                    class="px-2.5 py-1 rounded-full text-[11px] font-bold border transition cursor-pointer inline-flex items-center gap-1.5"
+                                    :class="track === opt.level && mode === (opt.category || opt.mode)
+                                        ? 'bg-[#0a2d27] text-yellow-400 border-[#0a2d27] shadow-2xs'
+                                        : 'bg-white text-slate-700 border-slate-200 hover:border-teal-500'"
+                                >
+                                    <span x-text="opt.level"></span>
+                                    <span class="text-[10px] opacity-80" x-text="'(' + opt.formatted_amount + ')'"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </template>
                 </div>
                 <div class="shrink-0 text-left sm:text-right">
                     <template x-if="appliedPromoCode && discountAmount > 0">
@@ -1220,7 +1238,7 @@
                 mode: '{{ $selectedMode }}',
                 originalFeeAmount: {{ (float) $feeAmount }},
                 options: @js($feeOptions),
-                showOptionSwitcher: false,
+                showOptionSwitcher: true,
                 paymentMethod: 'mobile_money',
                 provider: 'airtel',
                 phoneNumber: '',

@@ -4,6 +4,7 @@
         isVideo: @js($session->isVideo()),
         isRead: @js($session->isRead()),
         youtubeId: @js($youtubeId),
+        embedUrl: @js($embedUrl),
         fileUrl: @js($fileUrl),
         readingContent: @js($session->reading_content),
         attendanceMarked: @js($attendanceMarked),
@@ -102,6 +103,16 @@
                             allowfullscreen
                             @load="initYouTube()"
                         ></iframe>
+                    @elseif ($embedUrl)
+                        <iframe
+                            id="session-embed-iframe"
+                            x-ref="embedIframe"
+                            src="{{ $embedUrl }}"
+                            class="w-full h-full border-0 block"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                            allowfullscreen
+                            @load="handlePlay()"
+                        ></iframe>
                     @elseif ($fileUrl)
                         <video
                             x-ref="videoElement"
@@ -161,7 +172,7 @@
                             </div>
 
                             <a
-                                href="{{ $fileUrl }}&download=1"
+                                href="{{ $downloadUrl ?: $fileUrl }}"
                                 class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold inline-flex items-center gap-1.5 transition no-underline"
                             >
                                 <i class="fa-solid fa-download"></i>

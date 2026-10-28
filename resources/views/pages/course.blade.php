@@ -678,7 +678,7 @@
                     @endif
                 </div>
                 <h1 class="mt-4 max-w-4xl text-4xl font-black text-white sm:text-5xl">{{ $course->title }}</h1>
-                <p class="mt-5 max-w-3xl text-slate-300 text-justify">{{ $course->overview ?: $course->description }}</p>
+                <p class="mt-5 max-w-3xl text-slate-300 text-justify">{{ \Illuminate\Support\Str::words((string) ($course->overview ?: $course->description), 80) }}</p>
                 @php
                     $avgRating = (float) ($course->average_rating ?? ($course->ratings_avg_rating ?? 0));
                     $ratingCount = (int) ($course->review_count ?? ($course->ratings_count ?? 0));
@@ -691,6 +691,9 @@
                         @php
                             $feeOptions = $course->getFeeOptions();
                             $hasMultipleOptions = count($feeOptions) > 1;
+                            $singleOptionParams = ! empty($feeOptions[0])
+                                ? ['course' => $course, 'track' => $feeOptions[0]['level'], 'mode' => $feeOptions[0]['category']]
+                                : ['course' => $course];
                             $courseModalData = [
                                 'id' => $course->id,
                                 'title' => $course->title,
@@ -710,7 +713,7 @@
                                 Enroll &amp; Pay (Instant Access)
                             </button>
                         @else
-                            <a href="{{ route('checkout.show', $course) }}" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300">
+                            <a href="{{ route('checkout.show', $singleOptionParams) }}" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300">
                                 <i class="fa-solid fa-credit-card"></i>
                                 Enroll &amp; Pay (Instant Access)
                             </a>
@@ -738,7 +741,36 @@
                     @if (filled($course->overview))
                         <div class="space-y-3">
                             <h2 class="text-xl font-bold text-slate-900">Course Overview</h2>
-                            <p class="leading-relaxed text-slate-600 text-left sm:text-justify">{{ $course->overview }}</p>
+                            <p class="leading-relaxed text-slate-600 text-left sm:text-justify">{{ \Illuminate\Support\Str::words((string) $course->overview, 80) }}</p>
+                        </div>
+                    @endif
+
+                    @if (filled($course->description))
+                        <div class="space-y-3">
+                            <h2 class="text-xl font-bold text-slate-900">Detailed Description</h2>
+                            <p class="leading-relaxed text-slate-600 text-left sm:text-justify">{{ \Illuminate\Support\Str::limit(trim((string) $course->description), 150) }}</p>
+                        </div>
+                    @endif
+
+                    @php
+                        $requirementLines = array_values(array_filter(array_map(
+                            static fn (string $line): string => trim((string) preg_replace('/^(?:[-*•]+|\d+[.)])\s*/u', '', trim($line))),
+                            $toLines($course->requirements)
+                        )));
+                    @endphp
+                    @if (! empty($requirementLines))
+                        <div class="space-y-3">
+                            <h3 class="text-lg font-bold text-slate-900">Requirements &amp; Prerequisites</h3>
+                            <ul class="space-y-2.5 rounded-xl border border-slate-200/80 bg-white p-5">
+                                @foreach ($requirementLines as $reqItem)
+                                    <li class="flex items-start gap-3 text-sm leading-relaxed text-slate-600">
+                                        <span class="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600 border border-teal-200/60">
+                                            <i class="fa-solid fa-check text-[10px]"></i>
+                                        </span>
+                                        <span>{{ $reqItem }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
                         </div>
                     @endif
 
@@ -804,7 +836,7 @@
                     @if (filled($course->key_outcome))
                         <div class="space-y-3">
                             <h3 class="text-lg font-bold text-slate-900">Key Outcome</h3>
-                            <p class="leading-relaxed text-slate-600 text-left sm:text-justify">{{ $course->key_outcome }}</p>
+                            <p class="leading-relaxed text-slate-600 text-left sm:text-justify">{{ \Illuminate\Support\Str::words((string) $course->key_outcome, 100) }}</p>
                         </div>
                     @endif
 
@@ -932,7 +964,7 @@
                                 <i class="fa-solid fa-credit-card mr-2"></i> Enroll &amp; Pay
                             </button>
                         @else
-                            <a href="{{ route('checkout.show', $course) }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300">
+                            <a href="{{ route('checkout.show', $singleOptionParams ?? ['course' => $course]) }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300">
                                 <i class="fa-solid fa-credit-card mr-2"></i> Enroll &amp; Pay
                             </a>
                         @endif

@@ -18,7 +18,11 @@ class SessionViewer extends Component
 
     public ?string $fileUrl = null;
 
+    public ?string $downloadUrl = null;
+
     public ?string $youtubeId = null;
+
+    public ?string $embedUrl = null;
 
     public int $requiredSeconds = 900; // default 15 mins (in seconds)
 
@@ -35,12 +39,20 @@ class SessionViewer extends Component
         }
 
         $this->session = $session;
-        $this->youtubeId = $session->youtube_id;
+        $parsed = \App\Support\VideoEmbedParser::parse($session->video_url);
+        $this->youtubeId = $parsed['youtube_id'];
+        if ($parsed['is_direct_file']) {
+            $this->fileUrl = $parsed['embed_url'];
+        } else {
+            $this->embedUrl = $parsed['embed_url'];
+        }
 
         if ($session->isVideo() && $session->video_file_path) {
             $this->fileUrl = route('file.view', ['type' => 'session-video', 'id' => $session->id], false);
+            $this->downloadUrl = route('file.download', ['type' => 'session-video', 'id' => $session->id], false);
         } elseif ($session->isRead() && $session->reading_file_path) {
             $this->fileUrl = route('file.view', ['type' => 'session-reading', 'id' => $session->id], false);
+            $this->downloadUrl = route('file.download', ['type' => 'session-reading', 'id' => $session->id], false);
         }
 
         $requiredMinutes = (int) ($session->required_duration_minutes ?? 15);

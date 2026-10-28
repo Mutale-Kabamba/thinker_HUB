@@ -302,6 +302,70 @@ class Course extends Model
             return 0.0;
         }
 
+        $decoded = json_decode($fees, true);
+        if (is_array($decoded)) {
+            $extractFromEntry = static function (mixed $entry): float {
+                if (is_numeric($entry)) {
+                    return (float) $entry > 0 ? (float) $entry : 0.0;
+                }
+                if (is_string($entry)) {
+                    if (preg_match('/(?:ZMW|K|USD|\$)\s*([\d,]+(?:\.\d+)?)/i', $entry, $m) === 1) {
+                        return (float) str_replace(',', '', $m[1]);
+                    }
+                    $clean = (float) str_replace(',', '', (string) preg_replace('/[^\d.,]/', '', $entry));
+                    return $clean > 0 ? $clean : 0.0;
+                }
+                if (is_array($entry)) {
+                    $raw = $entry['amount'] ?? $entry['fee'] ?? null;
+                    if ($raw !== null) {
+                        $clean = (float) str_replace(',', '', (string) preg_replace('/[^\d.,]/', '', (string) $raw));
+                        if ($clean > 0) {
+                            return $clean;
+                        }
+                    }
+                }
+                return 0.0;
+            };
+
+            foreach (['group', 'one_on_one', 'self_paced'] as $sectionKey) {
+                if (! empty($decoded[$sectionKey]) && is_array($decoded[$sectionKey])) {
+                    foreach ($decoded[$sectionKey] as $entry) {
+                        $val = $extractFromEntry($entry);
+                        if ($val > 0) {
+                            return $val;
+                        }
+                    }
+                }
+            }
+
+            foreach ($decoded as $entry) {
+                if (is_array($entry)) {
+                    $val = $extractFromEntry($entry);
+                    if ($val > 0) {
+                        return $val;
+                    }
+                    foreach ($entry as $subEntry) {
+                        $val = $extractFromEntry($subEntry);
+                        if ($val > 0) {
+                            return $val;
+                        }
+                    }
+                } else {
+                    $val = $extractFromEntry($entry);
+                    if ($val > 0) {
+                        return $val;
+                    }
+                }
+            }
+        }
+
+        if (preg_match('/(?:ZMW|K|USD|\$)\s*([\d,]+(?:\.\d+)?)/i', $fees, $currencyMatch) === 1) {
+            $normalized = (float) str_replace(',', '', (string) $currencyMatch[1]);
+            if ($normalized > 0) {
+                return $normalized;
+            }
+        }
+
         if (preg_match_all('/\d+(?:[.,]\d+)?/', $fees, $matches) !== false) {
             foreach ($matches[0] ?? [] as $rawAmount) {
                 $normalized = (float) str_replace(',', '', (string) $rawAmount);
@@ -576,43 +640,74 @@ class Course extends Model
             $normMode = 'group';
         }
 
-        $normLevel = $level ? strtolower(trim($level)) : null;
+        $rawLevel = $level ? trim($level) : null;
+        $normLevel = $rawLevel ? strtolower($rawLevel) : null;
+        $canonicalLevel = $rawLevel
+            ? strtolower(\App\Filament\Resources\Courses\Schemas\CourseForm::normalizeLevel($rawLevel))
+            : null;
+
+        $matchesLevel = static function (string $optLevel) use ($normLevel, $canonicalLevel): bool {
+            if (! $normLevel) {
+                return false;
+            }
+            $optLower = strtolower(trim($optLevel));
+            return $optLower === $normLevel || ($canonicalLevel && $optLower === $canonicalLevel);
+        };
+
+        $matchesBaseLevel = static function (string $optLevel) use ($normLevel, $canonicalLevel): bool {
+            if (! $normLevel) {
+                return false;
+            }
+            $optLower = strtolower(trim($optLevel));
+            $baseOpt = strtolower(trim(explode('(', $optLower)[0]));
+            $baseReq = strtolower(trim(explode('(', $canonicalLevel ?: $normLevel)[0]));
+            return $baseOpt !== '' && $baseOpt === $baseReq;
+        };
 
         // 1. Exact match on both Mode & Level
         if ($normMode && $normLevel) {
             foreach ($options as $opt) {
-                if ($opt['category'] === $normMode && strtolower($opt['level']) === $normLevel) {
+                if ($opt['category'] === $normMode && $matchesLevel((string) $opt['level'])) {
                     return (float) $opt['amount'];
                 }
             }
         }
 
-        // 2. Match on Mode only (if level not given or not found in that mode)
-        if ($normMode) {
+        // 2. Exact match on Level across ANY mode (so selecting "Beginner" always returns the Beginner fee even if saved under 1:1 or self-paced)
+        if ($normLevel) {
             foreach ($options as $opt) {
-                if ($opt['category'] === $normMode) {
-                    if ($normLevel && strtolower($opt['level']) === $normLevel) {
+                if ($matchesLevel((string) $opt['level'])) {
+                    return (float) $opt['amount'];
+                }
+            }
+        }
+
+        // 3. Base-level prefix match (e.g. "Advanced" matching "Advanced (Beginner to Advanced)")
+        if ($normLevel) {
+            if ($normMode) {
+                foreach ($options as $opt) {
+                    if ($opt['category'] === $normMode && $matchesBaseLevel((string) $opt['level'])) {
                         return (float) $opt['amount'];
                     }
                 }
             }
             foreach ($options as $opt) {
+                if ($matchesBaseLevel((string) $opt['level'])) {
+                    return (float) $opt['amount'];
+                }
+            }
+        }
+
+        // 4. Match on Mode only (when Level is not specified or doesn't exist on the course)
+        if ($normMode) {
+            foreach ($options as $opt) {
                 if ($opt['category'] === $normMode) {
                     return (float) $opt['amount'];
                 }
             }
         }
 
-        // 3. Match on Level only
-        if ($normLevel) {
-            foreach ($options as $opt) {
-                if (strtolower($opt['level']) === $normLevel) {
-                    return (float) $opt['amount'];
-                }
-            }
-        }
-
-        // 4. Default to first option amount or numeric fee
+        // 5. Default to first configured option amount
         return (float) ($options[0]['amount'] ?? ($this->getNumericFee() ?: 1500.00));
     }
 
@@ -632,13 +727,26 @@ class Course extends Model
 
     public function getLevelFees(): array
     {
-        $levels = ['Beginner', 'Intermediate', 'Advanced'];
+        $options = $this->getFeeOptions();
         $result = [];
-        $defaultFee = $this->getNumericFee();
 
-        foreach ($levels as $lvl) {
-            $fee = $this->getNumericFeeForLevel($lvl);
-            $result[$lvl] = $fee > 0 ? $fee : ($defaultFee > 0 ? $defaultFee : 1500.00);
+        foreach ($options as $opt) {
+            $lvl = (string) ($opt['level'] ?? '');
+            $amt = (float) ($opt['amount'] ?? 0);
+            if ($lvl !== '' && $amt > 0 && ! isset($result[$lvl])) {
+                $result[$lvl] = $amt;
+            }
+        }
+
+        $defaultFee = ! empty($options[0]['amount'])
+            ? (float) $options[0]['amount']
+            : ($this->getNumericFee() ?: 1500.00);
+
+        foreach (['Beginner', 'Intermediate', 'Advanced'] as $lvl) {
+            if (! isset($result[$lvl])) {
+                $fee = $this->getNumericFeeForOption($lvl);
+                $result[$lvl] = $fee > 0 ? $fee : $defaultFee;
+            }
         }
 
         return $result;
@@ -965,6 +1073,93 @@ class Course extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Resolve a dynamic catalog badge for course cards based on enrollment status,
+     * student count, creation recency, ratings, and delivery mode.
+     *
+     * @return array{label: string, classes: string, icon: ?string}
+     */
+    public function getCatalogBadge(?int $maxOpenStudents = null, ?int $newestCourseId = null): array
+    {
+        if ($this->is_open_enrollment === false) {
+            return [
+                'label' => 'EXCLUSIVE',
+                'classes' => 'bg-slate-900/95 text-amber-300 border-amber-400/40',
+                'icon' => 'fa-solid fa-crown',
+            ];
+        }
+
+        $studentsCount = (int) ($this->enrollments_count ?? 0);
+        if ($studentsCount === 0) {
+            $studentsCount = (int) ($this->selected_participants_count ?? 0);
+        }
+
+        $avgRating = (float) ($this->average_rating ?? ($this->ratings_avg_rating ?? 0));
+        $ratingCount = (int) ($this->review_count ?? ($this->ratings_count ?? 0));
+
+        if ($studentsCount > 0 && $maxOpenStudents !== null && $maxOpenStudents > 0 && $studentsCount >= $maxOpenStudents) {
+            return [
+                'label' => 'BEST SELLER',
+                'classes' => 'bg-yellow-400 text-[#0a2d27] border-yellow-500/20',
+                'icon' => 'fa-solid fa-trophy',
+            ];
+        }
+
+        if (($newestCourseId !== null && (int) $this->id === $newestCourseId) || ($this->created_at && $this->created_at->gt(now()->subDays(14)) && $studentsCount === 0)) {
+            return [
+                'label' => 'NEW COURSE',
+                'classes' => 'bg-emerald-500 text-white border-emerald-400/30',
+                'icon' => 'fa-solid fa-wand-magic-sparkles',
+            ];
+        }
+
+        if ($avgRating >= 4.5 && $ratingCount >= 1) {
+            return [
+                'label' => 'TOP RATED',
+                'classes' => 'bg-amber-400 text-slate-950 border-amber-500/30',
+                'icon' => 'fa-solid fa-star',
+            ];
+        }
+
+        if ($studentsCount >= 5) {
+            return [
+                'label' => 'POPULAR',
+                'classes' => 'bg-indigo-600 text-white border-indigo-400/30',
+                'icon' => 'fa-solid fa-fire',
+            ];
+        }
+
+        if ($studentsCount > 0) {
+            return [
+                'label' => 'TRENDING',
+                'classes' => 'bg-purple-600 text-white border-purple-400/30',
+                'icon' => 'fa-solid fa-arrow-trend-up',
+            ];
+        }
+
+        if ((bool) $this->is_for_kids) {
+            return [
+                'label' => 'KIDS TRACK',
+                'classes' => 'bg-pink-500 text-white border-pink-400/30',
+                'icon' => 'fa-solid fa-child-reaching',
+            ];
+        }
+
+        if ($this->isOngoing()) {
+            return [
+                'label' => 'COHORT INTAKE',
+                'classes' => 'bg-teal-600 text-white border-teal-400/30',
+                'icon' => 'fa-solid fa-users-rectangle',
+            ];
+        }
+
+        return [
+            'label' => 'OPEN ENROLLMENT',
+            'classes' => 'bg-sky-500 text-white border-sky-400/30',
+            'icon' => 'fa-solid fa-bolt',
+        ];
     }
 }
 

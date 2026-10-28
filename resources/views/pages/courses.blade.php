@@ -30,6 +30,15 @@
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
                 <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
                 >
+                    @php
+                        $maxOpenStudents = (int) collect($courses)
+                            ->filter(fn ($c) => $c->is_open_enrollment !== false)
+                            ->max(fn ($c) => (int) ($c->enrollments_count ?: ($c->selected_participants_count ?? 0)));
+                        $newestCourseId = (int) (collect($courses)
+                            ->filter(fn ($c) => $c->is_open_enrollment !== false)
+                            ->sortByDesc(fn ($c) => [$c->created_at?->timestamp ?? 0, (int) $c->id])
+                            ->first()?->id ?? 0);
+                    @endphp
                     @forelse ($courses as $course)
                         @php
                             $courseImage = $course->course_image_url;
@@ -42,6 +51,7 @@
                             if ($studentsCount === 0) {
                                 $studentsCount = (int) ($course->selected_participants_count ?? 0);
                             }
+                            $badge = $course->getCatalogBadge($maxOpenStudents, $newestCourseId);
                         @endphp
                         <article class="group bg-white rounded-2xl p-3 border border-slate-200 hover:border-teal-500 hover:-translate-y-0.5 transition-all flex flex-col justify-between">
                             <div>
@@ -49,7 +59,12 @@
                                     <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]) }}" class="block w-full h-full">
                                         <img src="{{ $courseImage }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }} image">
                                     </a>
-                                    <div class="absolute top-2.5 left-2.5 bg-yellow-400 text-[#0a2d27] text-[10px] font-black px-2.5 py-0.5 rounded-full border border-yellow-500/20 shadow-xs">BEST SELLER</div>
+                                    <div class="absolute top-2.5 left-2.5 inline-flex items-center gap-1 {{ $badge['classes'] }} text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-xs">
+                                        @if (! empty($badge['icon']))
+                                            <i class="{{ $badge['icon'] }} text-[9px]"></i>
+                                        @endif
+                                        <span>{{ $badge['label'] }}</span>
+                                    </div>
                                 </div>
                                 <div class="px-1 pt-2.5 pb-1">
                                     <div class="flex items-center gap-1 mb-1.5">
@@ -100,6 +115,9 @@
                                             @php
                                                 $feeOptions = $course->getFeeOptions();
                                                 $hasMultipleOptions = count($feeOptions) > 1;
+                                                $singleOptionParams = ! empty($feeOptions[0])
+                                                    ? ['course' => $course, 'track' => $feeOptions[0]['level'], 'mode' => $feeOptions[0]['category']]
+                                                    : ['course' => $course];
                                                 $courseModalData = [
                                                     'id' => $course->id,
                                                     'title' => $course->title,
@@ -119,7 +137,7 @@
                                                 </button>
                                             @else
                                                 <a
-                                                    href="{{ route('checkout.show', $course) }}"
+                                                    href="{{ route('checkout.show', $singleOptionParams) }}"
                                                     class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-3 py-1 text-[11px] font-bold text-[#0a2d27] transition hover:bg-yellow-300"
                                                 >
                                                     Enroll &amp; Pay

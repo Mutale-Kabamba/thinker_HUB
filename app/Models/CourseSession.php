@@ -104,13 +104,17 @@ class CourseSession extends Model
 
     public function getYoutubeIdAttribute(): ?string
     {
-        if (empty($this->video_url)) {
-            return null;
-        }
+        return \App\Support\VideoEmbedParser::extractYoutubeId($this->video_url);
+    }
 
-        preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/', (string) $this->video_url, $matches);
+    public function getEmbedUrlAttribute(): ?string
+    {
+        return \App\Support\VideoEmbedParser::parse($this->video_url)['embed_url'];
+    }
 
-        return $matches[1] ?? null;
+    public function getVideoPlatformAttribute(): ?string
+    {
+        return \App\Support\VideoEmbedParser::parse($this->video_url)['platform'];
     }
 
     public function course(): BelongsTo

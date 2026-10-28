@@ -25,6 +25,16 @@ class AttendanceObserver
             if ($attendance->status === Attendance::STATUS_PRESENT && $attendance->student) {
                 app(GamificationService::class)->awardAttendance($attendance->student, $attendance);
             }
+
+            if (in_array($attendance->status, [Attendance::STATUS_PRESENT, Attendance::STATUS_LATE], true) && $attendance->student) {
+                $course = $attendance->session?->course;
+                if ($course && $attendance->student->hasCompletedCourse($course)) {
+                    $certificate = app(\App\Services\CertificateService::class)->issue($attendance->student, $course);
+                    if ($certificate && $certificate->wasRecentlyCreated) {
+                        $attendance->student->notify(new \App\Notifications\CertificateIssuedNotification($certificate));
+                    }
+                }
+            }
         } catch (\Throwable $e) {
             report($e);
         }
