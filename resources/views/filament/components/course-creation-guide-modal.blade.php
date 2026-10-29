@@ -69,10 +69,10 @@
         <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xs">
             <div class="flex items-center gap-2 font-semibold text-slate-900 dark:text-white text-sm">
                 <span class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-teal-600 dark:text-teal-400 text-xs flex items-center justify-center font-bold">5</span>
-                <span>Requirements & Prerequisites</span>
+                <span>Requirements & Prerequisites (Categorized Sections)</span>
             </div>
             <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 pl-8">
-                List each prerequisite on a new line (e.g. hardware specs, basic computer literacy, or prior programming language experience).
+                Organize requirements into clear sections such as <strong>Hardware</strong> (device specs), <strong>Knowledge</strong> (prior prerequisites), <strong>Software</strong> (required installations), <strong>Connectivity &amp; Environment</strong>, or custom headings.
             </p>
         </div>
 

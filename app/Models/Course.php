@@ -1169,5 +1169,368 @@ class Course extends Model
             'icon' => 'fa-solid fa-bolt',
         ];
     }
+
+    /**
+     * Parse and structure course requirements into categorized sections
+     * (e.g. Hardware, Knowledge, Software, Connectivity & Environment, or custom headings).
+     *
+     * @return array<int, array{
+     *     category: string,
+     *     subtitle: string,
+     *     icon: string,
+     *     card_classes: string,
+     *     icon_classes: string,
+     *     badge_classes: string,
+     *     check_classes: string,
+     *     items: array<int, string>
+     * }>
+     */
+    public function getStructuredRequirements(): array
+    {
+        $sections = static::parseRequirementsSections($this->requirements);
+        $structured = [];
+
+        foreach ($sections as $section) {
+            $category = trim((string) ($section['category'] ?? 'General Prerequisites'));
+            $items = array_values(array_filter(array_map(
+                static fn (mixed $item): string => trim((string) preg_replace('/^(?:[-*•]+|\d+[.)])\s*/u', '', trim((string) $item))),
+                is_array($section['items'] ?? null) ? $section['items'] : (preg_split('/\R+/u', (string) ($section['items'] ?? '')) ?: [])
+            )));
+
+            if ($items === []) {
+                continue;
+            }
+
+            $meta = static::resolveRequirementCategoryMeta($category);
+
+            $structured[] = [
+                'category' => $meta['title'],
+                'subtitle' => $meta['subtitle'],
+                'icon' => $meta['icon'],
+                'card_classes' => $meta['card_classes'],
+                'icon_classes' => $meta['icon_classes'],
+                'badge_classes' => $meta['badge_classes'],
+                'check_classes' => $meta['check_classes'],
+                'items' => $items,
+            ];
+        }
+
+        return $structured;
+    }
+
+    /**
+     * Parse raw requirements (JSON, headed text blocks, or flat lines) into
+     * normalized `[ ['category' => string, 'items' => array<int, string>], ... ]`.
+     *
+     * @return array<int, array{category: string, items: array<int, string>}>
+     */
+    public static function parseRequirementsSections(mixed $raw): array
+    {
+        if ($raw === null) {
+            return [];
+        }
+
+        $cleanItem = static fn (string $line): string => trim((string) preg_replace('/^(?:[-*•]+|\d+[.)])\s*/u', '', trim($line)));
+
+        if (is_array($raw)) {
+            $decoded = $raw;
+        } elseif (is_string($raw)) {
+            $trimmed = trim($raw);
+            if ($trimmed === '') {
+                return [];
+            }
+
+            $decoded = null;
+            if ((str_starts_with($trimmed, '[') && str_ends_with($trimmed, ']')) || (str_starts_with($trimmed, '{') && str_ends_with($trimmed, '}'))) {
+                $json = json_decode($trimmed, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
+                    $decoded = $json;
+                }
+            }
+        } else {
+            return [];
+        }
+
+        if (is_array($decoded)) {
+            $grouped = [];
+
+            if (! array_is_list($decoded)) {
+                foreach ($decoded as $key => $val) {
+                    $cat = static::normalizeRequirementCategoryName((string) $key);
+                    $lines = is_array($val) ? $val : (preg_split('/\R+/u', (string) $val) ?: []);
+                    foreach ($lines as $line) {
+                        if (is_array($line)) {
+                            $subCat = static::normalizeRequirementCategoryName((string) ($line['category'] ?? $cat));
+                            $subItems = is_array($line['items'] ?? null)
+                                ? $line['items']
+                                : (preg_split('/\R+/u', (string) ($line['items'] ?? $line['item'] ?? '')) ?: []);
+                            foreach ($subItems as $si) {
+                                $cleaned = $cleanItem((string) $si);
+                                if ($cleaned !== '') {
+                                    $grouped[$subCat][] = $cleaned;
+                                }
+                            }
+                            continue;
+                        }
+                        $cleaned = $cleanItem((string) $line);
+                        if ($cleaned !== '') {
+                            $grouped[$cat][] = $cleaned;
+                        }
+                    }
+                }
+            } else {
+                $flatStrings = [];
+                foreach ($decoded as $entry) {
+                    if (is_array($entry)) {
+                        $rawCat = trim((string) ($entry['category'] ?? ''));
+                        if (strtolower($rawCat) === 'other' && ! empty($entry['custom_category'])) {
+                            $rawCat = trim((string) $entry['custom_category']);
+                        }
+                        $cat = static::normalizeRequirementCategoryName($rawCat !== '' ? $rawCat : 'Knowledge');
+                        $rawItems = $entry['items'] ?? $entry['details'] ?? $entry['requirements'] ?? [];
+                        $lines = is_array($rawItems) ? $rawItems : (preg_split('/\R+/u', (string) $rawItems) ?: []);
+                        foreach ($lines as $line) {
+                            $cleaned = $cleanItem((string) $line);
+                            if ($cleaned !== '') {
+                                $grouped[$cat][] = $cleaned;
+                            }
+                        }
+                    } elseif (is_string($entry) && trim($entry) !== '') {
+                        $flatStrings[] = trim($entry);
+                    }
+                }
+
+                if ($flatStrings !== [] && $grouped === []) {
+                    return static::parseRequirementsSections(implode("\n", $flatStrings));
+                }
+            }
+
+            $result = [];
+            foreach ($grouped as $cat => $items) {
+                $uniqueItems = array_values(array_unique(array_filter($items, static fn (string $i): bool => $i !== '')));
+                if ($uniqueItems !== []) {
+                    $result[] = [
+                        'category' => $cat,
+                        'items' => $uniqueItems,
+                    ];
+                }
+            }
+
+            return $result;
+        }
+
+        // Plain-text parsing: check for explicit section headers or "Heading: item" lines
+        $lines = preg_split('/\R+/u', trim((string) $raw)) ?: [];
+        $explicitGroups = [];
+        $currentHeading = null;
+        $unheadedLines = [];
+
+        $knownHeadingPattern = '/^(?:#+\s*|\*\*)?(Hardware(?:\s*&\s*Equipment|\s*Requirements|\s*Specs)?|Software(?:\s*&\s*Tools|\s*Installations|\s*Requirements)?|Knowledge(?:\s*&\s*Prerequisites|\s*Prerequisites)?|Prerequisites?|Installations?|Tools(?:\s*&\s*Software)?|Equipment|Connectivity(?:\s*&\s*Environment)?|Internet(?:\s*&\s*Connectivity)?|Environment|Materials(?:\s*&\s*Accounts)?|Accounts?)(?:\*\*)?\s*(?:[:\-]\s*(.*))?$/iu';
+
+        foreach ($lines as $rawLine) {
+            $line = trim((string) $rawLine);
+            if ($line === '') {
+                continue;
+            }
+
+            // Check "[Heading]" or "### Heading" or "Heading:" with empty remainder
+            if (preg_match('/^(?:\[([^\]]+)\]|#+\s*(.+?)|([A-Za-z][A-Za-z0-9\s&\/\-]{1,38}):)$/', $line, $hMatch) === 1) {
+                $headingCandidate = trim((string) ($hMatch[1] ?: ($hMatch[2] ?: $hMatch[3])));
+                $currentHeading = static::normalizeRequirementCategoryName($headingCandidate);
+                if (! isset($explicitGroups[$currentHeading])) {
+                    $explicitGroups[$currentHeading] = [];
+                }
+                continue;
+            }
+
+            // Check "KnownHeading: item1; item2"
+            if (preg_match($knownHeadingPattern, $line, $kMatch) === 1) {
+                $headingCandidate = static::normalizeRequirementCategoryName((string) $kMatch[1]);
+                $remainder = trim((string) ($kMatch[2] ?? ''));
+                $currentHeading = $headingCandidate;
+                if ($remainder !== '') {
+                    foreach (preg_split('/\s*[;|]\s*/u', $remainder) ?: [$remainder] as $part) {
+                        $cleaned = $cleanItem($part);
+                        if ($cleaned !== '') {
+                            $explicitGroups[$currentHeading][] = $cleaned;
+                        }
+                    }
+                }
+                continue;
+            }
+
+            $cleaned = $cleanItem($line);
+            if ($cleaned === '') {
+                continue;
+            }
+
+            if ($currentHeading !== null) {
+                $explicitGroups[$currentHeading][] = $cleaned;
+            } else {
+                $unheadedLines[] = $cleaned;
+            }
+        }
+
+        // Auto-classify any unheaded lines into Hardware, Knowledge, Software, Connectivity & Environment
+        if ($unheadedLines !== []) {
+            foreach ($unheadedLines as $line) {
+                $guessed = static::guessRequirementCategory($line);
+                $explicitGroups[$guessed][] = $line;
+            }
+        }
+
+        // Sort standard categories first (Hardware -> Knowledge -> Software -> Connectivity & Environment -> others)
+        $preferredOrder = ['Hardware', 'Knowledge', 'Software', 'Connectivity & Environment', 'Materials & Accounts'];
+        uksort($explicitGroups, static function (string $a, string $b) use ($preferredOrder): int {
+            $posA = array_search($a, $preferredOrder, true);
+            $posB = array_search($b, $preferredOrder, true);
+            $rankA = $posA === false ? 999 : $posA;
+            $rankB = $posB === false ? 999 : $posB;
+
+            return $rankA <=> $rankB;
+        });
+
+        $result = [];
+        foreach ($explicitGroups as $cat => $items) {
+            $uniqueItems = array_values(array_unique(array_filter($items, static fn (string $i): bool => $i !== '')));
+            if ($uniqueItems !== []) {
+                $result[] = [
+                    'category' => $cat,
+                    'items' => $uniqueItems,
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    public static function normalizeRequirementCategoryName(string $rawCategory): string
+    {
+        $clean = trim((string) preg_replace('/^[\s#*\[(\-]+|[\s#*\]):\-]+$/u', '', $rawCategory));
+        $lower = strtolower($clean);
+
+        if ($lower === '' || in_array($lower, ['knowledge', 'prerequisite', 'prerequisites', 'prior knowledge', 'background', 'skills', 'knowledge & prerequisites'], true)) {
+            return 'Knowledge';
+        }
+
+        if (in_array($lower, ['hardware', 'hardward', 'device', 'devices', 'equipment', 'computer', 'system requirements', 'hardware & equipment', 'hardware requirements', 'specs', 'specifications'], true)) {
+            return 'Hardware';
+        }
+
+        if (in_array($lower, ['software', 'installation', 'installations', 'tools', 'tools & software', 'software & tools', 'software & installations', 'software installations', 'applications', 'apps'], true)) {
+            return 'Software';
+        }
+
+        if (in_array($lower, ['connectivity', 'internet', 'network', 'environment', 'workspace', 'connectivity & environment', 'internet & connectivity'], true)) {
+            return 'Connectivity & Environment';
+        }
+
+        if (in_array($lower, ['materials', 'accounts', 'materials & accounts', 'resources', 'datasets'], true)) {
+            return 'Materials & Accounts';
+        }
+
+        return ucwords($clean);
+    }
+
+    public static function guessRequirementCategory(string $line): string
+    {
+        $lower = strtolower($line);
+
+        // Knowledge / Prerequisite checks first for phrases like "basic computer literacy" or "no prior experience"
+        if (preg_match('/\b(literacy|understanding|familiar|familiarity|knowledge|prerequisite|experience|beginner|willingness|passion|motivation|interest|logic|mathematics|math|algebra|statistics|english|proficiency|fundamentals|concepts|mindset|dedication|commitment|hours?\s+per\s+week|hours?\/week)\b/i', $lower) === 1) {
+            return 'Knowledge';
+        }
+
+        // Connectivity & Environment checks
+        if (preg_match('/\b(internet|wi-?fi|broadband|network\s+connection|stable\s+connection|data\s+bundle|quiet\s+place|workspace)\b/i', $lower) === 1) {
+            return 'Connectivity & Environment';
+        }
+
+        // Software & Installations checks
+        if (preg_match('/\b(install|installed|installation|python|vs\s*code|visual\s+studio|pycharm|intellij|code\s+editor|text\s+editor|ide|git|github|docker|postman|node\.?js|npm|composer|php|mysql|postgresql|sqlite|mongodb|anaconda|jupyter|flutter|android\s+studio|xcode|figma|canva|photoshop|illustrator|excel|word|powerpoint|microsoft\s+office|google\s+sheets|power\s+bi|tableau|browser|chrome|firefox|zoom|google\s+meet|teams|terminal|sdk|jdk|package|software)\b/i', $lower) === 1) {
+            return 'Software';
+        }
+
+        // Hardware checks
+        if (preg_match('/\b(laptop|desktop|pc|macbook|computer|ram|gb\b|tb\b|ssd|hdd|disk\s+space|storage|processor|cpu|gpu|core\s+i[3579]|ryzen|webcam|camera|microphone|mic\b|headset|headphones|earphones|monitor|screen|smartphone|tablet|mouse|keyboard|hardware)\b/i', $lower) === 1) {
+            return 'Hardware';
+        }
+
+        return 'Knowledge';
+    }
+
+    /**
+     * @return array{
+     *     title: string,
+     *     subtitle: string,
+     *     icon: string,
+     *     card_classes: string,
+     *     icon_classes: string,
+     *     badge_classes: string,
+     *     check_classes: string
+     * }
+     */
+    public static function resolveRequirementCategoryMeta(string $category): array
+    {
+        $normalized = static::normalizeRequirementCategoryName($category);
+
+        return match ($normalized) {
+            'Hardware' => [
+                'title' => 'Hardware',
+                'subtitle' => 'Hardware & Device Requirements',
+                'icon' => 'fa-solid fa-laptop',
+                'card_classes' => 'border-amber-200/80 bg-amber-50/35',
+                'icon_classes' => 'bg-amber-100 text-amber-700 border border-amber-200/80',
+                'badge_classes' => 'bg-amber-100/80 text-amber-800 border-amber-200',
+                'check_classes' => 'bg-amber-100 text-amber-700',
+            ],
+            'Knowledge' => [
+                'title' => 'Knowledge',
+                'subtitle' => 'Prerequisites & Prior Knowledge',
+                'icon' => 'fa-solid fa-brain',
+                'card_classes' => 'border-teal-200/80 bg-teal-50/35',
+                'icon_classes' => 'bg-teal-100 text-teal-700 border border-teal-200/80',
+                'badge_classes' => 'bg-teal-100/80 text-teal-800 border-teal-200',
+                'check_classes' => 'bg-teal-100 text-teal-700',
+            ],
+            'Software' => [
+                'title' => 'Software',
+                'subtitle' => 'Required Software & Installations',
+                'icon' => 'fa-solid fa-cubes',
+                'card_classes' => 'border-indigo-200/80 bg-indigo-50/35',
+                'icon_classes' => 'bg-indigo-100 text-indigo-700 border border-indigo-200/80',
+                'badge_classes' => 'bg-indigo-100/80 text-indigo-800 border-indigo-200',
+                'check_classes' => 'bg-indigo-100 text-indigo-700',
+            ],
+            'Connectivity & Environment' => [
+                'title' => 'Connectivity & Environment',
+                'subtitle' => 'Internet & Study Environment',
+                'icon' => 'fa-solid fa-wifi',
+                'card_classes' => 'border-emerald-200/80 bg-emerald-50/35',
+                'icon_classes' => 'bg-emerald-100 text-emerald-700 border border-emerald-200/80',
+                'badge_classes' => 'bg-emerald-100/80 text-emerald-800 border-emerald-200',
+                'check_classes' => 'bg-emerald-100 text-emerald-700',
+            ],
+            'Materials & Accounts' => [
+                'title' => 'Materials & Accounts',
+                'subtitle' => 'Accounts, Datasets & Resources',
+                'icon' => 'fa-solid fa-folder-open',
+                'card_classes' => 'border-cyan-200/80 bg-cyan-50/35',
+                'icon_classes' => 'bg-cyan-100 text-cyan-700 border border-cyan-200/80',
+                'badge_classes' => 'bg-cyan-100/80 text-cyan-800 border-cyan-200',
+                'check_classes' => 'bg-cyan-100 text-cyan-700',
+            ],
+            default => [
+                'title' => $normalized,
+                'subtitle' => 'Additional Course Requirements',
+                'icon' => 'fa-solid fa-layer-group',
+                'card_classes' => 'border-slate-200/90 bg-slate-50/60',
+                'icon_classes' => 'bg-slate-200/80 text-slate-700 border border-slate-300/80',
+                'badge_classes' => 'bg-slate-100 text-slate-700 border-slate-200',
+                'check_classes' => 'bg-teal-100 text-teal-700',
+            ],
+        };
+    }
 }
+
 
