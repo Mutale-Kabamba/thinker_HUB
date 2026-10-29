@@ -18,6 +18,7 @@ class PromoCodeForm
         return $schema
             ->components([
                 Section::make('General Code Settings')
+                    ->columnSpanFull()
                     ->schema([
                         TextInput::make('code')
                             ->label('Promo Code')
@@ -40,6 +41,7 @@ class PromoCodeForm
                     ->columns(['default' => 1, 'md' => 2]),
 
                 Section::make('Discount Configuration')
+                    ->columnSpanFull()
                     ->schema([
                         Select::make('discount_type')
                             ->label('Discount Type')
@@ -78,6 +80,7 @@ class PromoCodeForm
                     ->columns(['default' => 1, 'md' => 2]),
 
                 Section::make('Restrictions & Usage Limits')
+                    ->columnSpanFull()
                     ->schema([
                         Select::make('course_id')
                             ->label('Course Scope')

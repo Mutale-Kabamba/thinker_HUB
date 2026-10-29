@@ -16,6 +16,7 @@ class InstructorApplicationForm
         return $schema
             ->components([
                 Section::make('Applicant Information')
+                    ->columnSpanFull()
                     ->columns(['default' => 1, 'md' => 2])
                     ->schema([
                         TextInput::make('name')
@@ -73,6 +74,7 @@ class InstructorApplicationForm
                     ]),
 
                 Section::make('Qualifications & Experience')
+                    ->columnSpanFull()
                     ->schema([
                         Textarea::make('qualifications')
                             ->disabled()
@@ -86,6 +88,7 @@ class InstructorApplicationForm
                     ]),
 
                 Section::make('Course Proposal')
+                    ->columnSpanFull()
                     ->columns(['default' => 1, 'md' => 2])
                     ->schema([
                         TextInput::make('proposal_type')
@@ -249,6 +252,7 @@ class InstructorApplicationForm
 
                 Section::make('Course Assignment Decision (Admin)')
                     ->description('Assign this instructor to an existing course or prompt them to build a new one with the guide.')
+                    ->columnSpanFull()
                     ->schema([
                         Select::make('course_assignment_action')
                             ->label('Course Assignment Decision')
@@ -290,6 +294,7 @@ class InstructorApplicationForm
                     ]),
 
                 Section::make('Review Decision')
+                    ->columnSpanFull()
                     ->schema([
                         Select::make('status')
                             ->options([
