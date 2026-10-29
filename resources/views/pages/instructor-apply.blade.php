@@ -241,8 +241,8 @@
                                 </div>
 
                                 <div>
-                                    <label for="proposed_course_requirements" class="block text-sm font-semibold text-slate-700 mb-1">Requirements *</label>
-                                    <textarea id="proposed_course_requirements" name="proposed_course_requirements" rows="4" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Add each requirement on a new line.">{{ old('proposed_course_requirements') }}</textarea>
+                                    <label for="proposed_course_requirements" class="block text-sm font-semibold text-slate-700 mb-1">Requirements &amp; Prerequisites (by Section) *</label>
+                                    <textarea id="proposed_course_requirements" name="proposed_course_requirements" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Group requirements under headings such as Hardware, Knowledge, Software, etc.:&#10;Hardware:&#10;- Laptop or desktop with 8GB+ RAM&#10;Knowledge:&#10;- Basic computer literacy&#10;Software:&#10;- Python 3.11+ &amp; VS Code installed">{{ old('proposed_course_requirements') }}</textarea>
                                     @error('proposed_course_requirements') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                                 </div>
 

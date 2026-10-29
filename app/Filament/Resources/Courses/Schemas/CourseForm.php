@@ -112,11 +112,60 @@ class CourseForm
                                             ->maxLength(150)
                                             ->rows(3)
                                             ->columnSpanFull(),
-                                        Textarea::make('requirements')
-                                            ->label('Requirements & Prerequisites')
-                                            ->helperText('Enter each requirement on a new line. Displayed as a list on the public course page.')
-                                            ->placeholder("Basic computer literacy\nPython 3.10+ installed\nA code editor (VS Code or PyCharm)")
-                                            ->rows(4)
+                                        Repeater::make('requirements')
+                                            ->label('Requirements & Prerequisites (Categorized Sections)')
+                                            ->helperText('Organize requirements under sections like Hardware, Knowledge, Software, Connectivity & Environment, or a custom heading. Enter one item per line in each section.')
+                                            ->schema([
+                                                Select::make('category')
+                                                    ->label('Section Heading')
+                                                    ->options(self::getRequirementCategoryOptions())
+                                                    ->default('Hardware')
+                                                    ->live()
+                                                    ->required(),
+                                                TextInput::make('custom_category')
+                                                    ->label('Custom Heading Title')
+                                                    ->placeholder('e.g. Lab Equipment, Certification Setup')
+                                                    ->maxLength(80)
+                                                    ->visible(fn ($get): bool => $get('category') === 'Other')
+                                                    ->required(fn ($get): bool => $get('category') === 'Other'),
+                                                Textarea::make('items')
+                                                    ->label('Requirements List (One per line)')
+                                                    ->placeholder(fn ($get): string => match ($get('category')) {
+                                                        'Hardware' => "Laptop or Desktop with at least 8GB RAM\n20GB free storage space\nWorking microphone & speakers",
+                                                        'Software' => "Python 3.11+ installed\nVS Code or PyCharm IDE\nGit & free GitHub account",
+                                                        'Connectivity & Environment' => "Stable internet connection (5 Mbps+)\nQuiet study environment for live sessions",
+                                                        'Materials & Accounts' => "Free GitHub account\nCourse dataset pack (provided in Module 1)",
+                                                        default => "Basic computer literacy and file navigation\nNo prior coding experience required\nWillingness to practice 4-5 hours per week",
+                                                    })
+                                                    ->rows(3)
+                                                    ->required()
+                                                    ->columnSpanFull(),
+                                            ])
+                                            ->columns(['default' => 1, 'sm' => 2])
+                                            ->itemLabel(function (array $state): string {
+                                                $cat = (string) ($state['category'] ?? 'Section');
+                                                if ($cat === 'Other' && ! empty($state['custom_category'])) {
+                                                    $cat = (string) $state['custom_category'];
+                                                }
+                                                $rawItems = $state['items'] ?? '';
+                                                $lines = is_array($rawItems) ? $rawItems : (preg_split('/\R+/u', (string) $rawItems) ?: []);
+                                                $count = count(array_filter(array_map('trim', $lines)));
+
+                                                return $count > 0 ? "{$cat} ({$count} " . Str::plural('item', $count) . ')' : $cat;
+                                            })
+                                            ->collapsible()
+                                            ->default([
+                                                ['category' => 'Hardware', 'custom_category' => '', 'items' => ''],
+                                                ['category' => 'Knowledge', 'custom_category' => '', 'items' => ''],
+                                                ['category' => 'Software', 'custom_category' => '', 'items' => ''],
+                                            ])
+                                            ->addActionLabel('Add Requirement Section (Hardware, Knowledge, Software, etc.)')
+                                            ->afterStateHydrated(function (Repeater $component, mixed $state): void {
+                                                $parsed = self::parseRequirementsState($state);
+                                                if ($parsed !== []) {
+                                                    $component->state($parsed);
+                                                }
+                                            })
                                             ->columnSpanFull(),
                                         Textarea::make('key_outcome')
                                             ->label('Key Learning Outcomes')
@@ -450,6 +499,7 @@ class CourseForm
         $data['offering_mode'] = $data['offering_mode'] ?? 'once_off';
         $data['fees'] = self::parseFeesState($data['fees'] ?? null);
         $data['level_progression'] = self::parseLevelProgressionState($data['level_progression'] ?? null);
+        $data['requirements'] = self::parseRequirementsState($data['requirements'] ?? null);
 
         return $data;
     }
@@ -465,8 +515,147 @@ class CourseForm
         $data['course_by'] = $courseBy !== '' ? $courseBy : null;
         $data['fees'] = self::serializeFeesState($data['fees'] ?? null);
         $data['level_progression'] = self::serializeLevelProgressionState($data['level_progression'] ?? null);
+        $data['requirements'] = self::serializeRequirementsState($data['requirements'] ?? null);
 
         return $data;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function getRequirementCategoryOptions(): array
+    {
+        return [
+            'Hardware' => 'Hardware (Device & Equipment Requirements)',
+            'Knowledge' => 'Knowledge (Prerequisites & Background)',
+            'Software' => 'Software (Installations & Tools)',
+            'Connectivity & Environment' => 'Connectivity & Environment (Internet & Setup)',
+            'Materials & Accounts' => 'Materials & Accounts (Accounts & Resources)',
+            'Other' => 'Other (Custom Section Heading)',
+        ];
+    }
+
+    /**
+     * @return array<int, array{category: string, custom_category: string, items: string}>
+     */
+    private static function parseRequirementsState(mixed $state): array
+    {
+        if ($state === null || $state === '') {
+            return [];
+        }
+
+        // If already in Repeater state format with string 'items'
+        if (is_array($state)) {
+            $first = reset($state);
+            if (is_array($first) && array_key_exists('category', $first) && is_string($first['items'] ?? null)) {
+                $knownKeys = array_keys(self::getRequirementCategoryOptions());
+                $normalized = [];
+                foreach ($state as $row) {
+                    if (! is_array($row)) {
+                        continue;
+                    }
+                    $cat = trim((string) ($row['category'] ?? 'Knowledge'));
+                    $custom = trim((string) ($row['custom_category'] ?? ''));
+                    if ($cat !== 'Other' && ! in_array($cat, $knownKeys, true)) {
+                        $custom = $cat;
+                        $cat = 'Other';
+                    }
+                    $itemsText = trim((string) ($row['items'] ?? ''));
+                    if ($itemsText !== '') {
+                        $normalized[] = [
+                            'category' => $cat,
+                            'custom_category' => $custom,
+                            'items' => $itemsText,
+                        ];
+                    }
+                }
+
+                return $normalized;
+            }
+        }
+
+        $sections = \App\Models\Course::parseRequirementsSections($state);
+        $knownKeys = array_keys(self::getRequirementCategoryOptions());
+        $result = [];
+
+        foreach ($sections as $sec) {
+            $cat = trim((string) ($sec['category'] ?? 'Knowledge'));
+            $items = is_array($sec['items'] ?? null) ? $sec['items'] : [];
+            $itemsText = trim(implode("\n", array_filter(array_map('trim', $items))));
+
+            if ($itemsText === '') {
+                continue;
+            }
+
+            if (in_array($cat, $knownKeys, true) && $cat !== 'Other') {
+                $result[] = [
+                    'category' => $cat,
+                    'custom_category' => '',
+                    'items' => $itemsText,
+                ];
+            } else {
+                $result[] = [
+                    'category' => 'Other',
+                    'custom_category' => $cat,
+                    'items' => $itemsText,
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    private static function serializeRequirementsState(mixed $state): ?string
+    {
+        if ($state === null) {
+            return null;
+        }
+
+        if (is_string($state)) {
+            $trimmed = trim($state);
+
+            return $trimmed !== '' ? $trimmed : null;
+        }
+
+        if (! is_array($state)) {
+            return null;
+        }
+
+        $serialized = [];
+
+        foreach ($state as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $cat = trim((string) ($row['category'] ?? 'Knowledge'));
+            if ($cat === 'Other') {
+                $custom = trim((string) ($row['custom_category'] ?? ''));
+                $cat = $custom !== '' ? $custom : 'Additional Requirements';
+            }
+
+            $rawItems = $row['items'] ?? [];
+            $lines = is_array($rawItems) ? $rawItems : (preg_split('/\R+/u', (string) $rawItems) ?: []);
+            $cleanItems = array_values(array_filter(array_map(
+                static fn (string $line): string => trim((string) preg_replace('/^(?:[-*•]+|\d+[.)])\s*/u', '', trim($line))),
+                $lines
+            )));
+
+            if ($cleanItems === []) {
+                continue;
+            }
+
+            $serialized[] = [
+                'category' => $cat,
+                'items' => $cleanItems,
+            ];
+        }
+
+        if ($serialized === []) {
+            return null;
+        }
+
+        return json_encode($serialized, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: null;
     }
 
     /**

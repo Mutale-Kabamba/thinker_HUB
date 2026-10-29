@@ -781,27 +781,58 @@
                     @endif
 
                     @php
-                        $requirementLines = array_values(array_filter(array_map(
-                            static fn (string $line): string => trim((string) preg_replace('/^(?:[-*•]+|\d+[.)])\s*/u', '', trim($line))),
-                            $toLines($course->requirements)
-                        )));
+                        $structuredRequirements = $course->getStructuredRequirements();
                     @endphp
-                    @if (! empty($requirementLines))
-                        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 space-y-3.5 shadow-2xs">
-                            <div class="flex items-center gap-2">
-                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-600 text-xs"><i class="fa-solid fa-list-check"></i></span>
-                                <h3 class="text-base font-bold text-slate-900">Requirements &amp; Prerequisites</h3>
+                    @if (! empty($structuredRequirements))
+                        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 space-y-4 shadow-2xs">
+                            <div class="flex items-center justify-between gap-3 flex-wrap">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50 border border-teal-100 text-teal-600 text-xs">
+                                        <i class="fa-solid fa-list-check"></i>
+                                    </span>
+                                    <div>
+                                        <h3 class="text-base font-bold text-slate-900">Requirements &amp; Prerequisites</h3>
+                                        <p class="text-[11px] text-slate-500">Organized by hardware, prior knowledge, software installations, and setup</p>
+                                    </div>
+                                </div>
+                                <span class="rounded-full bg-slate-100 border border-slate-200/80 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                                    {{ count($structuredRequirements) }} {{ \Illuminate\Support\Str::plural('Section', count($structuredRequirements)) }}
+                                </span>
                             </div>
-                            <ul class="grid gap-2.5 sm:grid-cols-2">
-                                @foreach ($requirementLines as $reqItem)
-                                    <li class="flex items-start gap-2.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs sm:text-sm leading-relaxed text-slate-700">
-                                        <span class="mt-0.5 inline-flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-700">
-                                            <i class="fa-solid fa-check text-[9px]"></i>
-                                        </span>
-                                        <span>{{ $reqItem }}</span>
-                                    </li>
+
+                            <div class="grid gap-3.5 sm:grid-cols-2">
+                                @foreach ($structuredRequirements as $reqSection)
+                                    <div class="rounded-xl border {{ $reqSection['card_classes'] }} p-4 flex flex-col justify-between {{ $loop->last && $loop->count % 2 === 1 && $loop->count > 1 ? 'sm:col-span-2' : '' }}">
+                                        <div>
+                                            <div class="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-200/60">
+                                                <div class="flex items-center gap-2.5 min-w-0">
+                                                    <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg {{ $reqSection['icon_classes'] }} text-xs">
+                                                        <i class="{{ $reqSection['icon'] }}"></i>
+                                                    </span>
+                                                    <div class="min-w-0">
+                                                        <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-tight truncate">{{ $reqSection['category'] }}</h4>
+                                                        <p class="text-[10px] font-medium text-slate-500 truncate">{{ $reqSection['subtitle'] }}</p>
+                                                    </div>
+                                                </div>
+                                                <span class="shrink-0 rounded-full border {{ $reqSection['badge_classes'] }} px-2 py-0.5 text-[10px] font-bold">
+                                                    {{ count($reqSection['items']) }}
+                                                </span>
+                                            </div>
+
+                                            <ul class="space-y-2">
+                                                @foreach ($reqSection['items'] as $reqItem)
+                                                    <li class="flex items-start gap-2 text-xs sm:text-sm leading-relaxed text-slate-700">
+                                                        <span class="mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full {{ $reqSection['check_classes'] }}">
+                                                            <i class="fa-solid fa-check text-[8px]"></i>
+                                                        </span>
+                                                        <span>{{ $reqItem }}</span>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    </div>
                                 @endforeach
-                            </ul>
+                            </div>
                         </div>
                     @endif
 
