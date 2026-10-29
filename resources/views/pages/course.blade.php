@@ -693,7 +693,16 @@
                 <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-slate-300">
                     <x-rating-stars :rating="$avgRating" :count="$ratingCount" size="sm" />
                     <span class="text-slate-500">•</span>
-                    <span><strong class="text-white">Instructor:</strong> {{ $course->instructor_label }}</span>
+                    <span>
+                        <strong class="text-white">Instructor:</strong>
+                        @if ($course->instructors->isNotEmpty())
+                            @foreach ($course->instructors as $inst)
+                                <a href="{{ route('landing.instructors.show', ['instructor' => $inst->id, 'slug' => \Illuminate\Support\Str::slug($inst->name ?: (string) $inst->id)]) }}" class="text-yellow-300 hover:text-yellow-200 underline underline-offset-2 font-semibold transition">{{ $inst->name }}</a>@if (! $loop->last)<span class="text-slate-400"> / </span>@endif
+                            @endforeach
+                        @else
+                            {{ $course->instructor_label }}
+                        @endif
+                    </span>
                 </div>
                 <div class="mt-7 flex flex-wrap items-center gap-3">
                     @if (! $isLockedCourse)
@@ -970,7 +979,15 @@
                         </div>
                         <div class="py-2.5 flex items-center justify-between gap-2">
                             <dt class="font-medium text-slate-500">Instructor</dt>
-                            <dd class="font-bold text-slate-900 text-right truncate max-w-[160px]" title="{{ $course->instructor_label }}">{{ $course->instructor_label }}</dd>
+                            <dd class="font-bold text-slate-900 text-right truncate max-w-[180px]" title="{{ $course->instructor_label }}">
+                                @if ($course->instructors->isNotEmpty())
+                                    @foreach ($course->instructors as $inst)
+                                        <a href="{{ route('landing.instructors.show', ['instructor' => $inst->id, 'slug' => \Illuminate\Support\Str::slug($inst->name ?: (string) $inst->id)]) }}" class="text-teal-700 hover:text-[#0a2d27] hover:underline underline-offset-2 transition">{{ $inst->name }}</a>@if (! $loop->last)<span class="text-slate-400"> / </span>@endif
+                                    @endforeach
+                                @else
+                                    {{ $course->instructor_label }}
+                                @endif
+                            </dd>
                         </div>
                         <div class="py-2.5 flex items-center justify-between gap-2">
                             <dt class="font-medium text-slate-500">Structure</dt>

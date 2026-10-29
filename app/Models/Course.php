@@ -116,7 +116,15 @@ class Course extends Model
     public function getInstructorLabelAttribute(): string
     {
         if (! $this->relationLoaded('instructors')) {
-            return 'TBA';
+            try {
+                $this->load([
+                    'instructors' => static fn ($instructorQuery) => $instructorQuery
+                        ->select('users.id', 'users.name')
+                        ->orderBy('name'),
+                ]);
+            } catch (\Throwable) {
+                return 'TBA';
+            }
         }
 
         /** @var Collection<int, string> $names */

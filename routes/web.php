@@ -394,6 +394,13 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
     $courseModel = Course::query()->where('is_active', true)->findOrFail($course);
     $courseModel->loadAvg('ratings', 'rating');
     $courseModel->loadCount('ratings');
+    if (Schema::hasTable('course_instructor') && Schema::hasTable('users')) {
+        $courseModel->load([
+            'instructors' => static fn ($instructorQuery) => $instructorQuery
+                ->select('users.id', 'users.name')
+                ->orderBy('name'),
+        ]);
+    }
     if (Schema::hasTable('course_intakes')) {
         $courseModel->load(['intakes' => fn ($q) => $q->orderBy('start_date')]);
     }
@@ -522,7 +529,10 @@ Route::get('/network/{instructor}/{slug?}', function (int $instructor, ?string $
     }
 
     $memberModel = User::query()
-        ->whereIn('role', ['instructor', 'blogger', 'researcher', 'employer'])
+        ->where(function ($q) {
+            $q->whereIn('role', ['instructor', 'blogger', 'researcher', 'employer'])
+                ->orWhere(fn ($sub) => $sub->where('role', 'admin')->whereHas('instructorCourses'));
+        })
         ->where('is_active', true)
         ->with($with)
         ->findOrFail($instructor);

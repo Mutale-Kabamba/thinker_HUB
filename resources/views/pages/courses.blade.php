@@ -120,7 +120,16 @@
                                     </div>
                                     <div class="mt-2.5 space-y-1 text-[11px] text-slate-600">
                                         <p class="truncate"><span class="font-semibold text-slate-800">Course By:</span> {{ $course->course_owner_label }}</p>
-                                        <p class="truncate"><span class="font-semibold text-slate-800">Instructor:</span> {{ $course->instructor_label }}</p>
+                                        <p class="truncate">
+                                            <span class="font-semibold text-slate-800">Instructor:</span>
+                                            @if ($course->instructors->isNotEmpty())
+                                                @foreach ($course->instructors as $inst)
+                                                    <a href="{{ route('landing.instructors.show', ['instructor' => $inst->id, 'slug' => \Illuminate\Support\Str::slug($inst->name ?: (string) $inst->id)]) }}" class="text-teal-700 hover:text-[#0a2d27] font-semibold hover:underline underline-offset-2 transition">{{ $inst->name }}</a>@if (! $loop->last)<span> / </span>@endif
+                                                @endforeach
+                                            @else
+                                                {{ $course->instructor_label }}
+                                            @endif
+                                        </p>
                                         @if ($course->isOngoing() && $course->activeIntake && $course->activeIntake->next_intake_start_date)
                                             <p class="truncate"><span class="font-semibold text-teal-800">Next Intake:</span> {{ $course->activeIntake->formattedNextIntake() }}</p>
                                         @endif
