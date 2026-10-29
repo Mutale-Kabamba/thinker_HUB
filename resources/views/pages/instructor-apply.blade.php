@@ -352,11 +352,8 @@
         </section>
     </main>
 
-    <footer class="bg-white border-t border-slate-200 py-12">
-        <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center">
-            <p class="text-xs text-slate-500">© {{ now()->year }} Thinker Hub. All rights reserved.</p>
-        </div>
-    </footer>
+    @include('partials.public-footer')
+    @include('partials.legal-modals')
 
 </body>
 </html>

@@ -26,11 +26,11 @@
             </div>
         </section>
 
-        <section class="py-20 lg:py-24">
+        <section class="py-14 lg:py-20">
             <div class="mx-auto grid max-w-6xl gap-8 px-6 lg:grid-cols-2 lg:px-8">
-                <div class="rounded-[2rem] border border-slate-200 bg-white p-8">
-                    <h2 class="text-2xl font-bold text-slate-900">Send a Message</h2>
-                    <p class="mt-2 text-sm text-slate-600">Our team usually responds within one business day.</p>
+                <div class="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-2xs">
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Send a Message</h2>
+                    <p class="mt-1.5 text-sm text-slate-600">Our team usually responds within one business day.</p>
                     @if (session('contact_success'))
                         <div class="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                             {{ session('contact_success') }}
@@ -52,18 +52,18 @@
                             Too many messages sent. Please wait a minute before trying again.
                         </div>
                     @endif
-                    <form method="POST" action="{{ route('landing.contact.store') }}" class="mt-6 space-y-4">
+                    <form method="POST" action="{{ route('landing.contact.store') }}" class="mt-5 space-y-3.5">
                         @csrf
-                        <input type="text" name="name" value="{{ old('name') }}" placeholder="Full name" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
+                        <input type="text" name="name" value="{{ old('name') }}" placeholder="Full name" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none" required>
                         @error('name')
                             <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
                         @enderror
-                        <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
+                        <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none" required>
                         @error('email')
                             <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
                         @enderror
                         <div x-data="{ selectedSubject: '{{ old('subject', 'General Inquiry') }}' }" class="space-y-3">
-                            <select name="subject" x-model="selectedSubject" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>
+                            <select name="subject" x-model="selectedSubject" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none" required>
                                 <option value="General Inquiry">General Inquiry</option>
                                 <option value="Enrollment Support">Enrollment Support</option>
                                 <option value="Course Guidance">Course Guidance</option>
@@ -79,7 +79,7 @@
                                 x-show="selectedSubject === 'Other'"
                                 x-transition
                                 placeholder="Type your custom subject"
-                                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none"
+                                class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
                             >
                         </div>
                         @error('subject')
@@ -88,32 +88,35 @@
                         @error('custom_subject')
                             <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
                         @enderror
-                        <textarea name="message" placeholder="How can we help?" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-teal-500 focus:outline-none" required>{{ old('message') }}</textarea>
+                        <textarea name="message" placeholder="How can we help?" rows="4" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none" required>{{ old('message') }}</textarea>
                         @error('message')
                             <p class="-mt-2 text-xs text-rose-600">{{ $message }}</p>
                         @enderror
-                        <button type="submit" class="rounded-full bg-yellow-400 px-7 py-3 text-sm font-bold text-[#0a2d27] hover:bg-[#0a2d27] hover:text-white transition-all">Send Message</button>
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-7 py-3 text-xs sm:text-sm font-bold text-[#0a2d27] hover:bg-amber-300 transition-all cursor-pointer">
+                            <span>Send Message</span>
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
                     </form>
                 </div>
 
-                <div class="rounded-[2rem] border border-slate-200 bg-white p-8 flex flex-col justify-between">
+                <div class="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-2xs flex flex-col justify-between">
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
-                        <div class="mt-4 space-y-2.5 text-sm text-slate-500">
-                            <p><span class="font-semibold text-slate-700">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
-                            <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinkerhub@oristudiozm.com</a></p>
-                            <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airport, Livingstone Zambia</p>
+                        <h3 class="text-base font-bold text-slate-900">Direct Contact Details</h3>
+                        <div class="mt-4 space-y-2.5 text-sm text-slate-600">
+                            <p><span class="font-semibold text-slate-800">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-bold underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
+                            <p><span class="font-semibold text-slate-800">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-[#0a2d27] font-semibold underline-offset-2 hover:underline">thinkerhub@oristudiozm.com</a></p>
+                            <p><span class="font-semibold text-slate-800">Address:</span> 10A Off Natwange Street, Airport, Livingstone, Zambia</p>
                         </div>
-                        <div class="mt-4 flex items-center justify-start gap-4 text-slate-500">
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-                            <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                        <div class="mt-4 flex items-center justify-start gap-3 text-slate-500">
+                            <a href="#" class="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center transition hover:border-[#0a2d27] hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f text-xs"></i></a>
+                            <a href="#" class="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center transition hover:border-[#0a2d27] hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in text-xs"></i></a>
+                            <a href="#" class="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center transition hover:border-[#0a2d27] hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube text-xs"></i></a>
                         </div>
                     </div>
 
                     <!-- Interactive Google Map -->
                     <div class="mt-6">
-                        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                        <div class="overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
                             <iframe
                                 title="think.er HUB Livingstone Location Map"
                                 src="https://maps.google.com/maps?q=10A%20Off%20Natwange%20Street%2C%20Livingstone%2C%20Zambia&t=&z=16&ie=UTF8&iwloc=&output=embed"
@@ -150,81 +153,24 @@
             </div>
         </section>
 
-        <section class="max-w-6xl mx-auto px-6 lg:px-8 pb-24">
-            <div class="rounded-[2.5rem] lg:rounded-[4rem] bg-[#0a2d27] p-8 lg:p-16 text-center lg:text-left relative overflow-hidden">
-                <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
+        <section class="max-w-6xl mx-auto px-6 lg:px-8 pb-20">
+            <div class="rounded-3xl bg-[#0a2d27] p-8 lg:p-14 text-center lg:text-left relative overflow-hidden shadow-xl">
+                <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
                     <div class="max-w-xl">
-                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Upskill with curated courses or teach your expertise.</h2>
-                        <p class="mt-4 text-slate-400">Enroll in a course that fits your goals, or join as a tutor and manage your learners.</p>
+                        <h2 class="text-2xl lg:text-4xl font-black leading-tight text-white">Upskill with curated courses or teach your expertise.</h2>
+                        <p class="mt-3 text-sm sm:text-base text-slate-300">Enroll in a course that fits your goals, or join as a tutor and manage your learners.</p>
                     </div>
-                    <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                        <a href="{{ route('register') }}" class="rounded-full bg-yellow-400 px-8 py-4 font-bold text-[#0a2d27] hover:bg-white transition-all text-center">ENROLL NOW</a>
-                        <a href="{{ route('landing.courses') }}" class="rounded-full border border-white/20 px-8 py-4 font-bold text-white hover:bg-white/10 transition-all text-center">Courses</a>
+                    <div class="flex flex-col sm:flex-row gap-3.5 w-full lg:w-auto shrink-0">
+                        <a href="{{ route('register') }}" class="rounded-full bg-yellow-400 px-7 py-3.5 text-xs sm:text-sm font-bold text-[#0a2d27] hover:bg-amber-300 transition-all text-center">Enroll Now</a>
+                        <a href="{{ route('landing.courses') }}" class="rounded-full border border-white/25 bg-white/5 px-7 py-3.5 text-xs sm:text-sm font-bold text-white hover:bg-white/15 transition-all text-center">Explore Courses</a>
                     </div>
                 </div>
-                <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 rounded-full -mr-20 -mt-20"></div>
+                <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 rounded-full -mr-20 -mt-20 pointer-events-none"></div>
             </div>
         </section>
     </main>
 
-    <footer class="bg-white border-t border-slate-200 py-12 lg:py-16">
-        <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center lg:text-left">
-            <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
-                    <div>
-                        <div class="flex items-center justify-center gap-3 lg:justify-start">
-                            <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
-                        </div>
-                        <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
-                            think.er HUB brings tutors and learners together: tutors manage curated courses while learners enroll to upskill.
-                        </p>
-                        <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
-                            <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>
-                        </div>
-                    </div>
-
-                    <div class="hidden lg:block">
-                        <h3 class="text-sm font-bold text-slate-900">Menu</h3>
-                        <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
-                            <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">Home</a></li>
-                            <li><a href="{{ route('landing.courses') }}" class="transition hover:text-[#0a2d27]">Courses</a></li>
-                            <li><a href="{{ route('hub.index') }}" class="transition hover:text-[#0a2d27]">Knowledge Hub</a></li>
-                            <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Network</a></li>
-                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
-                            @auth
-                                <li><a href="{{ route('dashboard') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
-                            @else
-                                <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
-                            @endauth
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
-                        <div class="mt-4 space-y-2.5 text-sm text-slate-500">
-                        <p><span class="font-semibold text-slate-700">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
-                        <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinkerhub@oristudiozm.com</a></p>
-                        <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
-                    </div>
-                    <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-8 border-t border-slate-200 pt-5">
-                <div class="flex flex-col items-center gap-4 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
-                    <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
-                    <div class="flex flex-wrap items-center gap-4">
-                        <a href="{{ route('landing.privacy') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</a>
-                        <a href="{{ route('landing.cookies') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</a>
-                        <a href="{{ route('landing.terms') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.public-footer')
 
     @include('partials.legal-modals')
 </body>
