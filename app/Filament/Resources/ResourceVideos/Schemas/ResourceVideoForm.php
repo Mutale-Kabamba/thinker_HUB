@@ -32,6 +32,7 @@ class ResourceVideoForm
                 Section::make('Video Content & Stream Source')
                     ->description('Media title, author attribution, and streaming video source.')
                     ->icon('heroicon-o-video-camera')
+                    ->columnSpanFull()
                     ->schema([
                         TextInput::make('title')
                             ->label('Video Title')
@@ -43,13 +44,15 @@ class ResourceVideoForm
                         TextInput::make('channel_name')
                             ->label('Channel / Source Attribution')
                             ->placeholder('e.g. think.er HUB / Instructor Name')
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->columnSpan(1),
 
                         TextInput::make('sort_order')
                             ->label('Catalog Sort Order')
                             ->numeric()
                             ->default(0)
-                            ->helperText('Lower numbers appear first in the library.'),
+                            ->helperText('Lower numbers appear first in the library.')
+                            ->columnSpan(1),
 
                         ToggleButtons::make('video_source')
                             ->label('Video Source Format')
@@ -123,18 +126,21 @@ class ResourceVideoForm
                             ->placeholder('Summarize lesson topics, timestamps, prerequisites, or downloadable attachments...')
                             ->columnSpanFull(),
                     ])
-                    ->columns(['default' => 1, 'sm' => 2, 'lg' => 3]),
+                    ->columns(['default' => 1, 'sm' => 2, 'lg' => 4]),
 
                 Section::make('Access Scope & Classification')
                     ->description('Assign viewing audience, course connection, cohort level, and publication status.')
                     ->icon('heroicon-o-shield-check')
+                    ->columnSpanFull()
                     ->schema([
                         Select::make('category')
                             ->label('Category')
                             ->options(ResourceVideo::categoryOptions())
                             ->default('General')
                             ->required()
-                            ->searchable(),
+                            ->selectablePlaceholder(false)
+                            ->searchable()
+                            ->helperText('Select the primary catalog category for this video.'),
 
                         Select::make('course_id')
                             ->label('Course Scope')
@@ -191,9 +197,10 @@ class ResourceVideoForm
 
                         Toggle::make('is_published')
                             ->label('Published (Visible to Students)')
+                            ->helperText('Make this video immediately visible to learners.')
                             ->default(true),
                     ])
-                    ->columns(['default' => 1, 'sm' => 2, 'lg' => 4]),
+                    ->columns(['default' => 1, 'sm' => 2]),
             ]);
     }
 }

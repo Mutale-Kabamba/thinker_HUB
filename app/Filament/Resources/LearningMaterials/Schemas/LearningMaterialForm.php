@@ -22,6 +22,7 @@ class LearningMaterialForm
                 Section::make('Material Information & Content')
                     ->description('Essential metadata, classification, media format, and file asset.')
                     ->icon('heroicon-o-document-text')
+                    ->columnSpanFull()
                     ->schema([
                         TextInput::make('title')
                             ->required()
@@ -31,6 +32,7 @@ class LearningMaterialForm
                         Select::make('category')
                             ->label('Category')
                             ->required()
+                            ->selectablePlaceholder(false)
                             ->searchable()
                             ->options(LearningMaterial::categoryOptions())
                             ->default('Study Material'),
@@ -38,6 +40,7 @@ class LearningMaterialForm
                         Select::make('material_type')
                             ->label('Material Type')
                             ->required()
+                            ->selectablePlaceholder(false)
                             ->options([
                                 'Document' => 'Document',
                                 'Image' => 'Image',
@@ -88,6 +91,7 @@ class LearningMaterialForm
                 Section::make('Course Assignment & Access Scope')
                     ->description('Designate cohort distribution, course binding, and student visibility.')
                     ->icon('heroicon-o-users')
+                    ->columnSpanFull()
                     ->schema([
                         Select::make('course_id')
                             ->label('Course')

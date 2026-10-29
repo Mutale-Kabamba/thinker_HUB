@@ -415,11 +415,201 @@
         flex-wrap: wrap !important;
     }
 
-    .fi-input,
-    .fi-select-input,
-    .fi-textarea {
-        border-radius: 12px !important;
-        border-color: color-mix(in oklab, var(--hub-border) 84%, #ffffff 16%) !important;
+    .fi-input-wrp {
+        border-radius: 10px !important;
+        border: 1px solid #cbd5e1 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+        transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease !important;
+    }
+
+    .dark .fi-input-wrp {
+        border-color: #243844 !important;
+        background-color: #0e181f !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .fi-input-wrp:hover {
+        border-color: #94a3b8 !important;
+    }
+
+    .dark .fi-input-wrp:hover {
+        border-color: #334e5e !important;
+    }
+
+    .fi-input-wrp:focus-within {
+        border-color: #0d9488 !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.16) !important;
+    }
+
+    /* Reset unlayered @tailwindcss/forms & preflight overrides inside Filament input wrappers */
+    .fi-input-wrp input.fi-input,
+    .fi-input-wrp textarea.fi-input,
+    .fi-input-wrp .fi-textarea {
+        border: none !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        border-radius: 10px !important;
+        padding: 0.55rem 0.85rem !important;
+        font-size: 0.84rem !important;
+        font-weight: 500 !important;
+        line-height: 1.45 !important;
+        color: #0f172a !important;
+        width: 100% !important;
+    }
+
+    .dark .fi-input-wrp input.fi-input,
+    .dark .fi-input-wrp textarea.fi-input,
+    .dark .fi-input-wrp .fi-textarea {
+        color: #f8fafc !important;
+    }
+
+    .fi-input-wrp input.fi-input::placeholder,
+    .fi-input-wrp textarea.fi-input::placeholder,
+    .fi-fo-textarea textarea::placeholder {
+        color: #94a3b8 !important;
+        font-weight: 400 !important;
+    }
+
+    .dark .fi-input-wrp input.fi-input::placeholder,
+    .dark .fi-input-wrp textarea.fi-input::placeholder,
+    .dark .fi-fo-textarea textarea::placeholder {
+        color: #64748b !important;
+    }
+
+    /* Non-native & Searchable Select (.fi-select-input div wrapper + .fi-select-input-btn) */
+    div.fi-select-input {
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        width: 100% !important;
+    }
+
+    div.fi-select-input > .fi-select-input-ctn {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    div.fi-select-input .fi-select-input-btn {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        min-height: 2.45rem !important;
+        padding: 0.55rem 2.35rem 0.55rem 0.85rem !important;
+        border: none !important;
+        border-radius: 10px !important;
+        background-color: transparent !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.65' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+        background-position: right 0.65rem center !important;
+        background-repeat: no-repeat !important;
+        background-size: 1.25rem 1.25rem !important;
+        font-size: 0.84rem !important;
+        font-weight: 500 !important;
+        line-height: 1.45 !important;
+        color: #0f172a !important;
+        text-align: left !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .dark div.fi-select-input .fi-select-input-btn {
+        color: #f8fafc !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.65' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+    }
+
+    div.fi-select-input > .fi-select-input-ctn.fi-select-input-ctn-clearable > .fi-select-input-btn {
+        padding-right: 3.85rem !important;
+    }
+
+    div.fi-select-input .fi-select-input-btn.fi-select-input-placeholder,
+    div.fi-select-input .fi-select-input-btn.fi-select-input-placeholder .fi-select-input-value-label {
+        color: #94a3b8 !important;
+        font-weight: 400 !important;
+    }
+
+    .dark div.fi-select-input .fi-select-input-btn.fi-select-input-placeholder,
+    .dark div.fi-select-input .fi-select-input-btn.fi-select-input-placeholder .fi-select-input-value-label {
+        color: #64748b !important;
+    }
+
+    div.fi-select-input .fi-select-input-value-label {
+        display: block !important;
+        width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        text-align: left !important;
+    }
+
+    div.fi-select-input .fi-select-input-value-remove-btn {
+        position: absolute !important;
+        right: 2.15rem !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 1.35rem !important;
+        height: 1.35rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 6px !important;
+        border: none !important;
+        background: transparent !important;
+        color: #94a3b8 !important;
+        padding: 0 !important;
+        cursor: pointer !important;
+        z-index: 2 !important;
+        transition: color 0.15s ease, background-color 0.15s ease !important;
+    }
+
+    div.fi-select-input .fi-select-input-value-remove-btn:hover {
+        color: #ef4444 !important;
+        background-color: rgba(239, 68, 68, 0.08) !important;
+    }
+
+    /* Native Select (<select class="fi-select-input">) */
+    select.fi-select-input {
+        border: none !important;
+        background-color: transparent !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.65' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+        background-position: right 0.65rem center !important;
+        background-repeat: no-repeat !important;
+        background-size: 1.25rem 1.25rem !important;
+        padding: 0.55rem 2.35rem 0.55rem 0.85rem !important;
+        font-size: 0.84rem !important;
+        font-weight: 500 !important;
+        line-height: 1.45 !important;
+        color: #0f172a !important;
+        width: 100% !important;
+        min-height: 2.45rem !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+        outline: none !important;
+        cursor: pointer !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+    }
+
+    .dark select.fi-select-input {
+        color: #f8fafc !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.65' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+    }
+
+    /* Fix LTR / RTL directional icons (e.g. Breadcrumb double chevrons > <) */
+    html:not([dir="rtl"]) .fi-rtl,
+    html:not([dir="rtl"]) .fi-breadcrumbs-item-separator.fi-rtl {
+        display: none !important;
+    }
+
+    html[dir="rtl"] .fi-ltr,
+    html[dir="rtl"] .fi-breadcrumbs-item-separator.fi-ltr {
+        display: none !important;
     }
 
     .fi-ta-table {
@@ -4462,30 +4652,30 @@
 
     /* 4. Modern Input Containers & Controls */
     :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp {
-        background-color: #f8fafc !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 12px !important;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) inset !important;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
         transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
     .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp {
-        background-color: #0b141a !important;
-        border-color: #233842 !important;
+        background-color: #0e181f !important;
+        border-color: #243844 !important;
     }
 
     :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:hover {
-        border-color: #cbd5e1 !important;
+        border-color: #94a3b8 !important;
     }
 
     .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:hover {
-        border-color: #2e4754 !important;
+        border-color: #334e5e !important;
     }
 
     :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:focus-within {
         background-color: #ffffff !important;
         border-color: #0d9488 !important;
-        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18) !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.16) !important;
     }
 
     .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:focus-within {
@@ -4494,18 +4684,65 @@
         box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25) !important;
     }
 
-    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input,
-    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-select-input {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) input.fi-input {
         font-size: 0.84rem !important;
         font-weight: 500 !important;
         color: #0f172a !important;
         line-height: 1.45 !important;
         padding: 0.58rem 0.85rem !important;
+        border: none !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
     }
 
-    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input,
-    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-select-input {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) input.fi-input {
         color: #f8fafc !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) div.fi-select-input {
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) select.fi-select-input {
+        font-size: 0.84rem !important;
+        font-weight: 500 !important;
+        color: #0f172a !important;
+        line-height: 1.45 !important;
+        padding: 0.58rem 2.35rem 0.58rem 0.85rem !important;
+        border: none !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) select.fi-select-input {
+        color: #f8fafc !important;
+    }
+
+    /* Clean Card Container for Standalone Toggle Switch Fields inside Sections */
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-content .fi-fo-field:has(.fi-toggle):not(.fi-fo-repeater-item .fi-fo-field) {
+        background-color: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 0.8rem 1rem !important;
+        transition: border-color 0.16s ease, background-color 0.16s ease !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-content .fi-fo-field:has(.fi-toggle):not(.fi-fo-repeater-item .fi-fo-field) {
+        background-color: #0e181f !important;
+        border-color: #1f333f !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-content .fi-fo-field:has(.fi-toggle):not(.fi-fo-repeater-item .fi-fo-field):hover {
+        border-color: #cbd5e1 !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-content .fi-fo-field:has(.fi-toggle):not(.fi-fo-repeater-item .fi-fo-field):hover {
+        border-color: #2e4754 !important;
     }
 
     /* Dedicated Textarea Styling (matches input containers with premium rounded corners) */

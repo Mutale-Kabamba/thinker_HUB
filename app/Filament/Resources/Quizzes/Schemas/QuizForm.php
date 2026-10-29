@@ -40,6 +40,7 @@ class QuizForm
                 Section::make('Evaluation Parameters')
                     ->description('Quiz targeting, timing thresholds, scoring criteria, and delivery conditions.')
                     ->icon('heroicon-o-adjustments-vertical')
+                    ->columnSpanFull()
                     ->schema([
                         $courseSelect,
 
@@ -114,6 +115,7 @@ class QuizForm
                 Section::make('Questions & Answer Keys')
                     ->description('Author assessment items, scoring weight, and interactive multiple-choice options.')
                     ->icon('heroicon-o-clipboard-document-check')
+                    ->columnSpanFull()
                     ->schema([
                         Repeater::make('questions')
                             ->relationship()

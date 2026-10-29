@@ -92,6 +92,7 @@ class CourseIntakeForm
                 Section::make('Cohort Identity & Operational Status')
                     ->description('Configure cohort designation, assigned course, and enrollment capacity.')
                     ->icon('heroicon-o-academic-cap')
+                    ->columnSpanFull()
                     ->schema([
                         Select::make('course_id')
                             ->label('Course')
@@ -105,6 +106,7 @@ class CourseIntakeForm
                             ->label('Intake Status')
                             ->options(CourseIntake::STATUSES)
                             ->default(CourseIntake::STATUS_UPCOMING)
+                            ->selectablePlaceholder(false)
                             ->required(),
 
                         TextInput::make('name')
@@ -132,6 +134,7 @@ class CourseIntakeForm
                 Section::make('Timeline & Milestone Schedule')
                     ->description('Cohort start and completion dates, registration cutoff, and subsequent cohort broadcast.')
                     ->icon('heroicon-o-calendar-days')
+                    ->columnSpanFull()
                     ->schema([
                         DatePicker::make('start_date')
                             ->label('Intake Start Date')
