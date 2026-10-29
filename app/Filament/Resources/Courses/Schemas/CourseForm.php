@@ -108,9 +108,19 @@ class CourseForm
                                             ->columnSpanFull(),
                                         Textarea::make('description')
                                             ->label('Detailed Description')
-                                            ->helperText('Concise detailed description shown on the public course page (maximum 150 characters).')
-                                            ->maxLength(150)
-                                            ->rows(3)
+                                            ->helperText('Detailed description shown on the public course page (maximum 250 words; shows the first 150 words with a "Read more" toggle if longer).')
+                                            ->rules([
+                                                fn (): \Closure => function (string $attribute, $value, \Closure $fail): void {
+                                                    if (! filled($value)) {
+                                                        return;
+                                                    }
+                                                    $words = preg_split('/\s+/u', trim((string) $value), -1, PREG_SPLIT_NO_EMPTY);
+                                                    if (is_array($words) && count($words) > 250) {
+                                                        $fail('The Detailed Description must not exceed 250 words (currently ' . count($words) . ' words).');
+                                                    }
+                                                },
+                                            ])
+                                            ->rows(5)
                                             ->columnSpanFull(),
                                         Repeater::make('requirements')
                                             ->label('Requirements & Prerequisites (Categorized Sections)')

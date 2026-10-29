@@ -13,6 +13,9 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
     <style>
+        [x-cloak] {
+            display: none !important;
+        }
         .hub-fee-row {
             transition: all 0.2s ease-in-out;
         }
@@ -769,12 +772,39 @@
                             @endif
 
                             @if (filled($course->description))
-                                <div class="{{ filled($course->overview) ? 'border-t border-slate-100 pt-4' : '' }} space-y-2">
+                                @php
+                                    $rawDescription = trim((string) $course->description);
+                                    $descriptionWords = preg_split('/\s+/u', $rawDescription, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+                                    $totalDescWords = count($descriptionWords);
+                                    $fullDescription = $totalDescWords > 250
+                                        ? \Illuminate\Support\Str::words($rawDescription, 250, '')
+                                        : $rawDescription;
+                                    $hasMoreDescription = $totalDescWords > 150;
+                                    $shortDescription = $hasMoreDescription
+                                        ? \Illuminate\Support\Str::words($fullDescription, 150, '...')
+                                        : $fullDescription;
+                                @endphp
+                                <div class="{{ filled($course->overview) ? 'border-t border-slate-100 pt-4' : '' }} space-y-2" x-data="{ expanded: false }">
                                     <div class="flex items-center gap-2">
                                         <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-700 text-xs"><i class="fa-solid fa-align-left"></i></span>
                                         <h2 class="text-base font-bold text-slate-900">Detailed Description</h2>
                                     </div>
-                                    <p class="text-sm leading-relaxed text-slate-600">{{ \Illuminate\Support\Str::limit(trim((string) $course->description), 150) }}</p>
+                                    @if ($hasMoreDescription)
+                                        <div class="text-sm leading-relaxed text-slate-600 whitespace-pre-line">
+                                            <span x-show="!expanded">{{ $shortDescription }}</span>
+                                            <span x-show="expanded" x-cloak>{{ $fullDescription }}</span>
+                                            <button
+                                                type="button"
+                                                @click="expanded = !expanded"
+                                                class="ml-1.5 inline-flex items-center gap-1 font-bold text-teal-700 hover:text-[#0a2d27] underline underline-offset-2 transition cursor-pointer"
+                                            >
+                                                <span x-text="expanded ? 'Show less' : 'Read more'">Read more</span>
+                                                <i class="fa-solid text-[10px] transition-transform duration-200" :class="expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                            </button>
+                                        </div>
+                                    @else
+                                        <p class="text-sm leading-relaxed text-slate-600 whitespace-pre-line">{{ $fullDescription }}</p>
+                                    @endif
                                 </div>
                             @endif
                         </div>

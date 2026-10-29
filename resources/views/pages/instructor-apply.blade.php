@@ -210,8 +210,8 @@
                                 </div>
 
                                 <div>
-                                    <label for="proposed_course_description" class="block text-sm font-semibold text-slate-700 mb-1">Description *</label>
-                                    <textarea id="proposed_course_description" name="proposed_course_description" rows="4" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Describe the course in detail.">{{ old('proposed_course_description') }}</textarea>
+                                    <label for="proposed_course_description" class="block text-sm font-semibold text-slate-700 mb-1">Detailed Description <span class="text-xs font-normal text-slate-500">(Max 250 words)</span> *</label>
+                                    <textarea id="proposed_course_description" name="proposed_course_description" rows="4" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Describe the course in detail (maximum 250 words).">{{ old('proposed_course_description') }}</textarea>
                                     @error('proposed_course_description') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                                 </div>
 
