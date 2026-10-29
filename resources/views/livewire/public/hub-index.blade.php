@@ -74,42 +74,42 @@
         </section>
 
         {{-- Filters Section --}}
-        <section class="border-b border-slate-200/80 bg-white/95 backdrop-blur-md sticky top-[73px] z-30">
-            <div class="mx-auto max-w-6xl px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <section class="border-b border-slate-200/80 bg-white/95 backdrop-blur-md sticky top-[57px] z-30">
+            <div class="mx-auto max-w-6xl px-6 lg:px-8 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 {{-- Type Filter Pills --}}
-                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
                     <button
                         wire:click="selectType('all')"
                         type="button"
-                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'all' ? 'bg-[#0a2d27] text-white' : 'bg-slate-100/90 text-slate-700 hover:bg-slate-200' }}"
+                        class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer {{ $type === 'all' ? 'bg-[#0a2d27] text-white shadow-2xs' : 'bg-slate-100/90 text-slate-700 hover:bg-slate-200' }}"
                     >
                         <i class="fa-solid fa-border-all text-[11px]"></i> All
                     </button>
                     <button
                         wire:click="selectType('video')"
                         type="button"
-                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'video' ? 'bg-rose-600 text-white' : 'bg-slate-100/90 text-slate-700 hover:bg-rose-50 hover:text-rose-700' }}"
+                        class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer {{ $type === 'video' ? 'bg-rose-600 text-white shadow-2xs' : 'bg-slate-100/90 text-slate-700 hover:bg-rose-50 hover:text-rose-700' }}"
                     >
                         <i class="fa-solid fa-video text-[11px]"></i> Videos
                     </button>
                     <button
                         wire:click="selectType('tip_trick')"
                         type="button"
-                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'tip_trick' ? 'bg-teal-700 text-white' : 'bg-slate-100/90 text-slate-700 hover:bg-teal-50 hover:text-teal-700' }}"
+                        class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer {{ $type === 'tip_trick' ? 'bg-teal-700 text-white shadow-2xs' : 'bg-slate-100/90 text-slate-700 hover:bg-teal-50 hover:text-teal-700' }}"
                     >
                         <i class="fa-solid fa-wand-magic-sparkles text-[11px]"></i> Tips &amp; Tricks
                     </button>
                     <button
                         wire:click="selectType('blog')"
                         type="button"
-                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'blog' ? 'bg-indigo-700 text-white' : 'bg-slate-100/90 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700' }}"
+                        class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer {{ $type === 'blog' ? 'bg-indigo-700 text-white shadow-2xs' : 'bg-slate-100/90 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700' }}"
                     >
                         <i class="fa-solid fa-newspaper text-[11px]"></i> Short Blogs
                     </button>
                     <button
                         wire:click="selectType('opportunity')"
                         type="button"
-                        class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 {{ $type === 'opportunity' ? 'bg-emerald-700 text-white' : 'bg-slate-100/90 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700' }}"
+                        class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer {{ $type === 'opportunity' ? 'bg-emerald-700 text-white shadow-2xs' : 'bg-slate-100/90 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700' }}"
                     >
                         <i class="fa-solid fa-briefcase text-[11px]"></i> Opportunities
                     </button>
@@ -119,7 +119,7 @@
                 <div class="flex items-center gap-3 shrink-0">
                     <select
                         wire:model.live="category"
-                        class="rounded-full bg-slate-100 border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-teal-500 cursor-pointer"
+                        class="rounded-full bg-slate-100 border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-teal-500 cursor-pointer"
                     >
                         <option value="all">All Categories</option>
                         @foreach ($categories as $cat)
@@ -131,7 +131,7 @@
                         <button
                             wire:click="resetFilters"
                             type="button"
-                            class="text-xs font-bold text-rose-600 hover:text-rose-700 underline underline-offset-2 flex items-center gap-1 transition-colors"
+                            class="text-xs font-bold text-rose-600 hover:text-rose-700 underline underline-offset-2 flex items-center gap-1 transition-colors cursor-pointer"
                         >
                             <i class="fa-solid fa-rotate-left"></i> Reset
                         </button>
@@ -141,12 +141,12 @@
         </section>
 
         {{-- Posts Listing Grid --}}
-        <section class="py-12 lg:py-16">
+        <section class="py-10 lg:py-14">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
 
                 {{-- Result Count Header --}}
-                <div class="mb-8 flex items-center justify-between">
-                    <p class="text-sm font-semibold text-slate-500">
+                <div class="mb-6 flex items-center justify-between">
+                    <p class="text-xs sm:text-sm font-semibold text-slate-500">
                         Showing <span class="font-bold text-slate-900">{{ $posts->total() }}</span> {{ Str::plural('resource', $posts->total()) }}
                         @if ($type !== 'all')
                             for <span class="font-bold text-slate-900">{{ App\Models\HubPost::TYPES[$type] ?? ucfirst($type) }}</span>
@@ -158,11 +158,11 @@
                 </div>
 
                 @if ($posts->count() > 0)
-                    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($posts as $post)
                             @if ($post->type === 'video')
                                 {{-- 1. Video Tutorial Card --}}
-                                <article class="group bg-white rounded-[2rem] overflow-hidden hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-rose-300 flex flex-col justify-between">
+                                <article class="group bg-white rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-300 border border-slate-200/90 hover:border-rose-300 flex flex-col justify-between">
                                     <div>
                                         <div class="relative aspect-video overflow-hidden bg-slate-900 cursor-pointer" wire:click="openVideoModal({{ $post->id }})">
                                             @if ($post->video_id)
@@ -227,7 +227,7 @@
 
                             @elseif ($post->type === 'tip_trick')
                                 {{-- 2. Tips & Tricks Card (Styled with top hero cover image like Video cards) --}}
-                                <article class="group bg-white rounded-[2rem] overflow-hidden hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-teal-300 flex flex-col justify-between">
+                                <article class="group bg-white rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-300 border border-slate-200/90 hover:border-teal-300 flex flex-col justify-between">
                                     <div>
                                         {{-- Top Hero Image / Gradient Cover --}}
                                         <a href="{{ route('hub.show', $post->slug) }}" class="relative block aspect-video overflow-hidden bg-slate-900">
@@ -318,7 +318,7 @@
 
                             @elseif ($post->type === 'opportunity')
                                 {{-- 3. Opportunity Card --}}
-                                <article class="group bg-white rounded-[2rem] p-6 hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-emerald-300 flex flex-col justify-between">
+                                <article class="group bg-white rounded-2xl p-5 sm:p-6 hover:-translate-y-1 transition-all duration-300 border border-slate-200/90 hover:border-emerald-300 flex flex-col justify-between">
                                     <div>
                                         <div class="flex items-center justify-between gap-2 mb-3">
                                             <span class="bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
@@ -418,7 +418,7 @@
 
                             @else
                                 {{-- 4. Short Blog Card --}}
-                                <article class="group bg-white rounded-[2rem] p-6 hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-indigo-300 flex flex-col justify-between">
+                                <article class="group bg-white rounded-2xl p-5 sm:p-6 hover:-translate-y-1 transition-all duration-300 border border-slate-200/90 hover:border-indigo-300 flex flex-col justify-between">
                                     <div>
                                         <div class="flex items-center justify-between gap-2 mb-4">
                                             <span class="bg-indigo-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
@@ -1193,64 +1193,6 @@
         </div>
     @endif
 
-    {{-- Footer (Standard Site Footer) --}}
-    <footer class="bg-white border-t border-slate-200 py-12 lg:py-16">
-        <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center lg:text-left">
-            <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
-                <div>
-                    <div class="flex items-center justify-center gap-3 lg:justify-start">
-                        <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
-                    </div>
-                    <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
-                        think.er HUB is where tutors create and manage courses, and learners register to upskill with practical outcomes.
-                    </p>
-                    <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
-                        <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>
-                    </div>
-                </div>
-
-                    <div class="hidden lg:block">
-                        <h3 class="text-sm font-bold text-slate-900">Menu</h3>
-                        <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
-                            <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">Home</a></li>
-                            <li><a href="{{ route('landing.courses') }}" class="transition hover:text-[#0a2d27]">Courses</a></li>
-                            <li><a href="{{ route('hub.index') }}" class="transition hover:text-[#0a2d27]">Knowledge Hub</a></li>
-                            <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Network</a></li>
-                            <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
-                            @auth
-                                <li><a href="{{ route('dashboard') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
-                            @else
-                                <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
-                            @endauth
-                        </ul>
-                    </div>
-
-                <div>
-                    <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
-                    <div class="mt-4 space-y-2.5 text-sm text-slate-500">
-                        <p><span class="font-semibold text-slate-700">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
-                        <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinkerhub@oristudiozm.com</a></p>
-                        <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
-                    </div>
-                    <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-8 border-t border-slate-200 pt-5">
-                <div class="flex flex-col items-center gap-4 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
-                    <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
-                    <div class="flex flex-wrap items-center gap-4">
-                        <a href="{{ route('landing.privacy') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</a>
-                        <a href="{{ route('landing.cookies') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</a>
-                        <a href="{{ route('landing.terms') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.public-footer')
     @include('partials.legal-modals')
 </div>

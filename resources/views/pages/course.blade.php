@@ -660,33 +660,42 @@
         @endphp
 
         {{-- Dark Banner Section --}}
-        <section class="bg-[#0a2d27] py-16 lg:py-20">
-            <div class="mx-auto max-w-6xl px-6 lg:px-8">
-                <nav aria-label="Breadcrumb" class="text-sm text-slate-300">
+        <section class="bg-[#0a2d27] relative overflow-hidden py-12 lg:py-16">
+            <div class="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-teal-500/15 blur-3xl"></div>
+            <div class="mx-auto max-w-6xl px-6 lg:px-8 relative z-10">
+                <nav aria-label="Breadcrumb" class="text-xs font-medium text-slate-300">
                     <ol class="flex flex-wrap items-center gap-2">
-                        <li><a href="{{ route('home') }}" class="hover:text-yellow-400">Home</a></li>
-                        <li>/</li>
-                        <li><a href="{{ route('landing.courses') }}" class="hover:text-yellow-400">Courses</a></li>
-                        <li>/</li>
-                        <li class="text-white">{{ $course->title }}</li>
+                        <li><a href="{{ route('home') }}" class="hover:text-yellow-400 transition">Home</a></li>
+                        <li class="text-slate-500">/</li>
+                        <li><a href="{{ route('landing.courses') }}" class="hover:text-yellow-400 transition">Courses</a></li>
+                        <li class="text-slate-500">/</li>
+                        <li class="text-white font-semibold truncate max-w-xs sm:max-w-md">{{ $course->title }}</li>
                     </ol>
                 </nav>
-                <div class="flex items-center gap-3 mt-3">
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">{{ $course->code }}</p>
+                <div class="flex flex-wrap items-center gap-2.5 mt-4">
+                    <span class="inline-flex items-center rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-yellow-300">{{ $course->code }}</span>
                     @if ($isLockedCourse)
-                        <span class="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">Locked To Selected Participants</span>
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                            <i class="fa-solid fa-lock text-[9px]"></i> Exclusive / Locked Cohort
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-200">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Open Enrollment
+                        </span>
                     @endif
                 </div>
-                <h1 class="mt-4 max-w-4xl text-4xl font-black text-white sm:text-5xl">{{ $course->title }}</h1>
-                <p class="mt-5 max-w-3xl text-slate-300 text-justify">{{ \Illuminate\Support\Str::words((string) ($course->overview ?: $course->description), 80) }}</p>
+                <h1 class="mt-3.5 max-w-4xl text-3xl font-black text-white sm:text-4xl lg:text-5xl tracking-tight leading-tight">{{ $course->title }}</h1>
+                <p class="mt-4 max-w-3xl text-sm sm:text-base text-slate-300 leading-relaxed">{{ \Illuminate\Support\Str::words((string) ($course->overview ?: $course->description), 80) }}</p>
                 @php
                     $avgRating = (float) ($course->average_rating ?? ($course->ratings_avg_rating ?? 0));
                     $ratingCount = (int) ($course->review_count ?? ($course->ratings_count ?? 0));
                 @endphp
-                <div class="mt-4 flex items-center gap-2">
+                <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-slate-300">
                     <x-rating-stars :rating="$avgRating" :count="$ratingCount" size="sm" />
+                    <span class="text-slate-500">•</span>
+                    <span><strong class="text-white">Instructor:</strong> {{ $course->instructor_label }}</span>
                 </div>
-                <div class="mt-8 flex flex-wrap items-center gap-4">
+                <div class="mt-7 flex flex-wrap items-center gap-3">
                     @if (! $isLockedCourse)
                         @php
                             $feeOptions = $course->getFeeOptions();
@@ -707,48 +716,58 @@
                                 type="button"
                                 onclick="window.openCourseOptionModal(@js($courseModalData))"
                                 @click.prevent="window.openCourseOptionModal(@js($courseModalData))"
-                                class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300 cursor-pointer"
+                                class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-7 py-3 text-xs sm:text-sm font-bold text-[#0a2d27] shadow-md transition hover:-translate-y-0.5 hover:bg-amber-300 cursor-pointer"
                             >
                                 <i class="fa-solid fa-credit-card"></i>
-                                Enroll &amp; Pay (Instant Access)
+                                <span>Enroll &amp; Pay (Instant Access)</span>
                             </button>
                         @else
-                            <a href="{{ route('checkout.show', $singleOptionParams) }}" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-3.5 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300">
+                            <a href="{{ route('checkout.show', $singleOptionParams) }}" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-7 py-3 text-xs sm:text-sm font-bold text-[#0a2d27] shadow-md transition hover:-translate-y-0.5 hover:bg-amber-300">
                                 <i class="fa-solid fa-credit-card"></i>
-                                Enroll &amp; Pay (Instant Access)
+                                <span>Enroll &amp; Pay (Instant Access)</span>
                             </a>
                         @endif
                     @else
-                        <span class="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-6 py-3.5 text-sm font-bold text-slate-300 cursor-not-allowed">
+                        <span class="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-6 py-3 text-xs sm:text-sm font-bold text-slate-300 cursor-not-allowed">
                             <i class="fa-solid fa-lock text-amber-400"></i>
-                            Enrollment Locked
+                            <span>Enrollment Locked</span>
                         </span>
                     @endif
-                    <a href="{{ route('landing.courses') }}" class="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        Back to Courses
+                    <a href="{{ route('landing.courses') }}" class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-3 text-xs sm:text-sm font-semibold text-white transition hover:bg-white/15">
+                        <i class="fa-solid fa-arrow-left text-xs"></i>
+                        <span>Back to Courses</span>
                     </a>
                 </div>
             </div>
         </section>
 
         {{-- Main Course Details --}}
-        <section class="py-8 sm:py-12 lg:py-16">
-            <div class="mx-auto grid max-w-6xl items-start gap-8 sm:gap-10 px-4 sm:px-6 lg:grid-cols-3 lg:gap-12 lg:px-8">
-                
-                {{-- Left Content Column (Strictly Unboxed) --}}
-                <div class="min-w-0 lg:col-span-2 space-y-8 sm:space-y-10">
-                    @if (filled($course->overview))
-                        <div class="space-y-3">
-                            <h2 class="text-xl font-bold text-slate-900">Course Overview</h2>
-                            <p class="leading-relaxed text-slate-600 text-left sm:text-justify">{{ \Illuminate\Support\Str::words((string) $course->overview, 80) }}</p>
-                        </div>
-                    @endif
+        <section class="py-10 sm:py-14 lg:py-16">
+            <div class="mx-auto grid max-w-6xl items-start gap-8 px-4 sm:px-6 lg:grid-cols-3 lg:gap-10 lg:px-8">
 
-                    @if (filled($course->description))
-                        <div class="space-y-3">
-                            <h2 class="text-xl font-bold text-slate-900">Detailed Description</h2>
-                            <p class="leading-relaxed text-slate-600 text-left sm:text-justify">{{ \Illuminate\Support\Str::limit(trim((string) $course->description), 150) }}</p>
+                {{-- Left Content Column --}}
+                <div class="min-w-0 lg:col-span-2 space-y-6">
+                    @if (filled($course->overview) || filled($course->description))
+                        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 space-y-5 shadow-2xs">
+                            @if (filled($course->overview))
+                                <div class="space-y-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-600 text-xs"><i class="fa-solid fa-compass"></i></span>
+                                        <h2 class="text-lg font-bold text-slate-900">Course Overview</h2>
+                                    </div>
+                                    <p class="text-sm sm:text-base leading-relaxed text-slate-600">{{ \Illuminate\Support\Str::words((string) $course->overview, 80) }}</p>
+                                </div>
+                            @endif
+
+                            @if (filled($course->description))
+                                <div class="{{ filled($course->overview) ? 'border-t border-slate-100 pt-4' : '' }} space-y-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-700 text-xs"><i class="fa-solid fa-align-left"></i></span>
+                                        <h2 class="text-base font-bold text-slate-900">Detailed Description</h2>
+                                    </div>
+                                    <p class="text-sm leading-relaxed text-slate-600">{{ \Illuminate\Support\Str::limit(trim((string) $course->description), 150) }}</p>
+                                </div>
+                            @endif
                         </div>
                     @endif
 
@@ -759,13 +778,16 @@
                         )));
                     @endphp
                     @if (! empty($requirementLines))
-                        <div class="space-y-3">
-                            <h3 class="text-lg font-bold text-slate-900">Requirements &amp; Prerequisites</h3>
-                            <ul class="space-y-2.5 rounded-xl border border-slate-200/80 bg-white p-5">
+                        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 space-y-3.5 shadow-2xs">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-600 text-xs"><i class="fa-solid fa-list-check"></i></span>
+                                <h3 class="text-base font-bold text-slate-900">Requirements &amp; Prerequisites</h3>
+                            </div>
+                            <ul class="grid gap-2.5 sm:grid-cols-2">
                                 @foreach ($requirementLines as $reqItem)
-                                    <li class="flex items-start gap-3 text-sm leading-relaxed text-slate-600">
-                                        <span class="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600 border border-teal-200/60">
-                                            <i class="fa-solid fa-check text-[10px]"></i>
+                                    <li class="flex items-start gap-2.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs sm:text-sm leading-relaxed text-slate-700">
+                                        <span class="mt-0.5 inline-flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-700">
+                                            <i class="fa-solid fa-check text-[9px]"></i>
                                         </span>
                                         <span>{{ $reqItem }}</span>
                                     </li>
@@ -775,13 +797,13 @@
                     @endif
 
                     @if ($course->isOngoing())
-                        <div class="space-y-4 rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/60 to-white p-6">
+                        <div class="space-y-4 rounded-2xl border border-teal-200/80 bg-gradient-to-br from-teal-50/70 to-white p-6 shadow-2xs">
                             <div class="flex items-center justify-between gap-3 flex-wrap">
                                 <div>
-                                    <span class="text-xs font-bold uppercase tracking-wider text-teal-700">Course Schedule &amp; Intakes</span>
-                                    <h2 class="text-xl font-black text-slate-900 mt-0.5">Cohort &amp; Class Intakes</h2>
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-teal-700">Course Schedule &amp; Intakes</span>
+                                    <h2 class="text-lg font-black text-slate-900 mt-0.5">Cohort &amp; Class Intakes</h2>
                                 </div>
-                                <span class="rounded-full bg-teal-100/80 px-3 py-1 text-xs font-bold text-teal-900 border border-teal-200">
+                                <span class="rounded-full bg-teal-100/80 px-3 py-1 text-[11px] font-bold text-teal-900 border border-teal-200">
                                     <i class="fa-solid fa-arrows-rotate mr-1 text-teal-600"></i> Ongoing Course
                                 </span>
                             </div>
@@ -796,27 +818,27 @@
                                     <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
                                         <div class="flex items-center gap-2">
                                             <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                            <h3 class="text-base font-bold text-slate-900">{{ $activeIntake->name }}</h3>
+                                            <h3 class="text-sm sm:text-base font-bold text-slate-900">{{ $activeIntake->name }}</h3>
                                         </div>
-                                        <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                                        <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
                                             Current Active Intake
                                         </span>
                                     </div>
                                     <div class="grid gap-3 sm:grid-cols-2 text-xs text-slate-600 mt-3 pt-3 border-t border-slate-100">
                                         <div>
-                                            <span class="font-semibold text-slate-700 block">Intake Duration:</span>
-                                            <span class="font-medium text-slate-900">{{ $activeIntake->formattedDateRange() ?? 'Ongoing / In Session' }}</span>
+                                            <span class="font-semibold text-slate-500 block">Intake Duration</span>
+                                            <span class="font-bold text-slate-900">{{ $activeIntake->formattedDateRange() ?? 'Ongoing / In Session' }}</span>
                                         </div>
                                         @if ($activeIntake->next_intake_start_date)
                                             <div>
-                                                <span class="font-semibold text-slate-700 block">Next Intake Starts:</span>
+                                                <span class="font-semibold text-slate-500 block">Next Intake Starts</span>
                                                 <span class="font-bold text-teal-700">{{ $activeIntake->formattedNextIntake() }}</span>
                                             </div>
                                         @endif
                                         @if ($activeIntake->registration_deadline)
                                             <div>
-                                                <span class="font-semibold text-slate-700 block">Registration Deadline:</span>
-                                                <span class="text-slate-800">{{ $activeIntake->registration_deadline->format('M j, Y') }}</span>
+                                                <span class="font-semibold text-slate-500 block">Registration Deadline</span>
+                                                <span class="font-bold text-slate-800">{{ $activeIntake->registration_deadline->format('M j, Y') }}</span>
                                             </div>
                                         @endif
                                     </div>
@@ -834,60 +856,72 @@
                     @endif
 
                     @if (filled($course->key_outcome))
-                        <div class="space-y-3">
-                            <h3 class="text-lg font-bold text-slate-900">Key Outcome</h3>
-                            <p class="leading-relaxed text-slate-600 text-left sm:text-justify">{{ \Illuminate\Support\Str::words((string) $course->key_outcome, 100) }}</p>
+                        <div class="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/50 to-white p-6 space-y-2.5 shadow-2xs">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 text-xs"><i class="fa-solid fa-trophy"></i></span>
+                                <h3 class="text-base font-bold text-slate-900">Key Outcome</h3>
+                            </div>
+                            <p class="text-sm leading-relaxed text-slate-700">{{ \Illuminate\Support\Str::words((string) $course->key_outcome, 100) }}</p>
                         </div>
                     @endif
 
                     @if (! empty($feeSections))
-                        <div class="space-y-4">
-                            <h3 class="text-lg font-bold text-slate-900">Fees</h3>
-                            <div class="space-y-6">
+                        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 space-y-5 shadow-2xs">
+                            <div class="flex items-center justify-between gap-2 flex-wrap">
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-600 text-xs"><i class="fa-solid fa-tags"></i></span>
+                                    <h3 class="text-base font-bold text-slate-900">Tuition &amp; Fee Structure</h3>
+                                </div>
+                                <span class="text-[11px] font-medium text-slate-500">Click any level to inspect its progression roadmap</span>
+                            </div>
+
+                            <div class="space-y-5">
                                 @foreach ($feeSections as $section)
-                                    <div class="space-y-3">
+                                    <div class="space-y-2">
                                         <div class="flex items-center gap-2">
                                             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">{{ $section['label'] }}</h4>
                                             @if(!empty($section['badge']))
                                                 <span class="rounded-full bg-teal-50 px-2.5 py-0.5 text-[10px] font-semibold text-teal-700 border border-teal-200/60">{{ $section['badge'] }}</span>
                                             @endif
                                         </div>
-                                        <div class="space-y-2.5">
+                                        <div class="overflow-hidden rounded-xl border border-slate-200/90 divide-y divide-slate-100">
+                                            <div class="grid grid-cols-[1fr_95px_75px] sm:grid-cols-[1fr_130px_100px] items-center gap-2 sm:gap-4 bg-slate-50/90 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                                <span>Track / Level</span>
+                                                <span class="text-right">Fee</span>
+                                                <span class="text-right">Duration</span>
+                                            </div>
                                             @foreach ($section['rows'] as $row)
                                                 @php
                                                     $levelName = $row['level'] !== '' ? $row['level'] : 'Level';
                                                     $levelInfo = $getLevelGuidelines($levelName);
                                                 @endphp
-                                                <div class="hub-fee-row grid grid-cols-[1fr_100px_80px] sm:grid-cols-[1fr_140px_110px] w-full items-center gap-2 sm:gap-4 rounded-xl sm:rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:px-5 sm:py-3.5 transition hover:border-teal-300 hover:shadow-xs">
-                                                    {{-- Level: Left Aligned with Hover (Click to View) & Modal Trigger --}}
+                                                <div class="hub-fee-row grid grid-cols-[1fr_95px_75px] sm:grid-cols-[1fr_130px_100px] w-full items-center gap-2 sm:gap-4 bg-white px-4 py-3 transition hover:bg-teal-50/30">
                                                     <div class="min-w-0 text-left">
                                                         <button
                                                             type="button"
                                                             onclick="window.openSkillLevelModal(@js($levelInfo))"
                                                             @click.prevent="window.openSkillLevelModal(@js($levelInfo))"
-                                                            class="group/level inline-flex flex-wrap items-center gap-1.5 sm:gap-2 text-left focus:outline-none cursor-pointer max-w-full"
-                                                            title="Click to view {{ $levelName }} Progression Roadmap Framework & Guidelines"
+                                                            class="group/level inline-flex flex-wrap items-center gap-2 text-left focus:outline-none cursor-pointer max-w-full"
+                                                            title="Click to view {{ $levelName }} Progression Roadmap"
                                                         >
-                                                            <span class="text-sm font-semibold text-slate-800 group-hover/level:text-teal-700 group-hover/level:underline decoration-teal-500/50 underline-offset-4 transition leading-snug">
+                                                            <span class="text-xs sm:text-sm font-bold text-slate-800 group-hover/level:text-teal-700 transition leading-snug">
                                                                 {{ $row['level'] !== '' ? $row['level'] : '-' }}
                                                             </span>
-                                                            <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200/80 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold text-teal-700 opacity-0 group-hover/level:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-xs">
-                                                                <i class="fa-regular fa-eye text-[9px] sm:text-[10px] text-teal-600"></i>
-                                                                (Click to View)
+                                                            <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200/80 px-2 py-0.5 text-[10px] font-semibold text-teal-700 group-hover/level:bg-teal-600 group-hover/level:text-white group-hover/level:border-teal-600 transition-colors whitespace-nowrap">
+                                                                <i class="fa-regular fa-eye text-[9px]"></i>
+                                                                <span>Roadmap</span>
                                                             </span>
                                                         </button>
                                                     </div>
 
-                                                    {{-- Amount: Right Aligned --}}
                                                     <div class="text-right">
-                                                        <span class="text-sm font-bold text-slate-900 tabular-nums block">
+                                                        <span class="text-xs sm:text-sm font-extrabold text-slate-900 tabular-nums block">
                                                             {{ $row['amount'] !== '' ? $row['amount'] : '-' }}
                                                         </span>
                                                     </div>
 
-                                                    {{-- Duration: Right Aligned --}}
                                                     <div class="text-right">
-                                                        <span class="text-xs sm:text-sm text-slate-500 tabular-nums block leading-tight">
+                                                        <span class="text-xs text-slate-500 font-medium tabular-nums block leading-tight">
                                                             {{ $row['duration'] !== '' ? $row['duration'] : '-' }}
                                                         </span>
                                                     </div>
@@ -901,13 +935,16 @@
                     @endif
 
                     @if (! empty($progressionCards))
-                        <div class="space-y-4">
-                            <h3 class="text-lg font-bold text-slate-900">Levels &amp; Progression</h3>
-                            <div class="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200/80 bg-white">
+                        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 space-y-4 shadow-2xs">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 text-xs"><i class="fa-solid fa-layer-group"></i></span>
+                                <h3 class="text-base font-bold text-slate-900">Levels &amp; Progression</h3>
+                            </div>
+                            <div class="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50/40">
                                 @foreach ($progressionCards as $item)
-                                    <div class="p-5 space-y-1">
-                                        <h4 class="text-base font-bold text-slate-800">{{ $item['level'] }}</h4>
-                                        <p class="text-sm leading-relaxed text-slate-600">{{ $item['details'] }}</p>
+                                    <div class="p-4 space-y-1">
+                                        <h4 class="text-sm font-bold text-slate-900">{{ $item['level'] }}</h4>
+                                        <p class="text-xs sm:text-sm leading-relaxed text-slate-600">{{ $item['details'] }}</p>
                                     </div>
                                 @endforeach
                             </div>
@@ -916,41 +953,56 @@
                 </div>
 
                 {{-- Sidebar Quick Facts Card --}}
-                <aside class="sticky top-6 min-w-0 rounded-2xl border border-slate-200/80 bg-white p-6 lg:col-span-1">
+                <aside class="sticky top-24 min-w-0 rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs lg:col-span-1">
                     <div class="relative h-44 w-full overflow-hidden rounded-xl bg-slate-100 mb-5">
                         <img src="{{ $course->course_image_url }}" class="w-full h-full object-cover" alt="{{ $course->title }}">
+                        @if ($course->code)
+                            <span class="absolute top-2.5 right-2.5 rounded-full bg-slate-950/70 backdrop-blur-xs border border-white/15 px-2.5 py-0.5 text-[10px] font-bold text-white">
+                                {{ $course->code }}
+                            </span>
+                        @endif
                     </div>
-                    <h2 class="text-lg font-bold text-slate-900">Quick Facts</h2>
-                    <dl class="mt-4 space-y-3 text-sm">
-                        <div>
-                            <dt class="font-semibold text-slate-500">Code</dt>
-                            <dd class="mt-0.5 font-bold text-slate-900">{{ $course->code }}</dd>
+                    <h2 class="text-base font-bold text-slate-900">Quick Facts</h2>
+                    <dl class="mt-3.5 divide-y divide-slate-100 text-xs sm:text-sm">
+                        <div class="py-2.5 flex items-center justify-between gap-2">
+                            <dt class="font-medium text-slate-500">Course Code</dt>
+                            <dd class="font-bold text-slate-900">{{ $course->code }}</dd>
                         </div>
-                        <div class="border-t border-slate-100 pt-3">
-                            <dt class="font-semibold text-slate-500">Structure</dt>
-                            <dd class="mt-0.5 font-bold text-slate-900">
+                        <div class="py-2.5 flex items-center justify-between gap-2">
+                            <dt class="font-medium text-slate-500">Instructor</dt>
+                            <dd class="font-bold text-slate-900 text-right truncate max-w-[160px]" title="{{ $course->instructor_label }}">{{ $course->instructor_label }}</dd>
+                        </div>
+                        <div class="py-2.5 flex items-center justify-between gap-2">
+                            <dt class="font-medium text-slate-500">Structure</dt>
+                            <dd class="font-bold">
                                 @if ($course->isOngoing())
                                     <span class="text-teal-700">Ongoing (Intakes)</span>
                                 @else
-                                    <span class="text-slate-700">Once-off / Flexible</span>
+                                    <span class="text-slate-800">Once-off / Flexible</span>
                                 @endif
                             </dd>
                         </div>
                         @if ($course->isOngoing() && $course->activeIntake)
-                            <div class="border-t border-slate-100 pt-3">
-                                <dt class="font-semibold text-slate-500">Active Intake</dt>
-                                <dd class="mt-0.5 font-bold text-slate-900">{{ $course->activeIntake->name }}</dd>
-                                <dd class="text-xs text-slate-500">{{ $course->activeIntake->formattedDateRange() }}</dd>
+                            <div class="py-2.5">
+                                <div class="flex items-center justify-between gap-2">
+                                    <dt class="font-medium text-slate-500">Active Intake</dt>
+                                    <dd class="font-bold text-slate-900">{{ $course->activeIntake->name }}</dd>
+                                </div>
+                                <p class="text-[11px] text-slate-500 text-right mt-0.5">{{ $course->activeIntake->formattedDateRange() }}</p>
                             </div>
                         @endif
-                        <div class="border-t border-slate-100 pt-3">
-                            <dt class="font-semibold text-slate-500">Timeline</dt>
-                            <dd class="mt-0.5 font-bold text-slate-900">{{ $course->timeline ?: 'Self paced' }}</dd>
+                        <div class="py-2.5 flex items-center justify-between gap-2">
+                            <dt class="font-medium text-slate-500">Timeline</dt>
+                            <dd class="font-bold text-slate-900 text-right">{{ $course->timeline ?: 'Self paced' }}</dd>
+                        </div>
+                        <div class="py-2.5 flex items-center justify-between gap-2">
+                            <dt class="font-medium text-slate-500">Rating</dt>
+                            <dd><x-rating-stars :rating="$avgRating" :count="$ratingCount" size="xs" /></dd>
                         </div>
                     </dl>
-                    
+
                     @if ($isLockedCourse)
-                        <button type="button" disabled class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-slate-100 px-5 py-3 text-sm font-bold text-slate-400 cursor-not-allowed border border-slate-200">
+                        <button type="button" disabled class="mt-5 inline-flex w-full items-center justify-center rounded-full bg-slate-100 px-5 py-3 text-xs sm:text-sm font-bold text-slate-400 cursor-not-allowed border border-slate-200">
                             <i class="fa-solid fa-lock mr-2 text-amber-500"></i> Enrollment Locked
                         </button>
                     @else
@@ -959,35 +1011,30 @@
                                 type="button"
                                 onclick="window.openCourseOptionModal(@js($courseModalData))"
                                 @click.prevent="window.openCourseOptionModal(@js($courseModalData))"
-                                class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300 cursor-pointer"
+                                class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-yellow-400 px-5 py-3 text-xs sm:text-sm font-bold text-[#0a2d27] shadow-xs transition hover:bg-amber-300 cursor-pointer"
                             >
-                                <i class="fa-solid fa-credit-card mr-2"></i> Enroll &amp; Pay
+                                <i class="fa-solid fa-credit-card"></i>
+                                <span>Enroll &amp; Pay</span>
                             </button>
                         @else
-                            <a href="{{ route('checkout.show', $singleOptionParams ?? ['course' => $course]) }}" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0a2d27] transition hover:bg-yellow-300">
-                                <i class="fa-solid fa-credit-card mr-2"></i> Enroll &amp; Pay
+                            <a href="{{ route('checkout.show', $singleOptionParams ?? ['course' => $course]) }}" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-yellow-400 px-5 py-3 text-xs sm:text-sm font-bold text-[#0a2d27] shadow-xs transition hover:bg-amber-300">
+                                <i class="fa-solid fa-credit-card"></i>
+                                <span>Enroll &amp; Pay</span>
                             </a>
                         @endif
                     @endif
-
-                    <div class="mt-6 border-t border-slate-100 pt-4">
-                        <h3 class="text-sm font-bold text-slate-900">Rating</h3>
-                        <div class="mt-2 flex items-center gap-1.5 text-sm">
-                            <x-rating-stars :rating="$avgRating" :count="$ratingCount" size="sm" />
-                        </div>
-                    </div>
                 </aside>
 
             </div>
         </section>
 
         {{-- Ratings & Reviews Section --}}
-        <section class="py-12 lg:py-16 border-t border-slate-100">
+        <section class="py-12 lg:py-16 border-t border-slate-200/60">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
                 <div class="mb-8">
                     <span class="text-teal-600 font-bold uppercase tracking-[0.2em] text-xs">Verified Student Feedback</span>
-                    <h2 class="text-3xl font-black text-slate-900 mt-1 sm:text-4xl">Course Ratings &amp; Reviews</h2>
-                    <p class="mt-2 text-slate-600 text-sm">Honest ratings and reviews from students enrolled in {{ $course->title }}.</p>
+                    <h2 class="text-2xl font-black text-slate-900 mt-2 sm:text-3xl tracking-tight">Course Ratings &amp; Reviews</h2>
+                    <p class="mt-1.5 text-slate-600 text-sm">Honest ratings and reviews from students enrolled in {{ $course->title }}.</p>
                 </div>
 
                 <livewire:reviews.review-list target-type="course" :target-id="$course->id" :target-title="$course->title" />
@@ -997,29 +1044,29 @@
         <livewire:reviews.submit-review-modal />
 
         @if ($relatedCourses->isNotEmpty())
-            <section class="pb-20 lg:pb-24">
+            <section class="pb-16 lg:pb-20">
                 <div class="mx-auto max-w-6xl px-6 lg:px-8">
-                    <h2 class="text-2xl font-black text-slate-900 sm:text-3xl">Related Courses</h2>
-                    <p class="mt-2 text-slate-600">Explore other practical tracks that can complement this learning path.</p>
-                    <div class="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                    <h2 class="text-2xl font-black text-slate-900 sm:text-3xl tracking-tight">Related Courses</h2>
+                    <p class="mt-1.5 text-sm text-slate-600">Explore other practical tracks that can complement this learning path.</p>
+                    <div class="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                         @foreach ($relatedCourses as $relatedCourse)
-                            <article class="rounded-2xl border border-slate-200 bg-white p-4 hover:border-teal-500 hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+                            <article class="group rounded-2xl border border-slate-200/90 bg-white p-3.5 hover:-translate-y-1 transition-all flex flex-col justify-between">
                                 <div>
                                     <div class="relative h-36 w-full overflow-hidden rounded-xl bg-slate-100 mb-3">
                                         <a href="{{ route('landing.courses.show', ['course' => $relatedCourse->id, 'slug' => $relatedCourse->seo_slug]) }}" class="block w-full h-full">
-                                            <img src="{{ $relatedCourse->course_image_url }}" class="w-full h-full object-cover" alt="{{ $relatedCourse->title }}">
+                                            <img src="{{ $relatedCourse->course_image_url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $relatedCourse->title }}">
                                         </a>
-                                        <div class="absolute top-2 left-2 bg-teal-800/90 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20">{{ $relatedCourse->code }}</div>
+                                        <div class="absolute top-2.5 left-2.5 bg-slate-950/70 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/15">{{ $relatedCourse->code }}</div>
                                     </div>
-                                    <h3 class="text-base font-bold text-slate-900 leading-snug">
+                                    <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-snug line-clamp-2">
                                         <a href="{{ route('landing.courses.show', ['course' => $relatedCourse->id, 'slug' => $relatedCourse->seo_slug]) }}" class="hover:text-teal-700 transition-colors">
                                             {{ $relatedCourse->title }}
                                         </a>
                                     </h3>
                                     <p class="mt-1.5 text-xs leading-relaxed text-slate-600 line-clamp-2">{{ \Illuminate\Support\Str::limit($relatedCourse->overview, 120) }}</p>
                                 </div>
-                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                                    <a href="{{ route('landing.courses.show', ['course' => $relatedCourse->id, 'slug' => $relatedCourse->seo_slug]) }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-[#11443c]">View Course &rarr;</a>
+                                <div class="mt-4 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                                    <a href="{{ route('landing.courses.show', ['course' => $relatedCourse->id, 'slug' => $relatedCourse->seo_slug]) }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-3.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-[#11443c]">View Course &rarr;</a>
                                 </div>
                             </article>
                         @endforeach
@@ -1029,64 +1076,7 @@
         @endif
     </main>
 
-    <footer class="bg-white border-t border-slate-200 py-12 lg:py-16">
-        <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center lg:text-left">
-            <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
-                <div>
-                    <div class="flex items-center justify-center gap-3 lg:justify-start">
-                        <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
-                    </div>
-                    <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
-                        think.er HUB connects tutors who run curated courses with learners who enroll to build practical skills.
-                    </p>
-                    <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
-                        <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>
-                    </div>
-                </div>
-
-                <div class="hidden lg:block">
-                    <h3 class="text-sm font-bold text-slate-900">Menu</h3>
-                    <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
-                        <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">Home</a></li>
-                        <li><a href="{{ route('landing.courses') }}" class="transition hover:text-[#0a2d27]">Courses</a></li>
-                        <li><a href="{{ route('hub.index') }}" class="transition hover:text-[#0a2d27]">Knowledge Hub</a></li>
-                        <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Network</a></li>
-                        <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
-                        @auth
-                            <li><a href="{{ route('dashboard') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
-                        @else
-                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
-                        @endauth
-                    </ul>
-                </div>
-
-                <div>
-                    <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
-                    <div class="mt-4 space-y-2.5 text-sm text-slate-500">
-                        <p><span class="font-semibold text-slate-700">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
-                        <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinkerhub@oristudiozm.com</a></p>
-                        <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
-                    </div>
-                    <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-8 border-t border-slate-200 pt-5">
-                <div class="flex flex-col items-center gap-4 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
-                    <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
-                    <div class="flex flex-wrap items-center gap-4">
-                        <a href="{{ route('landing.privacy') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</a>
-                        <a href="{{ route('landing.cookies') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</a>
-                        <a href="{{ route('landing.terms') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.public-footer')
 
     <script type="application/ld+json">
         {!! json_encode([
