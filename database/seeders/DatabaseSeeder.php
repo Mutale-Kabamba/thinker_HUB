@@ -54,6 +54,7 @@ class DatabaseSeeder extends Seeder
             ClaimItemSeeder::class,
             CourseGamificationRuleSeeder::class,
             PromoCodeSeeder::class,
+            ComprehensiveTestDataSeeder::class,
         ]);
     }
 }

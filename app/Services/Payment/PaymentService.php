@@ -182,6 +182,8 @@ class PaymentService
                     'reference' => $reference,
                     'status' => 'completed',
                     'paid_at' => now(),
+                    'registration_type' => 'direct_checkout',
+                    'is_free' => true,
                     'metadata' => [
                         'ip' => $request->ip(),
                         'user_agent' => $request->userAgent(),
@@ -224,6 +226,8 @@ class PaymentService
                 'phone_number' => $validated['phone_number'] ?? ($validated['parent_phone'] ?? null),
                 'reference' => $reference,
                 'status' => 'pending',
+                'registration_type' => 'direct_checkout',
+                'is_free' => false,
                 'metadata' => [
                     'ip' => $request->ip(),
                     'user_agent' => $request->userAgent(),
@@ -461,11 +465,25 @@ class PaymentService
                     ],
                     [
                         'course_intake_id' => $activeIntakeId,
+                        'registration_type' => 'direct_checkout',
+                        'payment_status' => ((float) $payment->amount <= 0.0 ? 'free' : 'paid'),
+                        'is_free' => ((float) $payment->amount <= 0.0),
+                        'fee_amount' => (float) $payment->amount,
+                        'payment_method' => $payment->payment_method,
+                        'transaction_reference' => $payment->reference,
+                        'paid_at' => $payment->paid_at ?? now(),
                     ]
                 );
-                if ($activeIntakeId && ! $enrollment->course_intake_id) {
-                    $enrollment->update(['course_intake_id' => $activeIntakeId]);
-                }
+                $enrollment->update([
+                    'course_intake_id' => $enrollment->course_intake_id ?: $activeIntakeId,
+                    'registration_type' => $enrollment->registration_type ?: 'direct_checkout',
+                    'payment_status' => ((float) $payment->amount <= 0.0 ? 'free' : 'paid'),
+                    'is_free' => ((float) $payment->amount <= 0.0),
+                    'fee_amount' => (float) $payment->amount,
+                    'payment_method' => $payment->payment_method,
+                    'transaction_reference' => $payment->reference,
+                    'paid_at' => $payment->paid_at ?? now(),
+                ]);
                 $payment->enrollment_id = $enrollment->id;
             }
 
@@ -629,12 +647,27 @@ class PaymentService
                 ],
                 [
                     'course_intake_id' => $activeIntakeId,
+                    'registration_type' => 'direct_checkout',
+                    'payment_status' => ((float) $payment->amount <= 0.0 ? 'free' : 'paid'),
+                    'is_free' => ((float) $payment->amount <= 0.0),
+                    'fee_amount' => (float) $payment->amount,
+                    'payment_method' => $payment->payment_method,
+                    'transaction_reference' => $payment->reference,
+                    'paid_at' => $payment->paid_at ?? now(),
                 ]
             );
 
-            if ($activeIntakeId && ! $enrollment->course_intake_id) {
-                $enrollment->update(['course_intake_id' => $activeIntakeId]);
-            }
+            $enrollment->update([
+                'course_intake_id' => $enrollment->course_intake_id ?: $activeIntakeId,
+                'registration_type' => $enrollment->registration_type ?: 'direct_checkout',
+                'payment_status' => ((float) $payment->amount <= 0.0 ? 'free' : 'paid'),
+                'is_free' => ((float) $payment->amount <= 0.0),
+                'fee_amount' => (float) $payment->amount,
+                'payment_method' => $payment->payment_method,
+                'transaction_reference' => $payment->reference,
+                'paid_at' => $payment->paid_at ?? now(),
+            ]);
+
             $payment->enrollment_id = $enrollment->id;
         }
 
