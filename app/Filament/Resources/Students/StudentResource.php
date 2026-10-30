@@ -313,22 +313,122 @@ class StudentResource extends Resource
                                 ->label('Course')
                                 ->options(fn (): array => Course::query()->where('is_active', true)->orderBy('title')->pluck('title', 'id')->toArray())
                                 ->required()
+                                ->searchable()
+                                ->live(),
+
+                            Select::make('course_intake_id')
+                                ->label('Class / Intake (Cohort)')
+                                ->placeholder('Select intake cohort (Optional)')
+                                ->options(function (Get $get): array {
+                                    $courseId = $get('course_id');
+                                    if (! $courseId) {
+                                        return [];
+                                    }
+
+                                    return \App\Models\CourseIntake::query()
+                                        ->where('course_id', $courseId)
+                                        ->where('status', '!=', \App\Models\CourseIntake::STATUS_ARCHIVED)
+                                        ->orderBy('start_date', 'desc')
+                                        ->get()
+                                        ->mapWithKeys(fn (\App\Models\CourseIntake $i) => [$i->id => $i->name . ($i->is_active ? ' (Active)' : '')])
+                                        ->toArray();
+                                })
                                 ->searchable(),
+
+                            Radio::make('fee_type')
+                                ->label('Fee Type')
+                                ->options([
+                                    'paid' => 'Paying Students',
+                                    'free' => 'Free / Sponsored (Scholarship / Waiver)',
+                                ])
+                                ->default('paid')
+                                ->live()
+                                ->required(),
+
+                            TextInput::make('fee_amount')
+                                ->label('Fee Amount per Student (ZMW)')
+                                ->numeric()
+                                ->prefix('ZMW')
+                                ->visible(fn (Get $get): bool => $get('fee_type') === 'paid')
+                                ->required(fn (Get $get): bool => $get('fee_type') === 'paid'),
+
+                            Select::make('payment_method')
+                                ->label('Payment Method')
+                                ->options([
+                                    'bank_transfer' => 'Bank Transfer / Deposit',
+                                    'cash' => 'Cash Payment',
+                                    'mobile_money' => 'Mobile Money',
+                                    'card' => 'Card / POS',
+                                    'other' => 'Other',
+                                ])
+                                ->default('bank_transfer')
+                                ->visible(fn (Get $get): bool => $get('fee_type') === 'paid')
+                                ->required(fn (Get $get): bool => $get('fee_type') === 'paid'),
+
+                            TextInput::make('transaction_reference')
+                                ->label('Batch Transaction Reference / Receipt #')
+                                ->placeholder('e.g. BATCH-REC-2026')
+                                ->visible(fn (Get $get): bool => $get('fee_type') === 'paid'),
+
+                            Textarea::make('payment_notes')
+                                ->label('Accounting Remarks')
+                                ->placeholder('e.g. Batch enrolled via admin panel')
+                                ->rows(2),
                         ])
                         ->action(function (Collection $records, array $data): void {
                             $course = Course::query()->findOrFail((int) $data['course_id']);
+                            $isFree = ($data['fee_type'] ?? 'paid') === 'free';
+                            $amount = $isFree ? 0.00 : (float) ($data['fee_amount'] ?? 0);
+                            $method = $isFree ? 'free_registration' : ($data['payment_method'] ?? 'bank_transfer');
+                            $batchRef = trim((string) ($data['transaction_reference'] ?? ''));
+                            $notes = trim((string) ($data['payment_notes'] ?? ''));
 
                             $created = 0;
                             $skipped = 0;
 
                             foreach ($records as $record) {
-                                $enrollment = Enrollment::query()->firstOrCreate([
-                                    'user_id' => $record->id,
-                                    'course_id' => $course->id,
-                                ]);
+                                $ref = $batchRef !== '' ? "{$batchRef}-{$record->id}" : ($isFree ? 'FREE-' . strtoupper(Str::random(8)) : 'REC-' . strtoupper(Str::random(8)));
+
+                                $enrollment = Enrollment::query()->firstOrCreate(
+                                    [
+                                        'user_id' => $record->id,
+                                        'course_id' => $course->id,
+                                    ],
+                                    [
+                                        'course_intake_id' => $data['course_intake_id'] ?? null,
+                                        'registration_type' => Enrollment::CHANNEL_ADMIN_MANUAL,
+                                        'registered_by_user_id' => auth()->id(),
+                                        'payment_status' => $isFree ? Enrollment::STATUS_FREE : Enrollment::STATUS_PAID,
+                                        'is_free' => $isFree,
+                                        'fee_amount' => $amount,
+                                        'payment_method' => $method,
+                                        'transaction_reference' => $ref,
+                                        'payment_notes' => $notes,
+                                        'paid_at' => $isFree ? null : now(),
+                                    ]
+                                );
 
                                 if ($enrollment->wasRecentlyCreated) {
                                     $created++;
+
+                                    \App\Models\Payment::create([
+                                        'user_id' => $record->id,
+                                        'course_id' => $course->id,
+                                        'enrollment_id' => $enrollment->id,
+                                        'amount' => $amount,
+                                        'original_amount' => $course->fees ?? $amount,
+                                        'discount_amount' => $isFree ? ($course->fees ?? 0) : 0,
+                                        'currency' => 'ZMW',
+                                        'payment_method' => $method,
+                                        'provider' => $isFree ? 'Tuition Waiver' : 'Batch Admin Entry',
+                                        'reference' => $ref,
+                                        'status' => 'paid',
+                                        'is_free' => $isFree,
+                                        'registration_type' => Enrollment::CHANNEL_ADMIN_MANUAL,
+                                        'registered_by_user_id' => auth()->id(),
+                                        'payment_notes' => $notes,
+                                        'paid_at' => $isFree ? null : now(),
+                                    ]);
 
                                     try {
                                         $record->notify(new CourseEnrolledNotification($course));

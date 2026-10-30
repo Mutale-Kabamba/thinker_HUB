@@ -6,7 +6,9 @@
             $stats = $stats ?? $this->kpi_stats;
             $ledgerItems = $ledgerItems ?? $this->ledger_items;
             $courseOptions = $courseOptions ?? $this->course_options;
+            $staffOptions = $staffOptions ?? $this->staff_options;
             $viewingEnrollment = $viewingEnrollment ?? $this->viewing_enrollment;
+            $editingEnrollment = $editingEnrollment ?? $this->editing_enrollment;
         @endphp
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
@@ -275,10 +277,15 @@
                                             <x-heroicon-o-user-plus class="w-3 h-3" />
                                             <span>Admin Added</span>
                                         </span>
-                                    @else
+                                    @elseif ($item->registration_type === 'instructor_manual')
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
                                             <x-heroicon-o-academic-cap class="w-3 h-3" />
                                             <span>Instructor Added</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700" title="Legacy registration. Click Edit to reconcile.">
+                                            <x-heroicon-o-question-mark-circle class="w-3 h-3 text-amber-500" />
+                                            <span>Needs Review</span>
                                         </span>
                                     @endif
                                 </td>
@@ -315,19 +322,31 @@
 
                                 {{-- Recorded By --}}
                                 <td class="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">
-                                    {{ $item->registeredBy?->name ?? ($item->registration_type === 'direct_checkout' ? 'Online Gateway' : 'System') }}
+                                    {{ $item->registeredBy?->name ?? ($item->registration_type === 'direct_checkout' ? 'Online Gateway' : 'Unspecified') }}
                                 </td>
 
                                 {{-- Actions --}}
                                 <td class="px-4 py-3 text-right whitespace-nowrap">
-                                    <button
-                                        type="button"
-                                        wire:click="viewDetails({{ $item->id }})"
-                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
-                                    >
-                                        <x-heroicon-o-eye class="w-3.5 h-3.5 text-slate-400" />
-                                        <span>Details</span>
-                                    </button>
+                                    <div class="inline-flex items-center gap-1.5">
+                                        <button
+                                            type="button"
+                                            wire:click="editTransaction({{ $item->id }})"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-[11px] font-semibold text-white shadow-2xs transition active:scale-95 cursor-pointer"
+                                            title="Edit & Reconcile Transaction"
+                                        >
+                                            <x-heroicon-o-pencil-square class="w-3.5 h-3.5" />
+                                            <span>Edit</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            wire:click="viewDetails({{ $item->id }})"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer"
+                                            title="View Full Receipt"
+                                        >
+                                            <x-heroicon-o-eye class="w-3.5 h-3.5 text-slate-400" />
+                                            <span>Details</span>
+                                        </button>
+                                    </div>
                                 </td>
 
                             </tr>
@@ -429,15 +448,247 @@
                         @endif
                     </div>
 
-                    <div class="flex justify-end pt-2">
+                    <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                        <button
+                            type="button"
+                            wire:click="editTransaction({{ $detail->id }})"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-xs font-semibold text-white shadow-2xs transition active:scale-98 cursor-pointer"
+                        >
+                            <x-heroicon-o-pencil-square class="w-4 h-4" />
+                            <span>Edit / Reconcile Transaction</span>
+                        </button>
                         <button
                             type="button"
                             wire:click="closeDetails"
-                            class="px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-xs font-semibold text-white dark:text-slate-900 hover:opacity-90 transition"
+                            class="px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-xs font-semibold text-white dark:text-slate-900 hover:opacity-90 transition cursor-pointer"
                         >
                             Close Receipt
                         </button>
                     </div>
+
+                </div>
+            </div>
+        @endif
+
+        {{-- Edit & Reconcile Transaction Modal --}}
+        @if ($editingEnrollment)
+            @php
+                $editRecord = $editingEnrollment;
+            @endphp
+            <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" x-transition>
+                <div class="relative w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-5 my-8">
+                    
+                    {{-- Modal Header --}}
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-2.5">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400">
+                                <x-heroicon-o-pencil-square class="h-6 w-6" />
+                            </span>
+                            <div>
+                                <h4 class="text-base font-bold text-slate-900 dark:text-white">Edit &amp; Reconcile Student Registration</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">
+                                    Updating payment details &amp; channel for <strong class="text-slate-800 dark:text-slate-200">{{ $editRecord->user?->name }}</strong> ({{ $editRecord->user?->email }})
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            wire:click="closeEdit"
+                            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 transition"
+                        >
+                            <x-heroicon-o-x-mark class="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    {{-- Context Banner --}}
+                    <div class="flex items-center justify-between flex-wrap gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 text-xs">
+                        <div>
+                            <span class="text-slate-500">Course:</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200">{{ $editRecord->course?->title }}</span>
+                            <span class="font-mono text-slate-400">({{ $editRecord->course?->code }})</span>
+                            <span class="text-slate-400 ml-1">• Cohort: {{ $editRecord->intake?->name ?? 'General' }}</span>
+                        </div>
+                        @if ($editRecord->course?->fees)
+                            <button
+                                type="button"
+                                wire:click="setFeeToCourseTuition"
+                                class="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-700 hover:text-teal-800 dark:text-teal-400 underline cursor-pointer"
+                                title="Pre-fill standard course tuition"
+                            >
+                                <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
+                                <span>Set to Standard Tuition (ZMW {{ number_format($editRecord->course->fees, 2) }})</span>
+                            </button>
+                        @endif
+                    </div>
+
+                    {{-- Edit Form --}}
+                    <form wire:submit.prevent="saveTransaction" class="space-y-4 text-xs">
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            
+                            {{-- Registration Channel --}}
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Registration Channel <span class="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    wire:model="editRegistrationType"
+                                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                                    required
+                                >
+                                    <option value="admin_manual">Admin Manual Added (Campus / Office)</option>
+                                    <option value="instructor_manual">Instructor Added</option>
+                                    <option value="direct_checkout">Direct Online Checkout</option>
+                                </select>
+                                <p class="mt-0.5 text-[10px] text-slate-400">Select Admin Added for students registered manually.</p>
+                            </div>
+
+                            {{-- Fee Classification --}}
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Fee Classification <span class="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    wire:model.live="editPaymentStatus"
+                                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                                    required
+                                >
+                                    <option value="paid">Paid Student (Tuition Collected)</option>
+                                    <option value="free">Free / Sponsored (Scholarship / Full Waiver)</option>
+                                </select>
+                                <p class="mt-0.5 text-[10px] text-slate-400">Mark as Paid if the student paid tuition.</p>
+                            </div>
+
+                            {{-- Fee Amount (ZMW) --}}
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Fee Amount (ZMW) <span class="text-rose-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs font-mono">ZMW</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        wire:model="editFeeAmount"
+                                        class="w-full pl-13 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                                        required
+                                    />
+                                </div>
+                                <p class="mt-0.5 text-[10px] text-slate-400">Enter actual amount collected (or 0 for free).</p>
+                            </div>
+
+                            {{-- Payment Method --}}
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Payment Method <span class="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    wire:model="editPaymentMethod"
+                                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                                    required
+                                >
+                                    <option value="bank_transfer">Bank Transfer / Direct Deposit</option>
+                                    <option value="cash">Cash (Campus / Finance Desk)</option>
+                                    <option value="mobile_money">Mobile Money (Airtel / MTN / Zamtel)</option>
+                                    <option value="card">Debit / Credit Card (POS / Terminal)</option>
+                                    <option value="cheque">Cheque</option>
+                                    <option value="scholarship">Scholarship / Merit Grant / Waiver</option>
+                                    <option value="other">Other / Direct Settlement</option>
+                                </select>
+                            </div>
+
+                            {{-- Provider / Bank --}}
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Bank / Provider / Terminal
+                                </label>
+                                <input
+                                    type="text"
+                                    wire:model="editProvider"
+                                    placeholder="e.g. Stanbic Bank Zambia, Absa, Airtel Money, Finance Reception Desk"
+                                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                                />
+                            </div>
+
+                            {{-- Reference Number --}}
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Receipt / Reference Number <span class="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    wire:model="editTransactionReference"
+                                    placeholder="e.g. REC-2026-4412, TX-STB-8812"
+                                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                                    required
+                                />
+                                <p class="mt-0.5 text-[10px] text-slate-400">Used for financial audit and reconciliation.</p>
+                            </div>
+
+                            {{-- Date Recorded / Paid --}}
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Payment / Enrollment Date
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    wire:model="editPaidAt"
+                                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                                />
+                            </div>
+
+                            {{-- Recorded By --}}
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Recorded / Verified By
+                                </label>
+                                <select
+                                    wire:model="editRegisteredByUserId"
+                                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                                >
+                                    <option value="">Automated Gateway / System</option>
+                                    @foreach ($staffOptions as $staffId => $staffName)
+                                        <option value="{{ $staffId }}">{{ $staffName }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                        </div>
+
+                        {{-- Accounting Remarks --}}
+                        <div>
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                Accounting Remarks &amp; Audit Notes
+                            </label>
+                            <textarea
+                                wire:model="editPaymentNotes"
+                                rows="3"
+                                placeholder="e.g. Paid in cash at campus front reception. Receipt #REC-4412 issued. Or: Reconciled with verified Stanbic Bank deposit slip."
+                                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                            ></textarea>
+                        </div>
+
+                        {{-- Modal Footer --}}
+                        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+                            <button
+                                type="button"
+                                wire:click="closeEdit"
+                                class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                wire:loading.attr="disabled"
+                                class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 active:scale-98 text-xs font-bold text-white shadow-xs transition cursor-pointer"
+                            >
+                                <x-heroicon-o-check class="w-4 h-4" />
+                                <span>Save &amp; Reconcile Changes</span>
+                            </button>
+                        </div>
+
+                    </form>
 
                 </div>
             </div>

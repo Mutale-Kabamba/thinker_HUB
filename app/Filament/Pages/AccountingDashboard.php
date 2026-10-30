@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Payment;
+use App\Models\User;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
@@ -40,6 +41,27 @@ class AccountingDashboard extends Page
 
     public ?int $viewingEnrollmentId = null;
 
+    public ?int $editingEnrollmentId = null;
+
+    // Edit form properties
+    public string $editRegistrationType = 'admin_manual';
+
+    public string $editPaymentStatus = 'paid'; // 'paid' or 'free'
+
+    public ?float $editFeeAmount = 0.00;
+
+    public ?string $editPaymentMethod = 'cash';
+
+    public ?string $editProvider = '';
+
+    public ?string $editTransactionReference = '';
+
+    public ?string $editPaidAt = '';
+
+    public ?int $editRegisteredByUserId = null;
+
+    public ?string $editPaymentNotes = '';
+
     public static function canAccess(): bool
     {
         return (bool) auth()->user()?->isAdmin();
@@ -56,7 +78,9 @@ class AccountingDashboard extends Page
             'stats' => $this->kpi_stats,
             'ledgerItems' => $this->ledger_items,
             'courseOptions' => $this->course_options,
+            'staffOptions' => $this->staff_options,
             'viewingEnrollment' => $this->viewing_enrollment,
+            'editingEnrollment' => $this->editing_enrollment,
         ];
     }
 
@@ -78,6 +102,126 @@ class AccountingDashboard extends Page
     public function closeDetails(): void
     {
         $this->viewingEnrollmentId = null;
+    }
+
+    public function editTransaction(?int $id): void
+    {
+        $this->editingEnrollmentId = $id;
+        $enrollment = Enrollment::with(['payment', 'course', 'user'])->find($id);
+
+        if (! $enrollment) {
+            $this->editingEnrollmentId = null;
+            return;
+        }
+
+        $this->editRegistrationType = $enrollment->registration_type ?? Enrollment::CHANNEL_ADMIN_MANUAL;
+        $this->editPaymentStatus = $enrollment->isFree() ? 'free' : 'paid';
+        $this->editFeeAmount = (float) ($enrollment->fee_amount ?? ($this->editPaymentStatus === 'paid' ? ($enrollment->course?->fees ?? 0) : 0));
+        $this->editPaymentMethod = $enrollment->payment_method ?? ($enrollment->isFree() ? 'scholarship' : 'bank_transfer');
+        $this->editProvider = $enrollment->payment?->provider ?? '';
+        $this->editTransactionReference = $enrollment->transaction_reference ?? $enrollment->payment?->reference ?? ('REC-' . $enrollment->id);
+        $this->editPaidAt = $enrollment->paid_at ? $enrollment->paid_at->format('Y-m-d\TH:i') : $enrollment->created_at->format('Y-m-d\TH:i');
+        $this->editRegisteredByUserId = $enrollment->registered_by_user_id ?? auth()->id();
+        $this->editPaymentNotes = $enrollment->payment_notes ?? $enrollment->payment?->payment_notes ?? '';
+
+        // Also close details if open
+        $this->viewingEnrollmentId = null;
+    }
+
+    public function closeEdit(): void
+    {
+        $this->editingEnrollmentId = null;
+    }
+
+    public function updatedEditPaymentStatus(string $value): void
+    {
+        if ($value === 'free') {
+            $this->editFeeAmount = 0.00;
+            if ($this->editPaymentMethod === 'cash' || $this->editPaymentMethod === 'bank_transfer') {
+                $this->editPaymentMethod = 'scholarship';
+            }
+        } else {
+            $enrollment = Enrollment::with('course')->find($this->editingEnrollmentId);
+            if ($enrollment && (float) $this->editFeeAmount <= 0) {
+                $this->editFeeAmount = (float) ($enrollment->course?->fees ?? 0);
+            }
+            if ($this->editPaymentMethod === 'scholarship') {
+                $this->editPaymentMethod = 'bank_transfer';
+            }
+        }
+    }
+
+    public function setFeeToCourseTuition(): void
+    {
+        if (! $this->editingEnrollmentId) {
+            return;
+        }
+
+        $enrollment = Enrollment::with('course')->find($this->editingEnrollmentId);
+        if ($enrollment && $enrollment->course && $enrollment->course->fees) {
+            $this->editFeeAmount = (float) $enrollment->course->fees;
+            $this->editPaymentStatus = 'paid';
+        }
+    }
+
+    public function saveTransaction(): void
+    {
+        if (! $this->editingEnrollmentId) {
+            return;
+        }
+
+        $enrollment = Enrollment::with(['course', 'payment', 'user'])->find($this->editingEnrollmentId);
+        if (! $enrollment) {
+            $this->editingEnrollmentId = null;
+            return;
+        }
+
+        $isFree = $this->editPaymentStatus === 'free';
+        $amount = $isFree ? 0.0 : (float) ($this->editFeeAmount ?? 0);
+        $paidAt = ! empty($this->editPaidAt) ? Carbon::parse($this->editPaidAt) : now();
+
+        $enrollment->update([
+            'registration_type' => $this->editRegistrationType,
+            'payment_status' => $isFree ? Enrollment::STATUS_FREE : Enrollment::STATUS_PAID,
+            'is_free' => $isFree,
+            'fee_amount' => $amount,
+            'payment_method' => $this->editPaymentMethod,
+            'transaction_reference' => $this->editTransactionReference ?: ('REC-' . $enrollment->id),
+            'paid_at' => $isFree ? null : $paidAt,
+            'registered_by_user_id' => $this->editRegisteredByUserId,
+            'payment_notes' => $this->editPaymentNotes,
+        ]);
+
+        // Synchronize or create the corresponding Payment ledger entry
+        Payment::updateOrCreate(
+            ['enrollment_id' => $enrollment->id],
+            [
+                'user_id' => $enrollment->user_id,
+                'course_id' => $enrollment->course_id,
+                'amount' => $amount,
+                'original_amount' => $enrollment->course?->fees ?? $amount,
+                'discount_amount' => $isFree ? ($enrollment->course?->fees ?? 0) : 0,
+                'currency' => 'ZMW',
+                'payment_method' => $this->editPaymentMethod,
+                'provider' => $this->editProvider ?: ($isFree ? 'Tuition Waiver' : 'Manual Entry'),
+                'reference' => $this->editTransactionReference ?: ('REC-' . $enrollment->id),
+                'status' => 'paid',
+                'is_free' => $isFree,
+                'registration_type' => $this->editRegistrationType,
+                'registered_by_user_id' => $this->editRegisteredByUserId,
+                'payment_notes' => $this->editPaymentNotes,
+                'paid_at' => $isFree ? null : $paidAt,
+            ]
+        );
+
+        $studentName = $enrollment->user?->name ?? 'Student';
+        $this->editingEnrollmentId = null;
+
+        Notification::make()
+            ->title('Registration & Transaction Reconciled')
+            ->body("Updated records for {$studentName}. Accounting ledger refreshed.")
+            ->success()
+            ->send();
     }
 
     /**
@@ -217,6 +361,34 @@ class AccountingDashboard extends Page
         return Course::query()
             ->orderBy('title')
             ->pluck('title', 'id')
+            ->toArray();
+    }
+
+    /**
+     * Get the active record for editing modal.
+     */
+    public function getEditingEnrollmentProperty(): ?Enrollment
+    {
+        if (! $this->editingEnrollmentId) {
+            return null;
+        }
+
+        return Enrollment::query()
+            ->with(['user', 'course', 'intake', 'registeredBy', 'payment'])
+            ->find($this->editingEnrollmentId);
+    }
+
+    /**
+     * Staff options (Admins & Instructors) for attribution.
+     *
+     * @return array<int, string>
+     */
+    public function getStaffOptionsProperty(): array
+    {
+        return User::query()
+            ->whereIn('role', ['admin', 'instructor'])
+            ->orderBy('name')
+            ->pluck('name', 'id')
             ->toArray();
     }
 
