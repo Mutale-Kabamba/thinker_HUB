@@ -133,74 +133,79 @@ class ResourceVideoForm
                     ->icon('heroicon-o-shield-check')
                     ->columnSpanFull()
                     ->schema([
-                        Select::make('category')
-                            ->label('Category')
-                            ->options(ResourceVideo::categoryOptions())
-                            ->default('General')
-                            ->required()
-                            ->selectablePlaceholder(false)
-                            ->searchable()
-                            ->helperText('Select the primary catalog category for this video.'),
+                        Grid::make(['default' => 1, 'sm' => 2])
+                            ->schema([
+                                Select::make('category')
+                                    ->label('Category')
+                                    ->options(ResourceVideo::categoryOptions())
+                                    ->default('General')
+                                    ->required()
+                                    ->selectablePlaceholder(false)
+                                    ->searchable()
+                                    ->helperText('Select the primary catalog category for this video.'),
 
-                        Select::make('course_id')
-                            ->label('Course Scope')
-                            ->options($resolveCourseOptions)
-                            ->searchable()
-                            ->nullable()
-                            ->placeholder('All Courses (Visible to all students)')
-                            ->helperText('Assign to a specific course, or leave open to all students.')
-                            ->live(),
+                                Select::make('course_id')
+                                    ->label('Course Scope')
+                                    ->options($resolveCourseOptions)
+                                    ->searchable()
+                                    ->nullable()
+                                    ->placeholder('All Courses (Visible to all students)')
+                                    ->helperText('Assign to a specific course, or leave open to all students.')
+                                    ->live(),
 
-                        Select::make('course_intake_id')
-                            ->label('Target Intake / Class')
-                            ->nullable()
-                            ->searchable()
-                            ->options(function (callable $get): array {
-                                $courseId = $get('course_id');
-                                if (! $courseId) {
-                                    return [];
-                                }
+                                Select::make('course_intake_id')
+                                    ->label('Target Intake / Class')
+                                    ->nullable()
+                                    ->searchable()
+                                    ->options(function (callable $get): array {
+                                        $courseId = $get('course_id');
+                                        if (! $courseId) {
+                                            return [];
+                                        }
 
-                                return CourseIntake::query()
-                                    ->where('course_id', $courseId)
-                                    ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
-                                    ->orderBy('start_date', 'desc')
-                                    ->pluck('name', 'id')
-                                    ->toArray();
-                            })
-                            ->placeholder('All Intakes / Entire Course')
-                            ->helperText('Leave empty to share across all cohorts.')
-                            ->visible(fn (callable $get): bool => filled($get('course_id'))),
+                                        return CourseIntake::query()
+                                            ->where('course_id', $courseId)
+                                            ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
+                                            ->orderBy('start_date', 'desc')
+                                            ->pluck('name', 'id')
+                                            ->toArray();
+                                    })
+                                    ->placeholder('All Intakes / Entire Course')
+                                    ->helperText('Leave empty to share across all cohorts.')
+                                    ->visible(fn (callable $get): bool => filled($get('course_id'))),
 
-                        Select::make('target_level')
-                            ->label('Target Level')
-                            ->options([
-                                'Beginner' => 'Beginner',
-                                'Intermediate' => 'Intermediate',
-                                'Advanced' => 'Advanced',
-                            ])
-                            ->nullable()
-                            ->placeholder('All Levels')
-                            ->helperText('Target a specific proficiency tier.')
-                            ->visible(fn (callable $get): bool => filled($get('course_id'))),
+                                Select::make('target_level')
+                                    ->label('Target Level')
+                                    ->options([
+                                        'Beginner' => 'Beginner',
+                                        'Intermediate' => 'Intermediate',
+                                        'Advanced' => 'Advanced',
+                                    ])
+                                    ->nullable()
+                                    ->placeholder('All Levels')
+                                    ->helperText('Target a specific proficiency tier.')
+                                    ->visible(fn (callable $get): bool => filled($get('course_id'))),
+                            ]),
 
-                        Toggle::make('is_recorded_lesson')
-                            ->label('Recorded Lesson')
-                            ->helperText('Tag as an official cohort recorded lesson.')
-                            ->default(false)
-                            ->afterStateUpdated(function ($state, callable $set): void {
-                                if ($state) {
-                                    $set('category', 'Recorded Lessons');
-                                }
-                            })
-                            ->live(),
+                        Grid::make(['default' => 1, 'sm' => 2])
+                            ->schema([
+                                Toggle::make('is_recorded_lesson')
+                                    ->label('Recorded Lesson')
+                                    ->helperText('Tag as an official cohort recorded lesson.')
+                                    ->default(false)
+                                    ->afterStateUpdated(function ($state, callable $set): void {
+                                        if ($state) {
+                                            $set('category', 'Recorded Lessons');
+                                        }
+                                    })
+                                    ->live(),
 
-                        Toggle::make('is_published')
-                            ->label('Published (Visible to Students)')
-                            ->helperText('Make this video immediately visible to learners.')
-                            ->default(true),
-                    ])
-                    ->columns(['default' => 1, 'sm' => 2]),
+                                Toggle::make('is_published')
+                                    ->label('Published (Visible to Students)')
+                                    ->helperText('Make this video immediately visible to learners.')
+                                    ->default(true),
+                            ]),
+                    ]),
             ]);
     }
 }
