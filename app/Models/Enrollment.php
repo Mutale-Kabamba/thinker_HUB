@@ -104,7 +104,8 @@ class Enrollment extends Model
         return match ($this->registration_type) {
             self::CHANNEL_ADMIN_MANUAL => 'Admin Manual Registration',
             self::CHANNEL_INSTRUCTOR_MANUAL => 'Instructor Manual Registration',
-            default => 'Direct Online Checkout',
+            self::CHANNEL_DIRECT_CHECKOUT => 'Direct Online Checkout',
+            default => 'Unspecified (Legacy)',
         };
     }
 

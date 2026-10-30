@@ -372,16 +372,27 @@ class StudentsRelationManager extends RelationManager
                         ->label('Update Payment Details')
                         ->icon('heroicon-m-pencil-square')
                         ->color('warning')
-                        ->modalHeading(fn (Enrollment $record): string => "Update Payment Details for {$record->user?->name}")
-                        ->modalDescription('Edit financial transaction reference, payment method, or fee remarks.')
+                        ->modalHeading(fn (Enrollment $record): string => "Update Payment & Registration for {$record->user?->name}")
+                        ->modalDescription('Edit financial transaction reference, channel, payment method, or fee remarks.')
                         ->fillForm(fn (Enrollment $record): array => [
+                            'registration_type' => $record->registration_type ?? Enrollment::CHANNEL_ADMIN_MANUAL,
                             'fee_type' => $record->isFree() ? 'free' : 'paid',
-                            'fee_amount' => $record->fee_amount ?? ($record->payment?->amount ?? 0),
+                            'fee_amount' => $record->fee_amount ?? ($record->payment?->amount ?? ($record->course?->fees ?? 0)),
                             'payment_method' => $record->payment_method ?? ($record->payment?->payment_method ?? 'cash'),
+                            'provider' => $record->payment?->provider ?? '',
                             'transaction_reference' => $record->transaction_reference ?? ($record->payment?->reference ?? ''),
                             'payment_notes' => $record->payment_notes ?? ($record->payment?->payment_notes ?? ''),
                         ])
                         ->form([
+                            Select::make('registration_type')
+                                ->label('Enrollment Channel')
+                                ->options([
+                                    Enrollment::CHANNEL_ADMIN_MANUAL => 'Admin Manual Added (Campus / Office)',
+                                    Enrollment::CHANNEL_INSTRUCTOR_MANUAL => 'Instructor Added',
+                                    Enrollment::CHANNEL_DIRECT_CHECKOUT => 'Direct Online Checkout',
+                                ])
+                                ->required(),
+
                             Radio::make('fee_type')
                                 ->label('Tuition / Payment Type')
                                 ->options([
@@ -411,6 +422,11 @@ class StudentsRelationManager extends RelationManager
                                 ->visible(fn (Get $get): bool => $get('fee_type') === 'paid')
                                 ->required(fn (Get $get): bool => $get('fee_type') === 'paid'),
 
+                            TextInput::make('provider')
+                                ->label('Bank / Provider / Terminal')
+                                ->placeholder('e.g. Stanbic Bank, Airtel Money, Finance Reception Desk')
+                                ->visible(fn (Get $get): bool => $get('fee_type') === 'paid'),
+
                             TextInput::make('transaction_reference')
                                 ->label('Transaction Reference / Receipt #')
                                 ->placeholder('e.g. TXN-8392019, Bank Slip #, Receipt Book #1204')
@@ -431,26 +447,40 @@ class StudentsRelationManager extends RelationManager
                                 ? ($record->transaction_reference ?: ('FREE-' . strtoupper(Str::random(8))))
                                 : trim((string) ($data['transaction_reference'] ?? ''));
                             $notes = trim((string) ($data['payment_notes'] ?? ''));
+                            $channel = $data['registration_type'] ?? $record->registration_type ?? Enrollment::CHANNEL_ADMIN_MANUAL;
 
                             $record->update([
+                                'registration_type' => $channel,
                                 'payment_status' => $isFree ? Enrollment::STATUS_FREE : Enrollment::STATUS_PAID,
                                 'is_free' => $isFree,
                                 'fee_amount' => $amount,
                                 'payment_method' => $method,
                                 'transaction_reference' => $ref,
                                 'payment_notes' => $notes,
+                                'registered_by_user_id' => $record->registered_by_user_id ?? auth()->id(),
+                                'paid_at' => $isFree ? null : ($record->paid_at ?? now()),
                             ]);
 
-                            $payment = $record->payment ?: Payment::where('enrollment_id', $record->id)->first();
-                            if ($payment) {
-                                $payment->update([
+                            Payment::updateOrCreate(
+                                ['enrollment_id' => $record->id],
+                                [
+                                    'user_id' => $record->user_id,
+                                    'course_id' => $record->course_id,
                                     'amount' => $amount,
+                                    'original_amount' => $record->course?->fees ?? $amount,
+                                    'discount_amount' => $isFree ? ($record->course?->fees ?? 0) : 0,
+                                    'currency' => 'ZMW',
                                     'payment_method' => $method,
-                                    'reference' => $ref !== '' ? $ref : $payment->reference,
+                                    'provider' => $data['provider'] ?? ($isFree ? 'Tuition Waiver' : 'Manual Entry'),
+                                    'reference' => $ref !== '' ? $ref : ('REC-' . $record->id),
+                                    'status' => 'paid',
                                     'is_free' => $isFree,
+                                    'registration_type' => $channel,
+                                    'registered_by_user_id' => auth()->id(),
                                     'payment_notes' => $notes,
-                                ]);
-                            }
+                                    'paid_at' => $isFree ? null : ($record->paid_at ?? now()),
+                                ]
+                            );
 
                             Notification::make()
                                 ->title('Payment & registration details successfully updated.')

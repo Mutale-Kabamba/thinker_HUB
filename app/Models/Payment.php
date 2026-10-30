@@ -128,7 +128,8 @@ class Payment extends Model
         return match ($this->registration_type) {
             self::CHANNEL_ADMIN_MANUAL => 'Admin Added',
             self::CHANNEL_INSTRUCTOR_MANUAL => 'Instructor Added',
-            default => 'Direct Checkout',
+            self::CHANNEL_DIRECT_CHECKOUT => 'Direct Checkout',
+            default => 'Unspecified (Legacy)',
         };
     }
 

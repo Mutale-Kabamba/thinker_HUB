@@ -335,6 +335,126 @@ class EnrollmentsRelationManager extends RelationManager
                                 ")),
                         ]),
 
+                    Action::make('edit_payment')
+                        ->label('Update Payment / Channel')
+                        ->icon('heroicon-o-pencil-square')
+                        ->color('warning')
+                        ->modalHeading(fn (Enrollment $record): string => "Update Payment Details for {$record->course?->title}")
+                        ->modalDescription('Edit financial transaction reference, channel, fee amount, or audit remarks.')
+                        ->fillForm(fn (Enrollment $record): array => [
+                            'registration_type' => $record->registration_type ?? Enrollment::CHANNEL_ADMIN_MANUAL,
+                            'fee_type' => $record->isFree() ? 'free' : 'paid',
+                            'fee_amount' => $record->fee_amount ?? ($record->payment?->amount ?? ($record->course?->fees ?? 0)),
+                            'payment_method' => $record->payment_method ?? ($record->payment?->payment_method ?? 'cash'),
+                            'provider' => $record->payment?->provider ?? '',
+                            'transaction_reference' => $record->transaction_reference ?? ($record->payment?->reference ?? ''),
+                            'payment_notes' => $record->payment_notes ?? ($record->payment?->payment_notes ?? ''),
+                        ])
+                        ->form([
+                            Select::make('registration_type')
+                                ->label('Enrollment Channel')
+                                ->options([
+                                    Enrollment::CHANNEL_ADMIN_MANUAL => 'Admin Manual Added (Campus / Office)',
+                                    Enrollment::CHANNEL_INSTRUCTOR_MANUAL => 'Instructor Added',
+                                    Enrollment::CHANNEL_DIRECT_CHECKOUT => 'Direct Online Checkout',
+                                ])
+                                ->required(),
+
+                            Radio::make('fee_type')
+                                ->label('Tuition / Payment Type')
+                                ->options([
+                                    'paid' => '💳 Paying Student',
+                                    'free' => '🎁 Free / Sponsored / Scholarship',
+                                ])
+                                ->live()
+                                ->required(),
+
+                            TextInput::make('fee_amount')
+                                ->label('Fee Amount (ZMW)')
+                                ->numeric()
+                                ->prefix('ZMW')
+                                ->visible(fn (Get $get): bool => $get('fee_type') === 'paid')
+                                ->required(fn (Get $get): bool => $get('fee_type') === 'paid'),
+
+                            Select::make('payment_method')
+                                ->label('Payment Method')
+                                ->options([
+                                    'cash' => 'Cash Payment',
+                                    'bank_transfer' => 'Bank Transfer / Deposit',
+                                    'mobile_money' => 'Mobile Money',
+                                    'card' => 'POS / Debit / Credit Card',
+                                    'cheque' => 'Company / Bank Cheque',
+                                    'other' => 'Other',
+                                ])
+                                ->visible(fn (Get $get): bool => $get('fee_type') === 'paid')
+                                ->required(fn (Get $get): bool => $get('fee_type') === 'paid'),
+
+                            TextInput::make('provider')
+                                ->label('Bank / Provider / Terminal')
+                                ->placeholder('e.g. Stanbic Bank, Airtel Money, Finance Reception Desk')
+                                ->visible(fn (Get $get): bool => $get('fee_type') === 'paid'),
+
+                            TextInput::make('transaction_reference')
+                                ->label('Transaction Reference / Receipt #')
+                                ->placeholder('e.g. TXN-8392019, Bank Slip #, Receipt Book #1204')
+                                ->required(fn (Get $get): bool => $get('fee_type') === 'paid')
+                                ->visible(fn (Get $get): bool => $get('fee_type') === 'paid'),
+
+                            Textarea::make('payment_notes')
+                                ->label('Accounting Remarks & Notes')
+                                ->placeholder('Remarks, reason for waiver or payment verification notes')
+                                ->rows(3)
+                                ->columnSpanFull(),
+                        ])
+                        ->action(function (Enrollment $record, array $data): void {
+                            $isFree = ($data['fee_type'] ?? 'paid') === 'free';
+                            $amount = $isFree ? 0.00 : (float) ($data['fee_amount'] ?? 0);
+                            $method = $isFree ? 'free_registration' : ($data['payment_method'] ?? 'cash');
+                            $ref = $isFree
+                                ? ($record->transaction_reference ?: ('FREE-' . strtoupper(Str::random(8))))
+                                : trim((string) ($data['transaction_reference'] ?? ''));
+                            $notes = trim((string) ($data['payment_notes'] ?? ''));
+                            $channel = $data['registration_type'] ?? $record->registration_type ?? Enrollment::CHANNEL_ADMIN_MANUAL;
+
+                            $record->update([
+                                'registration_type' => $channel,
+                                'payment_status' => $isFree ? Enrollment::STATUS_FREE : Enrollment::STATUS_PAID,
+                                'is_free' => $isFree,
+                                'fee_amount' => $amount,
+                                'payment_method' => $method,
+                                'transaction_reference' => $ref,
+                                'payment_notes' => $notes,
+                                'registered_by_user_id' => $record->registered_by_user_id ?? auth()->id(),
+                                'paid_at' => $isFree ? null : ($record->paid_at ?? now()),
+                            ]);
+
+                            Payment::updateOrCreate(
+                                ['enrollment_id' => $record->id],
+                                [
+                                    'user_id' => $record->user_id,
+                                    'course_id' => $record->course_id,
+                                    'amount' => $amount,
+                                    'original_amount' => $record->course?->fees ?? $amount,
+                                    'discount_amount' => $isFree ? ($record->course?->fees ?? 0) : 0,
+                                    'currency' => 'ZMW',
+                                    'payment_method' => $method,
+                                    'provider' => $data['provider'] ?? ($isFree ? 'Tuition Waiver' : 'Manual Entry'),
+                                    'reference' => $ref !== '' ? $ref : ('REC-' . $record->id),
+                                    'status' => 'paid',
+                                    'is_free' => $isFree,
+                                    'registration_type' => $channel,
+                                    'registered_by_user_id' => auth()->id(),
+                                    'payment_notes' => $notes,
+                                    'paid_at' => $isFree ? null : ($record->paid_at ?? now()),
+                                ]
+                            );
+
+                            Notification::make()
+                                ->title('Payment & registration details successfully updated.')
+                                ->success()
+                                ->send();
+                        }),
+
                     Action::make('assign_intake')
                         ->label('Assign / Change Intake')
                         ->icon('heroicon-o-calendar-days')
