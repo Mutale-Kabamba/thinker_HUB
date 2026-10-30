@@ -43,6 +43,7 @@ class InstructorPanelProvider extends PanelProvider
                 'danger' => Color::Rose,
             ])
             ->font('Plus Jakarta Sans', url: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap')
+            ->spa()
             ->databaseNotifications()
             ->databaseNotificationsPolling(null)
             ->errorNotifications(false)
@@ -70,6 +71,11 @@ class InstructorPanelProvider extends PanelProvider
                     ->icon('heroicon-o-sparkles')
                     ->url('/contribute')
                     ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToContributor())),
+                MenuItem::make()
+                    ->label('Parents Portal')
+                    ->icon('heroicon-o-user-group')
+                    ->url('/parent')
+                    ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToParent())),
                 MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')
@@ -100,6 +106,10 @@ class InstructorPanelProvider extends PanelProvider
                 fn (): string => view('filament.partials.top-search', [
                     'action' => route('filament.instructor.pages.search'),
                 ])->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.instructor.partials.smart-reminder-popup')->render(),
             )
             // FIX 2: Gracefully handle expired CSRF/sessions on background calls
             ->renderHook(

@@ -111,6 +111,16 @@ class ProgressionService
             if ($percentage >= 100 && ! $wasAlreadyCompleted) {
                 event(new CourseCompleted($user, $course));
 
+                // Automatically issue completion certificate
+                try {
+                    $certificate = app(\App\Services\CertificateService::class)->issue($user, $course, force: true);
+                    if ($certificate && $certificate->wasRecentlyCreated) {
+                        $user->notify(new \App\Notifications\CertificateIssuedNotification($certificate));
+                    }
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+
                 // If gamification service exists, award course completion XP if configured
                 try {
                     $gamification = app(\App\Services\GamificationService::class);

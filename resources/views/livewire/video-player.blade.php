@@ -2,6 +2,7 @@
     class="w-full max-w-5xl mx-auto rounded-2xl bg-slate-900 border border-slate-800 p-4 sm:p-6 shadow-2xl text-white my-4"
     x-data="universalVideoTracker({
         youtubeId: @js($youtubeId),
+        embedUrl: @js($embedUrl),
         fileUrl: @js($fileUrl),
         pointsClaimed: @js($pointsEarned),
         initialDuration: @js($initialDuration),
@@ -58,6 +59,16 @@
                 allowfullscreen
                 @load="onIframeLoaded()"
             ></iframe>
+        @elseif ($embedUrl)
+            <iframe
+                id="embed-iframe-{{ md5($embedUrl . ($title ?? '')) }}"
+                x-ref="embedIframe"
+                src="{{ $embedUrl }}"
+                class="w-full h-full border-0 block"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                allowfullscreen
+                @load="onGenericEmbedLoaded()"
+            ></iframe>
         @elseif ($fileUrl)
             <video
                 x-ref="videoElement"
@@ -80,7 +91,7 @@
     </div>
 
     <!-- Real-time Watch Progress Tracking -->
-    @if ($youtubeId || $fileUrl)
+    @if ($youtubeId || $embedUrl || $fileUrl)
         <div class="mt-4 bg-slate-950/60 rounded-xl p-3.5 sm:p-4 border border-slate-800/80">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2 mb-2">
                 <div class="flex items-center gap-2 flex-wrap">
@@ -162,6 +173,7 @@
     function universalVideoTracker(config) {
         return {
             youtubeId: config.youtubeId,
+            embedUrl: config.embedUrl,
             fileUrl: config.fileUrl,
             pointsClaimed: config.pointsClaimed || false,
             actualSecondsWatched: 0,
@@ -182,7 +194,22 @@
                 if (this.youtubeId) {
                     this.setupYouTubePostMessage();
                     this.setupYouTubeApi();
+                } else if (this.embedUrl) {
+                    if (!this.duration || this.duration <= 0) {
+                        this.duration = 300;
+                    }
                 }
+            },
+
+            onGenericEmbedLoaded() {
+                if (!this.duration || this.duration <= 0) {
+                    this.duration = 300;
+                }
+                this.isPlaying = !document.hidden;
+                this.startWatchTimer();
+                document.addEventListener('visibilitychange', () => {
+                    this.isPlaying = !document.hidden;
+                });
             },
 
             destroy() {
@@ -323,6 +350,8 @@
 
                     if (this.player && typeof this.player.getCurrentTime === 'function') {
                         this.currentTime = this.player.getCurrentTime();
+                    } else if (this.embedUrl && !this.youtubeId) {
+                        this.currentTime = this.actualSecondsWatched;
                     }
 
                     if (this.duration > 0) {

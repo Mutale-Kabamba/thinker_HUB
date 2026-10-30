@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Models\AssessmentSubmission;
 use App\Models\AssignmentSubmission;
+use App\Support\DocumentResponse;
 use App\Support\PublicDiskPath;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
@@ -59,19 +61,32 @@ class SubmissionZipService
 
             if (! empty($paths)) {
                 foreach ($paths as $idx => $rawPath) {
-                    $resolvedPath = $this->resolveFilePath($rawPath, $disk);
+                    [$fDisk, $fPath, $fDiskName, $fLocalAbs] = DocumentResponse::resolveFile($rawPath);
 
-                    if ($resolvedPath && file_exists($resolvedPath) && is_file($resolvedPath)) {
-                        $ext = pathinfo($resolvedPath, PATHINFO_EXTENSION);
+                    if ($fPath && ($fDisk || $fLocalAbs)) {
+                        $ext = pathinfo($fPath, PATHINFO_EXTENSION);
                         $ext = $ext ? '.' . $ext : '';
 
                         $suffix = count($paths) > 1 ? '_' . ($idx + 1) : '';
                         $baseName = "{$studentFirst}_{$assignmentSlug}{$suffix}";
 
                         $entryName = $this->uniqueEntryName($baseName, $ext, $usedNames);
-                        $zip->addFile($resolvedPath, $entryName);
-                        $filesAdded++;
-                        $submissionFilesAdded++;
+                        if ($fLocalAbs && file_exists($fLocalAbs) && is_file($fLocalAbs)) {
+                            $zip->addFile($fLocalAbs, $entryName);
+                            $filesAdded++;
+                            $submissionFilesAdded++;
+                        } elseif ($fDisk) {
+                            try {
+                                $content = $fDisk->get($fPath);
+                                if ($content !== false && $content !== null) {
+                                    $zip->addFromString($entryName, $content);
+                                    $filesAdded++;
+                                    $submissionFilesAdded++;
+                                }
+                            } catch (\Throwable $e) {
+                                Log::warning("SubmissionZipService assignment zip read failed for {$fPath} on disk {$fDiskName}: " . $e->getMessage());
+                            }
+                        }
                     }
                 }
             }
@@ -184,19 +199,32 @@ class SubmissionZipService
 
             if (! empty($paths)) {
                 foreach ($paths as $idx => $rawPath) {
-                    $resolvedPath = $this->resolveFilePath($rawPath, $disk);
+                    [$fDisk, $fPath, $fDiskName, $fLocalAbs] = DocumentResponse::resolveFile($rawPath);
 
-                    if ($resolvedPath && file_exists($resolvedPath) && is_file($resolvedPath)) {
-                        $ext = pathinfo($resolvedPath, PATHINFO_EXTENSION);
+                    if ($fPath && ($fDisk || $fLocalAbs)) {
+                        $ext = pathinfo($fPath, PATHINFO_EXTENSION);
                         $ext = $ext ? '.' . $ext : '';
 
                         $suffix = count($paths) > 1 ? '_' . ($idx + 1) : '';
                         $baseName = "{$studentFirst}_{$assessmentSlug}{$suffix}";
 
                         $entryName = $this->uniqueEntryName($baseName, $ext, $usedNames);
-                        $zip->addFile($resolvedPath, $entryName);
-                        $filesAdded++;
-                        $submissionFilesAdded++;
+                        if ($fLocalAbs && file_exists($fLocalAbs) && is_file($fLocalAbs)) {
+                            $zip->addFile($fLocalAbs, $entryName);
+                            $filesAdded++;
+                            $submissionFilesAdded++;
+                        } elseif ($fDisk) {
+                            try {
+                                $content = $fDisk->get($fPath);
+                                if ($content !== false && $content !== null) {
+                                    $zip->addFromString($entryName, $content);
+                                    $filesAdded++;
+                                    $submissionFilesAdded++;
+                                }
+                            } catch (\Throwable $e) {
+                                Log::warning("SubmissionZipService assessment zip read failed for {$fPath} on disk {$fDiskName}: " . $e->getMessage());
+                            }
+                        }
                     }
                 }
             }
@@ -270,21 +298,17 @@ class SubmissionZipService
     public function downloadSingleAssignmentSubmission(AssignmentSubmission $submission): Response|StreamedResponse|null
     {
         $paths = $submission->all_file_paths;
-        $disk = Storage::disk('public');
 
         if (count($paths) === 1) {
-            $resolved = $this->resolveFilePath($paths[0], $disk);
-            if ($resolved && file_exists($resolved) && is_file($resolved)) {
-                $user = $submission->user;
-                $assignment = $submission->assignment;
-                $rawFirst = explode(' ', trim((string) ($user?->name ?? 'Student')))[0] ?? 'Student';
-                $studentFirst = Str::slug($rawFirst, '_');
-                $assignmentSlug = Str::slug((string) ($assignment?->name ?? 'Assignment'), '_');
-                $ext = pathinfo($resolved, PATHINFO_EXTENSION);
-                $downloadName = "{$studentFirst}_{$assignmentSlug}" . ($ext ? '.' . $ext : '');
+            $user = $submission->user;
+            $assignment = $submission->assignment;
+            $rawFirst = explode(' ', trim((string) ($user?->name ?? 'Student')))[0] ?? 'Student';
+            $studentFirst = Str::slug($rawFirst, '_');
+            $assignmentSlug = Str::slug((string) ($assignment?->name ?? 'Assignment'), '_');
+            $ext = pathinfo($paths[0], PATHINFO_EXTENSION);
+            $downloadName = "{$studentFirst}_{$assignmentSlug}" . ($ext ? '.' . $ext : '');
 
-                return response()->download($resolved, $downloadName);
-            }
+            return DocumentResponse::serve($paths[0], $downloadName, isDownload: true);
         }
 
         return $this->downloadAssignmentsZip(collect([$submission]));
@@ -296,21 +320,17 @@ class SubmissionZipService
     public function downloadSingleAssessmentSubmission(AssessmentSubmission $submission): Response|StreamedResponse|null
     {
         $paths = $submission->all_file_paths;
-        $disk = Storage::disk('public');
 
         if (count($paths) === 1) {
-            $resolved = $this->resolveFilePath($paths[0], $disk);
-            if ($resolved && file_exists($resolved) && is_file($resolved)) {
-                $user = $submission->user;
-                $assessment = $submission->assessment;
-                $rawFirst = explode(' ', trim((string) ($user?->name ?? 'Student')))[0] ?? 'Student';
-                $studentFirst = Str::slug($rawFirst, '_');
-                $assessmentSlug = Str::slug((string) ($assessment?->name ?? 'Assessment'), '_');
-                $ext = pathinfo($resolved, PATHINFO_EXTENSION);
-                $downloadName = "{$studentFirst}_{$assessmentSlug}" . ($ext ? '.' . $ext : '');
+            $user = $submission->user;
+            $assessment = $submission->assessment;
+            $rawFirst = explode(' ', trim((string) ($user?->name ?? 'Student')))[0] ?? 'Student';
+            $studentFirst = Str::slug($rawFirst, '_');
+            $assessmentSlug = Str::slug((string) ($assessment?->name ?? 'Assessment'), '_');
+            $ext = pathinfo($paths[0], PATHINFO_EXTENSION);
+            $downloadName = "{$studentFirst}_{$assessmentSlug}" . ($ext ? '.' . $ext : '');
 
-                return response()->download($resolved, $downloadName);
-            }
+            return DocumentResponse::serve($paths[0], $downloadName, isDownload: true);
         }
 
         return $this->downloadAssessmentsZip(collect([$submission]));
@@ -325,51 +345,15 @@ class SubmissionZipService
             return null;
         }
 
-        $disk = $disk ?: Storage::disk('public');
-
         // If direct valid file path
         if (file_exists($rawPath) && is_file($rawPath)) {
-            return $rawPath;
+            return realpath($rawPath) ?: $rawPath;
         }
 
-        // Clean any scheme/host or storage prefixes
-        $cleanPath = preg_replace('#^https?://[^/]+/storage/#i', '', $rawPath);
-        $cleanPath = preg_replace('#^https?://[^/]+/#i', '', $cleanPath);
-        $cleanPath = str_replace('\\', '/', $cleanPath);
-        $cleanPath = ltrim($cleanPath, '/');
+        [$resolvedDisk, $resolvedPath, $diskName, $localAbsolutePath] = DocumentResponse::resolveFile($rawPath);
 
-        $normalized = PublicDiskPath::normalize($cleanPath);
-        if (! $normalized) {
-            $normalized = $cleanPath;
-        }
-
-        $baseName = basename($cleanPath);
-
-        $candidates = [
-            $rawPath,
-            $cleanPath,
-            $disk->path($normalized),
-            $disk->path($cleanPath),
-            storage_path('app/public/' . $normalized),
-            storage_path('app/public/' . $cleanPath),
-            storage_path('app/' . $normalized),
-            storage_path('app/' . $cleanPath),
-            public_path('storage/' . $normalized),
-            public_path('storage/' . $cleanPath),
-            public_path($normalized),
-            public_path($cleanPath),
-            $disk->path('submissions/' . $baseName),
-            storage_path('app/public/submissions/' . $baseName),
-            storage_path('app/submissions/' . $baseName),
-            public_path('storage/submissions/' . $baseName),
-            $disk->path($baseName),
-            storage_path('app/public/' . $baseName),
-        ];
-
-        foreach ($candidates as $candidate) {
-            if ($candidate && is_string($candidate) && file_exists($candidate) && is_file($candidate)) {
-                return $candidate;
-            }
+        if ($localAbsolutePath && file_exists($localAbsolutePath) && is_file($localAbsolutePath)) {
+            return $localAbsolutePath;
         }
 
         return null;

@@ -2,38 +2,50 @@
 
 namespace App\Filament\Resources\Quizzes\Schemas;
 
-use App\Models\Course;
 use App\Models\CourseIntake;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
-use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Str;
 
 class QuizForm
 {
-    public static function configure(Schema $schema): Schema
+    /**
+     * @param  (callable(): array<string, string>)|null  $courseOptions
+     */
+    public static function configure(Schema $schema, ?callable $courseOptions = null): Schema
     {
+        $courseSelect = Select::make('course_id')
+            ->label('Course')
+            ->required()
+            ->searchable()
+            ->live();
+
+        if ($courseOptions !== null) {
+            $courseSelect->options($courseOptions)
+                ->helperText('Only your assigned courses are shown.');
+        } else {
+            $courseSelect->relationship('course', 'title')
+                ->helperText('Select the course this quiz belongs to.');
+        }
+
         return $schema
             ->components([
-                Section::make('Quiz Details')
-                    ->columns(['default' => 1, 'md' => 2])
+                Section::make('Evaluation Parameters')
+                    ->description('Quiz targeting, timing thresholds, scoring criteria, and delivery conditions.')
+                    ->icon('heroicon-o-adjustments-vertical')
+                    ->columnSpanFull()
                     ->schema([
-                        Select::make('course_id')
-                            ->label('Course')
-                            ->required()
-                            ->searchable()
-                            ->relationship('course', 'title')
-                            ->helperText('Select the course this quiz belongs to.')
-                            ->live()
-                            ->columnSpanFull(),
+                        $courseSelect,
 
                         Select::make('course_intake_id')
-                            ->label('Target Intake / Class')
+                            ->label('Target Intake / Class Cohort')
                             ->nullable()
                             ->searchable()
                             ->options(function (callable $get): array {
@@ -50,51 +62,60 @@ class QuizForm
                                     ->toArray();
                             })
                             ->placeholder('All Intakes / Entire Course')
-                            ->helperText('Leave empty to make quiz available to all cohorts across the course.')
-                            ->columnSpanFull(),
+                            ->helperText('Leave empty to make quiz available across all cohorts.'),
 
                         TextInput::make('title')
+                            ->label('Quiz Title')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->placeholder('e.g. Module 3 Assessment: Async Programming'),
 
                         TextInput::make('time_limit_minutes')
-                            ->label('Time Limit (minutes)')
+                            ->label('Time Limit (min)')
                             ->numeric()
                             ->minValue(1)
                             ->maxValue(300)
-                            ->placeholder('No time limit'),
-
-                        Textarea::make('description')
-                            ->rows(3)
-                            ->columnSpanFull(),
-
-                        DateTimePicker::make('publish_at')
-                            ->label('Publish At')
-                            ->helperText('Leave empty to publish immediately. Set a future date/time to auto-release to students.')
-                            ->columnSpanFull(),
+                            ->placeholder('No limit (open time)'),
 
                         TextInput::make('pass_percentage')
-                            ->label('Pass Percentage')
+                            ->label('Passing Score')
                             ->numeric()
                             ->default(50)
                             ->minValue(0)
                             ->maxValue(100)
                             ->suffix('%'),
 
+                        DateTimePicker::make('publish_at')
+                            ->label('Scheduled Publication')
+                            ->helperText('Auto-releases at this time (leave empty for instant release).'),
+
+                        Textarea::make('description')
+                            ->label('Instructions for Students')
+                            ->rows(3)
+                            ->placeholder('Rules, calculators allowed, special instructions, review policies...')
+                            ->columnSpanFull(),
+
                         Toggle::make('shuffle_questions')
                             ->label('Shuffle Questions')
+                            ->helperText('Randomize question sequence per attempt.')
                             ->default(false),
 
                         Toggle::make('show_results')
-                            ->label('Show Results After Completion')
+                            ->label('Immediate Results')
+                            ->helperText('Show score and answer keys upon submission.')
                             ->default(true),
 
                         Toggle::make('is_active')
-                            ->label('Active')
+                            ->label('Active / Published')
+                            ->helperText('Visible to students if within publication dates.')
                             ->default(true),
-                    ]),
+                    ])
+                    ->columns(['default' => 1, 'sm' => 2, 'lg' => 3]),
 
-                Section::make('Questions')
+                Section::make('Questions & Answer Keys')
+                    ->description('Author assessment items, scoring weight, and interactive multiple-choice options.')
+                    ->icon('heroicon-o-clipboard-document-check')
+                    ->columnSpanFull()
                     ->schema([
                         Repeater::make('questions')
                             ->relationship()
@@ -109,19 +130,23 @@ class QuizForm
                                     ->live()
                                     ->default('multiple_choice'),
 
-                                Textarea::make('question')
-                                    ->required()
-                                    ->rows(3)
-                                    ->columnSpanFull(),
-
                                 TextInput::make('points')
+                                    ->label('Points')
                                     ->numeric()
                                     ->default(1)
                                     ->minValue(1)
                                     ->maxValue(100),
 
+                                Textarea::make('question')
+                                    ->label('Question Statement')
+                                    ->required()
+                                    ->rows(3)
+                                    ->placeholder('State the question clearly...')
+                                    ->columnSpanFull(),
+
                                 Textarea::make('explanation')
-                                    ->label('Explanation (shown after answering)')
+                                    ->label('Explanation & Learning Notes')
+                                    ->helperText('Shown to students in review mode after answering.')
                                     ->rows(2)
                                     ->columnSpanFull(),
 
@@ -130,9 +155,10 @@ class QuizForm
                                     ->orderColumn('sort_order')
                                     ->schema([
                                         TextInput::make('option_text')
-                                            ->label('Option')
+                                            ->label('Option Text')
                                             ->required()
-                                            ->maxLength(500),
+                                            ->maxLength(500)
+                                            ->placeholder('Option answer choice...'),
 
                                         Checkbox::make('is_correct')
                                             ->label('Correct Answer'),
@@ -153,7 +179,7 @@ class QuizForm
                             ->cloneable()
                             ->orderColumn('sort_order')
                             ->itemLabel(fn (array $state): ?string => ($state['question'] ?? null)
-                                ? \Illuminate\Support\Str::limit($state['question'], 60)
+                                ? Str::limit($state['question'], 60)
                                 : 'New Question'
                             )
                             ->columnSpanFull(),

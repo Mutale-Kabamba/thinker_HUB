@@ -193,14 +193,21 @@
 
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($courses as $course)
-                            <article class="group rounded-2xl border border-slate-200 bg-white p-3.5 hover:border-teal-500 hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+                            <article class="group rounded-2xl border border-slate-200 bg-white p-3 hover:border-teal-500 hover:-translate-y-0.5 transition-all flex flex-col justify-between">
                                 <div>
-                                    <div class="flex items-center justify-between gap-2 mb-2">
-                                        <span class="bg-teal-50 text-teal-800 text-[10px] font-bold uppercase px-2 py-0.5 rounded border border-teal-200/60">{{ $course->code }}</span>
+                                    <div class="relative h-36 w-full overflow-hidden rounded-xl bg-slate-100 mb-2.5">
+                                        <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title)]) }}" class="block w-full h-full">
+                                            <img src="{{ $course->course_image_url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }}">
+                                        </a>
+                                        <div class="absolute top-2 left-2 bg-teal-800/90 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20">{{ $course->code }}</div>
                                     </div>
-                                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-teal-700 transition leading-snug">{{ $course->title }}</h3>
+                                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-teal-700 transition leading-snug line-clamp-2">
+                                        <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title)]) }}" class="hover:text-teal-700 transition-colors">
+                                            {{ $course->title }}
+                                        </a>
+                                    </h3>
                                 </div>
-                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
                                     <span class="text-[11px] text-slate-500"><i class="fa-regular fa-user text-teal-600 mr-1"></i>{{ (int) ($course->enrollments_count ?? 0) }} Students</span>
                                     <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title)]) }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-3 py-1 text-[11px] font-bold text-white hover:bg-[#11443c]">
                                         Open Course &rarr;
@@ -229,55 +236,7 @@
         <livewire:reviews.submit-review-modal />
     </main>
 
-    <footer class="bg-white border-t border-slate-200 py-12 lg:py-16">
-        <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center lg:text-left">
-            <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
-                <div>
-                    <div class="flex items-center justify-center gap-3 lg:justify-start">
-                        <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
-                    </div>
-                    <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
-                        think.er HUB connects tutors, researchers, bloggers, and employers with learners.
-                    </p>
-                </div>
-
-                <div class="hidden lg:block">
-                    <h3 class="text-sm font-bold text-slate-900">Menu</h3>
-                    <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
-                        <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">Home</a></li>
-                        <li><a href="{{ route('landing.courses') }}" class="transition hover:text-[#0a2d27]">Courses</a></li>
-                        <li><a href="{{ route('hub.index') }}" class="transition hover:text-[#0a2d27]">Knowledge Hub</a></li>
-                        <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Network</a></li>
-                        <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
-                        @auth
-                            <li><a href="{{ route('dashboard') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
-                        @else
-                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
-                        @endauth
-                    </ul>
-                </div>
-
-                <div>
-                    <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
-                    <div class="mt-4 space-y-2.5 text-sm text-slate-500">
-                        <p><span class="font-semibold text-slate-700">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
-                        <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-[#0a2d27] hover:underline">thinkerhub@oristudiozm.com</a></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-8 border-t border-slate-200 pt-4">
-                <div class="flex flex-col items-center gap-3 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
-                    <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
-                    <div class="flex flex-wrap items-center gap-4 font-medium">
-                        <a href="{{ route('landing.privacy') }}" class="hover:text-slate-900 transition">Privacy</a>
-                        <a href="{{ route('landing.cookies') }}" class="hover:text-slate-900 transition">Cookies</a>
-                        <a href="{{ route('landing.terms') }}" class="hover:text-slate-900 transition">T&amp;Cs</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.public-footer')
 
     @include('partials.legal-modals')
 

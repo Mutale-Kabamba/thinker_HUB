@@ -65,12 +65,14 @@
                 const ext = name.split('.').pop().toLowerCase();
                 if (ext === 'pdf') {
                     this.viewerType = 'pdf';
+                    this.viewerLoading = true;
                     try {
                         this.viewerObjectUrl = await this.buildObjectUrl(url);
                         this.viewerUrl = this.viewerObjectUrl;
+                        this.viewerLoading = false;
                     } catch (e) {
-                        // Keep original URL as fallback when blob preview fails.
-                        this.viewerUrl = this.viewerRawUrl;
+                        this.viewerLoading = false;
+                        this.viewerType = 'error';
                     }
                 }
                 else if (['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) this.viewerType = 'image';
@@ -108,11 +110,17 @@
                 this.viewerUrl = '';
                 this.viewerRawUrl = '';
                 this.viewerDocxHtml = '';
+                this.viewerType = '';
                 this.viewerLoading = false;
                 if (this.viewerObjectUrl) {
                     URL.revokeObjectURL(this.viewerObjectUrl);
                     this.viewerObjectUrl = '';
                 }
+            },
+            getDownloadUrl(url) {
+                if (!url) return '';
+                const separator = url.includes('?') ? '&' : '?';
+                return url + separator + 'download=1';
             },
         };
     };
@@ -153,7 +161,7 @@
                 style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid #e5e7eb;border-radius:999px;color:#475569;text-decoration:none;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
-            <a :href="viewerRawUrl" download title="Download"
+            <a :href="getDownloadUrl(viewerRawUrl)" download title="Download"
                 style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid #e5e7eb;border-radius:999px;color:#475569;text-decoration:none;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </a>
@@ -186,7 +194,7 @@
                     <p style="font-size:1rem;font-weight:700;color:#1f2937;margin:0.6rem 0 0.2rem;">Presentation</p>
                     <p style="font-size:0.82rem;color:#6b7280;margin:0 0 1.1rem;word-break:break-word;" x-text="viewerName"></p>
                     <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
-                        <a :href="viewerRawUrl" download class="hub-btn hub-btn-primary" style="font-size:0.85rem;">Download</a>
+                        <a :href="getDownloadUrl(viewerRawUrl)" download class="hub-btn hub-btn-primary" style="font-size:0.85rem;">Download</a>
                         <a :href="viewerRawUrl" target="_blank" rel="noopener" class="hub-btn" style="font-size:0.85rem;border:1px solid var(--hub-border,#e5e7eb);">Open in new tab</a>
                     </div>
                     <p style="font-size:0.74rem;color:#9ca3af;margin:1rem 0 0;">Presentations open in your device's native viewer (PowerPoint, Keynote, or Google Slides).</p>
@@ -195,10 +203,22 @@
             <template x-if="viewerType === 'text'">
                 <iframe :src="viewerUrl" class="doc-viewer-frame" style="width:100%;height:75vh;border:none;"></iframe>
             </template>
+            <template x-if="viewerType === 'error'">
+                <div style="text-align:center;padding:3rem 1.5rem;align-self:center;">
+                    <div style="display:flex;justify-content:center;margin-bottom:0.75rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:3.25rem;height:3.25rem;color:#94a3b8;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
+                        </svg>
+                    </div>
+                    <p style="font-size:1.05rem;font-weight:700;color:#1e293b;margin:0 0 0.35rem;">File Not Available</p>
+                    <p style="font-size:0.85rem;color:#64748b;margin:0 0 1.25rem;max-width:440px;margin-inline:auto;">The requested document is not currently available in storage. It may have been removed or needs to be re-uploaded.</p>
+                    <button type="button" @click="closeViewer()" class="hub-btn hub-btn-secondary" style="font-size:0.85rem;padding:0.4rem 1.25rem;">Close</button>
+                </div>
+            </template>
             <template x-if="viewerType === 'other'">
                 <div style="text-align:center;padding:2rem;align-self:center;">
                     <p style="font-size:1rem;color:#6b7280;margin:0 0 1rem;">Preview is not available for this file type.</p>
-                    <a :href="viewerUrl" download class="hub-btn hub-btn-primary" style="font-size:0.85rem;">Download File</a>
+                    <a :href="getDownloadUrl(viewerRawUrl || viewerUrl)" download class="hub-btn hub-btn-primary" style="font-size:0.85rem;">Download File</a>
                 </div>
             </template>
         </div>
