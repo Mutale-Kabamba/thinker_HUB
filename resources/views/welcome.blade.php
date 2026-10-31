@@ -108,17 +108,23 @@
                             </a>
                         </div>
 
+                        @php
+                            $formatStatInFives = static function (mixed $value): string {
+                                $count = max(0, (int) $value);
+                                return $count < 5 ? (string) $count : ((int) (floor($count / 5) * 5)) . '+';
+                            };
+                        @endphp
                         <div class="mt-10 grid grid-cols-4 gap-2 sm:gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xs max-w-lg mx-auto lg:mx-0">
                             <div class="text-center lg:text-left">
-                                <p class="text-xl sm:text-2xl font-extrabold text-white tabular-nums">{{ ($stats['tutors'] ?? 0) < 10 ? ($stats['tutors'] ?? 0) : '10+' }}</p>
+                                <p class="text-xl sm:text-2xl font-extrabold text-white tabular-nums">{{ $formatStatInFives($stats['tutors'] ?? 0) }}</p>
                                 <p class="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tutors</p>
                             </div>
                             <div class="text-center lg:text-left border-l border-white/10 pl-2 sm:pl-4">
-                                <p class="text-xl sm:text-2xl font-extrabold text-white tabular-nums">{{ ($stats['students'] ?? 0) < 10 ? ($stats['students'] ?? 0) : '10+' }}</p>
+                                <p class="text-xl sm:text-2xl font-extrabold text-white tabular-nums">{{ $formatStatInFives($stats['students'] ?? 0) }}</p>
                                 <p class="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-400">Students</p>
                             </div>
                             <div class="text-center lg:text-left border-l border-white/10 pl-2 sm:pl-4">
-                                <p class="text-xl sm:text-2xl font-extrabold text-white tabular-nums">{{ ($stats['courses'] ?? 0) < 10 ? ($stats['courses'] ?? 0) : '10+' }}</p>
+                                <p class="text-xl sm:text-2xl font-extrabold text-white tabular-nums">{{ $formatStatInFives($stats['courses'] ?? 0) }}</p>
                                 <p class="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-400">Courses</p>
                             </div>
                             <div class="text-center lg:text-left border-l border-white/10 pl-2 sm:pl-4">
