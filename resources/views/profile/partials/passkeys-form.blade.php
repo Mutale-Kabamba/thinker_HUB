@@ -18,7 +18,7 @@
         >
             <i class="fa-solid fa-plus" x-show="!loading"></i>
             <i class="fa-solid fa-spinner fa-spin" x-show="loading"></i>
-            <span x-text="loading ? 'Registering...' : '+ Enable Fingerprint / Passkey'"></span>
+            <span x-text="loading ? 'Registering...' : 'Enable Fingerprint / Passkey'"></span>
         </button>
     </header>
 
