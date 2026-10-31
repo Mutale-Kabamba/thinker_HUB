@@ -271,12 +271,22 @@ class DocumentResponse
         }
 
         $filename = $downloadName ?: basename($path);
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION) ?: pathinfo($path, PATHINFO_EXTENSION));
+        $unsafeInlineExtensions = ['html', 'htm', 'svg', 'js', 'mjs', 'php', 'phar', 'sh', 'bat', 'cmd', 'exe', 'xml'];
+        if (in_array($ext, $unsafeInlineExtensions, true)) {
+            $isDownload = true;
+        }
+
         $mimeType = static::detectMimeType($filename) ?: static::detectMimeType($path);
+        if (in_array($ext, ['html', 'htm', 'svg', 'js', 'mjs', 'php', 'phar'], true)) {
+            $mimeType = 'application/octet-stream';
+        }
         $dispositionType = $isDownload ? 'attachment' : 'inline';
 
         $headers = array_merge([
             'Content-Type' => $mimeType,
             'Content-Disposition' => $dispositionType . '; filename="' . addcslashes($filename, '"') . '"',
+            'X-Content-Type-Options' => 'nosniff',
         ], $extraHeaders);
 
         // Serve local physical file directly if available.

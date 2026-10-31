@@ -107,9 +107,9 @@ class PaymentController extends Controller
         if ($existingKidId) {
             $currentUser = Auth::user();
             if ($currentUser) {
-                $existingKid = $currentUser->kids()->where('users.id', $existingKidId)->first() ?: User::find($existingKidId);
-            } else {
-                $existingKid = User::find($existingKidId);
+                $existingKid = $currentUser->isAdmin()
+                    ? User::where('is_kid', true)->find($existingKidId)
+                    : $currentUser->kids()->where('users.id', $existingKidId)->where('users.is_kid', true)->first();
             }
         }
 
@@ -239,18 +239,13 @@ class PaymentController extends Controller
 
         $existingKidId = $request->input('existing_kid_id') ?: $request->input('kid_id');
         $existingKid = null;
-        if ($existingKidId) {
-            if ($currentUser) {
-                $existingKid = $currentUser->kids()->where('users.id', $existingKidId)->first() ?: User::find($existingKidId);
-            } else {
-                $existingKid = User::find($existingKidId);
-            }
+        if ($existingKidId && $currentUser) {
+            $existingKid = $currentUser->isAdmin()
+                ? User::where('is_kid', true)->find($existingKidId)
+                : $currentUser->kids()->where('users.id', $existingKidId)->where('users.is_kid', true)->first();
         }
 
         $isKidsCourse = (bool) ($course->is_for_kids || $request->input('is_for_kids') === '1' || $request->filled('kid_name') || $existingKid);
-        if ($isKidsCourse && ! $course->is_for_kids) {
-            $course->update(['is_for_kids' => true]);
-        }
 
         if ($isKidsCourse) {
             if ($existingKid) {

@@ -1,80 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
     <url>
-    <loc>https://thinkerhub.online/courses/2/full-stack-web-development-bootcamp</loc>
-    <lastmod>2026-10-30T13:34:30+02:00</lastmod>
+    <loc>https://thinkerhub.online/courses/1/cloud-engineering-bootcamp</loc>
+    <lastmod>2026-10-31T20:53:32+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <image:image>
     <image:loc>https://thinkerhub.online/images/logos/green.png</image:loc>
-    <image:caption>Full-Stack Web Development Bootcamp</image:caption>
-    <image:title>Full-Stack Web Development Bootcamp</image:title>
-</image:image>
-        </url>
-    <url>
-    <loc>https://thinkerhub.online/courses/3/python-for-data-science-machine-learning</loc>
-    <lastmod>2026-10-30T13:34:30+02:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-    <image:image>
-    <image:loc>https://thinkerhub.online/images/logos/green.png</image:loc>
-    <image:caption>Python for Data Science &amp; Machine Learning</image:caption>
-    <image:title>Python for Data Science &amp; Machine Learning</image:title>
-</image:image>
-        </url>
-    <url>
-    <loc>https://thinkerhub.online/courses/4/practical-cybersecurity-ethical-hacking</loc>
-    <lastmod>2026-10-30T13:34:30+02:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-    <image:image>
-    <image:loc>https://thinkerhub.online/images/logos/green.png</image:loc>
-    <image:caption>Practical Cybersecurity &amp; Ethical Hacking</image:caption>
-    <image:title>Practical Cybersecurity &amp; Ethical Hacking</image:title>
-</image:image>
-        </url>
-    <url>
-    <loc>https://thinkerhub.online/courses/5/junior-coders-scratch-creative-game-lab</loc>
-    <lastmod>2026-10-30T13:34:30+02:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-    <image:image>
-    <image:loc>https://thinkerhub.online/images/logos/green.png</image:loc>
-    <image:caption>Junior Coders: Scratch &amp; Creative Game Lab</image:caption>
-    <image:title>Junior Coders: Scratch &amp; Creative Game Lab</image:title>
-</image:image>
-        </url>
-    <url>
-    <loc>https://thinkerhub.online/courses/6/foundations-of-uiux-design-product-prototyping</loc>
-    <lastmod>2026-10-30T13:34:30+02:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-    <image:image>
-    <image:loc>https://thinkerhub.online/images/logos/green.png</image:loc>
-    <image:caption>Foundations of UI/UX Design &amp; Product Prototyping</image:caption>
-    <image:title>Foundations of UI/UX Design &amp; Product Prototyping</image:title>
-</image:image>
-        </url>
-    <url>
-    <loc>https://thinkerhub.online/courses/7/cloud-engineering-devops-with-docker-aws</loc>
-    <lastmod>2026-10-30T13:34:30+02:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-    <image:image>
-    <image:loc>https://thinkerhub.online/images/logos/green.png</image:loc>
-    <image:caption>Cloud Engineering &amp; DevOps with Docker &amp; AWS</image:caption>
-    <image:title>Cloud Engineering &amp; DevOps with Docker &amp; AWS</image:title>
-</image:image>
-        </url>
-    <url>
-    <loc>https://thinkerhub.online/courses/1/introduction-to-web-development</loc>
-    <lastmod>2026-10-30T13:34:27+02:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-    <image:image>
-    <image:loc>https://thinkerhub.online/images/logos/green.png</image:loc>
-    <image:caption>Introduction to Web Development</image:caption>
-    <image:title>Introduction to Web Development</image:title>
+    <image:caption>Cloud Engineering Bootcamp</image:caption>
+    <image:title>Cloud Engineering Bootcamp</image:title>
 </image:image>
         </url>
 </urlset>

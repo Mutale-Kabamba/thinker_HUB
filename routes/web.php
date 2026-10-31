@@ -368,10 +368,10 @@ Route::get('/media/{media}/view', function (App\Models\Media $media, Request $re
 
 Route::get('/checkout/{course}', [PaymentController::class, 'showCheckout'])->name('checkout.show');
 Route::get('/courses/{course}/enroll', [PaymentController::class, 'showCheckout']);
-Route::post('/checkout/{course}/apply-promo', [PaymentController::class, 'applyPromoCode'])->name('checkout.apply-promo');
-Route::post('/courses/{course}/pay', [PaymentController::class, 'processPayment'])->name('checkout.process');
+Route::post('/checkout/{course}/apply-promo', [PaymentController::class, 'applyPromoCode'])->middleware('throttle:20,1')->name('checkout.apply-promo');
+Route::post('/courses/{course}/pay', [PaymentController::class, 'processPayment'])->middleware('throttle:20,1')->name('checkout.process');
 Route::get('/payments/receipt/{reference}', [PaymentController::class, 'showReceipt'])->name('payment.receipt');
-Route::get('/payments/status/{reference}', [PaymentController::class, 'checkStatus'])->name('payment.status');
+Route::get('/payments/status/{reference}', [PaymentController::class, 'checkStatus'])->middleware('throttle:60,1')->name('payment.status');
 Route::post('/api/payments/webhook/lenco', [PaymentController::class, 'handleWebhook'])->name('payment.webhook.lenco');
 Route::post('/api/payments/webhook/broadpay', [PaymentController::class, 'handleWebhook'])->name('payment.webhook.broadpay');
 Route::post('/payments/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
@@ -558,7 +558,7 @@ Route::get('/network/{instructor}/{slug?}', function (int $instructor, ?string $
 })->whereNumber('instructor')->name('landing.instructors.show');
 
 Route::get('/instructors/apply', [InstructorApplicationController::class, 'create'])->name('landing.instructors.apply');
-Route::post('/instructors/apply', [InstructorApplicationController::class, 'store'])->name('landing.instructors.apply.store');
+Route::post('/instructors/apply', [InstructorApplicationController::class, 'store'])->middleware('throttle:10,1')->name('landing.instructors.apply.store');
 
 Route::get('/reviews/create', function (\Illuminate\Http\Request $request) {
     if (! Auth::check()) {
@@ -682,8 +682,8 @@ Route::middleware('auth')->group(function () {
             abort(403, 'You are only authorized to switch into your own children\'s accounts.');
         }
 
-        if (! $kid->is_kid) {
-            abort(400, 'Target user is not a child account.');
+        if (! $kid->is_kid || $kid->isAdmin() || $kid->isInstructor()) {
+            abort(403, 'Target user is not a valid child student account.');
         }
 
         session(['impersonating_parent_id' => $parent->id]);
