@@ -575,8 +575,8 @@ Route::view('/privacy', 'pages.privacy')->name('landing.privacy');
 Route::view('/cookies', 'pages.cookies')->name('landing.cookies');
 Route::view('/terms', 'pages.terms')->name('landing.terms');
 
-Route::get('/sitemap.xml', function () {
-    $sitemapPath = public_path('sitemap.xml');
+$serveSitemapFile = static function (string $filename) {
+    $sitemapPath = public_path($filename);
 
     if (! is_file($sitemapPath)) {
         Artisan::call('seo:generate');
@@ -588,13 +588,31 @@ Route::get('/sitemap.xml', function () {
         'Content-Type' => 'application/xml; charset=UTF-8',
         'Cache-Control' => 'public, max-age=3600',
     ]);
-})->withoutMiddleware([
+};
+
+Route::get('/sitemap.xml', fn () => $serveSitemapFile('sitemap.xml'))->withoutMiddleware([
     EncryptCookies::class,
     AddQueuedCookiesToResponse::class,
     StartSession::class,
     ShareErrorsFromSession::class,
     VerifyCsrfToken::class,
 ])->name('sitemap');
+
+Route::get('/sitemap-static.xml', fn () => $serveSitemapFile('sitemap-static.xml'))->withoutMiddleware([
+    EncryptCookies::class,
+    AddQueuedCookiesToResponse::class,
+    StartSession::class,
+    ShareErrorsFromSession::class,
+    VerifyCsrfToken::class,
+])->name('sitemap.static');
+
+Route::get('/sitemap-courses.xml', fn () => $serveSitemapFile('sitemap-courses.xml'))->withoutMiddleware([
+    EncryptCookies::class,
+    AddQueuedCookiesToResponse::class,
+    StartSession::class,
+    ShareErrorsFromSession::class,
+    VerifyCsrfToken::class,
+])->name('sitemap.courses');
 
 Route::redirect('/enroll', '/register')->name('enroll');
 Route::redirect('/become-student', '/register')->name('become-student');

@@ -3,11 +3,39 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @php
+        $seoProfileUrl = route('landing.instructors.show', [
+            'instructor' => $instructor->id,
+            'slug' => \Illuminate\Support\Str::slug($instructor->name ?: (string) $instructor->id),
+        ]);
+        $seoProfileImage = $instructor->getFilamentAvatarUrl();
+        $seoProfileDesc = ($instructor->bio ?: ($instructor->occupation ?: 'Member profile on think.er HUB.')).' Explore authored resources and courses.';
+        $kType = '@' . 'type';
+    @endphp
     @include('partials.seo-meta', [
         'title' => $instructor->name.' | Network Profile | think.er HUB',
-        'description' => ($instructor->bio ?: ($instructor->occupation ?: 'Member profile on think.er HUB.')).' Explore authored resources and courses.',
-        'keywords' => 'network profile, tutor, researcher, blogger, employer, thinker hub',
+        'description' => $seoProfileDesc,
+        'keywords' => strtolower($instructor->name.', '.($instructor->specialty ?: 'instructor').', network profile, thinker hub'),
+        'image' => $seoProfileImage,
+        'url' => $seoProfileUrl,
         'type' => 'profile',
+        'breadcrumbs' => [
+            ['name' => 'Network', 'url' => route('landing.instructors')],
+            ['name' => $instructor->name, 'url' => $seoProfileUrl],
+        ],
+        'schema' => [
+            $kType => 'Person',
+            'name' => $instructor->name,
+            'jobTitle' => $instructor->occupation ?: ucfirst((string) $instructor->role),
+            'description' => trim((string) preg_replace('/\s+/', ' ', strip_tags((string) $seoProfileDesc))),
+            'url' => $seoProfileUrl,
+            'image' => $seoProfileImage ?: asset('images/logos/green.png'),
+            'worksFor' => [
+                $kType => 'EducationalOrganization',
+                'name' => 'think.er HUB',
+                'url' => url('/'),
+            ],
+        ],
     ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])

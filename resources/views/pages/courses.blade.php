@@ -3,11 +3,29 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @php
+        $kType = '@' . 'type';
+        $courseListItems = collect($courses ?? [])->values()->map(function ($c, $idx) use ($kType) {
+            $slug = \Illuminate\Support\Str::slug($c->title ?: ($c->code ?: (string) $c->id));
+            return [
+                $kType => 'ListItem',
+                'position' => $idx + 1,
+                'name' => $c->title,
+                'url' => route('landing.courses.show', ['course' => $c->id, 'slug' => $slug]),
+            ];
+        })->all();
+    @endphp
     @include('partials.seo-meta', [
         'title' => 'Courses | think.er HUB',
-        'description' => 'Explore curated courses created by tutors and enroll in the learning path that helps you upskill.',
-        'keywords' => 'curated courses, tutor-led learning, upskill, course enrollment, thinker hub',
+        'description' => 'Explore curated courses created by tutors on think.er HUB and enroll in the practical digital learning path that helps you upskill.',
+        'keywords' => 'curated courses, tutor-led learning, upskill Zambia, course enrollment, thinker hub courses',
         'type' => 'website',
+        'url' => route('landing.courses'),
+        'schema' => [
+            $kType => 'ItemList',
+            'name' => 'think.er HUB Courses Catalog',
+            'itemListElement' => $courseListItems,
+        ],
     ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])

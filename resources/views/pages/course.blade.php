@@ -3,11 +3,68 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @php
+        $seoCourseUrl = route('landing.courses.show', [
+            'course' => $course->id,
+            'slug' => \Illuminate\Support\Str::slug($course->title ?: ($course->code ?: (string) $course->id)),
+        ]);
+        $seoCourseDesc = $course->overview ?: ($course->description ?: 'Tutor-led, practical course on think.er HUB for learners ready to upskill.');
+        $seoStartingFee = (float) $course->getNumericFee();
+        $seoAvgRating = (float) ($course->average_rating ?? ($course->ratings_avg_rating ?? 0));
+        $seoRatingCount = (int) ($course->review_count ?? ($course->ratings_count ?? 0));
+        $kType = '@' . 'type';
+        $kId = '@' . 'id';
+        $courseSchema = [
+            $kType => 'Course',
+            $kId => $seoCourseUrl . '#course',
+            'name' => $course->title,
+            'courseCode' => $course->code ?: ('COURSE-' . $course->id),
+            'description' => trim((string) preg_replace('/\s+/', ' ', strip_tags((string) $seoCourseDesc))),
+            'url' => $seoCourseUrl,
+            'image' => $course->course_image_url,
+            'provider' => [
+                $kType => 'EducationalOrganization',
+                'name' => 'think.er HUB',
+                'sameAs' => url('/'),
+            ],
+            'offers' => [
+                $kType => 'Offer',
+                'category' => $seoStartingFee > 0 ? 'Paid' : 'Free',
+                'priceCurrency' => 'ZMW',
+                'price' => number_format($seoStartingFee, 2, '.', ''),
+                'availability' => $course->is_open_enrollment !== false
+                    ? 'https://schema.org/InStock'
+                    : 'https://schema.org/LimitedAvailability',
+                'url' => $seoCourseUrl,
+            ],
+            'hasCourseInstance' => [
+                $kType => 'CourseInstance',
+                'courseMode' => 'Blended',
+                'courseWorkload' => $course->timeline ?: 'Self-paced / Cohort',
+            ],
+        ];
+        if ($seoRatingCount > 0 && $seoAvgRating > 0) {
+            $courseSchema['aggregateRating'] = [
+                $kType => 'AggregateRating',
+                'ratingValue' => round($seoAvgRating, 1),
+                'reviewCount' => $seoRatingCount,
+                'bestRating' => 5,
+                'worstRating' => 1,
+            ];
+        }
+    @endphp
     @include('partials.seo-meta', [
         'title' => $course->title.' | think.er HUB',
-        'description' => $course->overview ?: ($course->description ?: 'Tutor-led, practical course on think.er HUB for learners ready to upskill.'),
-        'keywords' => strtolower(($course->code ? $course->code.', ' : '').'thinker hub, digital skills, practical training'),
+        'description' => $seoCourseDesc,
+        'keywords' => strtolower(($course->code ? $course->code.', ' : '').$course->title.', thinker hub, digital skills, practical training zambia'),
+        'image' => $course->course_image_url,
+        'url' => $seoCourseUrl,
         'type' => 'article',
+        'breadcrumbs' => [
+            ['name' => 'Courses', 'url' => route('landing.courses')],
+            ['name' => $course->title, 'url' => $seoCourseUrl],
+        ],
+        'schema' => $courseSchema,
     ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -1156,46 +1213,6 @@
 
     @include('partials.public-footer')
 
-    <script type="application/ld+json">
-        {!! json_encode([
-            '@context' => 'https://schema.org',
-            '@type' => 'Course',
-            'name' => $course->title,
-            'description' => $course->overview ?: $course->description,
-            'provider' => [
-                '@type' => 'EducationalOrganization',
-                'name' => 'think.er HUB',
-                'sameAs' => url('/'),
-            ],
-            'url' => route('landing.courses.show', ['course' => $course->id, 'slug' => $slug]),
-        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
-    </script>
-    <script type="application/ld+json">
-        {!! json_encode([
-            '@context' => 'https://schema.org',
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => [
-                [
-                    '@type' => 'ListItem',
-                    'position' => 1,
-                    'name' => 'Home',
-                    'item' => route('home'),
-                ],
-                [
-                    '@type' => 'ListItem',
-                    'position' => 2,
-                    'name' => 'Courses',
-                    'item' => route('landing.courses'),
-                ],
-                [
-                    '@type' => 'ListItem',
-                    'position' => 3,
-                    'name' => $course->title,
-                    'item' => route('landing.courses.show', ['course' => $course->id, 'slug' => $slug]),
-                ],
-            ],
-        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
-    </script>
     @include('partials.skill-level-progression-modal')
     @include('partials.course-selection-modal')
     @include('partials.legal-modals')
