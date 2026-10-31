@@ -52,61 +52,49 @@
             }
         }
     } catch (\Throwable) {
-        // Fallback to default announcements if database is unavailable
+        // Ignore if database is unavailable
     }
 
-    $tickerAnnouncements[] = [
-        'badge' => 'OPEN ENROLLMENT',
-        'badge_style' => 'background-color: #0d9488; color: #ffffff;',
-        'icon' => 'fa-solid fa-graduation-cap',
-        'text' => 'Practical tutor-led digital skills cohorts are open for registration',
-        'code' => null,
-        'cta' => 'Browse Catalog',
-        'url' => route('landing.courses') . '#courses-catalog',
-    ];
-
-    $tickerAnnouncements[] = [
-        'badge' => 'LEARN & EARN',
-        'badge_style' => 'background-color: #0f766e; color: #ffffff;',
-        'icon' => 'fa-solid fa-award',
-        'text' => 'Complete courses, earn verified certificates, XP & Thinker Coins',
-        'code' => null,
-        'cta' => 'Get Started',
-        'url' => route('enroll'),
-    ];
+    $repeatsPerHalf = ! empty($tickerAnnouncements)
+        ? max(2, (int) ceil(4 / count($tickerAnnouncements)))
+        : 0;
 @endphp
 
 <header class="hub-public-header sticky top-0 z-50 bg-white border-b border-slate-200/80">
-    {{-- Thin Solid-Color Scrolling Sticky Promo & Announcement Banner on top of the nav --}}
-    <div class="hub-top-ticker overflow-hidden" style="background-color: #0a2d27; color: #ffffff; border-bottom: 1px solid #11443c;">
-        <div class="hub-ticker-viewport relative flex items-center h-8 overflow-hidden">
-            <div class="hub-ticker-track flex items-center whitespace-nowrap">
-                @for ($copy = 0; $copy < 2; $copy++)
-                    <div class="flex items-center shrink-0" @if ($copy === 1) aria-hidden="true" @endif>
-                        @foreach ($tickerAnnouncements as $item)
-                            <a href="{{ $item['url'] }}" class="group inline-flex items-center gap-2 px-6 text-[11px] leading-none transition-opacity hover:opacity-95" style="color: #ffffff;">
-                                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider" style="{{ $item['badge_style'] }}">
-                                    <i class="{{ $item['icon'] }} text-[8px]"></i>
-                                    <span>{{ $item['badge'] }}</span>
-                                </span>
-                                <span class="font-semibold" style="color: #f8fafc;">{{ $item['text'] }}</span>
-                                @if (! empty($item['code']))
-                                    <span class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] font-extrabold tracking-wider" style="background-color: #11443c; color: #fde047; border: 1px solid rgba(250, 204, 21, 0.45);">
-                                        CODE: {{ $item['code'] }}
-                                    </span>
-                                @endif
-                                <span class="font-bold group-hover:underline inline-flex items-center gap-1" style="color: #fde047;">
-                                    <span>{{ $item['cta'] }}</span>
-                                    <i class="fa-solid fa-arrow-right text-[9px] transition-transform group-hover:translate-x-0.5"></i>
-                                </span>
-                            </a>
-                            <span class="text-[10px] select-none" style="color: #2dd4bf;">•</span>
-                        @endforeach
-                    </div>
-                @endfor
+    @if (! empty($tickerAnnouncements))
+        {{-- Thin Solid-Color Scrolling Sticky Active Promo Banner on top of the nav --}}
+        <div class="hub-top-ticker overflow-hidden" style="background-color: #0a2d27; color: #ffffff; border-bottom: 1px solid #11443c;">
+            <div class="hub-ticker-viewport relative flex items-center h-8 overflow-hidden">
+                <div class="hub-ticker-track flex items-center whitespace-nowrap">
+                    @for ($copy = 0; $copy < 2; $copy++)
+                        <div class="flex items-center shrink-0" @if ($copy === 1) aria-hidden="true" @endif>
+                            @for ($rep = 0; $rep < $repeatsPerHalf; $rep++)
+                                @foreach ($tickerAnnouncements as $item)
+                                    <a href="{{ $item['url'] }}" class="group inline-flex items-center gap-2 px-6 text-[11px] leading-none transition-opacity hover:opacity-95" style="color: #ffffff;">
+                                        <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider" style="{{ $item['badge_style'] }}">
+                                            <i class="{{ $item['icon'] }} text-[8px]"></i>
+                                            <span>{{ $item['badge'] }}</span>
+                                        </span>
+                                        <span class="font-semibold" style="color: #f8fafc;">{{ $item['text'] }}</span>
+                                        @if (! empty($item['code']))
+                                            <span class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] font-extrabold tracking-wider" style="background-color: #11443c; color: #fde047; border: 1px solid rgba(250, 204, 21, 0.45);">
+                                                CODE: {{ $item['code'] }}
+                                            </span>
+                                        @endif
+                                        <span class="font-bold group-hover:underline inline-flex items-center gap-1" style="color: #fde047;">
+                                            <span>{{ $item['cta'] }}</span>
+                                            <i class="fa-solid fa-arrow-right text-[9px] transition-transform group-hover:translate-x-0.5"></i>
+                                        </span>
+                                    </a>
+                                    <span class="text-[10px] select-none" style="color: #2dd4bf;">•</span>
+                                @endforeach
+                            @endfor
+                        </div>
+                    @endfor
+                </div>
             </div>
         </div>
-    </div>
+    @endif
 
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
         <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2.5 text-xl font-bold text-slate-900 transition-opacity hover:opacity-90">

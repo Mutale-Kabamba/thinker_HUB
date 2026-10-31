@@ -111,6 +111,12 @@ class SeoOptimizationTest extends TestCase
             'is_open_enrollment' => true,
         ]);
 
+        // Before any active promo is created, the top banner should not render
+        $noPromoResponse = $this->get('/courses');
+        $noPromoResponse->assertOk();
+        $noPromoResponse->assertDontSee('class="hub-top-ticker', false);
+        $noPromoResponse->assertDontSee('OPEN ENROLLMENT');
+
         \App\Models\PromoCode::create([
             'code' => 'AIBOOST30',
             'description' => '30% off AI Intensive',
