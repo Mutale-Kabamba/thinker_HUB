@@ -98,4 +98,5 @@
             @endauth
         </nav>
     </div>
+    @include('partials.public-motion')
 </header>
