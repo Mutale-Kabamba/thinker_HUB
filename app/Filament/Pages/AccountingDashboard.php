@@ -114,13 +114,23 @@ class AccountingDashboard extends Page
             return;
         }
 
+        $courseFee = (float) preg_replace('/[^\d.]/', '', (string) ($enrollment->course?->fees ?? 0));
+
         $this->editRegistrationType = $enrollment->registration_type ?? Enrollment::CHANNEL_ADMIN_MANUAL;
         $this->editPaymentStatus = $enrollment->isFree() ? 'free' : 'paid';
-        $this->editFeeAmount = (float) ($enrollment->fee_amount ?? ($this->editPaymentStatus === 'paid' ? ($enrollment->course?->fees ?? 0) : 0));
+        $existingFee = (float) ($enrollment->fee_amount ?? 0);
+        $this->editFeeAmount = $existingFee > 0 ? $existingFee : ($this->editPaymentStatus === 'paid' ? $courseFee : 0.0);
         $this->editPaymentMethod = $enrollment->payment_method ?? ($enrollment->isFree() ? 'scholarship' : 'bank_transfer');
         $this->editProvider = $enrollment->payment?->provider ?? '';
         $this->editTransactionReference = $enrollment->transaction_reference ?? $enrollment->payment?->reference ?? ('REC-' . $enrollment->id);
-        $this->editPaidAt = $enrollment->paid_at ? $enrollment->paid_at->format('Y-m-d\TH:i') : $enrollment->created_at->format('Y-m-d\TH:i');
+
+        $rawDate = $enrollment->paid_at ?? $enrollment->created_at ?? now();
+        try {
+            $this->editPaidAt = Carbon::parse($rawDate)->format('Y-m-d\TH:i');
+        } catch (\Throwable) {
+            $this->editPaidAt = now()->format('Y-m-d\TH:i');
+        }
+
         $this->editRegisteredByUserId = $enrollment->registered_by_user_id ?? auth()->id();
         $this->editPaymentNotes = $enrollment->payment_notes ?? $enrollment->payment?->payment_notes ?? '';
 
@@ -142,8 +152,9 @@ class AccountingDashboard extends Page
             }
         } else {
             $enrollment = Enrollment::with('course')->find($this->editingEnrollmentId);
+            $courseFee = (float) preg_replace('/[^\d.]/', '', (string) ($enrollment?->course?->fees ?? 0));
             if ($enrollment && (float) $this->editFeeAmount <= 0) {
-                $this->editFeeAmount = (float) ($enrollment->course?->fees ?? 0);
+                $this->editFeeAmount = $courseFee;
             }
             if ($this->editPaymentMethod === 'scholarship') {
                 $this->editPaymentMethod = 'bank_transfer';
@@ -159,7 +170,7 @@ class AccountingDashboard extends Page
 
         $enrollment = Enrollment::with('course')->find($this->editingEnrollmentId);
         if ($enrollment && $enrollment->course && $enrollment->course->fees) {
-            $this->editFeeAmount = (float) $enrollment->course->fees;
+            $this->editFeeAmount = (float) preg_replace('/[^\d.]/', '', (string) $enrollment->course->fees);
             $this->editPaymentStatus = 'paid';
         }
     }
@@ -178,7 +189,14 @@ class AccountingDashboard extends Page
 
         $isFree = $this->editPaymentStatus === 'free';
         $amount = $isFree ? 0.0 : (float) ($this->editFeeAmount ?? 0);
-        $paidAt = ! empty($this->editPaidAt) ? Carbon::parse($this->editPaidAt) : now();
+        $courseFee = (float) preg_replace('/[^\d.]/', '', (string) ($enrollment->course?->fees ?? $amount));
+
+        $rawPaidAt = ! empty($this->editPaidAt) ? $this->editPaidAt : now();
+        try {
+            $paidAt = Carbon::parse($rawPaidAt);
+        } catch (\Throwable) {
+            $paidAt = now();
+        }
 
         $enrollment->update([
             'registration_type' => $this->editRegistrationType,
@@ -199,8 +217,8 @@ class AccountingDashboard extends Page
                 'user_id' => $enrollment->user_id,
                 'course_id' => $enrollment->course_id,
                 'amount' => $amount,
-                'original_amount' => $enrollment->course?->fees ?? $amount,
-                'discount_amount' => $isFree ? ($enrollment->course?->fees ?? 0) : 0,
+                'original_amount' => $courseFee,
+                'discount_amount' => $isFree ? $courseFee : 0,
                 'currency' => 'ZMW',
                 'payment_method' => $this->editPaymentMethod,
                 'provider' => $this->editProvider ?: ($isFree ? 'Tuition Waiver' : 'Manual Entry'),
@@ -314,7 +332,7 @@ class AccountingDashboard extends Page
 
         // Calculate estimated scholarship/waiver volume based on course fees
         $waiverValue = $all->where('is_free', true)->sum(function (Enrollment $e): float {
-            return (float) ($e->course?->fees ?? 0);
+            return (float) preg_replace('/[^\d.]/', '', (string) ($e->course?->fees ?? 0));
         });
 
         return [
@@ -433,7 +451,14 @@ class AccountingDashboard extends Page
                     $r->paymentMethodLabel(),
                     $r->payment?->provider ?? ($r->isFree() ? 'Waiver' : 'N/A'),
                     $r->registeredBy?->name ?? ($r->registration_type === 'direct_checkout' ? 'Direct Online Checkout' : 'System'),
-                    $r->paid_at ? $r->paid_at->format('Y-m-d H:i') : $r->created_at->format('Y-m-d H:i'),
+                    (function () use ($r): string {
+                        try {
+                            $raw = $r->paid_at ?? $r->created_at;
+                            return $raw ? Carbon::parse($raw)->format('Y-m-d H:i') : '';
+                        } catch (\Throwable) {
+                            return '';
+                        }
+                    })(),
                     $r->payment_notes ?? '',
                 ]);
             }

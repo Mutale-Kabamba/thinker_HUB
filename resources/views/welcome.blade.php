@@ -84,8 +84,8 @@
 
     <main>
         <section class="bg-[#0a2d27] relative overflow-hidden pt-12 pb-16 lg:pt-18 lg:pb-24">
-            <div class="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-teal-500/15 blur-3xl"></div>
-            <div class="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl"></div>
+            <div class="hub-glow-orb pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-teal-500/15 blur-3xl"></div>
+            <div class="hub-glow-orb pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl" style="animation-delay: -3.5s;"></div>
 
             <div class="mx-auto max-w-6xl px-6 lg:px-8 relative z-10">
                 <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
@@ -136,7 +136,7 @@
 
                     <div class="order-1 lg:order-2 flex flex-col items-center justify-center relative">
                         <div class="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-[390px] lg:h-[390px]">
-                            <div class="absolute inset-0 rounded-full border-[12px] border-yellow-400/15 scale-105"></div>
+                            <div class="hub-hero-ring absolute inset-0 rounded-full border-[12px] border-yellow-400/15 scale-105"></div>
                             <img
                                 :src="heroSlides[heroSlideIndex].image"
                                 :alt="heroSlides[heroSlideIndex].alt"
@@ -147,8 +147,8 @@
                                 decoding="async"
                                 class="rounded-full w-full h-full object-cover border-4 border-white/15 shadow-2xl absolute inset-0 z-10 transition-all duration-500"
                             >
-                            <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 rounded-full bg-slate-950/60 border border-white/15 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md" x-text="heroSlides[heroSlideIndex].label"></div>
-                            <div class="absolute -bottom-2 -right-3 bg-white px-4 py-3 rounded-2xl border border-slate-200/90 shadow-lg z-20 hidden sm:flex items-center gap-3">
+                            <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 rounded-full bg-slate-950/60 border border-white/15 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-all duration-300" x-text="heroSlides[heroSlideIndex].label"></div>
+                            <div class="hub-float-badge absolute -bottom-2 -right-3 bg-white px-4 py-3 rounded-2xl border border-slate-200/90 shadow-lg z-20 hidden sm:flex items-center gap-3">
                                 <div class="bg-emerald-50 border border-emerald-200/80 h-9 w-9 flex items-center justify-center rounded-xl text-emerald-600"><i class="fa-solid fa-certificate"></i></div>
                                 <div>
                                     <p class="text-xs font-bold text-[#0a2d27]">Creator + Learner Ready</p>
@@ -259,17 +259,21 @@
                                 $studentsCount = (int) ($course->selected_participants_count ?? 0);
                             }
                             $badge = $course->getCatalogBadge($maxOpenStudents, $newestCourseId);
+                            $promoBadge = $course->getPromoBadge();
                             $feeOptions = $course->getFeeOptions();
                             $hasMultipleOptions = count($feeOptions) > 1;
                             $startingFee = $course->getNumericFee();
                             $singleOptionParams = ! empty($feeOptions[0])
                                 ? ['course' => $course, 'track' => $feeOptions[0]['level'], 'mode' => $feeOptions[0]['category']]
                                 : ['course' => $course];
+                            if ($promoBadge) {
+                                $singleOptionParams['promo'] = $promoBadge['code'];
+                            }
                             $courseModalData = [
                                 'id' => $course->id,
                                 'title' => $course->title,
                                 'code' => $course->code,
-                                'checkoutUrl' => route('checkout.show', $course),
+                                'checkoutUrl' => route('checkout.show', $promoBadge ? ['course' => $course->id, 'promo' => $promoBadge['code']] : $course),
                                 'options' => $feeOptions,
                             ];
                             $courseShowUrl = route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]);
@@ -280,16 +284,34 @@
                                     <a href="{{ $courseShowUrl }}" class="block w-full h-full">
                                         <img src="{{ $courseImage }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }} image">
                                     </a>
-                                    <div class="absolute top-2.5 left-2.5 inline-flex items-center gap-1 {{ $badge['classes'] }} text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-xs">
-                                        @if (! empty($badge['icon']))
-                                            <i class="{{ $badge['icon'] }} text-[9px]"></i>
+                                    <div class="absolute top-2.5 left-2.5 flex flex-wrap items-center gap-1.5 max-w-[76%]">
+                                        <div class="inline-flex items-center gap-1 {{ $badge['classes'] }} text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-xs">
+                                            @if (! empty($badge['icon']))
+                                                <i class="{{ $badge['icon'] }} text-[9px]"></i>
+                                            @endif
+                                            <span>{{ $badge['label'] }}</span>
+                                        </div>
+                                        @if ($promoBadge)
+                                            <a href="{{ $courseShowUrl }}?promo={{ urlencode($promoBadge['code']) }}" class="inline-flex items-center gap-1 {{ $promoBadge['classes'] }} text-[10px] font-black px-2.5 py-0.5 rounded-full border" style="background-color: #e11d48; color: #ffffff; border-color: #be123c;" title="Use promo code {{ $promoBadge['code'] }} for {{ $promoBadge['discount'] }}">
+                                                <i class="{{ $promoBadge['icon'] }} text-[9px]" style="color: #fde047;"></i>
+                                                <span>{{ $promoBadge['label'] }}</span>
+                                            </a>
                                         @endif
-                                        <span>{{ $badge['label'] }}</span>
                                     </div>
                                     @if ($course->code)
                                         <span class="absolute top-2.5 right-2.5 rounded-full bg-slate-950/70 backdrop-blur-xs border border-white/15 px-2.5 py-0.5 text-[10px] font-bold text-white">
                                             {{ $course->code }}
                                         </span>
+                                    @endif
+                                    @if ($promoBadge)
+                                        <a href="{{ $courseShowUrl }}?promo={{ urlencode($promoBadge['code']) }}" class="hub-promo-strip absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between gap-2 rounded-lg px-2.5 py-1 text-[10px] text-white border" style="background-color: #0a2d27; color: #ffffff; border-color: #11443c;">
+                                            <span class="font-bold flex items-center gap-1 truncate" style="color: #fde047;">
+                                                <i class="fa-solid fa-bolt text-[9px]"></i> {{ $promoBadge['discount'] }}
+                                            </span>
+                                            <span class="font-mono font-extrabold tracking-wider px-1.5 py-0.5 rounded text-[9px] shrink-0" style="background-color: #11443c; color: #fde047;">
+                                                CODE: {{ $promoBadge['code'] }}
+                                            </span>
+                                        </a>
                                     @endif
                                 </div>
                                 <div class="px-1 pt-3 pb-1">

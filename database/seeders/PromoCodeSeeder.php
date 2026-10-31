@@ -59,5 +59,31 @@ class PromoCodeSeeder extends Seeder
                 'expires_at' => now()->addMonths(3),
             ]
         );
+
+        $featuredCourse = \App\Models\Course::query()
+            ->where('is_active', true)
+            ->where('is_open_enrollment', true)
+            ->whereNotNull('fees')
+            ->where('fees', '!=', '')
+            ->first();
+
+        if ($featuredCourse) {
+            PromoCode::updateOrCreate(
+                ['code' => 'LAUNCH25'],
+                [
+                    'description' => '25% launch promo on ' . $featuredCourse->title,
+                    'discount_type' => 'percentage',
+                    'discount_value' => 25,
+                    'max_discount_amount' => null,
+                    'min_order_amount' => null,
+                    'course_id' => $featuredCourse->id,
+                    'max_uses' => 150,
+                    'max_uses_per_user' => 1,
+                    'is_active' => true,
+                    'starts_at' => now()->subDay(),
+                    'expires_at' => now()->addMonths(3),
+                ]
+            );
+        }
     }
 }

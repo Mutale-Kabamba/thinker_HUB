@@ -3,11 +3,68 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @php
+        $seoCourseUrl = route('landing.courses.show', [
+            'course' => $course->id,
+            'slug' => \Illuminate\Support\Str::slug($course->title ?: ($course->code ?: (string) $course->id)),
+        ]);
+        $seoCourseDesc = $course->overview ?: ($course->description ?: 'Tutor-led, practical course on think.er HUB for learners ready to upskill.');
+        $seoStartingFee = (float) $course->getNumericFee();
+        $seoAvgRating = (float) ($course->average_rating ?? ($course->ratings_avg_rating ?? 0));
+        $seoRatingCount = (int) ($course->review_count ?? ($course->ratings_count ?? 0));
+        $kType = '@' . 'type';
+        $kId = '@' . 'id';
+        $courseSchema = [
+            $kType => 'Course',
+            $kId => $seoCourseUrl . '#course',
+            'name' => $course->title,
+            'courseCode' => $course->code ?: ('COURSE-' . $course->id),
+            'description' => trim((string) preg_replace('/\s+/', ' ', strip_tags((string) $seoCourseDesc))),
+            'url' => $seoCourseUrl,
+            'image' => $course->course_image_url,
+            'provider' => [
+                $kType => 'EducationalOrganization',
+                'name' => 'think.er HUB',
+                'sameAs' => url('/'),
+            ],
+            'offers' => [
+                $kType => 'Offer',
+                'category' => $seoStartingFee > 0 ? 'Paid' : 'Free',
+                'priceCurrency' => 'ZMW',
+                'price' => number_format($seoStartingFee, 2, '.', ''),
+                'availability' => $course->is_open_enrollment !== false
+                    ? 'https://schema.org/InStock'
+                    : 'https://schema.org/LimitedAvailability',
+                'url' => $seoCourseUrl,
+            ],
+            'hasCourseInstance' => [
+                $kType => 'CourseInstance',
+                'courseMode' => 'Blended',
+                'courseWorkload' => $course->timeline ?: 'Self-paced / Cohort',
+            ],
+        ];
+        if ($seoRatingCount > 0 && $seoAvgRating > 0) {
+            $courseSchema['aggregateRating'] = [
+                $kType => 'AggregateRating',
+                'ratingValue' => round($seoAvgRating, 1),
+                'reviewCount' => $seoRatingCount,
+                'bestRating' => 5,
+                'worstRating' => 1,
+            ];
+        }
+    @endphp
     @include('partials.seo-meta', [
         'title' => $course->title.' | think.er HUB',
-        'description' => $course->overview ?: ($course->description ?: 'Tutor-led, practical course on think.er HUB for learners ready to upskill.'),
-        'keywords' => strtolower(($course->code ? $course->code.', ' : '').'thinker hub, digital skills, practical training'),
+        'description' => $seoCourseDesc,
+        'keywords' => strtolower(($course->code ? $course->code.', ' : '').$course->title.', thinker hub, digital skills, practical training zambia'),
+        'image' => $course->course_image_url,
+        'url' => $seoCourseUrl,
         'type' => 'article',
+        'breadcrumbs' => [
+            ['name' => 'Courses', 'url' => route('landing.courses')],
+            ['name' => $course->title, 'url' => $seoCourseUrl],
+        ],
+        'schema' => $courseSchema,
     ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -675,6 +732,16 @@
                         <li class="text-white font-semibold truncate max-w-xs sm:max-w-md">{{ $course->title }}</li>
                     </ol>
                 </nav>
+                @php
+                    $queryPromoModel = null;
+                    if (request()->filled('promo') && \Illuminate\Support\Facades\Schema::hasTable('promo_codes')) {
+                        $queryPromoModel = \App\Models\PromoCode::query()
+                            ->active()
+                            ->where('code', strtoupper(trim((string) request('promo'))))
+                            ->first();
+                    }
+                    $coursePromoBadge = $course->getPromoBadge($queryPromoModel);
+                @endphp
                 <div class="flex flex-wrap items-center gap-2.5 mt-4">
                     <span class="inline-flex items-center rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-yellow-300">{{ $course->code }}</span>
                     @if ($isLockedCourse)
@@ -685,6 +752,13 @@
                         <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-200">
                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Open Enrollment
                         </span>
+                    @endif
+                    @if ($coursePromoBadge)
+                        <a href="{{ route('checkout.show', ['course' => $course->id, 'promo' => $coursePromoBadge['code']]) }}" class="inline-flex items-center gap-1.5 rounded-full {{ $coursePromoBadge['classes'] }} px-3 py-1 text-[10px] font-black uppercase tracking-wider border hover:scale-105 transition-transform" style="background-color: #e11d48; color: #ffffff; border-color: #be123c;">
+                            <i class="{{ $coursePromoBadge['icon'] }} text-[9px]" style="color: #fde047;"></i>
+                            <span>{{ $coursePromoBadge['label'] }}</span>
+                            <span class="font-mono px-1.5 py-0.5 rounded text-[9px]" style="background-color: #9f1239; color: #fde047;">CODE: {{ $coursePromoBadge['code'] }}</span>
+                        </a>
                     @endif
                 </div>
                 <h1 class="mt-3.5 max-w-4xl text-3xl font-black text-white sm:text-4xl lg:text-5xl tracking-tight leading-tight">{{ $course->title }}</h1>
@@ -715,11 +789,14 @@
                             $singleOptionParams = ! empty($feeOptions[0])
                                 ? ['course' => $course, 'track' => $feeOptions[0]['level'], 'mode' => $feeOptions[0]['category']]
                                 : ['course' => $course];
+                            if ($coursePromoBadge) {
+                                $singleOptionParams['promo'] = $coursePromoBadge['code'];
+                            }
                             $courseModalData = [
                                 'id' => $course->id,
                                 'title' => $course->title,
                                 'code' => $course->code,
-                                'checkoutUrl' => route('checkout.show', $course),
+                                'checkoutUrl' => route('checkout.show', $coursePromoBadge ? ['course' => $course->id, 'promo' => $coursePromoBadge['code']] : $course),
                                 'options' => $feeOptions,
                             ];
                         @endphp
@@ -1156,46 +1233,6 @@
 
     @include('partials.public-footer')
 
-    <script type="application/ld+json">
-        {!! json_encode([
-            '@context' => 'https://schema.org',
-            '@type' => 'Course',
-            'name' => $course->title,
-            'description' => $course->overview ?: $course->description,
-            'provider' => [
-                '@type' => 'EducationalOrganization',
-                'name' => 'think.er HUB',
-                'sameAs' => url('/'),
-            ],
-            'url' => route('landing.courses.show', ['course' => $course->id, 'slug' => $slug]),
-        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
-    </script>
-    <script type="application/ld+json">
-        {!! json_encode([
-            '@context' => 'https://schema.org',
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => [
-                [
-                    '@type' => 'ListItem',
-                    'position' => 1,
-                    'name' => 'Home',
-                    'item' => route('home'),
-                ],
-                [
-                    '@type' => 'ListItem',
-                    'position' => 2,
-                    'name' => 'Courses',
-                    'item' => route('landing.courses'),
-                ],
-                [
-                    '@type' => 'ListItem',
-                    'position' => 3,
-                    'name' => $course->title,
-                    'item' => route('landing.courses.show', ['course' => $course->id, 'slug' => $slug]),
-                ],
-            ],
-        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
-    </script>
     @include('partials.skill-level-progression-modal')
     @include('partials.course-selection-modal')
     @include('partials.legal-modals')

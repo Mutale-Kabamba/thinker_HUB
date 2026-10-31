@@ -82,7 +82,15 @@ class Enrollment extends Model
 
     public function isFree(): bool
     {
-        return (bool) ($this->is_free || $this->payment_status === self::STATUS_FREE || (float) $this->fee_amount <= 0.0);
+        if ($this->is_free || $this->payment_status === self::STATUS_FREE) {
+            return true;
+        }
+
+        if ($this->payment_status === self::STATUS_PAID) {
+            return false;
+        }
+
+        return (float) ($this->fee_amount ?? 0) <= 0.0;
     }
 
     public function isPaid(): bool

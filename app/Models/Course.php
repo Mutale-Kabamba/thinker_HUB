@@ -302,6 +302,78 @@ class Course extends Model
         return $this->hasMany(PromoCode::class);
     }
 
+    public function activePromoCodes(): HasMany
+    {
+        return $this->hasMany(PromoCode::class)->active();
+    }
+
+    public function getActivePromoCode(): ?PromoCode
+    {
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable('promo_codes')) {
+                return null;
+            }
+
+            if ($this->relationLoaded('activePromoCodes')) {
+                return $this->activePromoCodes->first();
+            }
+
+            if ($this->relationLoaded('promoCodes')) {
+                return $this->promoCodes
+                    ->filter(fn (PromoCode $promo): bool => $promo->status_label === 'Active')
+                    ->sortByDesc(fn (PromoCode $promo): float => (float) $promo->discount_value)
+                    ->first();
+            }
+
+            return $this->promoCodes()->active()->orderByDesc('discount_value')->first();
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Return promo badge metadata if this course has an active promo code.
+     *
+     * @return ?array{label: string, short_label: string, code: string, discount: string, description: ?string, classes: string, icon: string}
+     */
+    public function getPromoBadge(?PromoCode $contextPromo = null): ?array
+    {
+        if ($this->is_open_enrollment === false) {
+            return null;
+        }
+
+        $promo = $this->getActivePromoCode();
+
+        if (! $promo && $contextPromo) {
+            $fee = $this->getNumericFee();
+            if ($fee > 0 && $contextPromo->isValidFor($this, $fee)['valid']) {
+                $promo = $contextPromo;
+            }
+        }
+
+        if (! $promo) {
+            return null;
+        }
+
+        if ($promo->isPercentage()) {
+            $val = rtrim(rtrim(number_format((float) $promo->discount_value, 2), '0'), '.');
+            $discountText = ((float) $promo->discount_value >= 100) ? '100% FREE' : "{$val}% OFF";
+        } else {
+            $val = number_format((float) $promo->discount_value, 0);
+            $discountText = "K{$val} OFF";
+        }
+
+        return [
+            'label' => "PROMO • {$discountText}",
+            'short_label' => $discountText,
+            'code' => $promo->code,
+            'discount' => $promo->formattedDiscount(),
+            'description' => $promo->description,
+            'classes' => 'hub-promo-badge bg-rose-600 text-white border-rose-500 shadow-xs',
+            'icon' => 'fa-solid fa-tag',
+        ];
+    }
+
     public function getNumericFee(): float
     {
         $fees = trim((string) $this->fees);

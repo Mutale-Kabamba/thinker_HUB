@@ -205,85 +205,89 @@
 
         {{-- Financial Ledger Table --}}
         <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden">
-            <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+            <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Transaction &amp; Registration Ledger</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Complete audit trail of all direct checkouts and administrative course registrations</p>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Transaction &amp; Registration Ledger</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Complete audit trail of all direct checkouts and administrative course registrations</p>
+                </div>
+                <div class="text-[11px] font-medium text-slate-400">
+                    <span class="text-slate-700 dark:text-slate-300 font-semibold">{{ $ledgerItems->count() }}</span> records listed
                 </div>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-50/80 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 uppercase font-semibold border-b border-slate-100 dark:border-slate-800">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="bg-slate-50 dark:bg-slate-950/80 text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold tracking-wider border-b border-slate-200 dark:border-slate-800">
                         <tr>
-                            <th class="px-4 py-3">Receipt / Ref</th>
-                            <th class="px-4 py-3">Student</th>
-                            <th class="px-4 py-3">Course &amp; Cohort</th>
-                            <th class="px-4 py-3">Channel</th>
-                            <th class="px-4 py-3">Fee Status &amp; Amount</th>
-                            <th class="px-4 py-3">Method / Provider</th>
-                            <th class="px-4 py-3">Recorded Date</th>
-                            <th class="px-4 py-3">Recorded By</th>
-                            <th class="px-4 py-3 text-right">Actions</th>
+                            <th class="px-3 py-2.5">Receipt / Ref</th>
+                            <th class="px-3 py-2.5">Student</th>
+                            <th class="px-3 py-2.5">Course &amp; Cohort</th>
+                            <th class="px-3 py-2.5">Channel</th>
+                            <th class="px-3 py-2.5">Fee Status &amp; Amount</th>
+                            <th class="px-3 py-2.5">Method / Provider</th>
+                            <th class="px-3 py-2.5">Recorded Date</th>
+                            <th class="px-3 py-2.5">Recorded By</th>
+                            <th class="px-3 py-2.5 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-slate-700 dark:text-slate-300">
                         @forelse ($ledgerItems as $item)
-                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+                            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
                                 
                                 {{-- Reference --}}
-                                <td class="px-4 py-3 font-mono font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap">
-                                    {{ $item->transaction_reference ?? 'REF-' . $item->id }}
+                                <td class="px-3 py-2 whitespace-nowrap">
+                                    <span class="inline-block px-2 py-0.5 rounded font-mono text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
+                                        {{ $item->transaction_reference ?? 'REF-' . $item->id }}
+                                    </span>
                                 </td>
 
                                 {{-- Student --}}
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="h-7 w-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-200 shrink-0">
+                                <td class="px-3 py-2">
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-6 w-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[9px] font-bold text-slate-700 dark:text-slate-200 shrink-0">
                                             {{ strtoupper(substr($item->user?->name ?? 'U', 0, 2)) }}
                                         </div>
                                         <div class="min-w-0">
-                                            <div class="font-semibold text-slate-900 dark:text-white truncate">
+                                            <div class="font-semibold text-xs text-slate-900 dark:text-white truncate max-w-[145px] leading-tight">
                                                 {{ $item->user?->name ?? 'Unknown Student' }}
                                                 @if ($item->user?->is_kid)
-                                                    <span class="ml-1 inline-flex items-center px-1.5 py-0.2 text-[9px] rounded-full bg-purple-100 text-purple-700 font-bold">Junior</span>
+                                                    <span class="ml-1 inline-flex items-center px-1 py-0.1 text-[8px] rounded bg-purple-100 text-purple-700 font-bold">Junior</span>
                                                 @endif
                                             </div>
-                                            <div class="text-[11px] text-slate-400 truncate">{{ $item->user?->email }}</div>
+                                            <div class="text-[10px] text-slate-400 truncate max-w-[145px] leading-tight">{{ $item->user?->email }}</div>
                                         </div>
                                     </div>
                                 </td>
 
                                 {{-- Course & Intake --}}
-                                <td class="px-4 py-3">
-                                    <div class="font-medium text-slate-800 dark:text-slate-200">
-                                        <span class="font-mono text-slate-400 mr-1">{{ $item->course?->code }}</span>
-                                        {{ $item->course?->title }}
+                                <td class="px-3 py-2">
+                                    <div class="font-medium text-xs text-slate-800 dark:text-slate-200 truncate max-w-[180px] leading-tight" title="{{ $item->course?->title }}">
+                                        <span class="font-mono text-slate-400 mr-1 text-[10px]">[{{ $item->course?->code }}]</span>{{ $item->course?->title }}
                                     </div>
-                                    <div class="text-[11px] text-slate-500">
-                                        Cohort: <span class="font-medium text-slate-600 dark:text-slate-400">{{ $item->intake?->name ?? 'General (No cohort)' }}</span>
+                                    <div class="text-[10px] text-slate-400 truncate max-w-[180px] leading-tight">
+                                        Cohort: <span class="font-medium text-slate-600 dark:text-slate-300">{{ $item->intake?->name ?? 'General' }}</span>
                                     </div>
                                 </td>
 
                                 {{-- Channel --}}
-                                <td class="px-4 py-3 whitespace-nowrap">
+                                <td class="px-3 py-2 whitespace-nowrap">
                                     @if ($item->registration_type === 'direct_checkout')
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
                                             <x-heroicon-o-globe-alt class="w-3 h-3" />
                                             <span>Direct Checkout</span>
                                         </span>
                                     @elseif ($item->registration_type === 'admin_manual')
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                                             <x-heroicon-o-user-plus class="w-3 h-3" />
                                             <span>Admin Added</span>
                                         </span>
                                     @elseif ($item->registration_type === 'instructor_manual')
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
                                             <x-heroicon-o-academic-cap class="w-3 h-3" />
                                             <span>Instructor Added</span>
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700" title="Legacy registration. Click Edit to reconcile.">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700" title="Legacy registration. Click Edit to reconcile.">
                                             <x-heroicon-o-question-mark-circle class="w-3 h-3 text-amber-500" />
                                             <span>Needs Review</span>
                                         </span>
@@ -291,47 +295,58 @@
                                 </td>
 
                                 {{-- Fee Status & Amount --}}
-                                <td class="px-4 py-3 whitespace-nowrap">
+                                <td class="px-3 py-2 whitespace-nowrap">
                                     @if ($item->isFree())
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
                                             <x-heroicon-o-sparkles class="w-3 h-3" />
                                             <span>Free / Sponsored</span>
                                         </span>
                                     @else
-                                        <div>
-                                            <span class="font-bold text-slate-900 dark:text-white">ZMW {{ number_format($item->fee_amount ?? 0, 2) }}</span>
-                                            <span class="ml-1 inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">PAID</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-bold text-xs font-mono text-slate-900 dark:text-white">ZMW {{ number_format((float) ($item->fee_amount ?? 0), 2) }}</span>
+                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300">PAID</span>
                                         </div>
                                     @endif
                                 </td>
 
                                 {{-- Method & Provider --}}
-                                <td class="px-4 py-3 whitespace-nowrap">
-                                    <div class="font-medium text-slate-800 dark:text-slate-200">
+                                <td class="px-3 py-2 whitespace-nowrap">
+                                    <div class="font-medium text-xs text-slate-800 dark:text-slate-200 leading-tight">
                                         {{ $item->paymentMethodLabel() }}
                                     </div>
-                                    <div class="text-[10px] text-slate-400">
+                                    <div class="text-[10px] text-slate-400 leading-tight">
                                         {{ $item->payment?->provider ?? ($item->isFree() ? 'Tuition Waiver' : 'Direct') }}
                                     </div>
                                 </td>
 
                                 {{-- Date --}}
-                                <td class="px-4 py-3 whitespace-nowrap text-slate-500">
-                                    {{ $item->paid_at ? $item->paid_at->format('M j, Y H:i') : $item->created_at->format('M j, Y H:i') }}
+                                <td class="px-3 py-2 whitespace-nowrap text-[11px] text-slate-500 dark:text-slate-400">
+                                    @php
+                                        $itemDate = '—';
+                                        try {
+                                            $rawDt = $item->paid_at ?? $item->created_at;
+                                            $itemDate = $rawDt ? \Illuminate\Support\Carbon::parse($rawDt)->format('M j, Y H:i') : '—';
+                                        } catch (\Throwable) {
+                                            $itemDate = '—';
+                                        }
+                                    @endphp
+                                    {{ $itemDate }}
                                 </td>
 
                                 {{-- Recorded By --}}
-                                <td class="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">
-                                    {{ $item->registeredBy?->name ?? ($item->registration_type === 'direct_checkout' ? 'Online Gateway' : 'Unspecified') }}
+                                <td class="px-3 py-2 whitespace-nowrap text-[11px] text-slate-600 dark:text-slate-400">
+                                    <span class="truncate max-w-[120px] block" title="{{ $item->registeredBy?->name ?? ($item->registration_type === 'direct_checkout' ? 'Online Gateway' : 'System') }}">
+                                        {{ $item->registeredBy?->name ?? ($item->registration_type === 'direct_checkout' ? 'Online Gateway' : 'System') }}
+                                    </span>
                                 </td>
 
                                 {{-- Actions --}}
-                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <td class="px-3 py-2 text-right whitespace-nowrap">
                                     <div class="inline-flex items-center gap-1.5">
                                         <button
                                             type="button"
                                             wire:click="editTransaction({{ $item->id }})"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-[11px] font-semibold text-white shadow-2xs transition active:scale-95 cursor-pointer"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-teal-600 hover:bg-teal-700 text-[11px] font-semibold text-white shadow-2xs transition active:scale-95 cursor-pointer"
                                             title="Edit & Reconcile Transaction"
                                         >
                                             <x-heroicon-o-pencil-square class="w-3.5 h-3.5" />
@@ -340,7 +355,7 @@
                                         <button
                                             type="button"
                                             wire:click="viewDetails({{ $item->id }})"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer"
+                                            class="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer"
                                             title="View Full Receipt"
                                         >
                                             <x-heroicon-o-eye class="w-3.5 h-3.5 text-slate-400" />
@@ -352,8 +367,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="px-4 py-12 text-center text-slate-400">
-                                    <x-heroicon-o-document-magnifying-glass class="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600 mb-2" />
+                                <td colspan="9" class="px-4 py-10 text-center text-slate-400">
+                                    <x-heroicon-o-document-magnifying-glass class="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600 mb-2" />
                                     <div class="font-medium text-slate-600 dark:text-slate-400">No accounting records match the selected filters.</div>
                                     <p class="text-xs text-slate-400 mt-1">Try resetting your search query or filters above.</p>
                                 </td>
@@ -415,7 +430,7 @@
                             <div class="flex justify-between items-center">
                                 <span class="text-slate-500">Fee Classification:</span>
                                 <span class="font-bold {{ $detail->isFree() ? 'text-purple-600' : 'text-emerald-600' }}">
-                                    {{ $detail->isFree() ? 'Free / Scholarship' : 'PAID (ZMW ' . number_format($detail->fee_amount ?? 0, 2) . ')' }}
+                                    {{ $detail->isFree() ? 'Free / Scholarship' : 'PAID (ZMW ' . number_format((float) ($detail->fee_amount ?? 0), 2) . ')' }}
                                 </span>
                             </div>
                             <div class="flex justify-between items-center">
@@ -436,7 +451,16 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-slate-500">Date Timestamp:</span>
-                                <span class="text-slate-700 dark:text-slate-300">{{ $detail->paid_at ? $detail->paid_at->format('M j, Y H:i:s') : $detail->created_at->format('M j, Y H:i:s') }}</span>
+                                @php
+                                    $detailDate = '—';
+                                    try {
+                                        $rawD = $detail->paid_at ?? $detail->created_at;
+                                        $detailDate = $rawD ? \Illuminate\Support\Carbon::parse($rawD)->format('M j, Y H:i:s') : '—';
+                                    } catch (\Throwable) {
+                                        $detailDate = '—';
+                                    }
+                                @endphp
+                                <span class="text-slate-700 dark:text-slate-300">{{ $detailDate }}</span>
                             </div>
                         </div>
 
@@ -508,7 +532,10 @@
                             <span class="font-mono text-slate-400">({{ $editRecord->course?->code }})</span>
                             <span class="text-slate-400 ml-1">• Cohort: {{ $editRecord->intake?->name ?? 'General' }}</span>
                         </div>
-                        @if ($editRecord->course?->fees)
+                        @php
+                            $cleanCourseFee = (float) preg_replace('/[^\d.]/', '', (string) ($editRecord->course?->fees ?? 0));
+                        @endphp
+                        @if ($cleanCourseFee > 0)
                             <button
                                 type="button"
                                 wire:click="setFeeToCourseTuition"
@@ -516,7 +543,7 @@
                                 title="Pre-fill standard course tuition"
                             >
                                 <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
-                                <span>Set to Standard Tuition (ZMW {{ number_format($editRecord->course->fees, 2) }})</span>
+                                <span>Set to Standard Tuition (ZMW {{ number_format($cleanCourseFee, 2) }})</span>
                             </button>
                         @endif
                     </div>

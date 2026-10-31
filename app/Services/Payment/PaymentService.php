@@ -413,7 +413,9 @@ class PaymentService
 
             $kid = null;
             if ($existingKidId) {
-                $kid = User::find($existingKidId);
+                $kid = $parent
+                    ? $parent->kids()->where('users.id', $existingKidId)->where('users.is_kid', true)->first()
+                    : User::where('is_kid', true)->where('role', 'student')->find($existingKidId);
             }
 
             if (! $kid) {
@@ -437,9 +439,6 @@ class PaymentService
                 ]);
             } else {
                 $uniqueCode = $kid->unique_code;
-                if (! $kid->is_kid) {
-                    $kid->update(['is_kid' => true]);
-                }
             }
 
             // 3. Link Kid to Parent
