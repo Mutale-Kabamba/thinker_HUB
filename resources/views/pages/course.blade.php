@@ -732,6 +732,9 @@
                         <li class="text-white font-semibold truncate max-w-xs sm:max-w-md">{{ $course->title }}</li>
                     </ol>
                 </nav>
+                @php
+                    $coursePromoBadge = $course->getPromoBadge();
+                @endphp
                 <div class="flex flex-wrap items-center gap-2.5 mt-4">
                     <span class="inline-flex items-center rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-yellow-300">{{ $course->code }}</span>
                     @if ($isLockedCourse)
@@ -742,6 +745,13 @@
                         <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-200">
                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Open Enrollment
                         </span>
+                    @endif
+                    @if ($coursePromoBadge)
+                        <a href="{{ route('checkout.show', ['course' => $course->id, 'promo' => $coursePromoBadge['code']]) }}" class="inline-flex items-center gap-1.5 rounded-full {{ $coursePromoBadge['classes'] }} px-3 py-1 text-[10px] font-black uppercase tracking-wider border hover:scale-105 transition-transform">
+                            <i class="{{ $coursePromoBadge['icon'] }} text-[9px] text-yellow-200"></i>
+                            <span>{{ $coursePromoBadge['label'] }}</span>
+                            <span class="font-mono bg-black/25 px-1.5 py-0.2 rounded text-[9px] text-yellow-200">CODE: {{ $coursePromoBadge['code'] }}</span>
+                        </a>
                     @endif
                 </div>
                 <h1 class="mt-3.5 max-w-4xl text-3xl font-black text-white sm:text-4xl lg:text-5xl tracking-tight leading-tight">{{ $course->title }}</h1>

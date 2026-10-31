@@ -90,5 +90,47 @@ class SeoOptimizationTest extends TestCase
         $coursesXml = file_get_contents(public_path('sitemap-courses.xml'));
         $this->assertStringContainsString('cloud-engineering-bootcamp', (string) $coursesXml);
     }
+
+    public function test_course_promo_badge_and_scrolling_sticky_top_banner_render(): void
+    {
+        $promoCourse = Course::create([
+            'title' => 'AI & Machine Learning Intensive',
+            'code' => 'AI-301',
+            'overview' => 'Hands-on AI engineering course.',
+            'fees' => '2000',
+            'is_active' => true,
+            'is_open_enrollment' => true,
+        ]);
+
+        $regularCourse = Course::create([
+            'title' => 'Regular Web Course',
+            'code' => 'WEB-102',
+            'overview' => 'Regular web course without promo.',
+            'fees' => '1500',
+            'is_active' => true,
+            'is_open_enrollment' => true,
+        ]);
+
+        \App\Models\PromoCode::create([
+            'code' => 'AIBOOST30',
+            'description' => '30% off AI Intensive',
+            'discount_type' => 'percentage',
+            'discount_value' => 30,
+            'course_id' => $promoCourse->id,
+            'is_active' => true,
+            'starts_at' => now()->subDay(),
+            'expires_at' => now()->addMonth(),
+        ]);
+
+        $this->assertNotNull($promoCourse->getPromoBadge());
+        $this->assertSame('PROMO • 30% OFF', $promoCourse->getPromoBadge()['label']);
+        $this->assertNull($regularCourse->getPromoBadge());
+
+        $response = $this->get('/courses');
+        $response->assertOk();
+        $response->assertSee('hub-top-ticker', false);
+        $response->assertSee('PROMO • 30% OFF');
+        $response->assertSee('CODE: AIBOOST30');
+    }
 }
 

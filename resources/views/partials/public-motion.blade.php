@@ -1,5 +1,36 @@
 {{-- Subtle, Refined Public Site Motion System --}}
 <style>
+    /* Top Scrolling Sticky Promo Ticker */
+    @keyframes hubTickerScroll {
+        0% {
+            transform: translate3d(0, 0, 0);
+        }
+        100% {
+            transform: translate3d(-50%, 0, 0);
+        }
+    }
+
+    .hub-ticker-track {
+        width: max-content;
+        animation: hubTickerScroll 34s linear infinite;
+        will-change: transform;
+    }
+
+    .hub-top-ticker:hover .hub-ticker-track,
+    .hub-top-ticker:focus-within .hub-ticker-track {
+        animation-play-state: paused;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .hub-ticker-track {
+            animation: none;
+        }
+        .hub-ticker-viewport {
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+    }
+
     @media (prefers-reduced-motion: no-preference) {
         /* 1. Hero Entrance Animations */
         @keyframes hubFadeUp {

@@ -6,10 +6,109 @@
         ['label' => 'Network', 'route' => 'landing.instructors', 'match' => 'landing.instructors*'],
         ['label' => 'Contact', 'route' => 'landing.contact', 'match' => 'landing.contact*'],
     ];
+
+    $tickerAnnouncements = [];
+    try {
+        if (\Illuminate\Support\Facades\Schema::hasTable('promo_codes')) {
+            $activePromos = \App\Models\PromoCode::query()
+                ->active()
+                ->with('course:id,title,code,is_active,is_open_enrollment')
+                ->where(function ($q) {
+                    $q->whereNotNull('course_id')
+                        ->orWhere('discount_type', '!=', 'percentage')
+                        ->orWhere('discount_value', '<', 100);
+                })
+                ->orderByRaw('CASE WHEN course_id IS NOT NULL THEN 0 ELSE 1 END')
+                ->orderByDesc('discount_value')
+                ->limit(5)
+                ->get();
+
+            foreach ($activePromos as $promo) {
+                $discountLabel = $promo->isPercentage()
+                    ? rtrim(rtrim(number_format((float) $promo->discount_value, 2), '0'), '.') . '% OFF'
+                    : 'K' . number_format((float) $promo->discount_value, 0) . ' OFF';
+
+                if ($promo->course && $promo->course->is_active && $promo->course->is_open_enrollment !== false) {
+                    $tickerAnnouncements[] = [
+                        'badge' => 'COURSE PROMO',
+                        'badge_class' => 'bg-gradient-to-r from-rose-500 to-amber-500 text-white',
+                        'icon' => 'fa-solid fa-tag',
+                        'text' => "{$discountLabel} on {$promo->course->title}",
+                        'code' => $promo->code,
+                        'cta' => 'Claim Promo',
+                        'url' => route('checkout.show', ['course' => $promo->course->id, 'promo' => $promo->code]),
+                    ];
+                } elseif (! $promo->course_id) {
+                    $tickerAnnouncements[] = [
+                        'badge' => 'SPECIAL OFFER',
+                        'badge_class' => 'bg-yellow-400 text-[#0a2d27]',
+                        'icon' => 'fa-solid fa-bolt',
+                        'text' => $promo->description ?: "Save {$discountLabel} on eligible courses",
+                        'code' => $promo->code,
+                        'cta' => 'Explore Courses',
+                        'url' => route('landing.courses', ['promo' => $promo->code]),
+                    ];
+                }
+            }
+        }
+    } catch (\Throwable) {
+        // Fallback to default announcements if database is unavailable
+    }
+
+    $tickerAnnouncements[] = [
+        'badge' => 'OPEN ENROLLMENT',
+        'badge_class' => 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/30',
+        'icon' => 'fa-solid fa-graduation-cap',
+        'text' => 'Practical tutor-led digital skills cohorts are open for registration',
+        'code' => null,
+        'cta' => 'Browse Catalog',
+        'url' => route('landing.courses'),
+    ];
+
+    $tickerAnnouncements[] = [
+        'badge' => 'LEARN & EARN',
+        'badge_class' => 'bg-teal-500/25 text-teal-200 border border-teal-400/30',
+        'icon' => 'fa-solid fa-award',
+        'text' => 'Complete courses, earn verified certificates, XP & Thinker Coins',
+        'code' => null,
+        'cta' => 'Get Started',
+        'url' => route('enroll'),
+    ];
 @endphp
 
-<header class="hub-public-header sticky top-0 z-50 py-3 bg-white/90 backdrop-blur-xl border-b border-slate-200/80">
-    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+<header class="hub-public-header sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200/80">
+    {{-- Thin Scrolling Sticky Promo & Announcement Banner on top of the nav --}}
+    <div class="hub-top-ticker bg-[#061f1b] text-white border-b border-teal-900/80 overflow-hidden">
+        <div class="hub-ticker-viewport relative flex items-center h-7 overflow-hidden">
+            <div class="hub-ticker-track flex items-center whitespace-nowrap">
+                @for ($copy = 0; $copy < 2; $copy++)
+                    <div class="flex items-center shrink-0" @if ($copy === 1) aria-hidden="true" @endif>
+                        @foreach ($tickerAnnouncements as $item)
+                            <a href="{{ $item['url'] }}" class="group inline-flex items-center gap-2 px-6 text-[11px] leading-none text-slate-200 hover:text-white transition-colors">
+                                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider {{ $item['badge_class'] }}">
+                                    <i class="{{ $item['icon'] }} text-[8px]"></i>
+                                    <span>{{ $item['badge'] }}</span>
+                                </span>
+                                <span class="font-medium text-slate-100">{{ $item['text'] }}</span>
+                                @if (! empty($item['code']))
+                                    <span class="inline-flex items-center gap-1 rounded bg-white/10 border border-yellow-400/40 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-yellow-300 tracking-wider">
+                                        CODE: {{ $item['code'] }}
+                                    </span>
+                                @endif
+                                <span class="font-bold text-yellow-300 group-hover:underline inline-flex items-center gap-1">
+                                    <span>{{ $item['cta'] }}</span>
+                                    <i class="fa-solid fa-arrow-right text-[9px] transition-transform group-hover:translate-x-0.5"></i>
+                                </span>
+                            </a>
+                            <span class="text-teal-600/70 text-[10px] select-none">•</span>
+                        @endforeach
+                    </div>
+                @endfor
+            </div>
+        </div>
+    </div>
+
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
         <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2.5 text-xl font-bold text-slate-900 transition-opacity hover:opacity-90">
             <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 max-h-8 md:h-9 md:max-h-9 w-auto object-contain dark:hidden">
             <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-8 max-h-8 md:h-9 md:max-h-9 w-auto object-contain hidden dark:block">

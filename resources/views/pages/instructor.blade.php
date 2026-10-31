@@ -227,7 +227,14 @@
                                         <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title)]) }}" class="block w-full h-full">
                                             <img src="{{ $course->course_image_url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }}">
                                         </a>
-                                        <div class="absolute top-2 left-2 bg-teal-800/90 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20">{{ $course->code }}</div>
+                                        <div class="absolute top-2 left-2 flex flex-wrap items-center gap-1">
+                                            <span class="bg-teal-800/90 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20">{{ $course->code }}</span>
+                                            @if ($instCoursePromo = $course->getPromoBadge())
+                                                <span class="{{ $instCoursePromo['classes'] }} text-[9px] font-black px-2 py-0.5 rounded-full border">
+                                                    <i class="{{ $instCoursePromo['icon'] }} text-[8px] text-yellow-200 mr-0.5"></i>{{ $instCoursePromo['label'] }}
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
                                     <h3 class="text-sm font-bold text-slate-900 group-hover:text-teal-700 transition leading-snug line-clamp-2">
                                         <a href="{{ route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title)]) }}" class="hover:text-teal-700 transition-colors">

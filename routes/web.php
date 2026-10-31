@@ -72,6 +72,10 @@ $loadPublicCourses = static function (int $limit = 0) {
             $query->with(['intakes' => fn ($q) => $q->orderBy('start_date')]);
         }
 
+        if (Schema::hasTable('promo_codes')) {
+            $query->with(['activePromoCodes' => fn ($q) => $q->orderByDesc('discount_value')]);
+        }
+
         if ($limit > 0) {
             $query->limit($limit);
         }
@@ -403,6 +407,9 @@ Route::get('/courses/{course}/{slug?}', function (int $course, ?string $slug = n
     }
     if (Schema::hasTable('course_intakes')) {
         $courseModel->load(['intakes' => fn ($q) => $q->orderBy('start_date')]);
+    }
+    if (Schema::hasTable('promo_codes')) {
+        $courseModel->load(['activePromoCodes' => fn ($q) => $q->orderByDesc('discount_value')]);
     }
     $courseModel->load(['ratings' => function ($q) {
         $q->with('user:id,name,profile_photo_path')->latest()->limit(10);

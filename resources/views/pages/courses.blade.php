@@ -70,17 +70,26 @@
                                 $studentsCount = (int) ($course->selected_participants_count ?? 0);
                             }
                             $badge = $course->getCatalogBadge($maxOpenStudents, $newestCourseId);
+                            $promoBadge = $course->getPromoBadge();
                             $feeOptions = $course->getFeeOptions();
                             $hasMultipleOptions = count($feeOptions) > 1;
                             $startingFee = $course->getNumericFee();
                             $singleOptionParams = ! empty($feeOptions[0])
                                 ? ['course' => $course, 'track' => $feeOptions[0]['level'], 'mode' => $feeOptions[0]['category']]
                                 : ['course' => $course];
+                            if ($promoBadge) {
+                                $singleOptionParams['promo'] = $promoBadge['code'];
+                            } elseif (request()->filled('promo')) {
+                                $singleOptionParams['promo'] = strtoupper(trim((string) request('promo')));
+                            }
+                            $checkoutBaseParams = $promoBadge
+                                ? ['course' => $course->id, 'promo' => $promoBadge['code']]
+                                : (request()->filled('promo') ? ['course' => $course->id, 'promo' => strtoupper(trim((string) request('promo')))] : $course);
                             $courseModalData = [
                                 'id' => $course->id,
                                 'title' => $course->title,
                                 'code' => $course->code,
-                                'checkoutUrl' => route('checkout.show', $course),
+                                'checkoutUrl' => route('checkout.show', $checkoutBaseParams),
                                 'options' => $feeOptions,
                             ];
                             $courseShowUrl = route('landing.courses.show', ['course' => $course->id, 'slug' => \Illuminate\Support\Str::slug($course->title ?: $course->code)]);
@@ -91,16 +100,34 @@
                                     <a href="{{ $courseShowUrl }}" class="block w-full h-full">
                                         <img src="{{ $courseImage }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }} image">
                                     </a>
-                                    <div class="absolute top-2.5 left-2.5 inline-flex items-center gap-1 {{ $badge['classes'] }} text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-xs">
-                                        @if (! empty($badge['icon']))
-                                            <i class="{{ $badge['icon'] }} text-[9px]"></i>
+                                    <div class="absolute top-2.5 left-2.5 flex flex-wrap items-center gap-1.5 max-w-[76%]">
+                                        <div class="inline-flex items-center gap-1 {{ $badge['classes'] }} text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-xs">
+                                            @if (! empty($badge['icon']))
+                                                <i class="{{ $badge['icon'] }} text-[9px]"></i>
+                                            @endif
+                                            <span>{{ $badge['label'] }}</span>
+                                        </div>
+                                        @if ($promoBadge)
+                                            <div class="inline-flex items-center gap-1 {{ $promoBadge['classes'] }} text-[10px] font-black px-2.5 py-0.5 rounded-full border" title="Use promo code {{ $promoBadge['code'] }} for {{ $promoBadge['discount'] }}">
+                                                <i class="{{ $promoBadge['icon'] }} text-[9px] text-yellow-200"></i>
+                                                <span>{{ $promoBadge['label'] }}</span>
+                                            </div>
                                         @endif
-                                        <span>{{ $badge['label'] }}</span>
                                     </div>
                                     @if ($course->code)
                                         <span class="absolute top-2.5 right-2.5 rounded-full bg-slate-950/70 backdrop-blur-xs border border-white/15 px-2.5 py-0.5 text-[10px] font-bold text-white">
                                             {{ $course->code }}
                                         </span>
+                                    @endif
+                                    @if ($promoBadge)
+                                        <div class="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between gap-2 rounded-lg bg-slate-950/85 backdrop-blur-md border border-amber-400/40 px-2.5 py-1 text-[10px] text-white">
+                                            <span class="font-bold text-amber-300 flex items-center gap-1 truncate">
+                                                <i class="fa-solid fa-bolt text-[9px]"></i> {{ $promoBadge['discount'] }}
+                                            </span>
+                                            <span class="font-mono font-extrabold tracking-wider bg-amber-400/20 text-yellow-200 border border-amber-300/30 px-1.5 py-0.5 rounded text-[9px] shrink-0">
+                                                CODE: {{ $promoBadge['code'] }}
+                                            </span>
+                                        </div>
                                     @endif
                                 </div>
                                 <div class="px-1 pt-3 pb-1">
