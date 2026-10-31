@@ -334,13 +334,38 @@ Route::get('/', function () use ($loadPublicCourses, $loadHomeStats, $publicCour
     ]);
 })->name('home');
 
-Route::get('/courses', function () use ($loadPublicCourses, $loadRecentCourseReviews, $loadGlobalRatingStats) {
+Route::get('/courses', function (Request $request) use ($loadPublicCourses, $loadRecentCourseReviews, $loadGlobalRatingStats) {
     $courses = $loadPublicCourses();
+    $activePromoFilter = null;
+
+    $promoQuery = strtoupper(trim((string) $request->query('promo', '')));
+    if ($promoQuery !== '' && Schema::hasTable('promo_codes')) {
+        $activePromoFilter = \App\Models\PromoCode::query()
+            ->active()
+            ->where('code', $promoQuery)
+            ->first();
+
+        if ($activePromoFilter) {
+            $courses = $courses->filter(function (Course $course) use ($activePromoFilter): bool {
+                if ($course->is_open_enrollment === false) {
+                    return false;
+                }
+                if ($activePromoFilter->course_id !== null) {
+                    return (int) $course->id === (int) $activePromoFilter->course_id;
+                }
+                $fee = $course->getNumericFee();
+
+                return $fee > 0 && $activePromoFilter->isValidFor($course, $fee)['valid'];
+            })->values();
+        }
+    }
+
     $reviews = $loadRecentCourseReviews();
     $ratingStats = $loadGlobalRatingStats();
 
     return view('pages.courses', [
         'courses' => $courses,
+        'activePromoFilter' => $activePromoFilter,
         'reviews' => $reviews,
         'ratingStats' => $ratingStats,
     ]);

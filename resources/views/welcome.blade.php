@@ -292,10 +292,10 @@
                                             <span>{{ $badge['label'] }}</span>
                                         </div>
                                         @if ($promoBadge)
-                                            <div class="inline-flex items-center gap-1 {{ $promoBadge['classes'] }} text-[10px] font-black px-2.5 py-0.5 rounded-full border" title="Use promo code {{ $promoBadge['code'] }} for {{ $promoBadge['discount'] }}">
-                                                <i class="{{ $promoBadge['icon'] }} text-[9px] text-yellow-200"></i>
+                                            <a href="{{ $courseShowUrl }}?promo={{ urlencode($promoBadge['code']) }}" class="inline-flex items-center gap-1 {{ $promoBadge['classes'] }} text-[10px] font-black px-2.5 py-0.5 rounded-full border" style="background-color: #e11d48; color: #ffffff; border-color: #be123c;" title="Use promo code {{ $promoBadge['code'] }} for {{ $promoBadge['discount'] }}">
+                                                <i class="{{ $promoBadge['icon'] }} text-[9px]" style="color: #fde047;"></i>
                                                 <span>{{ $promoBadge['label'] }}</span>
-                                            </div>
+                                            </a>
                                         @endif
                                     </div>
                                     @if ($course->code)
@@ -304,14 +304,14 @@
                                         </span>
                                     @endif
                                     @if ($promoBadge)
-                                        <div class="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between gap-2 rounded-lg bg-slate-950/85 backdrop-blur-md border border-amber-400/40 px-2.5 py-1 text-[10px] text-white">
-                                            <span class="font-bold text-amber-300 flex items-center gap-1 truncate">
+                                        <a href="{{ $courseShowUrl }}?promo={{ urlencode($promoBadge['code']) }}" class="hub-promo-strip absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between gap-2 rounded-lg px-2.5 py-1 text-[10px] text-white border" style="background-color: #0a2d27; color: #ffffff; border-color: #11443c;">
+                                            <span class="font-bold flex items-center gap-1 truncate" style="color: #fde047;">
                                                 <i class="fa-solid fa-bolt text-[9px]"></i> {{ $promoBadge['discount'] }}
                                             </span>
-                                            <span class="font-mono font-extrabold tracking-wider bg-amber-400/20 text-yellow-200 border border-amber-300/30 px-1.5 py-0.5 rounded text-[9px] shrink-0">
+                                            <span class="font-mono font-extrabold tracking-wider px-1.5 py-0.5 rounded text-[9px] shrink-0" style="background-color: #11443c; color: #fde047;">
                                                 CODE: {{ $promoBadge['code'] }}
                                             </span>
-                                        </div>
+                                        </a>
                                     @endif
                                 </div>
                                 <div class="px-1 pt-3 pb-1">

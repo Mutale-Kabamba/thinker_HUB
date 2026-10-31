@@ -21,6 +21,18 @@
         animation-play-state: paused;
     }
 
+    .hub-promo-badge {
+        background-color: #e11d48 !important;
+        color: #ffffff !important;
+        border-color: #be123c !important;
+    }
+
+    .hub-promo-strip {
+        background-color: #0a2d27 !important;
+        color: #ffffff !important;
+        border-color: #11443c !important;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         .hub-ticker-track {
             animation: none;

@@ -45,8 +45,27 @@
             </div>
         </section>
 
-        <section class="py-14 lg:py-20">
+        <section id="courses-catalog" class="py-14 lg:py-20">
             <div class="mx-auto max-w-6xl px-6 lg:px-8">
+                @if (! empty($activePromoFilter))
+                    <div class="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl p-4 sm:px-6 border" style="background-color: #0a2d27; color: #ffffff; border-color: #11443c;">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-black uppercase tracking-wider" style="background-color: #e11d48; color: #ffffff;">
+                                <i class="fa-solid fa-tag text-[10px]"></i>
+                                <span>PROMO ACTIVE: {{ $activePromoFilter->formattedDiscount() }}</span>
+                            </span>
+                            <span class="text-xs sm:text-sm font-semibold" style="color: #f8fafc;">
+                                Showing {{ $courses->count() }} {{ \Illuminate\Support\Str::plural('course', $courses->count()) }} eligible for code
+                                <strong class="font-mono px-2 py-0.5 rounded ml-1" style="background-color: #11443c; color: #fde047;">{{ $activePromoFilter->code }}</strong>
+                            </span>
+                        </div>
+                        <a href="{{ route('landing.courses') }}" class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition hover:opacity-90 shrink-0" style="background-color: #facc15; color: #0a2d27;">
+                            <span>Show All Courses</span>
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                        </a>
+                    </div>
+                @endif
+
                 <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     @php
                         $maxOpenStudents = (int) collect($courses)
@@ -70,7 +89,7 @@
                                 $studentsCount = (int) ($course->selected_participants_count ?? 0);
                             }
                             $badge = $course->getCatalogBadge($maxOpenStudents, $newestCourseId);
-                            $promoBadge = $course->getPromoBadge();
+                            $promoBadge = $course->getPromoBadge($activePromoFilter ?? null);
                             $feeOptions = $course->getFeeOptions();
                             $hasMultipleOptions = count($feeOptions) > 1;
                             $startingFee = $course->getNumericFee();
@@ -97,7 +116,7 @@
                         <article class="group bg-white rounded-2xl p-3.5 border border-slate-200/90 hover:-translate-y-1 transition-all flex flex-col justify-between">
                             <div>
                                 <div class="relative h-42 sm:h-44 overflow-hidden rounded-xl bg-slate-100">
-                                    <a href="{{ $courseShowUrl }}" class="block w-full h-full">
+                                    <a href="{{ $courseShowUrl }}{{ $promoBadge ? '?promo=' . urlencode($promoBadge['code']) : '' }}" class="block w-full h-full">
                                         <img src="{{ $courseImage }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ $course->title }} image">
                                     </a>
                                     <div class="absolute top-2.5 left-2.5 flex flex-wrap items-center gap-1.5 max-w-[76%]">
@@ -108,10 +127,10 @@
                                             <span>{{ $badge['label'] }}</span>
                                         </div>
                                         @if ($promoBadge)
-                                            <div class="inline-flex items-center gap-1 {{ $promoBadge['classes'] }} text-[10px] font-black px-2.5 py-0.5 rounded-full border" title="Use promo code {{ $promoBadge['code'] }} for {{ $promoBadge['discount'] }}">
-                                                <i class="{{ $promoBadge['icon'] }} text-[9px] text-yellow-200"></i>
+                                            <a href="{{ $courseShowUrl }}?promo={{ urlencode($promoBadge['code']) }}" class="inline-flex items-center gap-1 {{ $promoBadge['classes'] }} text-[10px] font-black px-2.5 py-0.5 rounded-full border" style="background-color: #e11d48; color: #ffffff; border-color: #be123c;" title="Use promo code {{ $promoBadge['code'] }} for {{ $promoBadge['discount'] }}">
+                                                <i class="{{ $promoBadge['icon'] }} text-[9px]" style="color: #fde047;"></i>
                                                 <span>{{ $promoBadge['label'] }}</span>
-                                            </div>
+                                            </a>
                                         @endif
                                     </div>
                                     @if ($course->code)
@@ -120,14 +139,14 @@
                                         </span>
                                     @endif
                                     @if ($promoBadge)
-                                        <div class="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between gap-2 rounded-lg bg-slate-950/85 backdrop-blur-md border border-amber-400/40 px-2.5 py-1 text-[10px] text-white">
-                                            <span class="font-bold text-amber-300 flex items-center gap-1 truncate">
+                                        <a href="{{ $courseShowUrl }}?promo={{ urlencode($promoBadge['code']) }}" class="hub-promo-strip absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between gap-2 rounded-lg px-2.5 py-1 text-[10px] text-white border" style="background-color: #0a2d27; color: #ffffff; border-color: #11443c;">
+                                            <span class="font-bold flex items-center gap-1 truncate" style="color: #fde047;">
                                                 <i class="fa-solid fa-bolt text-[9px]"></i> {{ $promoBadge['discount'] }}
                                             </span>
-                                            <span class="font-mono font-extrabold tracking-wider bg-amber-400/20 text-yellow-200 border border-amber-300/30 px-1.5 py-0.5 rounded text-[9px] shrink-0">
+                                            <span class="font-mono font-extrabold tracking-wider px-1.5 py-0.5 rounded text-[9px] shrink-0" style="background-color: #11443c; color: #fde047;">
                                                 CODE: {{ $promoBadge['code'] }}
                                             </span>
-                                        </div>
+                                        </a>
                                     @endif
                                 </div>
                                 <div class="px-1 pt-3 pb-1">

@@ -733,7 +733,14 @@
                     </ol>
                 </nav>
                 @php
-                    $coursePromoBadge = $course->getPromoBadge();
+                    $queryPromoModel = null;
+                    if (request()->filled('promo') && \Illuminate\Support\Facades\Schema::hasTable('promo_codes')) {
+                        $queryPromoModel = \App\Models\PromoCode::query()
+                            ->active()
+                            ->where('code', strtoupper(trim((string) request('promo'))))
+                            ->first();
+                    }
+                    $coursePromoBadge = $course->getPromoBadge($queryPromoModel);
                 @endphp
                 <div class="flex flex-wrap items-center gap-2.5 mt-4">
                     <span class="inline-flex items-center rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-yellow-300">{{ $course->code }}</span>
@@ -747,10 +754,10 @@
                         </span>
                     @endif
                     @if ($coursePromoBadge)
-                        <a href="{{ route('checkout.show', ['course' => $course->id, 'promo' => $coursePromoBadge['code']]) }}" class="inline-flex items-center gap-1.5 rounded-full {{ $coursePromoBadge['classes'] }} px-3 py-1 text-[10px] font-black uppercase tracking-wider border hover:scale-105 transition-transform">
-                            <i class="{{ $coursePromoBadge['icon'] }} text-[9px] text-yellow-200"></i>
+                        <a href="{{ route('checkout.show', ['course' => $course->id, 'promo' => $coursePromoBadge['code']]) }}" class="inline-flex items-center gap-1.5 rounded-full {{ $coursePromoBadge['classes'] }} px-3 py-1 text-[10px] font-black uppercase tracking-wider border hover:scale-105 transition-transform" style="background-color: #e11d48; color: #ffffff; border-color: #be123c;">
+                            <i class="{{ $coursePromoBadge['icon'] }} text-[9px]" style="color: #fde047;"></i>
                             <span>{{ $coursePromoBadge['label'] }}</span>
-                            <span class="font-mono bg-black/25 px-1.5 py-0.2 rounded text-[9px] text-yellow-200">CODE: {{ $coursePromoBadge['code'] }}</span>
+                            <span class="font-mono px-1.5 py-0.5 rounded text-[9px]" style="background-color: #9f1239; color: #fde047;">CODE: {{ $coursePromoBadge['code'] }}</span>
                         </a>
                     @endif
                 </div>
@@ -782,11 +789,14 @@
                             $singleOptionParams = ! empty($feeOptions[0])
                                 ? ['course' => $course, 'track' => $feeOptions[0]['level'], 'mode' => $feeOptions[0]['category']]
                                 : ['course' => $course];
+                            if ($coursePromoBadge) {
+                                $singleOptionParams['promo'] = $coursePromoBadge['code'];
+                            }
                             $courseModalData = [
                                 'id' => $course->id,
                                 'title' => $course->title,
                                 'code' => $course->code,
-                                'checkoutUrl' => route('checkout.show', $course),
+                                'checkoutUrl' => route('checkout.show', $coursePromoBadge ? ['course' => $course->id, 'promo' => $coursePromoBadge['code']] : $course),
                                 'options' => $feeOptions,
                             ];
                         @endphp

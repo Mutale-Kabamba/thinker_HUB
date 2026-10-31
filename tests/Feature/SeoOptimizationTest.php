@@ -131,6 +131,12 @@ class SeoOptimizationTest extends TestCase
         $response->assertSee('hub-top-ticker', false);
         $response->assertSee('PROMO • 30% OFF');
         $response->assertSee('CODE: AIBOOST30');
+
+        // Clicking the promo in the banner filters /courses?promo=AIBOOST30 to only the respective course
+        $filteredResponse = $this->get('/courses?promo=AIBOOST30');
+        $filteredResponse->assertOk();
+        $filteredResponse->assertSee('AI &amp; Machine Learning Intensive', false);
+        $filteredResponse->assertDontSee('Regular Web Course');
     }
 }
 

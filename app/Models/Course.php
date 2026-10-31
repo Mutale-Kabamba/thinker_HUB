@@ -336,13 +336,21 @@ class Course extends Model
      *
      * @return ?array{label: string, short_label: string, code: string, discount: string, description: ?string, classes: string, icon: string}
      */
-    public function getPromoBadge(): ?array
+    public function getPromoBadge(?PromoCode $contextPromo = null): ?array
     {
         if ($this->is_open_enrollment === false) {
             return null;
         }
 
         $promo = $this->getActivePromoCode();
+
+        if (! $promo && $contextPromo) {
+            $fee = $this->getNumericFee();
+            if ($fee > 0 && $contextPromo->isValidFor($this, $fee)['valid']) {
+                $promo = $contextPromo;
+            }
+        }
+
         if (! $promo) {
             return null;
         }
@@ -361,7 +369,7 @@ class Course extends Model
             'code' => $promo->code,
             'discount' => $promo->formattedDiscount(),
             'description' => $promo->description,
-            'classes' => 'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 text-white border-white/30 shadow-xs',
+            'classes' => 'hub-promo-badge bg-rose-600 text-white border-rose-500 shadow-xs',
             'icon' => 'fa-solid fa-tag',
         ];
     }

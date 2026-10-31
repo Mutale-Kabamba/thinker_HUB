@@ -31,22 +31,22 @@
                 if ($promo->course && $promo->course->is_active && $promo->course->is_open_enrollment !== false) {
                     $tickerAnnouncements[] = [
                         'badge' => 'COURSE PROMO',
-                        'badge_class' => 'bg-gradient-to-r from-rose-500 to-amber-500 text-white',
+                        'badge_style' => 'background-color: #e11d48; color: #ffffff;',
                         'icon' => 'fa-solid fa-tag',
                         'text' => "{$discountLabel} on {$promo->course->title}",
                         'code' => $promo->code,
-                        'cta' => 'Claim Promo',
-                        'url' => route('checkout.show', ['course' => $promo->course->id, 'promo' => $promo->code]),
+                        'cta' => 'View Course',
+                        'url' => route('landing.courses', ['promo' => $promo->code]) . '#courses-catalog',
                     ];
                 } elseif (! $promo->course_id) {
                     $tickerAnnouncements[] = [
                         'badge' => 'SPECIAL OFFER',
-                        'badge_class' => 'bg-yellow-400 text-[#0a2d27]',
+                        'badge_style' => 'background-color: #facc15; color: #0a2d27;',
                         'icon' => 'fa-solid fa-bolt',
                         'text' => $promo->description ?: "Save {$discountLabel} on eligible courses",
                         'code' => $promo->code,
-                        'cta' => 'Explore Courses',
-                        'url' => route('landing.courses', ['promo' => $promo->code]),
+                        'cta' => 'View Eligible Courses',
+                        'url' => route('landing.courses', ['promo' => $promo->code]) . '#courses-catalog',
                     ];
                 }
             }
@@ -57,17 +57,17 @@
 
     $tickerAnnouncements[] = [
         'badge' => 'OPEN ENROLLMENT',
-        'badge_class' => 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/30',
+        'badge_style' => 'background-color: #0d9488; color: #ffffff;',
         'icon' => 'fa-solid fa-graduation-cap',
         'text' => 'Practical tutor-led digital skills cohorts are open for registration',
         'code' => null,
         'cta' => 'Browse Catalog',
-        'url' => route('landing.courses'),
+        'url' => route('landing.courses') . '#courses-catalog',
     ];
 
     $tickerAnnouncements[] = [
         'badge' => 'LEARN & EARN',
-        'badge_class' => 'bg-teal-500/25 text-teal-200 border border-teal-400/30',
+        'badge_style' => 'background-color: #0f766e; color: #ffffff;',
         'icon' => 'fa-solid fa-award',
         'text' => 'Complete courses, earn verified certificates, XP & Thinker Coins',
         'code' => null,
@@ -76,31 +76,31 @@
     ];
 @endphp
 
-<header class="hub-public-header sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200/80">
-    {{-- Thin Scrolling Sticky Promo & Announcement Banner on top of the nav --}}
-    <div class="hub-top-ticker bg-[#061f1b] text-white border-b border-teal-900/80 overflow-hidden">
-        <div class="hub-ticker-viewport relative flex items-center h-7 overflow-hidden">
+<header class="hub-public-header sticky top-0 z-50 bg-white border-b border-slate-200/80">
+    {{-- Thin Solid-Color Scrolling Sticky Promo & Announcement Banner on top of the nav --}}
+    <div class="hub-top-ticker overflow-hidden" style="background-color: #0a2d27; color: #ffffff; border-bottom: 1px solid #11443c;">
+        <div class="hub-ticker-viewport relative flex items-center h-8 overflow-hidden">
             <div class="hub-ticker-track flex items-center whitespace-nowrap">
                 @for ($copy = 0; $copy < 2; $copy++)
                     <div class="flex items-center shrink-0" @if ($copy === 1) aria-hidden="true" @endif>
                         @foreach ($tickerAnnouncements as $item)
-                            <a href="{{ $item['url'] }}" class="group inline-flex items-center gap-2 px-6 text-[11px] leading-none text-slate-200 hover:text-white transition-colors">
-                                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider {{ $item['badge_class'] }}">
+                            <a href="{{ $item['url'] }}" class="group inline-flex items-center gap-2 px-6 text-[11px] leading-none transition-opacity hover:opacity-95" style="color: #ffffff;">
+                                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider" style="{{ $item['badge_style'] }}">
                                     <i class="{{ $item['icon'] }} text-[8px]"></i>
                                     <span>{{ $item['badge'] }}</span>
                                 </span>
-                                <span class="font-medium text-slate-100">{{ $item['text'] }}</span>
+                                <span class="font-semibold" style="color: #f8fafc;">{{ $item['text'] }}</span>
                                 @if (! empty($item['code']))
-                                    <span class="inline-flex items-center gap-1 rounded bg-white/10 border border-yellow-400/40 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-yellow-300 tracking-wider">
+                                    <span class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] font-extrabold tracking-wider" style="background-color: #11443c; color: #fde047; border: 1px solid rgba(250, 204, 21, 0.45);">
                                         CODE: {{ $item['code'] }}
                                     </span>
                                 @endif
-                                <span class="font-bold text-yellow-300 group-hover:underline inline-flex items-center gap-1">
+                                <span class="font-bold group-hover:underline inline-flex items-center gap-1" style="color: #fde047;">
                                     <span>{{ $item['cta'] }}</span>
                                     <i class="fa-solid fa-arrow-right text-[9px] transition-transform group-hover:translate-x-0.5"></i>
                                 </span>
                             </a>
-                            <span class="text-teal-600/70 text-[10px] select-none">•</span>
+                            <span class="text-[10px] select-none" style="color: #2dd4bf;">•</span>
                         @endforeach
                     </div>
                 @endfor
