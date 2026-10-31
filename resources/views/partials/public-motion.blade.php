@@ -12,7 +12,7 @@
 
     .hub-ticker-track {
         width: max-content;
-        animation: hubTickerScroll 34s linear infinite;
+        animation: hubTickerScroll 68s linear infinite;
         will-change: transform;
     }
 
@@ -61,7 +61,7 @@
                 transform: translate3d(0, 0, 0);
             }
             50% {
-                transform: translate3d(0, -5px, 0);
+                transform: translate3d(0, -4px, 0);
             }
         }
 
@@ -71,8 +71,8 @@
                 opacity: 0.85;
             }
             50% {
-                transform: scale(1.07);
-                opacity: 1;
+                transform: scale(1.06);
+                opacity: 0.98;
             }
         }
 
@@ -81,37 +81,37 @@
                 transform: translate3d(0, 0, 0) scale(1);
             }
             50% {
-                transform: translate3d(10px, -8px, 0) scale(1.05);
+                transform: translate3d(8px, -6px, 0) scale(1.04);
             }
         }
 
         .hub-public main > section:first-of-type h1 {
-            animation: hubFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.04s both;
+            animation: hubFadeUp 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
         }
 
         .hub-public main > section:first-of-type p {
-            animation: hubFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+            animation: hubFadeUp 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
         }
 
         .hub-public .hub-float-badge {
-            animation: hubFloatSlow 4.5s ease-in-out infinite;
+            animation: hubFloatSlow 7.5s ease-in-out infinite;
         }
 
         .hub-public .hub-hero-ring {
-            animation: hubPulseRing 6s ease-in-out infinite;
+            animation: hubPulseRing 10s ease-in-out infinite;
         }
 
         .hub-public .hub-glow-orb {
-            animation: hubGlowDrift 8s ease-in-out infinite;
+            animation: hubGlowDrift 14s ease-in-out infinite;
         }
 
         /* 2. Scroll Reveal Classes */
         .hub-reveal {
             opacity: 0;
-            transform: translate3d(0, 18px, 0);
+            transform: translate3d(0, 14px, 0);
             transition:
-                opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-                transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+                opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
             transition-delay: var(--hub-delay, 0ms);
             will-change: opacity, transform;
         }
@@ -124,14 +124,14 @@
         /* 3. Interactive Card Polish */
         .hub-public main article {
             transition:
-                transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-                box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-                border-color 0.28s ease,
-                background-color 0.28s ease !important;
+                transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.4s ease,
+                background-color 0.4s ease !important;
         }
 
         .hub-public main article:hover {
-            transform: translate3d(0, -4px, 0);
+            transform: translate3d(0, -3px, 0);
             box-shadow:
                 0 14px 28px -8px rgba(10, 45, 39, 0.08),
                 0 4px 10px -3px rgba(10, 45, 39, 0.04);
@@ -141,23 +141,23 @@
         /* Subtle icon pop when hovering feature/value cards */
         .hub-public main article > div.inline-flex,
         .hub-public main .hub-icon-badge {
-            transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .hub-public main article:hover > div.inline-flex,
         .hub-public main *:hover > .hub-icon-badge {
-            transform: scale(1.08) translateY(-1px);
+            transform: scale(1.06) translateY(-1px);
         }
 
         /* 4. Tactile Button & Link Arrow Motion */
         .hub-public a.rounded-full,
         .hub-public button.rounded-full {
             transition:
-                transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-                background-color 0.2s ease,
-                border-color 0.2s ease,
-                box-shadow 0.2s ease,
-                color 0.2s ease;
+                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 0.32s ease,
+                border-color 0.32s ease,
+                box-shadow 0.32s ease,
+                color 0.32s ease;
         }
 
         .hub-public a.rounded-full:active,
@@ -169,7 +169,7 @@
         .hub-public a i.fa-arrow-right-long,
         .hub-public button i.fa-arrow-right,
         .hub-public button i.fa-paper-plane {
-            transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .hub-public a:hover i.fa-arrow-right,
@@ -266,13 +266,13 @@
                 }
                 el.dataset.hubRevealBound = '1';
 
-                // Compute subtle stagger delay for grid items (0ms, 65ms, 130ms, 195ms)
+                // Compute gentle stagger delay for grid items (0ms, 110ms, 220ms, 330ms)
                 const parent = el.parentElement;
                 if (parent && (parent.classList.contains('grid') || getComputedStyle(parent).display === 'grid')) {
                     const siblings = Array.from(parent.children);
                     const indexInRow = siblings.indexOf(el) % 4;
                     if (indexInRow > 0) {
-                        el.style.setProperty('--hub-delay', (indexInRow * 65) + 'ms');
+                        el.style.setProperty('--hub-delay', (indexInRow * 110) + 'ms');
                     }
                 }
 

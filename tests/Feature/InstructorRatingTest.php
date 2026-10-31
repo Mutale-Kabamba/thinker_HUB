@@ -100,5 +100,40 @@ class InstructorRatingTest extends TestCase
             'rating' => 4,
         ]);
     }
+
+    public function test_instructor_rating_is_displayed_on_network_cards_and_profile_page(): void
+    {
+        $instructor = User::factory()->create([
+            'name' => 'Mutale Kabamba',
+            'role' => 'instructor',
+            'is_active' => true,
+        ]);
+
+        $student = User::factory()->create([
+            'role' => 'student',
+            'is_active' => true,
+        ]);
+
+        Review::create([
+            'user_id' => $student->id,
+            'reviewable_type' => User::class,
+            'reviewable_id' => $instructor->id,
+            'rating' => 5,
+            'comment' => 'Great mentor!',
+            'is_approved' => true,
+            'is_verified' => true,
+        ]);
+
+        $networkResponse = $this->get('/network');
+        $networkResponse->assertOk();
+        $networkResponse->assertSee('Mutale Kabamba');
+        $networkResponse->assertSee('5.0');
+        $networkResponse->assertSee('(1)');
+
+        $profileResponse = $this->get(route('landing.instructors.show', ['instructor' => $instructor->id]));
+        $profileResponse->assertOk();
+        $profileResponse->assertSee('5.0');
+        $profileResponse->assertSee('(1)');
+    }
 }
 

@@ -523,10 +523,35 @@ Route::get('/network', function (Request $request) {
                 }
             }
 
-            $members = $query->get([
+            $selectColumns = [
                 'id', 'name', 'email', 'role', 'profile_photo_path', 'proficiency', 'occupation',
-                'company', 'portfolio_url', 'github_url', 'instagram_url', 'specialty', 'whatsapp', 'linkedin_url', 'facebook_url', 'bio'
-            ]);
+                'company', 'portfolio_url', 'github_url', 'instagram_url', 'specialty', 'whatsapp', 'linkedin_url', 'facebook_url', 'bio',
+            ];
+
+            if (Schema::hasColumn('users', 'instructor_rating')) {
+                $selectColumns[] = 'instructor_rating';
+            }
+            if (Schema::hasColumn('users', 'instructor_review_count')) {
+                $selectColumns[] = 'instructor_review_count';
+            }
+
+            $query->select($selectColumns);
+
+            if (Schema::hasTable('reviews')) {
+                $query
+                    ->withAvg(['approvedReviews as live_instructor_rating' => fn ($q) => $q->whereNotNull('rating')], 'rating')
+                    ->withCount('approvedReviews as live_instructor_review_count');
+            }
+
+            $members = $query->get()->each(function (User $member): void {
+                $liveCount = (int) ($member->live_instructor_review_count ?? 0);
+                if ($liveCount > 0 || $member->live_instructor_rating !== null) {
+                    $member->instructor_rating = $member->live_instructor_rating !== null
+                        ? round((float) $member->live_instructor_rating, 2)
+                        : 0.00;
+                    $member->instructor_review_count = $liveCount;
+                }
+            });
         }
     } catch (Throwable $e) {
         report($e);
@@ -560,14 +585,29 @@ Route::get('/network/{instructor}/{slug?}', function (int $instructor, ?string $
         $with[] = 'instructorApplication';
     }
 
-    $memberModel = User::query()
+    $memberQuery = User::query()
         ->where(function ($q) {
             $q->whereIn('role', ['instructor', 'blogger', 'researcher', 'employer'])
                 ->orWhere(fn ($sub) => $sub->where('role', 'admin')->whereHas('instructorCourses'));
         })
         ->where('is_active', true)
-        ->with($with)
-        ->findOrFail($instructor);
+        ->with($with);
+
+    if (Schema::hasTable('reviews')) {
+        $memberQuery
+            ->withAvg(['approvedReviews as live_instructor_rating' => fn ($q) => $q->whereNotNull('rating')], 'rating')
+            ->withCount('approvedReviews as live_instructor_review_count');
+    }
+
+    $memberModel = $memberQuery->findOrFail($instructor);
+
+    $liveCount = (int) ($memberModel->live_instructor_review_count ?? 0);
+    if ($liveCount > 0 || $memberModel->live_instructor_rating !== null) {
+        $memberModel->instructor_rating = $memberModel->live_instructor_rating !== null
+            ? round((float) $memberModel->live_instructor_rating, 2)
+            : 0.00;
+        $memberModel->instructor_review_count = $liveCount;
+    }
 
     $canonicalSlug = $instructorSlug($memberModel);
 
