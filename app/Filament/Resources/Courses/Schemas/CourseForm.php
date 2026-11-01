@@ -179,19 +179,19 @@ class CourseForm
                                             ->columnSpanFull(),
                                         Textarea::make('key_outcome')
                                             ->label('Key Learning Outcomes')
-                                            ->helperText('Summarize expected competencies gained after completion (maximum 100 words).')
+                                            ->helperText('Summarize expected competencies gained after completion (maximum 250 words).')
                                             ->rules([
                                                 fn (): \Closure => function (string $attribute, $value, \Closure $fail): void {
                                                     if (! filled($value)) {
                                                         return;
                                                     }
                                                     $words = preg_split('/\s+/u', trim((string) $value), -1, PREG_SPLIT_NO_EMPTY);
-                                                    if (is_array($words) && count($words) > 100) {
-                                                        $fail('The Key Learning Outcomes must not exceed 100 words (currently ' . count($words) . ' words).');
+                                                    if (is_array($words) && count($words) > 250) {
+                                                        $fail('The Key Learning Outcomes must not exceed 250 words (currently ' . count($words) . ' words).');
                                                     }
                                                 },
                                             ])
-                                            ->rows(3)
+                                            ->rows(4)
                                             ->columnSpanFull(),
                                     ]),
 
