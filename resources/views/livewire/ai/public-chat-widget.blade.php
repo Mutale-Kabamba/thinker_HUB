@@ -1,4 +1,4 @@
-<div class="fixed bottom-6 right-6 z-50 font-sans" x-data>
+<div class="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-50 font-sans" x-data>
     <style>
         .ai-markdown-bubble {
             font-size: 0.84rem;
@@ -60,11 +60,12 @@
             font-weight: 500 !important;
         }
     </style>
+
     <!-- Floating Launcher Button -->
     <button
         type="button"
         wire:click="toggleChat"
-        class="flex items-center justify-center w-14 h-14 rounded-full bg-teal-600 hover:bg-teal-700 text-white shadow-xl transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-teal-500/30"
+        class="flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-teal-600 hover:bg-teal-700 text-white shadow-xl transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-teal-500/30"
         aria-label="Chat with Candice (Course Advisor)"
         title="Chat with Candice"
     >
@@ -77,23 +78,29 @@
 
     <!-- Chat Drawer -->
     @if ($isOpen)
-        <div class="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-2rem)] h-[520px] rounded-2xl bg-white border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div class="fixed bottom-22 sm:bottom-24 right-4 sm:right-6 w-[360px] sm:w-[390px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-7.5rem)] rounded-2xl bg-white border border-slate-200/90 shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-200 z-50">
             <!-- Header -->
-            <div class="flex items-center justify-between px-4 py-3 bg-slate-900 text-white border-b border-slate-800 flex-shrink-0">
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center border border-teal-500/30">
-                        <x-heroicon-o-sparkles class="w-4 h-4" />
+            <div class="flex items-center justify-between px-4 py-3.5 bg-gradient-to-r from-teal-700 via-teal-800 to-slate-900 text-white border-b border-teal-800 flex-shrink-0">
+                <div class="flex items-center space-x-2.5">
+                    <div class="relative">
+                        <div class="w-9 h-9 rounded-full bg-white/10 text-teal-200 flex items-center justify-center border border-white/20 shadow-xs">
+                            <x-heroicon-o-sparkles class="w-5 h-5 text-teal-300" />
+                        </div>
+                        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-teal-800"></span>
                     </div>
                     <div>
-                        <h3 class="text-sm font-semibold tracking-tight leading-none text-white">Candice</h3>
-                        <p class="text-xs text-slate-400 mt-0.5 leading-none">Course Advisor • think.er HUB</p>
+                        <div class="flex items-center space-x-1.5">
+                            <h3 class="text-sm font-bold tracking-tight text-white leading-none">Candice</h3>
+                            <span class="px-1.5 py-0.5 text-[10px] font-semibold bg-teal-500/30 text-teal-200 rounded-md border border-teal-400/30">AI</span>
+                        </div>
+                        <p class="text-[11px] text-teal-100/80 mt-1 leading-none">Course Advisor • think.er HUB</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-1">
                     <button
                         type="button"
                         wire:click="resetChat"
-                        class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                        class="p-1.5 rounded-lg text-teal-200 hover:text-white hover:bg-white/10 transition"
                         title="Reset Chat"
                         aria-label="Reset Chat"
                     >
@@ -102,7 +109,7 @@
                     <button
                         type="button"
                         wire:click="toggleChat"
-                        class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                        class="p-1.5 rounded-lg text-teal-200 hover:text-white hover:bg-white/10 transition"
                         title="Close Chat"
                         aria-label="Close Chat"
                     >
@@ -113,7 +120,7 @@
 
             <!-- Error Notification Banner -->
             @if ($errorMessage)
-                <div class="px-3 py-2 bg-rose-50 border-b border-rose-200 text-xs text-rose-700 flex items-center justify-between flex-shrink-0">
+                <div class="px-3.5 py-2 bg-rose-50 border-b border-rose-200 text-xs text-rose-700 flex items-center justify-between flex-shrink-0">
                     <span>{{ $errorMessage }}</span>
                     <button type="button" wire:click="$set('errorMessage', null)" class="text-rose-500 hover:text-rose-700">
                         <x-heroicon-o-x-mark class="w-3.5 h-3.5" />
@@ -123,32 +130,60 @@
 
             <!-- Messages Stream -->
             <div
-                x-data="{ scrollToBottom() { $el.scrollTop = $el.scrollHeight } }"
+                x-data="{
+                    scrollToBottom() {
+                        if (@js(! empty($messages))) {
+                            $el.scrollTop = $el.scrollHeight;
+                        }
+                    }
+                }"
                 x-init="scrollToBottom()"
-                x-on:message-sent.window="$nextTick(() => scrollToBottom())"
-                class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm"
+                x-on:message-sent.window="$nextTick(() => { $el.scrollTop = $el.scrollHeight; })"
+                class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm overscroll-contain"
             >
                 @if (empty($messages))
-                    <div class="text-center py-6 text-slate-500">
-                        <div class="w-12 h-12 mx-auto rounded-full bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-200 mb-3">
-                            <x-heroicon-o-academic-cap class="w-6 h-6" />
+                    <div class="py-5 px-1 text-center text-slate-500">
+                        <div class="w-13 h-13 mx-auto rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-200/70 mb-3 shadow-xs">
+                            <x-heroicon-o-academic-cap class="w-7 h-7 text-teal-600" />
                         </div>
-                        <p class="font-medium text-slate-800">Hi, I'm Candice!</p>
-                        <p class="text-xs text-slate-500 mt-1">Your think.er HUB Course Advisor. Ask me anything about our courses, fees, upcoming intakes, or how to get started!</p>
-                        <div class="mt-4 flex flex-col gap-1.5 text-xs text-left">
+                        <h4 class="font-bold text-slate-900 text-base">Hi, I'm Candice!</h4>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed max-w-[280px] mx-auto">
+                            Your think.er HUB Course Advisor. Ask me anything about our courses, fees, upcoming intakes, or admission steps.
+                        </p>
+
+                        <div class="mt-4 flex flex-col gap-2 text-xs text-left">
                             <button
                                 type="button"
                                 wire:click="$set('message', 'What courses are currently available?'); sendMessage()"
-                                class="p-2 rounded-lg bg-white border border-slate-200 hover:border-teal-500 text-slate-700 transition"
+                                class="group p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50/30 text-slate-700 hover:text-teal-900 transition flex items-center justify-between shadow-xs"
                             >
-                                What courses are currently available?
+                                <div class="flex items-center space-x-2">
+                                    <x-heroicon-o-book-open class="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
+                                    <span class="font-medium">What courses are currently available?</span>
+                                </div>
+                                <x-heroicon-o-chevron-right class="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 transition" />
                             </button>
                             <button
                                 type="button"
                                 wire:click="$set('message', 'How does enrollment and payment work?'); sendMessage()"
-                                class="p-2 rounded-lg bg-white border border-slate-200 hover:border-teal-500 text-slate-700 transition"
+                                class="group p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50/30 text-slate-700 hover:text-teal-900 transition flex items-center justify-between shadow-xs"
                             >
-                                How does enrollment and payment work?
+                                <div class="flex items-center space-x-2">
+                                    <x-heroicon-o-credit-card class="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
+                                    <span class="font-medium">How does enrollment and payment work?</span>
+                                </div>
+                                <x-heroicon-o-chevron-right class="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 transition" />
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="$set('message', 'What delivery modes do you support?'); sendMessage()"
+                                class="group p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50/30 text-slate-700 hover:text-teal-900 transition flex items-center justify-between shadow-xs"
+                            >
+                                <div class="flex items-center space-x-2">
+                                    <x-heroicon-o-tv class="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
+                                    <span class="font-medium">What delivery modes do you support?</span>
+                                </div>
+                                <x-heroicon-o-chevron-right class="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 transition" />
                             </button>
                         </div>
                     </div>
@@ -199,12 +234,12 @@
                         wire:model="message"
                         wire:loading.attr="disabled"
                         placeholder="Ask Candice about courses, fees, intakes..."
-                        class="flex-1 px-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:opacity-60 disabled:bg-slate-100"
+                        class="flex-1 px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:opacity-60 disabled:bg-slate-50 text-slate-900 placeholder:text-slate-400"
                     />
                     <button
                         type="submit"
                         wire:loading.attr="disabled"
-                        class="p-2 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+                        class="p-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500/50 shadow-sm"
                         title="Send Message"
                         aria-label="Send Message"
                     >
@@ -215,4 +250,3 @@
         </div>
     @endif
 </div>
-
