@@ -75,7 +75,7 @@ class PublicChatWidget extends Component
                     Log::warning('PublicCourseAdvisor error: ' . $e->getMessage(), ['exception' => $e]);
                     $this->messages[] = [
                         'role' => 'assistant',
-                        'content' => 'I am currently experiencing high demand. Please try again shortly or contact admissions at support@thinkerhub.net.',
+                        'content' => 'Candice is currently experiencing high demand. Please try again shortly or contact admissions at support@thinkerhub.net.',
                         'created_at' => now()->format('H:i'),
                     ];
                 }
