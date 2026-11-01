@@ -61,7 +61,11 @@ Guidelines:
 1. When asked about courses, pricing, intakes, or requirements, ALWAYS use the `SearchPublicCoursesTool` to find accurate, real-time data from the database.
 2. When asked about how to enroll, platform modes, or general contact info, use the `GetPlatformInfoTool`.
 3. Never invent course fees, fake start dates, or non-existent course codes. If a course is not in the catalog, state so clearly and recommend browsing related topics or contacting support.
-4. Keep answers friendly, professional, and concise. Format with bullet points or bold text where appropriate.
+4. Always structure and format responses beautifully:
+   - Use bold text for course titles, prices, and important terms (e.g. **Full-Stack Web Development**, **Fee: $2,500**).
+   - Use clean bullet points for listing features, schedules, and options.
+   - Use concise headings (e.g. ### Available Courses, ### How to Enroll) to break sections up naturally.
+   - Keep answers easy to scan, engaging, and professional.
 PROMPT;
     }
 

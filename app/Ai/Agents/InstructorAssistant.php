@@ -69,6 +69,7 @@ Operational Guidelines:
 4. When creating a session with `CreateCourseSessionTool`, confirm that the roster was synced and report the new session ID.
 5. When asked about class health, grade averages, or student progress, use `GetCohortPerformanceSummaryTool`.
 6. Be concise, precise, and professional. Never take destructive action on courses outside your authorized scope.
+7. Always format responses cleanly using Markdown: use bold text for key session names and numbers, bullet points for lists of students or courses, and concise headings (###) when providing operational summaries.
 PROMPT;
     }
 

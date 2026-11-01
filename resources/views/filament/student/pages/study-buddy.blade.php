@@ -1,4 +1,47 @@
 <x-filament-panels::page>
+    <style>
+        .ai-markdown-bubble {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+        .ai-markdown-bubble > *:first-child { margin-top: 0 !important; }
+        .ai-markdown-bubble > *:last-child { margin-bottom: 0 !important; }
+        .ai-markdown-bubble p { margin-top: 0; margin-bottom: 0.65rem; }
+        .ai-markdown-bubble strong, .ai-markdown-bubble b { font-weight: 700; color: inherit; }
+        .ai-markdown-bubble h1, .ai-markdown-bubble h2, .ai-markdown-bubble h3, .ai-markdown-bubble h4 {
+            font-weight: 700; line-height: 1.35; margin-top: 0.85rem; margin-bottom: 0.35rem; color: inherit;
+        }
+        .ai-markdown-bubble h1 { font-size: 1.15rem; }
+        .ai-markdown-bubble h2 { font-size: 1.05rem; }
+        .ai-markdown-bubble h3 { font-size: 0.95rem; }
+        .ai-markdown-bubble h4 { font-size: 0.875rem; }
+        .ai-markdown-bubble ul { list-style-type: disc; margin-left: 1.25rem; margin-top: 0.35rem; margin-bottom: 0.65rem; padding-left: 0; }
+        .ai-markdown-bubble ol { list-style-type: decimal; margin-left: 1.25rem; margin-top: 0.35rem; margin-bottom: 0.65rem; padding-left: 0; }
+        .ai-markdown-bubble li { margin-top: 0.2rem; margin-bottom: 0.2rem; line-height: 1.5; }
+        .ai-markdown-bubble li > ul, .ai-markdown-bubble li > ol { margin-top: 0.15rem; margin-bottom: 0.15rem; margin-left: 1rem; }
+        .ai-markdown-bubble code:not(pre code) {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.82em;
+            padding: 0.15em 0.4em;
+            border-radius: 0.35rem;
+            background-color: rgba(15, 23, 42, 0.07);
+            color: #0f766e;
+            font-weight: 600;
+        }
+        .dark .ai-markdown-bubble code:not(pre code) {
+            background-color: rgba(255, 255, 255, 0.12);
+            color: #5eead4;
+        }
+        .ai-markdown-bubble pre {
+            background-color: #0f172a; color: #f8fafc; border-radius: 0.5rem; padding: 0.75rem 0.9rem; overflow-x: auto; font-size: 0.82em; margin: 0.5rem 0;
+        }
+        .ai-markdown-bubble pre code { background: transparent !important; color: inherit !important; padding: 0 !important; }
+        .ai-markdown-bubble blockquote { border-left: 3px solid #0d9488; padding-left: 0.75rem; margin: 0.5rem 0; font-style: italic; opacity: 0.85; }
+        .ai-markdown-bubble a { color: #0d9488; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
+        .dark .ai-markdown-bubble a { color: #2dd4bf; }
+        .ai-markdown-bubble hr { border: 0; border-top: 1px solid rgba(148, 163, 184, 0.3); margin: 0.75rem 0; }
+    </style>
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[640px]">
         <!-- Left: Conversations Sidebar -->
         <div class="lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 flex flex-col shadow-sm">
@@ -142,20 +185,20 @@
                     @foreach ($messages as $msg)
                         @if ($msg->role === 'user')
                             <div class="flex justify-end" wire:key="msg-{{ $msg->id }}">
-                                <div class="max-w-[80%] rounded-2xl rounded-tr-none px-4 py-3 bg-teal-600 text-white shadow-sm">
+                                <div class="max-w-[82%] rounded-2xl rounded-tr-sm px-4 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-sm">
                                     <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ $msg->content }}</p>
-                                    <span class="block text-[10px] text-teal-200 text-right mt-1.5">{{ $msg->created_at->format('H:i') }}</span>
+                                    <span class="block text-[10px] text-teal-200 text-right mt-1.5 font-medium">{{ $msg->created_at->format('H:i') }}</span>
                                 </div>
                             </div>
                         @elseif ($msg->role === 'assistant')
                             <div class="flex justify-start" wire:key="msg-{{ $msg->id }}">
-                                <div class="max-w-[85%] rounded-2xl rounded-tl-none px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white shadow-sm">
-                                    <div class="flex items-center space-x-1.5 text-xs font-semibold text-teal-700 dark:text-teal-400 mb-1.5">
-                                        <x-heroicon-o-sparkles class="w-4 h-4" />
+                                <div class="max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white shadow-sm">
+                                    <div class="flex items-center space-x-1.5 text-xs font-semibold text-teal-700 dark:text-teal-400 mb-2 pb-1.5 border-b border-gray-100 dark:border-gray-700/60">
+                                        <x-heroicon-s-sparkles class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                                         <span>Study Buddy</span>
                                     </div>
-                                    <div class="text-sm leading-relaxed whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none text-gray-800 dark:text-gray-200">
-                                        {!! nl2br(e($msg->content)) !!}
+                                    <div class="ai-markdown-bubble text-gray-800 dark:text-gray-200">
+                                        {!! \Illuminate\Support\Str::markdown($msg->content, ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}
                                     </div>
                                     <span class="block text-[10px] text-gray-400 text-left mt-2">{{ $msg->created_at->format('H:i') }}</span>
                                 </div>

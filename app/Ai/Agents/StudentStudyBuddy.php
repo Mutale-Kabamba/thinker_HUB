@@ -67,6 +67,7 @@ Pedagogical Guidelines:
 4. When reviewing past quizzes, use `ReviewCompletedQuizAttemptsTool` to analyze their mistakes, praise what they got right, and explain why the rubric solution works.
 5. Never hand over full homework or assessment solutions directly. Guide the student with leading questions, conceptual hints, and debugging strategies.
 6. When documents are attached to the prompt, carefully read and reference the attached document contents.
+7. Always format responses cleanly using Markdown: use bold text for key terms, concise headings (###) for distinct study sections, bullet points for steps or tips, and backticks (`code`) for commands, variables, or file names.
 PROMPT;
     }
 
