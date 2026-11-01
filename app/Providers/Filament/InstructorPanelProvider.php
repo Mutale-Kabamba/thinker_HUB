@@ -108,6 +108,10 @@ class InstructorPanelProvider extends PanelProvider
                 ])->render(),
             )
             ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => view('filament.instructor.partials.topbar-ai-button')->render(),
+            )
+            ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn (): string => view('filament.instructor.partials.smart-reminder-popup')->render(),
             )
