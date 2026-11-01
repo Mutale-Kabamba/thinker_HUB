@@ -85,6 +85,11 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\Http::globalOptions(['verify' => false]);
         }
 
+        // Ensure laravel/ai Gemini provider has the API key if services.gemini.api_key is set
+        if (empty(config('ai.providers.gemini.key')) && ! empty(config('services.gemini.api_key'))) {
+            config(['ai.providers.gemini.key' => config('services.gemini.api_key')]);
+        }
+
         // Align 'public' disk configuration with Laravel Cloud automatic disk or default cloud storage
         $rawCloudConfig = $_SERVER['LARAVEL_CLOUD_DISK_CONFIG']
             ?? $_ENV['LARAVEL_CLOUD_DISK_CONFIG']
