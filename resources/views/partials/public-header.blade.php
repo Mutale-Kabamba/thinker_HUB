@@ -96,45 +96,145 @@
         </div>
     @endif
 
-    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
-        <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2.5 text-xl font-bold text-slate-900 transition-opacity hover:opacity-90">
-            <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 max-h-8 md:h-9 md:max-h-9 w-auto object-contain dark:hidden">
-            <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-8 max-h-8 md:h-9 md:max-h-9 w-auto object-contain hidden dark:block">
+    <style>
+        .hub-header-bar {
+            gap: 0.5rem;
+        }
+        .hub-desktop-nav {
+            display: none;
+            align-items: center;
+            gap: 0.2rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            background: rgba(248, 250, 252, 0.9);
+            padding: 0.25rem;
+            flex-shrink: 0;
+        }
+        .hub-desktop-nav a.hub-nav-pill {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+            min-height: 32px !important;
+            height: 32px !important;
+            padding: 0 0.7rem !important;
+            border-radius: 9999px !important;
+            font-size: 0.72rem !important;
+            line-height: 1 !important;
+            transition: all 150ms ease;
+        }
+        .hub-desktop-actions {
+            display: none;
+            align-items: center;
+            gap: 0.375rem;
+            flex-shrink: 0;
+        }
+        .hub-desktop-actions .hub-public-auth-link {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+            min-height: 34px !important;
+            height: 34px !important;
+            padding: 0 0.65rem !important;
+            font-size: 0.73rem !important;
+            line-height: 1 !important;
+        }
+        .hub-desktop-actions .hub-public-cta,
+        .hub-desktop-actions .hub-dashboard-btn,
+        .hub-desktop-actions .hub-logout-btn {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+            min-height: 34px !important;
+            height: 34px !important;
+            padding: 0 0.95rem !important;
+            font-size: 0.73rem !important;
+            line-height: 1 !important;
+            border-radius: 9999px !important;
+        }
+        @media (min-width: 768px) {
+            .hub-desktop-nav {
+                display: inline-flex;
+            }
+            .hub-desktop-actions {
+                display: flex;
+            }
+        }
+        @media (min-width: 1024px) {
+            .hub-header-bar {
+                gap: 1rem;
+            }
+            .hub-desktop-nav {
+                gap: 0.25rem;
+                padding: 0.25rem;
+            }
+            .hub-desktop-nav a.hub-nav-pill {
+                min-height: 34px !important;
+                height: 34px !important;
+                padding: 0 0.95rem !important;
+                font-size: 0.75rem !important;
+            }
+            .hub-desktop-actions {
+                gap: 0.65rem;
+            }
+            .hub-desktop-actions .hub-public-auth-link {
+                min-height: 36px !important;
+                height: 36px !important;
+                padding: 0 0.9rem !important;
+                font-size: 0.75rem !important;
+            }
+            .hub-desktop-actions .hub-public-cta,
+            .hub-desktop-actions .hub-dashboard-btn,
+            .hub-desktop-actions .hub-logout-btn {
+                min-height: 36px !important;
+                height: 36px !important;
+                padding: 0 1.2rem !important;
+                font-size: 0.75rem !important;
+            }
+        }
+    </style>
+
+    <div class="hub-header-bar mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8 py-2.5 lg:py-3">
+        <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2 text-xl font-bold text-slate-900 transition-opacity hover:opacity-90">
+            <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-7 max-h-7 lg:h-9 lg:max-h-9 w-auto object-contain dark:hidden">
+            <img src="{{ asset('images/logos/yellow_white.png') }}" alt="think.er HUB logo" class="h-7 max-h-7 lg:h-9 lg:max-h-9 w-auto object-contain hidden dark:block">
         </a>
 
-        <nav class="hub-public-nav hidden items-center gap-1 rounded-full border border-slate-200/70 bg-slate-50/80 p-1 text-xs font-semibold text-slate-600 md:flex">
+        <nav class="hub-public-nav hub-desktop-nav text-xs font-semibold text-slate-600">
             @foreach ($navItems as $item)
                 @php
                     $isActive = request()->routeIs($item['match']);
                 @endphp
                 <a
                     href="{{ route($item['route']) }}"
-                    class="{{ $isActive ? 'bg-[#0a2d27] text-white shadow-2xs font-bold' : 'text-slate-600 hover:text-teal-800 hover:bg-white/80' }} px-3.5 py-1.5 rounded-full transition-all duration-150"
+                    class="hub-nav-pill {{ $isActive ? 'bg-[#0a2d27] text-white shadow-2xs font-bold' : 'text-slate-600 hover:text-teal-800 hover:bg-white/80' }}"
                 >{{ $item['label'] }}</a>
             @endforeach
         </nav>
 
-        <div class="hidden md:flex items-center gap-3">
+        <div class="hub-desktop-actions">
             @auth
                 <a
                     href="{{ route('dashboard') }}"
-                    class="inline-flex items-center gap-2 rounded-full bg-[#0a2d27] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#11443c] transition-all whitespace-nowrap"
+                    class="hub-dashboard-btn gap-2 bg-[#0a2d27] font-bold text-white shadow-xs hover:bg-[#11443c] transition-all"
                 >
                     <i class="fa-solid fa-gauge-high text-[11px] text-teal-300"></i>
                     <span>Dashboard ({{ Str::words(auth()->user()->name, 1, '') }})</span>
                 </a>
                 <form method="POST" action="{{ route('logout') }}" class="inline">
                     @csrf
-                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer whitespace-nowrap">
+                    <button type="submit" class="hub-logout-btn gap-1.5 border border-slate-200 bg-white font-semibold text-slate-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer">
                         <i class="fa-solid fa-arrow-right-from-bracket text-[10px]"></i>
                         <span>Logout</span>
                     </button>
                 </form>
             @else
-                <a href="{{ route('login') }}" class="hub-public-auth-link inline-flex items-center justify-center rounded-full px-4 py-2 text-xs font-semibold text-slate-700 hover:text-teal-700 transition whitespace-nowrap">
+                <a href="{{ route('login') }}" class="hub-public-auth-link rounded-full font-semibold text-slate-700 hover:text-teal-700 transition">
                     Login
                 </a>
-                <a href="{{ route('enroll') }}" class="hub-public-cta inline-flex items-center justify-center rounded-full bg-[#0a2d27] px-5 py-2 text-xs font-semibold text-white hover:bg-[#11443c] transition duration-300 whitespace-nowrap">
+                <a href="{{ route('enroll') }}" class="hub-public-cta bg-[#0a2d27] font-semibold text-white hover:bg-[#11443c] transition duration-300">
                     Enroll Now
                 </a>
             @endauth
