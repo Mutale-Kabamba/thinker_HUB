@@ -44,35 +44,35 @@
     <main>
         <style>
             .hub-hero-section {
-                padding-top: 1.5rem;
+                padding-top: 0.375rem;
                 padding-bottom: 0 !important;
             }
             .hub-hero-mobile-video-outer {
                 display: block;
                 width: 100%;
-                max-width: 72rem;
-                margin: 0 auto 1.75rem auto;
-                padding: 0 1.25rem;
+                max-width: 100%;
+                margin: 0 auto 1.25rem auto;
+                padding: 0 0.375rem;
                 position: relative;
                 z-index: 10;
             }
             .hub-hero-mobile-video-wrap {
                 position: relative;
                 width: 100%;
-                border-radius: 1.5rem;
+                border-radius: 1.125rem;
                 overflow: hidden;
                 background: #061f1b;
-                border: 1px solid rgba(255, 255, 255, 0.14);
-                box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.45);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.4);
                 transform: translateZ(0);
             }
             .hub-hero-mobile-video {
                 display: block;
                 width: 100%;
                 height: auto;
-                max-height: 52vh;
+                max-height: 56vh;
                 object-fit: cover;
-                border-radius: 1.5rem;
+                border-radius: 1.125rem;
             }
             .hub-hero-copy {
                 padding-bottom: 2.75rem;
@@ -81,12 +81,15 @@
                 display: none;
             }
             @media (min-width: 640px) {
+                .hub-hero-section {
+                    padding-top: 0.5rem;
+                }
                 .hub-hero-mobile-video-outer {
-                    padding: 0 1.5rem;
+                    padding: 0 0.5rem;
                 }
                 .hub-hero-mobile-video-wrap,
                 .hub-hero-mobile-video {
-                    border-radius: 1.75rem;
+                    border-radius: 1.25rem;
                 }
             }
             @media (min-width: 1024px) {
