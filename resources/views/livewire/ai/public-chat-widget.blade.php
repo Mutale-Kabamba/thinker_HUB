@@ -201,8 +201,6 @@
                         placeholder="Ask Candice about courses, fees, intakes..."
                         class="flex-1 px-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:opacity-60 disabled:bg-slate-100"
                     />
-                        class="flex-1 px-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:opacity-60 disabled:bg-slate-100"
-                    />
                     <button
                         type="submit"
                         wire:loading.attr="disabled"

@@ -1,5 +1,104 @@
-<x-filament-panels::page>
+<x-filament-panels::page :full-height="true">
     <style>
+        /* Lock outer page on desktop to prevent whole-window scrolling */
+        @media (min-width: 1024px) {
+            html, body {
+                height: 100vh !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
+            }
+            .fi-layout, .fi-main-ctn {
+                height: 100vh !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
+            }
+            .fi-main {
+                height: 100% !important;
+                max-height: 100% !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                padding-top: 0.75rem !important;
+                padding-bottom: 0.75rem !important;
+            }
+            .fi-page {
+                height: 100% !important;
+                max-height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+                min-height: 0 !important;
+            }
+            .fi-page-header-main-ctn {
+                height: 100% !important;
+                max-height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+                min-height: 0 !important;
+                gap: 0.75rem !important;
+            }
+            .fi-header {
+                flex-shrink: 0 !important;
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            .fi-page-main, .fi-page-content {
+                flex: 1 1 0% !important;
+                min-height: 0 !important;
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+            }
+            .ai-screen-grid {
+                flex: 1 1 0% !important;
+                min-height: 0 !important;
+                height: 100% !important;
+                max-height: calc(100vh - 8.5rem) !important;
+            }
+        }
+
+        .ai-screen-grid {
+            height: calc(100vh - 8.5rem);
+            max-height: calc(100vh - 8.5rem);
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .ai-panel-box {
+            height: 100% !important;
+            max-height: 100% !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .ai-scroll-area {
+            flex: 1 1 0% !important;
+            min-height: 0 !important;
+            overflow-y: auto !important;
+            overscroll-behavior: contain !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Sleek custom scrollbars */
+        .ai-scroll-area::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .ai-scroll-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .ai-scroll-area::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.4);
+            border-radius: 9999px;
+        }
+        .ai-scroll-area::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.6);
+        }
+
         .ai-markdown-bubble {
             font-size: 0.875rem;
             line-height: 1.6;
@@ -65,10 +164,11 @@
             font-weight: 500 !important;
         }
     </style>
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-13rem)] min-h-[580px] max-h-[840px]">
-        <!-- Left: Conversations Sidebar -->
-        <div class="lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 flex flex-col shadow-sm h-full overflow-hidden">
-            <div class="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
+
+    <div class="ai-screen-grid grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Left: Conversations Sidebar (Fixed Container) -->
+        <div class="ai-panel-box lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <div class="p-4 pb-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <x-heroicon-o-chat-bubble-left-right class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     <span class="font-semibold text-sm text-gray-900 dark:text-white">Co-Pilot Threads</span>
@@ -84,8 +184,8 @@
                 </button>
             </div>
 
-            <!-- Conversations List -->
-            <div class="flex-1 min-h-0 overflow-y-auto mt-3 space-y-1.5 pr-1">
+            <!-- Conversations List (Only this scrolls) -->
+            <div class="ai-scroll-area p-3 space-y-1.5">
                 @forelse ($conversations as $conv)
                     <div
                         wire:key="conv-{{ $conv->id }}"
@@ -119,9 +219,9 @@
             </div>
         </div>
 
-        <!-- Right: Active Chat Area -->
-        <div class="lg:col-span-3 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 flex flex-col shadow-sm h-full overflow-hidden">
-            <!-- Top Controls -->
+        <!-- Right: Active Chat Area (Fixed Container) -->
+        <div class="ai-panel-box lg:col-span-3 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <!-- Top Controls (Fixed) -->
             <div class="p-4 bg-gray-50/75 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <div class="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -134,7 +234,7 @@
                 </div>
             </div>
 
-            <!-- Error Banner -->
+            <!-- Error Banner (Fixed if present) -->
             @if ($errorMessage)
                 <div class="px-4 py-2.5 bg-red-50 dark:bg-red-950 border-b border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300 flex items-center justify-between flex-shrink-0">
                     <span>{{ $errorMessage }}</span>
@@ -144,12 +244,12 @@
                 </div>
             @endif
 
-            <!-- Messages Stream -->
+            <!-- Messages Stream (Only this scrolls) -->
             <div
                 x-data="{ scrollToBottom() { $el.scrollTop = $el.scrollHeight } }"
                 x-init="scrollToBottom()"
                 x-on:message-sent.window="$nextTick(() => scrollToBottom())"
-                class="flex-1 min-h-0 p-5 overflow-y-auto space-y-4 bg-gray-50/40 dark:bg-gray-950/20"
+                class="ai-scroll-area p-5 space-y-4 bg-gray-50/40 dark:bg-gray-950/20"
             >
                 @if ($messages->isEmpty())
                     <div class="max-w-xl mx-auto py-10 text-center">
@@ -232,7 +332,7 @@
                 </div>
             </div>
 
-            <!-- Input Bar -->
+            <!-- Input Bar (Fixed at Bottom) -->
             <div class="p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
                 <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
                     <input
@@ -256,4 +356,3 @@
         </div>
     </div>
 </x-filament-panels::page>
-
