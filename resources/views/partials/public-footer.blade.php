@@ -63,3 +63,5 @@
     </div>
 </footer>
 
+<livewire:ai.public-chat-widget />
+

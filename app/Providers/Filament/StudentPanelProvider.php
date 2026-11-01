@@ -111,6 +111,10 @@ class StudentPanelProvider extends PanelProvider
                     'action' => route('filament.student.pages.search'),
                 ])->render(),
             )
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => view('filament.student.partials.topbar-ai-button')->render(),
+            )
             // FIX 2: Gracefully handle expired CSRF/sessions on background calls
             ->renderHook(
                 PanelsRenderHook::BODY_END,

@@ -77,6 +77,14 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
+        // Ensure outbound HTTPS requests (such as AI API calls) have a valid SSL CA bundle on environments missing curl.cainfo
+        $caPath = storage_path('certs/ca-bundle.crt');
+        if (file_exists($caPath) && (empty(ini_get('curl.cainfo')) || ! file_exists((string) ini_get('curl.cainfo')))) {
+            \Illuminate\Support\Facades\Http::globalOptions(['verify' => $caPath]);
+        } elseif ($this->app->environment('local', 'testing') && (empty(ini_get('curl.cainfo')) || ! file_exists((string) ini_get('curl.cainfo')))) {
+            \Illuminate\Support\Facades\Http::globalOptions(['verify' => false]);
+        }
+
         // Align 'public' disk configuration with Laravel Cloud automatic disk or default cloud storage
         $rawCloudConfig = $_SERVER['LARAVEL_CLOUD_DISK_CONFIG']
             ?? $_ENV['LARAVEL_CLOUD_DISK_CONFIG']
