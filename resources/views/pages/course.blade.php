@@ -1008,7 +1008,7 @@
                                 <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 text-xs"><i class="fa-solid fa-trophy"></i></span>
                                 <h3 class="text-base font-bold text-slate-900">Key Outcome</h3>
                             </div>
-                            <p class="text-sm leading-relaxed text-slate-700">{{ \Illuminate\Support\Str::words((string) $course->key_outcome, 100) }}</p>
+                            <p class="text-sm leading-relaxed text-slate-700">{{ \Illuminate\Support\Str::words((string) $course->key_outcome, 250) }}</p>
                         </div>
                     @endif
 
