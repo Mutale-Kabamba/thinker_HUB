@@ -124,14 +124,15 @@
             x-transition:enter="transition ease-out duration-300 transform"
             x-transition:enter-start="opacity-0 translate-y-2 scale-90"
             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-            class="absolute bottom-full right-0 mb-3 hidden sm:flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-sm text-slate-800 text-xs font-semibold shadow-xl border border-teal-200/80 whitespace-nowrap pointer-events-none select-none ring-1 ring-slate-900/5"
+            class="absolute bottom-full right-0 mb-3.5 hidden sm:flex items-center space-x-2 px-4 py-2 rounded-full bg-white text-slate-900 text-xs font-bold shadow-xl border border-teal-300 whitespace-nowrap pointer-events-none select-none ring-2 ring-teal-500/10 z-10"
         >
-            <span class="relative flex h-2 w-2">
+            <span class="relative flex h-2.5 w-2.5 shrink-0">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
-            <span class="text-slate-800 font-medium">Ask Candice!</span>
-            <div class="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-r border-b border-teal-200/80 transform rotate-45"></div>
+            <span class="text-slate-900 font-bold text-xs tracking-tight">Ask Candice!</span>
+            <!-- Speech bubble tail positioned strictly behind the pill -->
+            <span class="absolute -bottom-1.5 right-7 w-3 h-3 bg-white border-r border-b border-teal-300 transform rotate-45 -z-10"></span>
         </div>
 
         <button
