@@ -117,22 +117,34 @@
     </style>
 
     <!-- Floating Launcher Button with Waving Lady AI Bot (Candice) -->
-    <div class="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center">
-        <!-- Friendly Tooltip Pill (Desktop only, visible when closed) -->
+    <div class="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center justify-center">
+        <!-- Curved Text Following Icon Path (Visible on both mobile & desktop when closed) -->
         <div
             x-show="!isOpen"
             x-transition:enter="transition ease-out duration-300 transform"
-            x-transition:enter-start="opacity-0 translate-y-2 scale-90"
-            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-            class="absolute bottom-full right-0 mb-3.5 hidden sm:flex items-center space-x-2 px-4 py-2 rounded-full bg-white text-slate-900 text-xs font-bold shadow-xl border border-teal-300 whitespace-nowrap pointer-events-none select-none ring-2 ring-teal-500/10 z-10"
+            x-transition:enter-start="opacity-0 scale-90"
+            x-transition:enter-end="opacity-100 scale-100"
+            class="absolute -inset-4 sm:-inset-5 pointer-events-none select-none z-10"
         >
-            <span class="relative flex h-2.5 w-2.5 shrink-0">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span class="text-slate-900 font-bold text-xs tracking-tight">Ask Candice!</span>
-            <!-- Speech bubble tail positioned strictly behind the pill -->
-            <span class="absolute -bottom-1.5 right-7 w-3 h-3 bg-white border-r border-b border-teal-300 transform rotate-45 -z-10"></span>
+            <svg viewBox="0 0 100 100" class="w-full h-full overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <path id="candice-text-arc" d="M 8,50 A 42,42 0 0,1 92,50" fill="none" />
+                </defs>
+                <text
+                    font-size="9"
+                    font-weight="800"
+                    letter-spacing="1.5"
+                    fill="#0f766e"
+                    stroke="#ffffff"
+                    stroke-width="3"
+                    stroke-linejoin="round"
+                    paint-order="stroke fill"
+                >
+                    <textPath href="#candice-text-arc" startOffset="50%" text-anchor="middle">
+                        ASK CANDICE!
+                    </textPath>
+                </text>
+            </svg>
         </div>
 
         <button
