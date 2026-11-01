@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Ai\Agents\QuizQuestionGrader;
 use App\Models\Course;
 use App\Models\Quiz;
 use App\Models\QuizAnswer;
@@ -11,7 +12,7 @@ use App\Models\User;
 use App\Services\QuizAutoGradingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Http;
+use Laravel\Ai\Prompts\AgentPrompt;
 use Tests\TestCase;
 
 class QuizAutoGradingTest extends TestCase
@@ -73,6 +74,8 @@ class QuizAutoGradingTest extends TestCase
     public function test_service_falls_back_gracefully_when_gemini_key_is_missing(): void
     {
         Config::set('services.gemini.api_key', null);
+        Config::set('ai.providers.gemini.key', null);
+        Config::set('ai.providers.openai.key', null);
         $service = new QuizAutoGradingService();
 
         $this->assertFalse($service->isConfigured());
@@ -87,28 +90,15 @@ class QuizAutoGradingTest extends TestCase
 
     public function test_service_grades_theory_successfully_via_mocked_gemini_response(): void
     {
-        Config::set('services.gemini.api_key', 'mock-gemini-key');
-        $service = new QuizAutoGradingService();
-
-        Http::fake([
-            'https://generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
-                    [
-                        'content' => [
-                            'parts' => [
-                                [
-                                    'text' => json_encode([
-                                        'points_earned' => 5,
-                                        'is_correct' => true,
-                                        'feedback' => 'Comprehensive explanation covering non-blocking I/O and the event loop.',
-                                    ]),
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ], 200),
+        QuizQuestionGrader::fake([
+            [
+                'points_earned' => 5,
+                'is_correct' => true,
+                'feedback' => 'Comprehensive explanation covering non-blocking I/O and the event loop.',
+            ],
         ]);
+
+        $service = new QuizAutoGradingService();
 
         $result = $service->grade($this->theoryQuestion, 'JavaScript is non-blocking and handles async tasks using the Event Loop.');
 
@@ -116,32 +106,23 @@ class QuizAutoGradingTest extends TestCase
         $this->assertTrue($result['is_correct']);
         $this->assertStringContainsString('Comprehensive explanation', $result['feedback']);
         $this->assertTrue($result['auto_graded']);
+
+        QuizQuestionGrader::assertPrompted(function (AgentPrompt $prompt): bool {
+            return str_contains($prompt->prompt, 'JavaScript is non-blocking');
+        });
     }
 
     public function test_service_grades_practical_code_with_partial_marks_via_gemini(): void
     {
-        Config::set('services.gemini.api_key', 'mock-gemini-key');
-        $service = new QuizAutoGradingService();
-
-        Http::fake([
-            'https://generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
-                    [
-                        'content' => [
-                            'parts' => [
-                                [
-                                    'text' => json_encode([
-                                        'points_earned' => 3,
-                                        'is_correct' => true,
-                                        'feedback' => 'Correctly filtered even numbers using modulo, but forgot to ensure numbers are strictly positive (> 0).',
-                                    ]),
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ], 200),
+        QuizQuestionGrader::fake([
+            [
+                'points_earned' => 3,
+                'is_correct' => true,
+                'feedback' => 'Correctly filtered even numbers using modulo, but forgot to ensure numbers are strictly positive (> 0).',
+            ],
         ]);
+
+        $service = new QuizAutoGradingService();
 
         $code = 'function filterPositiveEven(arr) { return arr.filter(n => n % 2 === 0); }';
         $result = $service->grade($this->practicalQuestion, $code);
@@ -149,30 +130,20 @@ class QuizAutoGradingTest extends TestCase
         $this->assertEquals(3, $result['points_earned']);
         $this->assertTrue($result['is_correct']);
         $this->assertStringContainsString('forgot to ensure numbers are strictly positive', $result['feedback']);
+
+        QuizQuestionGrader::assertPrompted(function (AgentPrompt $prompt): bool {
+            return str_contains($prompt->prompt, 'filterPositiveEven');
+        });
     }
 
     public function test_quiz_grade_attempt_integrates_with_auto_grading_service(): void
     {
-        Config::set('services.gemini.api_key', 'mock-gemini-key');
-
-        Http::fake([
-            'https://generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
-                    [
-                        'content' => [
-                            'parts' => [
-                                [
-                                    'text' => json_encode([
-                                        'points_earned' => 4,
-                                        'is_correct' => true,
-                                        'feedback' => 'Good answer with minor points missed.',
-                                    ]),
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ], 200),
+        QuizQuestionGrader::fake([
+            [
+                'points_earned' => 4,
+                'is_correct' => true,
+                'feedback' => 'Good answer with minor points missed.',
+            ],
         ]);
 
         $student = User::factory()->create(['role' => 'student']);
@@ -196,5 +167,9 @@ class QuizAutoGradingTest extends TestCase
         $this->assertTrue($answer->is_correct);
         $this->assertEquals('Good answer with minor points missed.', $answer->feedback);
         $this->assertEquals(4, $gradedAttempt->score);
+
+        QuizQuestionGrader::assertPrompted(function (AgentPrompt $prompt): bool {
+            return str_contains($prompt->prompt, 'callbacks and promises');
+        });
     }
 }
