@@ -239,11 +239,11 @@
                     <button
                         type="submit"
                         wire:loading.attr="disabled"
-                        class="p-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500/50 shadow-sm"
+                        class="p-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500/50 shadow-sm shrink-0"
                         title="Send Message"
                         aria-label="Send Message"
                     >
-                        <x-heroicon-o-paper-airplane class="w-4 h-4 transform rotate-90" />
+                        <x-heroicon-s-paper-airplane class="w-4 h-4" />
                     </button>
                 </form>
             </div>

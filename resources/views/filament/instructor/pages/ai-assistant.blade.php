@@ -345,11 +345,11 @@
                     <button
                         type="submit"
                         wire:loading.attr="disabled"
-                        class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs transition flex items-center space-x-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:opacity-50"
-                        title="Send Instruction"
+                        class="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm shrink-0"
+                        title="Execute Instruction"
+                        aria-label="Execute Instruction"
                     >
-                        <span>Execute</span>
-                        <x-heroicon-o-paper-airplane class="w-3.5 h-3.5 transform rotate-90" />
+                        <x-heroicon-s-paper-airplane class="w-4 h-4" />
                     </button>
                 </form>
             </div>
