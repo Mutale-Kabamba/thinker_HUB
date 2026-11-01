@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Quizzes\Pages;
 
 use App\Filament\Actions\ExportQuizzesAction;
+use App\Filament\Actions\GenerateAiQuizAction;
 use App\Filament\Actions\ImportQuizzesAction;
 use App\Filament\Resources\Quizzes\QuizResource;
 use Filament\Actions\CreateAction;
@@ -16,6 +17,7 @@ class ListQuizzes extends ListRecords
     {
         return [
             CreateAction::make(),
+            GenerateAiQuizAction::make(),
             ImportQuizzesAction::make(),
             ExportQuizzesAction::make(),
         ];
