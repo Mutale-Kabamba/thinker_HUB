@@ -2,6 +2,8 @@
 
 namespace App\Filament\Instructor\Resources\QuizResource\Pages;
 
+use App\Filament\Actions\ExportQuizzesAction;
+use App\Filament\Actions\GenerateAiQuizAction;
 use App\Filament\Actions\ImportQuizzesAction;
 use App\Filament\Instructor\Concerns\ScopedToInstructor;
 use App\Filament\Instructor\Resources\QuizResource\QuizResource;
@@ -18,7 +20,9 @@ class ListQuizzes extends ListRecords
     {
         return [
             CreateAction::make(),
+            GenerateAiQuizAction::makeForCourses(static::instructorCourseIds()),
             ImportQuizzesAction::makeForCourses(static::instructorCourseIds()),
+            ExportQuizzesAction::makeForCourses(static::instructorCourseIds()),
         ];
     }
 }

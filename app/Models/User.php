@@ -20,6 +20,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\PasskeyAuthenticatable;
 
@@ -36,9 +37,17 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     protected $fillable = [
         'name',
         'email',
+        'gender',
+        'nrc_passport',
         'firebase_uid',
         'password',
         'role',
+        'is_kid',
+        'unique_code',
+        'age',
+        'school',
+        'grade',
+        'address',
         'default_portal',
         'is_active',
         'email_verified_at',
@@ -84,6 +93,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'is_kid' => 'boolean',
+            'age' => 'integer',
             'lifetime_xp' => 'integer',
             'spendable_coins' => 'integer',
             'current_streak' => 'integer',
@@ -459,6 +470,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->hasOne(InstructorApplication::class);
     }
 
+    public function instructorApplications(): HasMany
+    {
+        return $this->hasMany(InstructorApplication::class);
+    }
+
     public function courseSessions(): HasMany
     {
         return $this->hasMany(CourseSession::class, 'student_id');
@@ -468,6 +484,26 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     {
         return $this->belongsToMany(ChatRoom::class, 'chat_room_user')
             ->withPivot('last_read_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Kids associated with this user (if this user is a parent).
+     */
+    public function kids(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'parent_kids', 'parent_id', 'kid_id')
+            ->withPivot(['relationship', 'notes', 'school', 'grade', 'age'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Parents associated with this user (if this user is a kid/student).
+     */
+    public function parents(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'parent_kids', 'kid_id', 'parent_id')
+            ->withPivot(['relationship', 'notes', 'school', 'grade', 'age'])
             ->withTimestamps();
     }
 
@@ -533,6 +569,24 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     public function isEmployer(): bool
     {
         return $this->role === 'employer';
+    }
+
+    public function isParent(): bool
+    {
+        if ($this->is_kid) {
+            return false;
+        }
+
+        return $this->role === 'parent' || $this->kids()->exists();
+    }
+
+    public function isKid(): bool
+    {
+        if ($this->role === 'parent') {
+            return false;
+        }
+
+        return (bool) ($this->is_kid || $this->parents()->exists() || $this->courses()->where('is_for_kids', true)->exists());
     }
 
     public function canSubmitType(string $type): bool
@@ -707,6 +761,142 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return false;
     }
 
+    public static function generateKidUniqueCode(): string
+    {
+        $attempts = 0;
+        do {
+            $attempts++;
+            if ($attempts < 100) {
+                $code = 'KID-' . random_int(1000, 9999);
+            } else {
+                $code = 'KID-' . random_int(10000, 99999);
+            }
+        } while (self::query()->where('unique_code', $code)->exists());
+
+        return $code;
+    }
+
+    /**
+     * Find a student / kid account by their unique code or registered email.
+     * Supports formats like 'KID-4892', 'kid4892', '4892', or 'student@example.com'.
+     */
+    public static function findKidByCodeOrEmail(?string $identifier): ?self
+    {
+        if (blank($identifier)) {
+            return null;
+        }
+
+        $clean = trim($identifier);
+
+        if (filter_var($clean, FILTER_VALIDATE_EMAIL)) {
+            return self::query()
+                ->where('email', strtolower($clean))
+                ->first();
+        }
+
+        $upper = strtoupper($clean);
+        $candidates = [$upper];
+
+        // If provided like KID4892 -> KID-4892
+        if (str_starts_with($upper, 'KID') && ! str_contains($upper, '-')) {
+            $candidates[] = 'KID-' . substr($upper, 3);
+        }
+
+        // If provided as pure digits e.g. 4892 -> KID-4892
+        if (preg_match('/^\d{4,5}$/', $clean)) {
+            $candidates[] = 'KID-' . $clean;
+        }
+
+        // If provided without prefix e.g. ABC12 -> KID-ABC12
+        if (! str_starts_with($upper, 'KID-')) {
+            $candidates[] = 'KID-' . $upper;
+        }
+
+        return self::query()
+            ->where(function ($query) use ($candidates, $clean) {
+                $query->whereIn('unique_code', array_unique($candidates))
+                    ->orWhere('email', strtolower($clean));
+            })
+            ->first();
+    }
+
+    public function canSwitchToParent(): bool
+    {
+        if (! $this->is_active || $this->is_kid) {
+            return false;
+        }
+
+        return $this->isAdmin() || $this->role === 'parent' || $this->kids()->exists();
+    }
+
+    /**
+     * Get fellow parents whose children are enrolled in the same course as this parent's children.
+     * Enforces the privacy rule: Parents can ONLY view parents for kids in the same course.
+     */
+    public function getCoursePeerParents(?int $courseId = null): Collection
+    {
+        $kidIds = DB::table('parent_kids')
+            ->where('parent_id', $this->id)
+            ->pluck('kid_id')
+            ->all();
+
+        if (empty($kidIds)) {
+            return collect();
+        }
+
+        $kidsEnrollmentQuery = Enrollment::query()->whereIn('user_id', $kidIds);
+        if ($courseId) {
+            $kidsEnrollmentQuery->where('course_id', $courseId);
+        }
+        $kidCourseIds = $kidsEnrollmentQuery->pluck('course_id')->unique()->all();
+
+        if (empty($kidCourseIds)) {
+            return collect();
+        }
+
+        $otherKidIds = Enrollment::query()
+            ->whereIn('course_id', $kidCourseIds)
+            ->whereNotIn('user_id', $kidIds)
+            ->pluck('user_id')
+            ->unique()
+            ->all();
+
+        if (empty($otherKidIds)) {
+            return collect();
+        }
+
+        $peerParentIds = DB::table('parent_kids')
+            ->whereIn('kid_id', $otherKidIds)
+            ->where('parent_id', '!=', $this->id)
+            ->pluck('parent_id')
+            ->unique()
+            ->all();
+
+        if (empty($peerParentIds)) {
+            return collect();
+        }
+
+        return self::query()
+            ->whereIn('id', $peerParentIds)
+            ->with(['kids' => function ($q) use ($otherKidIds, $kidCourseIds): void {
+                $q->whereIn('users.id', $otherKidIds)->with(['enrollments' => function ($eq) use ($kidCourseIds): void {
+                    $eq->whereIn('course_id', $kidCourseIds)->with('course');
+                }]);
+            }])
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function getEmployerAttribute(): ?string
+    {
+        return $this->company;
+    }
+
+    public function setEmployerAttribute(?string $value): void
+    {
+        $this->attributes['company'] = $value;
+    }
+
     /**
      * Get all portals the user has verified access to switch between.
      *
@@ -714,6 +904,16 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
      */
     public function getAvailablePortals(): array
     {
+        if ($this->is_kid) {
+            return [
+                'student' => [
+                    'label' => 'Learning Space',
+                    'url' => route('filament.student.pages.overview'),
+                    'path' => '/learn',
+                ],
+            ];
+        }
+
         $portals = [];
 
         if ($this->canSwitchToAdmin()) {
@@ -748,6 +948,14 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             ];
         }
 
+        if ($this->canSwitchToParent()) {
+            $portals['parent'] = [
+                'label' => 'Parents Portal',
+                'url' => route('filament.parent.pages.overview'),
+                'path' => '/parent',
+            ];
+        }
+
         return $portals;
     }
 
@@ -762,6 +970,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             return $available[$this->default_portal]['url'];
         }
 
+        if (isset($available['parent']) && $this->role === 'parent') {
+            return $available['parent']['url'];
+        }
+
         if (isset($available['admin'])) {
             return $available['admin']['url'];
         }
@@ -772,6 +984,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
 
         if (isset($available['contributor'])) {
             return $available['contributor']['url'];
+        }
+
+        if (isset($available['parent']) && $this->kids()->exists() && ! $this->isAdmin()) {
+            return $available['parent']['url'];
         }
 
         if (isset($available['student'])) {
@@ -792,6 +1008,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             'instructor' => $this->isInstructor() || $this->isAdmin(),
             'contributor' => $this->isContributor() || $this->isAdmin(),
             'student' => $this->isStudent() || $this->isAdmin(),
+            'parent' => $this->isParent() || $this->isAdmin(),
             default => false,
         };
     }
@@ -1144,5 +1361,60 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         }
 
         return $labels;
+    }
+
+    public const TEST_STUDENT_EMAILS = [
+        '190031@zcuniversity.edu.zm',
+    ];
+
+    /**
+     * Check if the user is a designated test student who should not be captured in formal reports or PDF exports.
+     */
+    public function isTestStudent(): bool
+    {
+        $email = strtolower(trim((string) $this->email));
+        $name = strtolower(trim((string) $this->name));
+
+        if (in_array($email, self::TEST_STUDENT_EMAILS, true)) {
+            return true;
+        }
+
+        if (str_contains($name, 'bwalya mutale') && (str_contains($email, 'zcuniversity') || str_contains($email, '190031'))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the user account is active.
+     */
+    public function isActive(): bool
+    {
+        return (bool) ($this->is_active ?? true);
+    }
+
+    /**
+     * Scope query to only include active users.
+     */
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query, string $tablePrefix = ''): \Illuminate\Database\Eloquent\Builder
+    {
+        $prefix = $tablePrefix !== '' ? rtrim($tablePrefix, '.') . '.' : '';
+
+        return $query->where("{$prefix}is_active", true);
+    }
+
+    /**
+     * Scope query to exclude designated test students from reports and PDF rosters.
+     */
+    public function scopeWithoutTestStudents(\Illuminate\Database\Eloquent\Builder $query, string $tablePrefix = ''): \Illuminate\Database\Eloquent\Builder
+    {
+        $prefix = $tablePrefix !== '' ? rtrim($tablePrefix, '.') . '.' : '';
+
+        return $query->whereNotIn("{$prefix}email", self::TEST_STUDENT_EMAILS)
+            ->where(function ($q) use ($prefix) {
+                $q->where("{$prefix}name", 'not like', '%bwalya mutale%')
+                    ->orWhere("{$prefix}email", 'not like', '%zcuniversity%');
+            });
     }
 }

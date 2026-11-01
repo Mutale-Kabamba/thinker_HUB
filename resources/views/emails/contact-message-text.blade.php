@@ -13,4 +13,4 @@ MESSAGE:
 ---
 To reply, write to: {{ $email }}
 think.er HUB • Livingstone, Zambia
-https://oristudiozm.com
+http://thinkerhub.online

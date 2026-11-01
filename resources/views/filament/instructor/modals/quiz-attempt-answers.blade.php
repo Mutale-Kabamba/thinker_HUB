@@ -206,8 +206,8 @@
                                 {{ $answer?->text_answer ?: '(No response submitted)' }}
                             </div>
                             @if ($answer?->feedback)
-                                <div style="margin-top: 0.4rem; font-size: 0.75rem; color: #0f766e;">
-                                    <strong>Instructor Feedback:</strong> {{ $answer->feedback }}
+                                <div style="margin-top: 0.5rem; font-size: 0.78rem; color: #0f766e; background: #f0fdfa; border: 1px solid #99f6e4; padding: 0.45rem 0.65rem; border-radius: 6px;">
+                                    <strong style="color: #0f766e;">🤖 Feedback & Rationale:</strong> {{ $answer->feedback }}
                                 </div>
                             @endif
                         </div>

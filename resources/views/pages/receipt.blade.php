@@ -111,6 +111,18 @@
 
                 <div class="dotted-line"></div>
 
+                @if($payment->hasDiscount())
+                <div class="detail-row">
+                    <span class="detail-label">Original Price</span>
+                    <span class="detail-value text-slate-400 line-through">{{ $payment->formattedOriginalAmount() }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Promo Discount ({{ $payment->promoCodeText() }})</span>
+                    <span class="detail-value text-emerald-600 font-semibold">-{{ $payment->formattedDiscountAmount() }}</span>
+                </div>
+                <div class="dotted-line"></div>
+                @endif
+
                 <div class="detail-row mb-4">
                     <span class="detail-label">Total Payment</span>
                     <span class="detail-value text-base font-bold">{{ $payment->formattedAmount() }}</span>
@@ -118,15 +130,70 @@
             </div>
         </div>
 
-        {{-- Action Card: Proceed to Dashboard --}}
-        <a href="{{ route('dashboard') }}" class="no-print chk-card p-4 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer group">
+        @php
+            $isKids = (bool) ($payment->metadata['is_kids_course'] ?? ($course->is_for_kids ?? false));
+            $kidCode = $payment->metadata['kid_unique_code'] ?? null;
+            $kidName = $payment->metadata['kids_data']['kid_name'] ?? null;
+            if (!$kidCode && !empty($payment->metadata['kid_id'])) {
+                $kidUser = \App\Models\User::find($payment->metadata['kid_id']);
+                $kidCode = $kidUser?->unique_code;
+                $kidName = $kidUser?->name ?? $kidName;
+            }
+        @endphp
+
+        @if($isKids && $kidCode)
+        {{-- Kid Login Credentials Voucher Card --}}
+        <div class="chk-card p-6 bg-gradient-to-br from-teal-900 to-[#0a2d27] text-white border-none shadow-lg">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
+                    <i class="fa-solid fa-key text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-sm text-white tracking-wide uppercase">Child's Login Credentials</h3>
+                    <p class="text-[11px] text-teal-200/80">Unique student login code for {{ $kidName ?? 'your child' }}</p>
+                </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-black/25 border border-white/10 text-center my-3">
+                <p class="text-[10px] uppercase font-bold text-teal-300 tracking-widest mb-1">Kid's Unique Login Code</p>
+                <p class="text-2xl font-mono font-black tracking-widest text-teal-200 select-all">{{ $kidCode }}</p>
+            </div>
+
+            <p class="text-[11px] text-teal-100/90 leading-relaxed mb-4">
+                Share this unique code with {{ $kidName ?? 'your child' }}. They can log in directly at <strong class="text-white">thinkerhub.ac.zm/login</strong> using this code and the password you set during enrollment.
+            </p>
+
+            <a href="{{ \Illuminate\Support\Facades\Route::has('filament.parent.pages.manage-kids') ? route('filament.parent.pages.manage-kids') : url('/parent/manage-kids') }}" class="no-print w-full py-2.5 rounded-lg bg-teal-400 hover:bg-teal-300 text-teal-950 font-bold text-xs transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-users-viewfinder"></i>
+                <span>Open Parent Portal &amp; Manage Kids</span>
+            </a>
+        </div>
+        @endif
+
+        {{-- Action Card: Proceed to Dashboard / Parents Portal --}}
+        @php
+            if ($isKids) {
+                $dashboardUrl = \Illuminate\Support\Facades\Route::has('filament.parent.pages.overview')
+                    ? route('filament.parent.pages.overview')
+                    : (\Illuminate\Support\Facades\Route::has('filament.parent.home') ? route('filament.parent.home') : url('/parent'));
+            } else {
+                $dashboardUrl = \Illuminate\Support\Facades\Route::has('dashboard')
+                    ? route('dashboard')
+                    : url('/dashboard');
+            }
+        @endphp
+        <a href="{{ $dashboardUrl }}" class="no-print chk-card p-4 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer group">
             <div class="flex items-center gap-4">
                 <div class="w-10 h-10 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center shrink-0 border border-teal-100/50">
                     <i class="fa-solid fa-graduation-cap text-sm"></i>
                 </div>
                 <div>
-                    <h4 class="font-bold text-[#0a2d27] text-sm group-hover:text-teal-700 transition">Proceed to Dashboard</h4>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Start your coursework now!</p>
+                    <h4 class="font-bold text-[#0a2d27] text-sm group-hover:text-teal-700 transition">
+                        {{ $isKids ? 'Proceed to Parents Portal' : 'Proceed to Dashboard' }}
+                    </h4>
+                    <p class="text-[11px] text-slate-400 mt-0.5">
+                        {{ $isKids ? 'Track your child\'s learning and activities!' : 'Start your coursework now!' }}
+                    </p>
                 </div>
             </div>
             <div class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 group-hover:text-teal-600 group-hover:bg-teal-50 transition shrink-0">

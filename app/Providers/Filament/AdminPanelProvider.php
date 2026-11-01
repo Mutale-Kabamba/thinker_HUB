@@ -46,12 +46,14 @@ class AdminPanelProvider extends PanelProvider
                 'danger' => Color::Rose,
             ])
             ->font('Plus Jakarta Sans', url: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap')
+            ->spa()
             ->databaseNotifications()
             ->databaseNotificationsPolling(null)
             ->errorNotifications(false)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->navigationGroups([
+                'FINANCE & ACCOUNTING',
                 'ACADEMICS & CONTENT',
                 'GRADING & EVALUATIONS',
                 'PEOPLE & ROLES',
@@ -59,6 +61,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->pages([
                 Dashboard::class,
+                \App\Filament\Pages\AccountingDashboard::class,
             ])
             ->userMenuItems([
                 MenuItem::make()
@@ -76,6 +79,11 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-sparkles')
                     ->url('/contribute')
                     ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToContributor())),
+                MenuItem::make()
+                    ->label('Parents Portal')
+                    ->icon('heroicon-o-user-group')
+                    ->url('/parent')
+                    ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToParent())),
                 MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')

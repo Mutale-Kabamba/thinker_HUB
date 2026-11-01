@@ -20,11 +20,11 @@ class CreateReviewPage extends Component
     public string $targetType = 'platform'; // 'platform', 'course', 'instructor'
 
     #[Url(as: 'id')]
-    public ?int $targetId = null;
+    public $targetId = null;
 
-    public ?int $selectedCourseId = null;
+    public $selectedCourseId = null;
 
-    public ?int $selectedInstructorId = null;
+    public $selectedInstructorId = null;
 
     public ?int $rating = null;
 
@@ -40,7 +40,7 @@ class CreateReviewPage extends Component
 
     public ?string $redirectUrl = null;
 
-    public function mount(?string $targetType = null, ?int $targetId = null, ?string $type = null, ?int $id = null): void
+    public function mount(?string $targetType = null, $targetId = null, ?string $type = null, $id = null): void
     {
         if (! Auth::check()) {
             redirect()->guest(route('login'));
@@ -109,6 +109,9 @@ class CreateReviewPage extends Component
             return $this->redirect(route('login'));
         }
 
+        $this->selectedCourseId = $this->selectedCourseId !== '' && $this->selectedCourseId !== null ? (int) $this->selectedCourseId : null;
+        $this->selectedInstructorId = $this->selectedInstructorId !== '' && $this->selectedInstructorId !== null ? (int) $this->selectedInstructorId : null;
+
         $this->validate();
 
         if ($this->rating === null && empty(trim($this->comment))) {
@@ -126,8 +129,8 @@ class CreateReviewPage extends Component
         };
 
         $reviewableId = match ($this->targetType) {
-            'course' => $this->selectedCourseId,
-            'instructor' => $this->selectedInstructorId,
+            'course' => $this->selectedCourseId ? (int) $this->selectedCourseId : null,
+            'instructor' => $this->selectedInstructorId ? (int) $this->selectedInstructorId : null,
             default => null,
         };
 
@@ -140,11 +143,10 @@ class CreateReviewPage extends Component
                 ->exists();
         } elseif ($this->targetType === 'instructor' && $reviewableId) {
             $instructorCourseIds = Course::query()
-                ->where('created_by', $reviewableId)
-                ->orWhereHas('instructors', fn ($q) => $q->where('users.id', $reviewableId))
-                ->pluck('id');
+                ->whereHas('instructors', fn ($q) => $q->where('users.id', $reviewableId))
+                ->pluck('courses.id');
 
-            $isVerified = Enrollment::query()
+            $isVerified = $instructorCourseIds->isNotEmpty() && Enrollment::query()
                 ->where('user_id', $user->id)
                 ->whereIn('course_id', $instructorCourseIds)
                 ->exists();

@@ -250,9 +250,9 @@
                             <iframe
                                 id="lr-youtube-iframe-{{ $activeVideoId }}"
                                 x-ref="youtubeIframe"
-                                src="{{ $playerUrl }}&enablejsapi=1"
+                                src="{{ $playerUrl }}"
                                 style="width:100%;height:100%;border:0;display:block;"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                                 allowfullscreen
                                 @load="onIframeLoaded()"
                             ></iframe>
@@ -425,6 +425,14 @@
                 },
 
                 onIframeLoaded() {
+                    if (!this.youtubeId) {
+                        if (!this.duration || this.duration <= 0) {
+                            this.duration = 300;
+                        }
+                        this.isPlaying = !document.hidden;
+                        this.startWatchTimer();
+                        return;
+                    }
                     const iframe = this.$refs.youtubeIframe;
                     if (iframe && iframe.contentWindow) {
                         try {

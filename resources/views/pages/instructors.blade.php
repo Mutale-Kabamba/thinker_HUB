@@ -209,17 +209,17 @@
         </section>
 
         {{-- Call to Action Section --}}
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-            <div class="rounded-[2.5rem] lg:rounded-[4rem] bg-[#0a2d27] p-8 lg:p-16 text-center lg:text-left relative overflow-hidden text-white">
-                <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+            <div class="rounded-3xl bg-[#0a2d27] p-8 lg:p-14 text-center lg:text-left relative overflow-hidden text-white shadow-xl">
+                <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
                     <div class="max-w-xl">
                         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400 mb-2">JOIN THE NETWORK</p>
-                        <h2 class="text-3xl lg:text-4xl font-black leading-tight text-white">Share your knowledge &amp; post opportunities.</h2>
-                        <p class="mt-4 text-slate-300 text-sm sm:text-base leading-relaxed">Join as an Instructor, Researcher, Blogger, or Employer to connect with tech enthusiasts and upskill our community.</p>
+                        <h2 class="text-2xl lg:text-4xl font-black leading-tight text-white">Share your knowledge &amp; post opportunities.</h2>
+                        <p class="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed">Join as an Instructor, Researcher, Blogger, or Employer to connect with tech enthusiasts and upskill our community.</p>
                     </div>
-                    <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                        <a href="{{ route('hub.index', ['register' => 1]) }}" class="rounded-full bg-yellow-400 px-8 py-4 font-bold text-[#0a2d27] hover:bg-white transition-all text-center text-sm">Register as Contributor</a>
-                        <a href="{{ route('landing.instructors.apply') }}" class="rounded-full border border-white/20 px-8 py-4 font-bold text-white hover:bg-white/10 transition-all text-center text-sm">Apply as Instructor</a>
+                    <div class="flex flex-col sm:flex-row gap-3.5 w-full lg:w-auto shrink-0">
+                        <a href="{{ route('hub.index', ['register' => 1]) }}" class="rounded-full bg-yellow-400 px-7 py-3.5 font-bold text-[#0a2d27] hover:bg-amber-300 transition-all text-center text-xs sm:text-sm">Register as Contributor</a>
+                        <a href="{{ route('landing.instructors.apply') }}" class="rounded-full border border-white/25 bg-white/5 px-7 py-3.5 font-bold text-white hover:bg-white/15 transition-all text-center text-xs sm:text-sm">Apply as Instructor</a>
                     </div>
                 </div>
                 <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 rounded-full -mr-20 -mt-20 pointer-events-none"></div>
@@ -227,66 +227,7 @@
         </section>
     </main>
 
-    <footer class="bg-white border-t border-slate-200 py-16">
-        <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center lg:text-left">
-            <div class="grid gap-12 lg:grid-cols-[1.5fr_1fr_1fr]">
-                <div>
-                    <div class="flex items-center justify-center gap-3 lg:justify-start">
-                        <img src="{{ asset('images/logos/green.png') }}" alt="think.er HUB logo" class="h-8 w-auto">
-                    </div>
-                    <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
-                        think.er HUB connects tutors, researchers, bloggers, and employers with learners focused on real-world outcomes.
-                    </p>
-                    <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 lg:justify-start">
-                        @guest
-                            <a href="{{ route('login') }}" class="inline-flex items-center rounded-full bg-[#0a2d27] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#11443c]">Login</a>
-                        @endguest
-                    </div>
-                </div>
-
-                <div class="hidden lg:block">
-                    <h3 class="text-sm font-bold text-slate-900">Menu</h3>
-                    <ul class="mt-4 space-y-2.5 text-sm text-slate-500">
-                        <li><a href="{{ route('home') }}" class="transition hover:text-[#0a2d27]">Home</a></li>
-                        <li><a href="{{ route('landing.courses') }}" class="transition hover:text-[#0a2d27]">Courses</a></li>
-                        <li><a href="{{ route('hub.index') }}" class="transition hover:text-[#0a2d27]">Knowledge Hub</a></li>
-                        <li><a href="{{ route('landing.instructors') }}" class="transition hover:text-[#0a2d27]">Network</a></li>
-                        <li><a href="{{ route('landing.contact') }}" class="transition hover:text-[#0a2d27]">Contact</a></li>
-                        @auth
-                            <li><a href="{{ route('dashboard') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
-                        @else
-                            <li><a href="{{ route('login') }}" class="transition hover:text-[#0a2d27]">Login</a></li>
-                        @endauth
-                    </ul>
-                </div>
-
-                <div>
-                    <h3 class="text-sm font-bold text-slate-900">Contacts</h3>
-                    <div class="mt-4 space-y-2.5 text-sm text-slate-500">
-                        <p><span class="font-semibold text-slate-700">Phone:</span> <button type="button" @click="$dispatch('open-contact')" class="ml-1 text-[#0a2d27] font-medium underline-offset-2 hover:underline cursor-pointer">+260772640546</button></p>
-                        <p><span class="font-semibold text-slate-700">Email:</span> <a href="mailto:thinkerhub@oristudiozm.com" class="text-[#0a2d27] underline-offset-2 hover:underline">thinkerhub@oristudiozm.com</a></p>
-                        <p><span class="font-semibold text-slate-700">Address:</span> 10A Off Natwange Street, Airpot, Livingstone Zambia</p>
-                    </div>
-                    <div class="mt-4 flex items-center justify-center gap-4 text-slate-500 lg:justify-start">
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-                        <a href="#" class="transition hover:text-[#0a2d27]" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-8 border-t border-slate-200 pt-5">
-                <div class="flex flex-col items-center gap-4 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
-                    <p>© {{ now()->year }} Thinker Hub. All rights reserved.</p>
-                    <div class="flex flex-wrap items-center gap-4">
-                        <a href="{{ route('landing.privacy') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Privacy</a>
-                        <a href="{{ route('landing.cookies') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">Cookies</a>
-                        <a href="{{ route('landing.terms') }}" class="underline-offset-4 hover:text-slate-700 hover:underline">T&amp;Cs</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.public-footer')
 
     @include('partials.legal-modals')
 

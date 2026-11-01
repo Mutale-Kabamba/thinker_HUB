@@ -85,5 +85,6 @@
     </footer>
 
     @include('partials.legal-modals')
+    <livewire:ai.public-chat-widget />
 </body>
 </html>

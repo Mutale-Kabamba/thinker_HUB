@@ -43,6 +43,7 @@ class StudentPanelProvider extends PanelProvider
                 'danger' => Color::Rose,
             ])
             ->font('Plus Jakarta Sans', url: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap')
+            ->spa()
             ->databaseNotifications()
             ->databaseNotificationsPolling(null)
             ->errorNotifications(false)
@@ -65,6 +66,11 @@ class StudentPanelProvider extends PanelProvider
                     ->url('/contribute')
                     ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToContributor())),
                 MenuItem::make()
+                    ->label('Parents Portal')
+                    ->icon('heroicon-o-user-group')
+                    ->url('/parent')
+                    ->visible(fn (): bool => (bool) (auth()->user()?->canSwitchToParent())),
+                MenuItem::make()
                     ->label('Profile Management')
                     ->icon('heroicon-o-user-circle')
                     ->url(fn (): string => route('filament.student.pages.settings')),
@@ -81,7 +87,7 @@ class StudentPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::BODY_START,
-                fn (): string => view('partials.app-preloader')->render(),
+                fn (): string => view('filament.partials.impersonation-banner')->render() . view('partials.app-preloader')->render(),
             )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
@@ -104,6 +110,10 @@ class StudentPanelProvider extends PanelProvider
                 fn (): string => view('filament.partials.top-search', [
                     'action' => route('filament.student.pages.search'),
                 ])->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => view('filament.student.partials.topbar-ai-button')->render(),
             )
             // FIX 2: Gracefully handle expired CSRF/sessions on background calls
             ->renderHook(

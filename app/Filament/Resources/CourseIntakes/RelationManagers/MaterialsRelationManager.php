@@ -93,13 +93,15 @@ class MaterialsRelationManager extends RelationManager
                             ->required(),
 
                         FileUpload::make('file_path')
-                            ->label('Upload File')
+                            ->label('Upload File (PDF, PPTX, ZIP, .py, etc.)')
                             ->disk('public')
                             ->directory('learning-materials')
-                            ->maxSize(20480)
+                            ->storeFileNamesIn('file_name')
+                            ->maxSize(10240)
+                            ->helperText('All file types supported up to 10 MB.')
                             ->columnSpanFull(),
 
-                        TextInput::make('external_url')
+                        TextInput::make('link_url')
                             ->label('External Link (Optional)')
                             ->url()
                             ->columnSpanFull(),
@@ -119,6 +121,23 @@ class MaterialsRelationManager extends RelationManager
             ])
             ->recordActions([
                 ActionGroup::make([
+                    \Filament\Actions\Action::make('view_file')
+                        ->label('View')
+                        ->icon('heroicon-m-eye')
+                        ->color('info')
+                        ->visible(fn (\App\Models\LearningMaterial $record): bool => filled($record->file_path) || filled($record->link_url))
+                        ->url(fn (\App\Models\LearningMaterial $record): string => filled($record->file_path)
+                            ? route('file.view', ['type' => 'material', 'id' => $record->id])
+                            : $record->link_url
+                        )
+                        ->openUrlInNewTab(),
+                    \Filament\Actions\Action::make('download_file')
+                        ->label('Download')
+                        ->icon('heroicon-m-arrow-down-tray')
+                        ->color('gray')
+                        ->visible(fn (\App\Models\LearningMaterial $record): bool => filled($record->file_path))
+                        ->url(fn (\App\Models\LearningMaterial $record): string => route('file.download', ['type' => 'material', 'id' => $record->id]))
+                        ->openUrlInNewTab(),
                     EditAction::make()
                         ->icon('heroicon-m-pencil-square')
                         ->form([
@@ -153,13 +172,15 @@ class MaterialsRelationManager extends RelationManager
                                 ->required(),
 
                             FileUpload::make('file_path')
-                                ->label('Upload File')
+                                ->label('Upload File (PDF, PPTX, ZIP, .py, etc.)')
                                 ->disk('public')
                                 ->directory('learning-materials')
-                                ->maxSize(20480)
+                                ->storeFileNamesIn('file_name')
+                                ->maxSize(10240)
+                                ->helperText('All file types supported up to 10 MB.')
                                 ->columnSpanFull(),
 
-                            TextInput::make('external_url')
+                            TextInput::make('link_url')
                                 ->label('External Link')
                                 ->url()
                                 ->columnSpanFull(),
