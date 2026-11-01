@@ -41,11 +41,34 @@
         .ai-markdown-bubble a { color: #4f46e5; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
         .dark .ai-markdown-bubble a { color: #818cf8; }
         .ai-markdown-bubble hr { border: 0; border-top: 1px solid rgba(148, 163, 184, 0.3); margin: 0.75rem 0; }
+
+        .ai-user-bubble {
+            background-color: #4338ca !important;
+            color: #ffffff !important;
+            border-radius: 1.25rem 1.25rem 0.25rem 1.25rem !important;
+            padding: 0.75rem 1rem !important;
+            max-width: 82% !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+        }
+        .ai-user-bubble p {
+            color: #ffffff !important;
+            margin: 0 !important;
+            line-height: 1.5 !important;
+            font-size: 0.875rem !important;
+        }
+        .ai-user-bubble .ai-bubble-time {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-size: 10px !important;
+            text-align: right !important;
+            margin-top: 0.35rem !important;
+            display: block !important;
+            font-weight: 500 !important;
+        }
     </style>
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[640px]">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-13rem)] min-h-[580px] max-h-[840px]">
         <!-- Left: Conversations Sidebar -->
-        <div class="lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 flex flex-col shadow-sm">
-            <div class="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-800">
+        <div class="lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 flex flex-col shadow-sm h-full overflow-hidden">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <x-heroicon-o-chat-bubble-left-right class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     <span class="font-semibold text-sm text-gray-900 dark:text-white">Co-Pilot Threads</span>
@@ -62,7 +85,7 @@
             </div>
 
             <!-- Conversations List -->
-            <div class="flex-1 overflow-y-auto mt-3 space-y-1.5 pr-1">
+            <div class="flex-1 min-h-0 overflow-y-auto mt-3 space-y-1.5 pr-1">
                 @forelse ($conversations as $conv)
                     <div
                         wire:key="conv-{{ $conv->id }}"
@@ -97,9 +120,9 @@
         </div>
 
         <!-- Right: Active Chat Area -->
-        <div class="lg:col-span-3 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 flex flex-col shadow-sm overflow-hidden min-h-[580px]">
+        <div class="lg:col-span-3 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 flex flex-col shadow-sm h-full overflow-hidden">
             <!-- Top Controls -->
-            <div class="p-4 bg-gray-50/75 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+            <div class="p-4 bg-gray-50/75 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <div class="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                         <x-heroicon-o-cpu-chip class="w-4 h-4" />
@@ -113,7 +136,7 @@
 
             <!-- Error Banner -->
             @if ($errorMessage)
-                <div class="px-4 py-2.5 bg-red-50 dark:bg-red-950 border-b border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300 flex items-center justify-between">
+                <div class="px-4 py-2.5 bg-red-50 dark:bg-red-950 border-b border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300 flex items-center justify-between flex-shrink-0">
                     <span>{{ $errorMessage }}</span>
                     <button type="button" wire:click="$set('errorMessage', null)" class="text-red-500 hover:text-red-700">
                         <x-heroicon-o-x-mark class="w-4 h-4" />
@@ -122,7 +145,12 @@
             @endif
 
             <!-- Messages Stream -->
-            <div class="flex-1 p-5 overflow-y-auto space-y-4 bg-gray-50/40 dark:bg-gray-950/20">
+            <div
+                x-data="{ scrollToBottom() { $el.scrollTop = $el.scrollHeight } }"
+                x-init="scrollToBottom()"
+                x-on:message-sent.window="$nextTick(() => scrollToBottom())"
+                class="flex-1 min-h-0 p-5 overflow-y-auto space-y-4 bg-gray-50/40 dark:bg-gray-950/20"
+            >
                 @if ($messages->isEmpty())
                     <div class="max-w-xl mx-auto py-10 text-center">
                         <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-4 border border-indigo-200 dark:border-indigo-800">
@@ -173,9 +201,9 @@
                     @foreach ($messages as $msg)
                         @if ($msg->role === 'user')
                             <div class="flex justify-end" wire:key="msg-{{ $msg->id }}">
-                                <div class="max-w-[82%] rounded-2xl rounded-tr-sm px-4 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-sm">
-                                    <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ $msg->content }}</p>
-                                    <span class="block text-[10px] text-indigo-200 text-right mt-1.5 font-medium">{{ $msg->created_at->format('H:i') }}</span>
+                                <div class="ai-user-bubble">
+                                    <p class="whitespace-pre-wrap">{{ $msg->content }}</p>
+                                    <span class="ai-bubble-time">{{ $msg->created_at->format('H:i') }}</span>
                                 </div>
                             </div>
                         @elseif ($msg->role === 'assistant')
@@ -205,7 +233,7 @@
             </div>
 
             <!-- Input Bar -->
-            <div class="p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+            <div class="p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
                 <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
                     <input
                         type="text"

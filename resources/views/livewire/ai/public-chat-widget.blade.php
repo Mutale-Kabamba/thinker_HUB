@@ -36,6 +36,29 @@
         .ai-markdown-bubble blockquote { border-left: 3px solid #0d9488; padding-left: 0.75rem; margin: 0.5rem 0; font-style: italic; color: #475569; }
         .ai-markdown-bubble a { color: #0d9488; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
         .ai-markdown-bubble hr { border: 0; border-top: 1px solid #e2e8f0; margin: 0.75rem 0; }
+
+        .ai-user-bubble {
+            background-color: #0f766e !important;
+            color: #ffffff !important;
+            border-radius: 1rem 1rem 0.25rem 1rem !important;
+            padding: 0.65rem 0.9rem !important;
+            max-width: 85% !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+        }
+        .ai-user-bubble p {
+            color: #ffffff !important;
+            margin: 0 !important;
+            line-height: 1.45 !important;
+            font-size: 0.85rem !important;
+        }
+        .ai-user-bubble .ai-bubble-time {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-size: 10px !important;
+            text-align: right !important;
+            margin-top: 0.25rem !important;
+            display: block !important;
+            font-weight: 500 !important;
+        }
     </style>
     <!-- Floating Launcher Button -->
     <button
@@ -55,7 +78,7 @@
     @if ($isOpen)
         <div class="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-2rem)] h-[520px] rounded-2xl bg-white border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
             <!-- Header -->
-            <div class="flex items-center justify-between px-4 py-3 bg-slate-900 text-white border-b border-slate-800">
+            <div class="flex items-center justify-between px-4 py-3 bg-slate-900 text-white border-b border-slate-800 flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <div class="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center border border-teal-500/30">
                         <x-heroicon-o-sparkles class="w-4 h-4" />
@@ -89,7 +112,7 @@
 
             <!-- Error Notification Banner -->
             @if ($errorMessage)
-                <div class="px-3 py-2 bg-rose-50 border-b border-rose-200 text-xs text-rose-700 flex items-center justify-between">
+                <div class="px-3 py-2 bg-rose-50 border-b border-rose-200 text-xs text-rose-700 flex items-center justify-between flex-shrink-0">
                     <span>{{ $errorMessage }}</span>
                     <button type="button" wire:click="$set('errorMessage', null)" class="text-rose-500 hover:text-rose-700">
                         <x-heroicon-o-x-mark class="w-3.5 h-3.5" />
@@ -98,7 +121,12 @@
             @endif
 
             <!-- Messages Stream -->
-            <div class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm">
+            <div
+                x-data="{ scrollToBottom() { $el.scrollTop = $el.scrollHeight } }"
+                x-init="scrollToBottom()"
+                x-on:message-sent.window="$nextTick(() => scrollToBottom())"
+                class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm"
+            >
                 @if (empty($messages))
                     <div class="text-center py-6 text-slate-500">
                         <div class="w-12 h-12 mx-auto rounded-full bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-200 mb-3">
@@ -127,10 +155,10 @@
                     @foreach ($messages as $msg)
                         @if ($msg['role'] === 'user')
                             <div class="flex justify-end">
-                                <div class="max-w-[85%] rounded-2xl rounded-tr-sm px-4 py-2.5 bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-sm">
-                                    <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ $msg['content'] }}</p>
+                                <div class="ai-user-bubble">
+                                    <p class="whitespace-pre-wrap">{{ $msg['content'] }}</p>
                                     @if (! empty($msg['created_at']))
-                                        <span class="block text-[10px] text-teal-200 text-right mt-1 font-medium">{{ $msg['created_at'] }}</span>
+                                        <span class="ai-bubble-time">{{ $msg['created_at'] }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -163,7 +191,7 @@
             </div>
 
             <!-- Footer / Input Box -->
-            <div class="p-3 bg-white border-t border-slate-200">
+            <div class="p-3 bg-white border-t border-slate-200 flex-shrink-0">
                 <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
                     <input
                         type="text"
