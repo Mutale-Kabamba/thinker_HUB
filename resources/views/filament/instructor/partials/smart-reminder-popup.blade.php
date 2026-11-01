@@ -22,6 +22,339 @@
     $todayStr = \Illuminate\Support\Carbon::today()->toDateString();
 @endphp
 
+<style>
+    .hub-rem-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 22, 28, 0.72);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 9998;
+    }
+    .hub-rem-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 0.5rem;
+        padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+        box-sizing: border-box;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-wrap {
+            align-items: center;
+            padding: 1.25rem;
+        }
+    }
+    .hub-rem-dialog {
+        position: relative;
+        width: 100%;
+        max-width: 40rem;
+        max-height: calc(100dvh - 1rem);
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 22px;
+        box-shadow: 0 24px 48px -12px rgba(10, 25, 31, 0.45);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-dialog {
+            max-height: 86dvh;
+            border-radius: 24px;
+        }
+    }
+    .dark .hub-rem-dialog {
+        background: #111b21;
+        border-color: #233842;
+    }
+    .hub-rem-header {
+        position: relative;
+        padding: 1rem 1.1rem 0.9rem;
+        background: linear-gradient(135deg, #0a2d27 0%, #0f5248 58%, #0f172a 100%);
+        color: #ffffff;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-header {
+            padding: 1.35rem 1.5rem 1.15rem;
+        }
+    }
+    .hub-rem-toprow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .hub-rem-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+    .hub-rem-close {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #e2e8f0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .hub-rem-close:hover {
+        background: rgba(255, 255, 255, 0.22);
+        color: #ffffff;
+    }
+    .hub-rem-title {
+        font-size: 1.05rem;
+        font-weight: 900;
+        color: #ffffff;
+        margin: 0;
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-title {
+            font-size: 1.25rem;
+        }
+    }
+    .hub-rem-subtitle {
+        font-size: 0.76rem;
+        color: rgba(226, 252, 245, 0.88);
+        margin: 0.25rem 0 0 0;
+        line-height: 1.4;
+    }
+    .hub-rem-stats {
+        margin-top: 0.75rem;
+        padding-top: 0.7rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.4rem;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-stats {
+            gap: 0.6rem;
+        }
+    }
+    .hub-rem-stat-box {
+        padding: 0.4rem 0.45rem;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 0.15rem;
+        min-width: 0;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-stat-box {
+            flex-direction: row;
+            justify-content: flex-start;
+            text-align: left;
+            padding: 0.5rem 0.65rem;
+            gap: 0.55rem;
+        }
+    }
+    .hub-rem-stat-num {
+        width: 1.55rem;
+        height: 1.55rem;
+        border-radius: 7px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 900;
+        flex-shrink: 0;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-stat-num {
+            width: 1.85rem;
+            height: 1.85rem;
+            font-size: 0.8rem;
+        }
+    }
+    .hub-rem-stat-label {
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: rgba(204, 251, 241, 0.85);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    .hub-rem-stat-sub {
+        display: none;
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: #ffffff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-stat-sub {
+            display: block;
+        }
+    }
+    .hub-rem-tabs {
+        padding: 0.55rem 1rem;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        flex-shrink: 0;
+    }
+    .hub-rem-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    .dark .hub-rem-tabs {
+        background: #0d171d;
+        border-bottom-color: #1f2c34;
+    }
+    .hub-rem-tab {
+        padding: 0.38rem 0.7rem;
+        border-radius: 9999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        background: transparent;
+        color: #475569;
+    }
+    .dark .hub-rem-tab {
+        color: #94a3b8;
+    }
+    .hub-rem-tab.is-active {
+        background: #0d9488;
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(13, 148, 136, 0.28);
+    }
+    .hub-rem-body {
+        padding: 0.85rem 1rem;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-body {
+            padding: 1.1rem 1.5rem;
+        }
+    }
+    .hub-rem-card {
+        padding: 0.75rem 0.85rem;
+        border-radius: 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        transition: border-color 0.15s ease;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-card {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1rem;
+        }
+    }
+    .dark .hub-rem-card {
+        background: #16242d;
+        border-color: #233842;
+    }
+    .hub-rem-card-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .hub-rem-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.42rem 0.85rem;
+        border-radius: 10px;
+        font-size: 0.73rem;
+        font-weight: 800;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+    .hub-rem-action-btn:active {
+        transform: scale(0.97);
+    }
+    .hub-rem-footer {
+        padding: 0.75rem 1rem;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        flex-shrink: 0;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-footer {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1.5rem;
+        }
+    }
+    .dark .hub-rem-footer {
+        background: #0d171d;
+        border-top-color: #1f2c34;
+    }
+    .hub-rem-footer-btns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        width: 100%;
+    }
+    @media (min-width: 640px) {
+        .hub-rem-footer-btns {
+            display: flex;
+            width: auto;
+        }
+    }
+</style>
+
 <div
     x-data="{
         isOpen: false,
@@ -40,7 +373,6 @@
 
             if (autoTrigger && !alreadyShownThisSession && dismissedDate !== this.todayDateStr) {
                 sessionStorage.setItem(sessionKey, '1');
-                // Short organic delay so the dashboard loads smoothly before the reminder appears
                 setTimeout(() => {
                     this.isOpen = true;
                 }, 450);
@@ -52,6 +384,15 @@
         },
 
         closeModal() {
+            this.isOpen = false;
+            if (this.dontShowToday) {
+                this.dismissForDay();
+            } else {
+                this.sendDismissRequest('session');
+            }
+        },
+
+        dismissForSession() {
             this.isOpen = false;
             if (this.dontShowToday) {
                 this.dismissForDay();
@@ -92,7 +433,7 @@
         x-transition:leave="ease-in duration-200"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[9998]"
+        class="hub-rem-backdrop"
         x-on:click="closeModal()"
     ></div>
 
@@ -105,111 +446,108 @@
         x-transition:leave="ease-in duration-200 transform"
         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        class="fixed inset-0 z-[9999] overflow-y-auto flex items-center justify-center p-3 sm:p-4 md:p-6"
+        class="hub-rem-wrap"
     >
-        <div
-            class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]"
-            x-on:click.stop
-        >
-            {{-- Header with Ambient Glow & Gradient --}}
-            <div class="relative px-5 sm:px-6 pt-5 pb-4 bg-gradient-to-r from-teal-700 via-teal-800 to-slate-900 text-white overflow-hidden">
-                {{-- Decorative Ambient Circles --}}
-                <div class="absolute -right-8 -top-8 w-40 h-40 bg-teal-500/20 rounded-full blur-2xl pointer-events-none"></div>
-                <div class="absolute right-32 -bottom-10 w-32 h-32 bg-emerald-500/15 rounded-full blur-xl pointer-events-none"></div>
-
-                <div class="relative z-10 flex items-start justify-between gap-4">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider backdrop-blur-md {{ $reminders['has_overdue'] ? 'bg-rose-500/30 text-rose-200 border border-rose-400/40' : ($reminders['total_actionable'] > 0 ? 'bg-amber-500/30 text-amber-200 border border-amber-400/40' : 'bg-emerald-500/30 text-emerald-200 border border-emerald-400/40') }}">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $reminders['has_overdue'] ? 'bg-rose-400 animate-pulse' : ($reminders['total_actionable'] > 0 ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400') }}"></span>
-                                {{ $reminders['has_overdue'] ? 'Action Overdue' : ($reminders['total_actionable'] > 0 ? 'Action Required' : 'All Clear') }}
-                            </span>
-                            <span class="text-xs text-teal-200/80 font-medium">
-                                {{ $reminders['today_date_formatted'] }}
-                            </span>
-                        </div>
-
-                        <h2 class="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
-                            <span>Welcome, {{ $reminders['instructor_name'] }}!</span>
-                            <span class="text-base font-normal text-teal-200/90">📋 Instructor Dispatch</span>
-                        </h2>
-
-                        <p class="text-xs text-teal-100/90 leading-relaxed font-normal">
-                            @if ($reminders['total_actionable'] > 0)
-                                You have <span class="font-bold underline decoration-amber-300">{{ $reminders['total_actionable'] }} item{{ $reminders['total_actionable'] === 1 ? '' : 's' }}</span> waiting for your sign-off today. Keep your cohorts moving forward!
-                            @else
-                                You are completely caught up! All class registers are marked and assignments are graded.
-                            @endif
-                        </p>
+        <div class="hub-rem-dialog" x-on:click.stop>
+            {{-- Header --}}
+            <div class="hub-rem-header">
+                <div class="hub-rem-toprow">
+                    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                        <span
+                            class="hub-rem-status-pill"
+                            style="{{ $reminders['has_overdue']
+                                ? 'background:rgba(244,63,94,0.28);color:#fecdd3;border:1px solid rgba(251,113,133,0.45);'
+                                : ($reminders['total_actionable'] > 0
+                                    ? 'background:rgba(245,158,11,0.28);color:#fde68a;border:1px solid rgba(251,191,36,0.45);'
+                                    : 'background:rgba(16,185,129,0.28);color:#a7f3d0;border:1px solid rgba(52,211,153,0.45);') }}"
+                        >
+                            <span style="width:6px;height:6px;border-radius:999px;background:currentColor;"></span>
+                            <span>{{ $reminders['has_overdue'] ? 'Action Overdue' : ($reminders['total_actionable'] > 0 ? 'Action Required' : 'All Clear') }}</span>
+                        </span>
+                        <span style="font-size:0.7rem;color:rgba(204,251,241,0.8);font-weight:600;">
+                            {{ $reminders['today_date_formatted'] }}
+                        </span>
                     </div>
 
-                    {{-- Close Button --}}
                     <button
                         type="button"
                         x-on:click="closeModal()"
-                        class="text-teal-200/70 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-xl transition-all duration-150 cursor-pointer"
+                        class="hub-rem-close"
                         title="Close reminder"
+                        aria-label="Close reminder"
                     >
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg style="width:1.1rem;height:1.1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
-                {{-- Metric Pill Badges Row --}}
-                <div class="mt-4 pt-3 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <div class="px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-300 flex items-center justify-center font-black text-xs">
+                <h2 class="hub-rem-title">
+                    Welcome, {{ $reminders['instructor_name'] }}!
+                </h2>
+
+                <p class="hub-rem-subtitle">
+                    @if ($reminders['total_actionable'] > 0)
+                        You have <strong style="color:#fde047;text-decoration:underline;">{{ $reminders['total_actionable'] }} item{{ $reminders['total_actionable'] === 1 ? '' : 's' }}</strong> waiting for your sign-off today.
+                    @else
+                        All class registers are marked and assignments are graded.
+                    @endif
+                </p>
+
+                {{-- Compact 4-Column Metric Strip --}}
+                <div class="hub-rem-stats">
+                    <div class="hub-rem-stat-box">
+                        <div class="hub-rem-stat-num" style="background:rgba(20,184,166,0.25);color:#5eead4;">
                             {{ $reminders['unmarked_count'] }}
                         </div>
-                        <div class="min-w-0">
-                            <div class="text-[10px] text-teal-200/70 uppercase font-bold tracking-wider truncate">Registers</div>
-                            <div class="text-[11px] font-bold text-white truncate">Unmarked</div>
+                        <div style="min-width:0;">
+                            <div class="hub-rem-stat-label">Registers</div>
+                            <div class="hub-rem-stat-sub">Unmarked</div>
                         </div>
                     </div>
 
-                    <div class="px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center font-black text-xs">
+                    <div class="hub-rem-stat-box">
+                        <div class="hub-rem-stat-num" style="background:rgba(245,158,11,0.25);color:#fcd34d;">
                             {{ $reminders['pending_assignments_count'] }}
                         </div>
-                        <div class="min-w-0">
-                            <div class="text-[10px] text-teal-200/70 uppercase font-bold tracking-wider truncate">Assignments</div>
-                            <div class="text-[11px] font-bold text-white truncate">Pending</div>
+                        <div style="min-width:0;">
+                            <div class="hub-rem-stat-label">Assign.</div>
+                            <div class="hub-rem-stat-sub">Pending</div>
                         </div>
                     </div>
 
-                    <div class="px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-black text-xs">
+                    <div class="hub-rem-stat-box">
+                        <div class="hub-rem-stat-num" style="background:rgba(99,102,241,0.28);color:#a5b4fc;">
                             {{ $reminders['pending_assessments_count'] }}
                         </div>
-                        <div class="min-w-0">
-                            <div class="text-[10px] text-teal-200/70 uppercase font-bold tracking-wider truncate">Assessments</div>
-                            <div class="text-[11px] font-bold text-white truncate">To Review</div>
+                        <div style="min-width:0;">
+                            <div class="hub-rem-stat-label">Assess.</div>
+                            <div class="hub-rem-stat-sub">To Review</div>
                         </div>
                     </div>
 
-                    <div class="px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-300 flex items-center justify-center font-black text-xs">
+                    <div class="hub-rem-stat-box">
+                        <div class="hub-rem-stat-num" style="background:rgba(14,165,233,0.25);color:#7dd3fc;">
                             {{ $reminders['today_sessions_count'] }}
                         </div>
-                        <div class="min-w-0">
-                            <div class="text-[10px] text-teal-200/70 uppercase font-bold tracking-wider truncate">Classes</div>
-                            <div class="text-[11px] font-bold text-white truncate">Today</div>
+                        <div style="min-width:0;">
+                            <div class="hub-rem-stat-label">Classes</div>
+                            <div class="hub-rem-stat-sub">Today</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {{-- Filter Tabs Bar --}}
-            <div class="px-5 sm:px-6 pt-3 pb-2 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto text-xs font-bold scrollbar-none">
+            <div class="hub-rem-tabs">
                 <button
                     type="button"
                     x-on:click="activeTab = 'all'"
-                    class="px-3 py-1.5 rounded-lg transition-all duration-150 cursor-pointer whitespace-nowrap flex items-center gap-1.5"
-                    :class="activeTab === 'all' ? 'bg-teal-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800'"
+                    class="hub-rem-tab"
+                    :class="activeTab === 'all' ? 'is-active' : ''"
                 >
                     <span>All Tasks</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="activeTab === 'all' ? 'bg-white/25 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'">
+                    <span style="padding:0.05rem 0.42rem;border-radius:999px;font-size:0.65rem;background:rgba(15,23,42,0.12);">
                         {{ $reminders['total_actionable'] }}
                     </span>
                 </button>
@@ -217,15 +555,12 @@
                 <button
                     type="button"
                     x-on:click="activeTab = 'register'"
-                    class="px-3 py-1.5 rounded-lg transition-all duration-150 cursor-pointer whitespace-nowrap flex items-center gap-1.5"
-                    :class="activeTab === 'register' ? 'bg-teal-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800'"
+                    class="hub-rem-tab"
+                    :class="activeTab === 'register' ? 'is-active' : ''"
                 >
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                    <span>Register Marking</span>
+                    <span>Registers</span>
                     @if ($reminders['unmarked_count'] > 0)
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="activeTab === 'register' ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'">
+                        <span style="padding:0.05rem 0.42rem;border-radius:999px;font-size:0.65rem;background:rgba(225,29,72,0.16);color:inherit;">
                             {{ $reminders['unmarked_count'] }}
                         </span>
                     @endif
@@ -234,15 +569,12 @@
                 <button
                     type="button"
                     x-on:click="activeTab = 'assignments'"
-                    class="px-3 py-1.5 rounded-lg transition-all duration-150 cursor-pointer whitespace-nowrap flex items-center gap-1.5"
-                    :class="activeTab === 'assignments' ? 'bg-teal-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800'"
+                    class="hub-rem-tab"
+                    :class="activeTab === 'assignments' ? 'is-active' : ''"
                 >
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
                     <span>Assignments</span>
                     @if ($reminders['pending_assignments_count'] > 0)
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="activeTab === 'assignments' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'">
+                        <span style="padding:0.05rem 0.42rem;border-radius:999px;font-size:0.65rem;background:rgba(245,158,11,0.2);color:inherit;">
                             {{ $reminders['pending_assignments_count'] }}
                         </span>
                     @endif
@@ -252,11 +584,11 @@
                     <button
                         type="button"
                         x-on:click="activeTab = 'assessments'"
-                        class="px-3 py-1.5 rounded-lg transition-all duration-150 cursor-pointer whitespace-nowrap flex items-center gap-1.5"
-                        :class="activeTab === 'assessments' ? 'bg-teal-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800'"
+                        class="hub-rem-tab"
+                        :class="activeTab === 'assessments' ? 'is-active' : ''"
                     >
                         <span>Assessments</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="activeTab === 'assessments' ? 'bg-white/25 text-white' : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'">
+                        <span style="padding:0.05rem 0.42rem;border-radius:999px;font-size:0.65rem;background:rgba(99,102,241,0.2);color:inherit;">
                             {{ $reminders['pending_assessments_count'] }}
                         </span>
                     </button>
@@ -266,11 +598,11 @@
                     <button
                         type="button"
                         x-on:click="activeTab = 'today'"
-                        class="px-3 py-1.5 rounded-lg transition-all duration-150 cursor-pointer whitespace-nowrap flex items-center gap-1.5"
-                        :class="activeTab === 'today' ? 'bg-teal-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800'"
+                        class="hub-rem-tab"
+                        :class="activeTab === 'today' ? 'is-active' : ''"
                     >
                         <span>Today's Classes</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="activeTab === 'today' ? 'bg-white/25 text-white' : 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300'">
+                        <span style="padding:0.05rem 0.42rem;border-radius:999px;font-size:0.65rem;background:rgba(14,165,233,0.2);color:inherit;">
                             {{ $reminders['today_sessions_count'] }}
                         </span>
                     </button>
@@ -278,341 +610,278 @@
             </div>
 
             {{-- Scrollable List of Actionable Reminders --}}
-            <div class="px-5 sm:px-6 py-4 overflow-y-auto space-y-3 flex-1 max-h-[50vh] divide-y divide-slate-100 dark:divide-slate-800/80">
+            <div class="hub-rem-body">
 
                 {{-- All Caught Up Empty State --}}
                 @if ($reminders['total_actionable'] === 0 && $reminders['today_sessions_count'] === 0)
-                    <div class="py-8 text-center space-y-3">
-                        <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-inner">
-                            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div style="padding:1.75rem 1rem;text-align:center;">
+                        <div style="width:3.25rem;height:3.25rem;margin:0 auto 0.65rem;border-radius:16px;background:#ecfdf5;color:#059669;display:inline-flex;align-items:center;justify-content:center;">
+                            <svg style="width:1.75rem;height:1.75rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <h3 class="text-base font-black text-slate-800 dark:text-white">
+                        <h3 style="font-size:0.95rem;font-weight:800;margin:0;color:inherit;">
                             Zero Pending Tasks!
                         </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
-                            Every attendance register has been finalized and all assignment submissions have been graded. Your students are in great hands!
+                        <p style="font-size:0.76rem;color:#64748b;max-width:22rem;margin:0.35rem auto 0;line-height:1.45;">
+                            Every attendance register has been finalized and all assignment submissions have been graded.
                         </p>
-                        <div class="pt-2">
-                            <button
-                                type="button"
-                                x-on:click="closeModal()"
-                                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 transition cursor-pointer"
-                            >
-                                Continue to Dashboard
-                            </button>
-                        </div>
                     </div>
                 @endif
 
                 {{-- SECTION 1: UNMARKED ATTENDANCE REGISTERS --}}
                 @if ($reminders['unmarked_count'] > 0)
-                    <div
-                        x-show="activeTab === 'all' || activeTab === 'register'"
-                        class="space-y-2.5 pt-2 first:pt-0"
-                    >
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                                <span class="text-xs font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-                                    Register Marking Needed ({{ $reminders['unmarked_count'] }})
+                    <div x-show="activeTab === 'all' || activeTab === 'register'" style="display:flex;flex-direction:column;gap:0.5rem;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+                            <div style="display:flex;align-items:center;gap:0.4rem;">
+                                <span style="width:7px;height:7px;border-radius:999px;background:#e11d48;"></span>
+                                <span style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#e11d48;">
+                                    Register Marking ({{ $reminders['unmarked_count'] }})
                                 </span>
                             </div>
-                            <a
-                                href="{{ $reminders['attendance_register_url'] }}"
-                                class="text-[11px] font-bold text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center gap-0.5"
-                            >
-                                Open Register Sheet →
+                            <a href="{{ $reminders['attendance_register_url'] }}" style="font-size:0.7rem;font-weight:700;color:#0d9488;text-decoration:none;">
+                                Open Sheet &rarr;
                             </a>
                         </div>
 
-                        <div class="space-y-2">
-                            @foreach ($reminders['unmarked_sessions'] as $session)
-                                <div class="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 hover:border-teal-500/50 transition-all duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                                    <div class="space-y-1 min-w-0 flex-1">
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            @if ($session['is_overdue'])
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-                                                    OVERDUE REGISTER
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                                                    TODAY'S CLASS
-                                                </span>
-                                            @endif
-
-                                            <span class="text-[11px] font-extrabold text-slate-800 dark:text-slate-200 truncate">
-                                                {{ $session['course_title'] }}
+                        @foreach ($reminders['unmarked_sessions'] as $session)
+                            <div class="hub-rem-card">
+                                <div style="min-width:0;flex:1;">
+                                    <div style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;margin-bottom:0.25rem;">
+                                        @if ($session['is_overdue'])
+                                            <span style="padding:0.12rem 0.45rem;border-radius:6px;font-size:0.62rem;font-weight:800;background:#ffe4e6;color:#be123c;">
+                                                OVERDUE
                                             </span>
-                                            <span class="text-[10px] font-semibold text-slate-400">
-                                                • {{ $session['intake_name'] }}
+                                        @else
+                                            <span style="padding:0.12rem 0.45rem;border-radius:6px;font-size:0.62rem;font-weight:800;background:#d1fae5;color:#047857;">
+                                                TODAY
                                             </span>
-                                        </div>
-
-                                        <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white line-clamp-1">
-                                            {{ $session['title'] }}
-                                        </h4>
-
-                                        <div class="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
-                                            <span class="inline-flex items-center gap-1 font-medium">
-                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                                {{ $session['date_display'] }}
-                                            </span>
-                                            <span class="inline-flex items-center gap-1 font-medium">
-                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                {{ $session['time_display'] }}
-                                            </span>
-                                            @if ($session['student_name'])
-                                                <span class="text-[10px] font-bold text-teal-600 dark:text-teal-400">
-                                                    1-on-1: {{ $session['student_name'] }}
-                                                </span>
-                                            @endif
-                                        </div>
+                                        @endif
+                                        <span style="font-size:0.7rem;font-weight:800;color:#334155;" class="dark:text-slate-200 truncate">
+                                            {{ $session['course_title'] }}
+                                        </span>
+                                        <span style="font-size:0.65rem;color:#94a3b8;">
+                                            &bull; {{ $session['intake_name'] }}
+                                        </span>
                                     </div>
 
-                                    <div class="flex-shrink-0">
-                                        <a
-                                            href="{{ $session['action_url'] }}"
-                                            class="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-3.5 py-1.5 rounded-xl text-xs font-black text-white bg-teal-600 hover:bg-teal-700 active:scale-95 transition-all shadow-xs"
-                                        >
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            <span>Mark Register</span>
-                                        </a>
-                                    </div>
+                                    <h4 style="font-size:0.8rem;font-weight:800;margin:0;line-height:1.3;" class="text-slate-900 dark:text-white truncate">
+                                        {{ $session['title'] }}
+                                    </h4>
                                 </div>
-                            @endforeach
-                        </div>
+
+                                <div class="hub-rem-card-bottom">
+                                    <div style="font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                                        <span>{{ $session['date_display'] }}</span>
+                                        <span>&bull; {{ $session['time_display'] }}</span>
+                                        @if ($session['student_name'])
+                                            <span style="color:#0d9488;font-weight:700;">1-on-1: {{ $session['student_name'] }}</span>
+                                        @endif
+                                    </div>
+
+                                    <a
+                                        href="{{ $session['action_url'] }}"
+                                        class="hub-rem-action-btn"
+                                        style="background:#0d9488;color:#ffffff;"
+                                    >
+                                        <span>Mark Register</span>
+                                        <span>&rarr;</span>
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 @endif
 
                 {{-- SECTION 2: PENDING ASSIGNMENT SUBMISSIONS --}}
                 @if ($reminders['pending_assignments_count'] > 0)
-                    <div
-                        x-show="activeTab === 'all' || activeTab === 'assignments'"
-                        class="space-y-2.5 pt-3 first:pt-0"
-                    >
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                <span class="text-xs font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                                    Assignments Waiting for Review ({{ $reminders['pending_assignments_count'] }})
+                    <div x-show="activeTab === 'all' || activeTab === 'assignments'" style="display:flex;flex-direction:column;gap:0.5rem;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+                            <div style="display:flex;align-items:center;gap:0.4rem;">
+                                <span style="width:7px;height:7px;border-radius:999px;background:#f59e0b;"></span>
+                                <span style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#d97706;">
+                                    Assignments to Grade ({{ $reminders['pending_assignments_count'] }})
                                 </span>
                             </div>
-                            <a
-                                href="{{ $reminders['assignments_url'] }}"
-                                class="text-[11px] font-bold text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center gap-0.5"
-                            >
-                                View Review Queue →
+                            <a href="{{ $reminders['assignments_url'] }}" style="font-size:0.7rem;font-weight:700;color:#0d9488;text-decoration:none;">
+                                Review Queue &rarr;
                             </a>
                         </div>
 
-                        <div class="space-y-2">
-                            @foreach ($reminders['pending_assignments'] as $assign)
-                                <div class="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 hover:border-amber-500/50 transition-all duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                                    <div class="flex items-center gap-3 min-w-0 flex-1">
-                                        {{-- Student Avatar --}}
-                                        <div class="w-9 h-9 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 flex items-center justify-center font-bold text-xs flex-shrink-0 overflow-hidden border border-amber-200 dark:border-amber-800">
-                                            @if ($assign['student_photo'])
-                                                <img src="{{ $assign['student_photo'] }}" alt="{{ $assign['student_name'] }}" class="w-full h-full object-cover" />
-                                            @else
-                                                {{ $assign['student_initials'] }}
-                                            @endif
-                                        </div>
-
-                                        <div class="space-y-0.5 min-w-0 flex-1">
-                                            <div class="flex items-center gap-2 flex-wrap">
-                                                <span class="text-xs font-extrabold text-slate-900 dark:text-white truncate">
-                                                    {{ $assign['student_name'] }}
-                                                </span>
-                                                <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
-                                                    {{ $assign['status'] }}
-                                                </span>
-                                            </div>
-
-                                            <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
-                                                {{ $assign['assignment_title'] }}
-                                                <span class="font-normal text-slate-400">• {{ $assign['course_title'] }}</span>
-                                            </h4>
-
-                                            <div class="text-[10px] text-slate-400 flex items-center gap-1">
-                                                <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                Submitted {{ $assign['submitted_at_diff'] }} ({{ $assign['submitted_at_formatted'] }})
-                                            </div>
-                                        </div>
+                        @foreach ($reminders['pending_assignments'] as $assign)
+                            <div class="hub-rem-card">
+                                <div style="display:flex;align-items:center;gap:0.65rem;min-width:0;flex:1;">
+                                    <div style="width:2.1rem;height:2.1rem;border-radius:999px;background:#fef3c7;color:#92400e;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:0.72rem;flex-shrink:0;overflow:hidden;">
+                                        @if ($assign['student_photo'])
+                                            <img src="{{ $assign['student_photo'] }}" alt="{{ $assign['student_name'] }}" style="width:100%;height:100%;object-fit:cover;" />
+                                        @else
+                                            {{ $assign['student_initials'] }}
+                                        @endif
                                     </div>
 
-                                    <div class="flex-shrink-0">
-                                        <a
-                                            href="{{ $assign['grade_url'] }}"
-                                            class="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-3.5 py-1.5 rounded-xl text-xs font-black text-slate-900 dark:text-white bg-amber-400 hover:bg-amber-300 dark:bg-amber-500 dark:hover:bg-amber-400 active:scale-95 transition-all shadow-xs"
-                                        >
-                                            <span>Grade Submission</span>
-                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </a>
+                                    <div style="min-width:0;flex:1;">
+                                        <div style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;">
+                                            <span style="font-size:0.78rem;font-weight:800;" class="text-slate-900 dark:text-white truncate">
+                                                {{ $assign['student_name'] }}
+                                            </span>
+                                            <span style="padding:0.08rem 0.4rem;border-radius:4px;font-size:0.62rem;font-weight:700;background:#fef3c7;color:#b45309;">
+                                                {{ $assign['status'] }}
+                                            </span>
+                                        </div>
+                                        <div style="font-size:0.72rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                            {{ $assign['assignment_title'] }} &bull; {{ $assign['course_title'] }}
+                                        </div>
                                     </div>
                                 </div>
-                            @endforeach
-                        </div>
+
+                                <div class="hub-rem-card-bottom">
+                                    <span style="font-size:0.66rem;color:#94a3b8;">
+                                        Submitted {{ $assign['submitted_at_diff'] }}
+                                    </span>
+
+                                    <a
+                                        href="{{ $assign['grade_url'] }}"
+                                        class="hub-rem-action-btn"
+                                        style="background:#f59e0b;color:#0f172a;"
+                                    >
+                                        <span>Grade</span>
+                                        <span>&rarr;</span>
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 @endif
 
                 {{-- SECTION 3: PENDING ASSESSMENT SUBMISSIONS --}}
                 @if ($reminders['pending_assessments_count'] > 0)
-                    <div
-                        x-show="activeTab === 'all' || activeTab === 'assessments'"
-                        class="space-y-2.5 pt-3 first:pt-0"
-                    >
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-                                <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                                    Assessment Submissions ({{ $reminders['pending_assessments_count'] }})
+                    <div x-show="activeTab === 'all' || activeTab === 'assessments'" style="display:flex;flex-direction:column;gap:0.5rem;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+                            <div style="display:flex;align-items:center;gap:0.4rem;">
+                                <span style="width:7px;height:7px;border-radius:999px;background:#6366f1;"></span>
+                                <span style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#4f46e5;">
+                                    Assessments ({{ $reminders['pending_assessments_count'] }})
                                 </span>
                             </div>
-                            <a
-                                href="{{ $reminders['assessments_url'] }}"
-                                class="text-[11px] font-bold text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center gap-0.5"
-                            >
-                                All Assessments →
+                            <a href="{{ $reminders['assessments_url'] }}" style="font-size:0.7rem;font-weight:700;color:#0d9488;text-decoration:none;">
+                                View All &rarr;
                             </a>
                         </div>
 
-                        <div class="space-y-2">
-                            @foreach ($reminders['pending_assessments'] as $assess)
-                                <div class="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-500/50 transition-all duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                                    <div class="flex items-center gap-3 min-w-0 flex-1">
-                                        <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 flex items-center justify-center font-bold text-xs flex-shrink-0 overflow-hidden">
-                                            @if ($assess['student_photo'])
-                                                <img src="{{ $assess['student_photo'] }}" alt="{{ $assess['student_name'] }}" class="w-full h-full object-cover" />
-                                            @else
-                                                {{ $assess['student_initials'] }}
-                                            @endif
-                                        </div>
-
-                                        <div class="space-y-0.5 min-w-0 flex-1">
-                                            <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">
-                                                {{ $assess['student_name'] }}
-                                            </div>
-                                            <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
-                                                {{ $assess['assessment_title'] }}
-                                                <span class="font-normal text-slate-400">• {{ $assess['course_title'] }}</span>
-                                            </h4>
-                                            <div class="text-[10px] text-slate-400">
-                                                Submitted {{ $assess['submitted_at_diff'] }}
-                                            </div>
-                                        </div>
+                        @foreach ($reminders['pending_assessments'] as $assess)
+                            <div class="hub-rem-card">
+                                <div style="display:flex;align-items:center;gap:0.65rem;min-width:0;flex:1;">
+                                    <div style="width:2.1rem;height:2.1rem;border-radius:999px;background:#e0e7ff;color:#3730a3;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:0.72rem;flex-shrink:0;overflow:hidden;">
+                                        @if ($assess['student_photo'])
+                                            <img src="{{ $assess['student_photo'] }}" alt="{{ $assess['student_name'] }}" style="width:100%;height:100%;object-fit:cover;" />
+                                        @else
+                                            {{ $assess['student_initials'] }}
+                                        @endif
                                     </div>
 
-                                    <div class="flex-shrink-0">
-                                        <a
-                                            href="{{ $assess['grade_url'] }}"
-                                            class="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-3.5 py-1.5 rounded-xl text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xs"
-                                        >
-                                            <span>Review Assessment</span>
-                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </a>
+                                    <div style="min-width:0;flex:1;">
+                                        <div style="font-size:0.78rem;font-weight:800;" class="text-slate-900 dark:text-white truncate">
+                                            {{ $assess['student_name'] }}
+                                        </div>
+                                        <div style="font-size:0.72rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                            {{ $assess['assessment_title'] }} &bull; {{ $assess['course_title'] }}
+                                        </div>
                                     </div>
                                 </div>
-                            @endforeach
-                        </div>
+
+                                <div class="hub-rem-card-bottom">
+                                    <span style="font-size:0.66rem;color:#94a3b8;">
+                                        Submitted {{ $assess['submitted_at_diff'] }}
+                                    </span>
+
+                                    <a
+                                        href="{{ $assess['grade_url'] }}"
+                                        class="hub-rem-action-btn"
+                                        style="background:#4f46e5;color:#ffffff;"
+                                    >
+                                        <span>Review</span>
+                                        <span>&rarr;</span>
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 @endif
 
                 {{-- SECTION 4: TODAY'S LIVE SESSIONS --}}
                 @if ($reminders['today_sessions_count'] > 0)
-                    <div
-                        x-show="activeTab === 'all' || activeTab === 'today'"
-                        class="space-y-2.5 pt-3 first:pt-0"
-                    >
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-sky-500"></span>
-                                <span class="text-xs font-extrabold uppercase tracking-wider text-sky-600 dark:text-sky-400">
-                                    Classes on Schedule Today ({{ $reminders['today_sessions_count'] }})
+                    <div x-show="activeTab === 'all' || activeTab === 'today'" style="display:flex;flex-direction:column;gap:0.5rem;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+                            <div style="display:flex;align-items:center;gap:0.4rem;">
+                                <span style="width:7px;height:7px;border-radius:999px;background:#0ea5e9;"></span>
+                                <span style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#0284c7;">
+                                    Today's Classes ({{ $reminders['today_sessions_count'] }})
                                 </span>
                             </div>
-                            <a
-                                href="{{ $reminders['schedule_url'] }}"
-                                class="text-[11px] font-bold text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center gap-0.5"
-                            >
-                                Open Timetable →
+                            <a href="{{ $reminders['schedule_url'] }}" style="font-size:0.7rem;font-weight:700;color:#0d9488;text-decoration:none;">
+                                Timetable &rarr;
                             </a>
                         </div>
 
-                        <div class="space-y-2">
-                            @foreach ($reminders['today_sessions'] as $session)
-                                <div class="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 hover:border-sky-500/50 transition-all duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                                    <div class="space-y-1 min-w-0 flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
-                                                {{ $session['time_display'] }}
-                                            </span>
-                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-                                                {{ $session['course_title'] }}
-                                            </span>
-                                        </div>
-
-                                        <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white line-clamp-1">
-                                            {{ $session['title'] }}
-                                        </h4>
+                        @foreach ($reminders['today_sessions'] as $session)
+                            <div class="hub-rem-card">
+                                <div style="min-width:0;flex:1;">
+                                    <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.2rem;">
+                                        <span style="padding:0.1rem 0.45rem;border-radius:5px;font-size:0.64rem;font-weight:800;background:#e0f2fe;color:#0369a1;">
+                                            {{ $session['time_display'] }}
+                                        </span>
+                                        <span style="font-size:0.72rem;font-weight:700;color:#475569;" class="dark:text-slate-300 truncate">
+                                            {{ $session['course_title'] }}
+                                        </span>
                                     </div>
-
-                                    <div class="flex-shrink-0">
-                                        <a
-                                            href="{{ $session['action_url'] }}"
-                                            class="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 transition"
-                                        >
-                                            <span>Open Register</span>
-                                        </a>
-                                    </div>
+                                    <h4 style="font-size:0.8rem;font-weight:800;margin:0;" class="text-slate-900 dark:text-white truncate">
+                                        {{ $session['title'] }}
+                                    </h4>
                                 </div>
-                            @endforeach
-                        </div>
+
+                                <div style="flex-shrink:0;">
+                                    <a
+                                        href="{{ $session['action_url'] }}"
+                                        class="hub-rem-action-btn"
+                                        style="background:#e0f2fe;color:#0369a1;width:100%;"
+                                    >
+                                        <span>Open Register</span>
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 @endif
             </div>
 
             {{-- Footer Area --}}
-            <div class="px-5 sm:px-6 py-3.5 bg-slate-50 dark:bg-slate-950/80 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-                {{-- Don't show again today toggle --}}
-                <label class="flex items-center gap-2 cursor-pointer select-none">
+            <div class="hub-rem-footer">
+                <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;user-select:none;">
                     <input
                         type="checkbox"
                         x-model="dontShowToday"
-                        class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800"
+                        style="width:1rem;height:1rem;border-radius:4px;accent-color:#0d9488;cursor:pointer;"
                     />
-                    <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                        Don't show this popup again today
+                    <span style="font-size:0.74rem;color:#64748b;font-weight:600;">
+                        Don't show again today
                     </span>
                 </label>
 
-                {{-- Action Buttons --}}
-                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <div class="hub-rem-footer-btns">
                     <button
                         type="button"
                         x-on:click="dismissForSession()"
-                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition cursor-pointer"
+                        class="hub-btn hub-btn-secondary"
+                        style="padding:0.48rem 0.9rem;font-size:0.75rem;justify-content:center;"
                     >
-                        Remind Me Later
+                        Remind Later
                     </button>
 
                     <button
                         type="button"
                         x-on:click="closeModal()"
-                        class="px-4 py-1.5 rounded-xl text-xs font-black text-white bg-slate-900 hover:bg-slate-800 dark:bg-teal-600 dark:hover:bg-teal-500 shadow-sm transition-all cursor-pointer"
+                        class="hub-btn hub-btn-primary"
+                        style="padding:0.48rem 1rem;font-size:0.75rem;justify-content:center;"
                     >
                         Go to Dashboard
                     </button>

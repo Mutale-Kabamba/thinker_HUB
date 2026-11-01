@@ -9,7 +9,7 @@
         'keywords' => 'course platform, tutor courses, learner upskilling, course registration, thinker hub',
         'type' => 'website',
     ])
-    <link rel="preload" as="image" href="{{ asset('images/hero/office.png') }}">
+    <link rel="preload" as="image" href="{{ asset('images/hero/img/6.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-register')
@@ -18,47 +18,6 @@
     class="public-layout hub-public bg-white text-slate-900 font-sans antialiased"
     x-data="{
         mobileMenu: false,
-        heroSlideIndex: 0,
-        heroSlides: [
-            {
-                image: '{{ asset('images/hero/office.png') }}',
-                alt: 'Microsoft Office workspace',
-                label: 'MS Office Suite'
-            },
-            {
-                image: '{{ asset('images/hero/design.png') }}',
-                alt: 'Graphic design tools on screen',
-                label: 'Creative Design'
-            },
-            {
-                image: '{{ asset('images/hero/media_ai.png') }}',
-                alt: 'Social media analytics dashboard',
-                label: 'Media & AI'
-            },
-            {
-                image: '{{ asset('images/hero/data.png') }}',
-                alt: 'Data analysis dashboard',
-                label: 'Data Analysis'
-            }
-        ],
-        startHeroRotation() {
-            setInterval(() => {
-                this.heroSlideIndex = (this.heroSlideIndex + 1) % this.heroSlides.length;
-            }, 3000);
-        },
-        preloadHeroImages() {
-            setTimeout(() => {
-                this.heroSlides.forEach((slide, index) => {
-                    if (index === 0) {
-                        return;
-                    }
-
-                    const image = new Image();
-                    image.decoding = 'async';
-                    image.src = slide.image;
-                });
-            }, 1200);
-        },
         reorderHomepageSections() {
             const valuePropositionSection = document.getElementById('value-proposition-section');
             const publicRegistrationSection = document.getElementById('public-registration-section');
@@ -76,20 +35,151 @@
             parent.insertBefore(publicRegistrationSection, valuePropositionSection);
         }
     }"
-    x-init="startHeroRotation(); preloadHeroImages(); reorderHomepageSections()"
+    x-init="reorderHomepageSections()"
 >
 
     @include('partials.app-preloader')
     @include('partials.public-header')
 
     <main>
-        <section class="bg-[#0a2d27] relative overflow-hidden pt-12 pb-16 lg:pt-18 lg:pb-24">
+        <style>
+            .hub-hero-section {
+                padding-top: 1.5rem;
+                padding-bottom: 0 !important;
+            }
+            .hub-hero-mobile-video-outer {
+                display: block;
+                width: 100%;
+                max-width: 72rem;
+                margin: 0 auto 1.75rem auto;
+                padding: 0 1.25rem;
+                position: relative;
+                z-index: 10;
+            }
+            .hub-hero-mobile-video-wrap {
+                position: relative;
+                width: 100%;
+                border-radius: 1.5rem;
+                overflow: hidden;
+                background: #061f1b;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.45);
+                transform: translateZ(0);
+            }
+            .hub-hero-mobile-video {
+                display: block;
+                width: 100%;
+                height: auto;
+                max-height: 52vh;
+                object-fit: cover;
+                border-radius: 1.5rem;
+            }
+            .hub-hero-copy {
+                padding-bottom: 2.75rem;
+            }
+            .hub-hero-visual {
+                display: none;
+            }
+            @media (min-width: 640px) {
+                .hub-hero-mobile-video-outer {
+                    padding: 0 1.5rem;
+                }
+                .hub-hero-mobile-video-wrap,
+                .hub-hero-mobile-video {
+                    border-radius: 1.75rem;
+                }
+            }
+            @media (min-width: 1024px) {
+                .hub-hero-section {
+                    padding-top: 3.5rem;
+                }
+                .hub-hero-mobile-video-outer {
+                    display: none !important;
+                }
+                .hub-hero-copy {
+                    padding-top: 1rem;
+                    padding-bottom: 4.5rem;
+                }
+                .hub-hero-visual {
+                    align-self: flex-end;
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: flex-end;
+                    width: 100%;
+                    position: relative;
+                    margin-top: auto;
+                }
+                .hub-hero-img {
+                    display: block;
+                    width: 118%;
+                    max-width: 660px;
+                    height: auto;
+                    object-fit: contain;
+                    object-position: bottom center;
+                    transform-origin: bottom right;
+                    margin-top: -2rem;
+                    margin-right: -2.5rem;
+                    margin-bottom: 0;
+                    transform: translateX(1.25rem);
+                    filter: drop-shadow(0 24px 36px rgba(0, 0, 0, 0.38));
+                }
+            }
+        </style>
+        <section class="hub-hero-section bg-[#0a2d27] relative overflow-hidden">
             <div class="hub-glow-orb pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-teal-500/15 blur-3xl"></div>
             <div class="hub-glow-orb pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl" style="animation-delay: -3.5s;"></div>
 
+            {{-- Full-Width Video with Smooth Rounded Corners on Top of Text for Mobile & Tablet (< 1024px) --}}
+            <div class="hub-hero-mobile-video-outer">
+                <div class="hub-hero-mobile-video-wrap">
+                    <video
+                        id="hub-hero-mobile-video"
+                        class="hub-hero-mobile-video"
+                        src="{{ asset('images/hero/img/main.mp4') }}"
+                        autoplay
+                        muted
+                        loop
+                        playsinline
+                        webkit-playsinline
+                        disablepictureinpicture
+                        preload="auto"
+                    >
+                        <source src="{{ asset('images/hero/img/main.mp4') }}" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+            <script>
+                (function () {
+                    const video = document.getElementById('hub-hero-mobile-video');
+                    if (!video) return;
+
+                    const ensurePlay = () => {
+                        if (window.innerWidth >= 1024) return;
+                        video.muted = true;
+                        video.defaultMuted = true;
+                        video.playsInline = true;
+                        const playPromise = video.play();
+                        if (playPromise && typeof playPromise.catch === 'function') {
+                            playPromise.catch(() => {});
+                        }
+                    };
+
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', ensurePlay, { once: true });
+                    } else {
+                        ensurePlay();
+                    }
+
+                    video.addEventListener('loadedmetadata', ensurePlay, { once: true });
+                    video.addEventListener('canplay', ensurePlay, { once: true });
+                    window.addEventListener('pageshow', ensurePlay);
+                    document.addEventListener('touchstart', ensurePlay, { once: true, passive: true });
+                })();
+            </script>
+
             <div class="mx-auto max-w-6xl px-6 lg:px-8 relative z-10">
-                <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-                    <div class="text-center lg:text-left order-2 lg:order-1">
+                <div class="grid items-end gap-8 lg:grid-cols-2 lg:gap-12">
+                    <div class="hub-hero-copy text-center lg:text-left">
                         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">Practical Digital Upskilling Platform</p>
                         <h1 class="mt-4 text-4xl font-extrabold leading-[1.12] tracking-tight text-white sm:text-5xl lg:text-[3.4rem]">
                             Teach What You Know.<br class="hidden lg:block"> Learn What You Need.
@@ -140,40 +230,17 @@
                         </div>
                     </div>
 
-                    <div class="order-1 lg:order-2 flex flex-col items-center justify-center relative">
-                        <div class="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-[390px] lg:h-[390px]">
-                            <div class="hub-hero-ring absolute inset-0 rounded-full border-[12px] border-yellow-400/15 scale-105"></div>
-                            <img
-                                :src="heroSlides[heroSlideIndex].image"
-                                :alt="heroSlides[heroSlideIndex].alt"
-                                width="840"
-                                height="840"
-                                loading="eager"
-                                fetchpriority="high"
-                                decoding="async"
-                                class="rounded-full w-full h-full object-cover border-4 border-white/15 shadow-2xl absolute inset-0 z-10 transition-all duration-500"
-                            >
-                            <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 rounded-full bg-slate-950/60 border border-white/15 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-all duration-300" x-text="heroSlides[heroSlideIndex].label"></div>
-                            <div class="hub-float-badge absolute -bottom-2 -right-3 bg-white px-4 py-3 rounded-2xl border border-slate-200/90 shadow-lg z-20 hidden sm:flex items-center gap-3">
-                                <div class="bg-emerald-50 border border-emerald-200/80 h-9 w-9 flex items-center justify-center rounded-xl text-emerald-600"><i class="fa-solid fa-certificate"></i></div>
-                                <div>
-                                    <p class="text-xs font-bold text-[#0a2d27]">Creator + Learner Ready</p>
-                                    <p class="text-[10px] font-medium text-slate-500">Teach, Manage, Upskill</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 flex items-center gap-2 z-20">
-                            <template x-for="(slide, idx) in heroSlides" :key="idx">
-                                <button
-                                    type="button"
-                                    @click="heroSlideIndex = idx"
-                                    :aria-label="'Show slide ' + slide.label"
-                                    class="h-2 rounded-full transition-all duration-300 cursor-pointer"
-                                    :class="heroSlideIndex === idx ? 'w-6 bg-yellow-400' : 'w-2 bg-white/30 hover:bg-white/50'"
-                                ></button>
-                            </template>
-                        </div>
+                    <div class="hub-hero-visual">
+                        <img
+                            src="{{ asset('images/hero/img/6.png') }}"
+                            alt="Tutor and learner celebrating on think.er HUB"
+                            width="840"
+                            height="840"
+                            loading="eager"
+                            fetchpriority="high"
+                            decoding="async"
+                            class="hub-hero-img select-none relative z-10"
+                        >
                     </div>
                 </div>
             </div>
