@@ -44,65 +44,138 @@
     <main>
         <style>
             .hub-hero-section {
-                padding-top: 2.5rem;
+                padding-top: 1.5rem;
                 padding-bottom: 0 !important;
             }
-            .hub-hero-copy {
-                padding-bottom: 2rem;
-            }
-            .hub-hero-visual {
-                align-self: flex-end;
-                display: flex;
-                align-items: flex-end;
-                justify-content: center;
-                width: 100%;
-                position: relative;
-                margin-top: auto;
-            }
-            .hub-hero-img {
+            .hub-hero-mobile-video-outer {
                 display: block;
                 width: 100%;
-                max-width: 470px;
+                max-width: 72rem;
+                margin: 0 auto 1.75rem auto;
+                padding: 0 1.25rem;
+                position: relative;
+                z-index: 10;
+            }
+            .hub-hero-mobile-video-wrap {
+                position: relative;
+                width: 100%;
+                border-radius: 1.5rem;
+                overflow: hidden;
+                background: #061f1b;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.45);
+                transform: translateZ(0);
+            }
+            .hub-hero-mobile-video {
+                display: block;
+                width: 100%;
                 height: auto;
-                object-fit: contain;
-                object-position: bottom center;
-                transform-origin: bottom right;
-                margin-top: -1rem;
-                margin-bottom: 0;
-                transform: translateX(0.5rem);
-                filter: drop-shadow(0 24px 36px rgba(0, 0, 0, 0.38));
+                max-height: 52vh;
+                object-fit: cover;
+                border-radius: 1.5rem;
+            }
+            .hub-hero-copy {
+                padding-bottom: 2.75rem;
+            }
+            .hub-hero-visual {
+                display: none;
             }
             @media (min-width: 640px) {
-                .hub-hero-img {
-                    max-width: 550px;
-                    margin-top: -1.5rem;
-                    transform: translateX(1rem);
+                .hub-hero-mobile-video-outer {
+                    padding: 0 1.5rem;
+                }
+                .hub-hero-mobile-video-wrap,
+                .hub-hero-mobile-video {
+                    border-radius: 1.75rem;
                 }
             }
             @media (min-width: 1024px) {
                 .hub-hero-section {
                     padding-top: 3.5rem;
                 }
+                .hub-hero-mobile-video-outer {
+                    display: none !important;
+                }
                 .hub-hero-copy {
                     padding-top: 1rem;
                     padding-bottom: 4.5rem;
                 }
                 .hub-hero-visual {
+                    align-self: flex-end;
+                    display: flex;
+                    align-items: flex-end;
                     justify-content: flex-end;
+                    width: 100%;
+                    position: relative;
+                    margin-top: auto;
                 }
                 .hub-hero-img {
+                    display: block;
                     width: 118%;
                     max-width: 660px;
+                    height: auto;
+                    object-fit: contain;
+                    object-position: bottom center;
+                    transform-origin: bottom right;
                     margin-top: -2rem;
                     margin-right: -2.5rem;
                     margin-bottom: 0;
                     transform: translateX(1.25rem);
+                    filter: drop-shadow(0 24px 36px rgba(0, 0, 0, 0.38));
                 }
             }
         </style>
         <section class="hub-hero-section bg-[#0a2d27] relative overflow-hidden">
             <div class="hub-glow-orb pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-teal-500/15 blur-3xl"></div>
             <div class="hub-glow-orb pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl" style="animation-delay: -3.5s;"></div>
+
+            {{-- Full-Width Video with Smooth Rounded Corners on Top of Text for Mobile & Tablet (< 1024px) --}}
+            <div class="hub-hero-mobile-video-outer">
+                <div class="hub-hero-mobile-video-wrap">
+                    <video
+                        id="hub-hero-mobile-video"
+                        class="hub-hero-mobile-video"
+                        src="{{ asset('images/hero/img/main.mp4') }}"
+                        autoplay
+                        muted
+                        loop
+                        playsinline
+                        webkit-playsinline
+                        disablepictureinpicture
+                        preload="auto"
+                    >
+                        <source src="{{ asset('images/hero/img/main.mp4') }}" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+            <script>
+                (function () {
+                    const video = document.getElementById('hub-hero-mobile-video');
+                    if (!video) return;
+
+                    const ensurePlay = () => {
+                        if (window.innerWidth >= 1024) return;
+                        video.muted = true;
+                        video.defaultMuted = true;
+                        video.playsInline = true;
+                        const playPromise = video.play();
+                        if (playPromise && typeof playPromise.catch === 'function') {
+                            playPromise.catch(() => {});
+                        }
+                    };
+
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', ensurePlay, { once: true });
+                    } else {
+                        ensurePlay();
+                    }
+
+                    video.addEventListener('loadedmetadata', ensurePlay, { once: true });
+                    video.addEventListener('canplay', ensurePlay, { once: true });
+                    window.addEventListener('pageshow', ensurePlay);
+                    document.addEventListener('touchstart', ensurePlay, { once: true, passive: true });
+                })();
+            </script>
 
             <div class="mx-auto max-w-6xl px-6 lg:px-8 relative z-10">
                 <div class="grid items-end gap-8 lg:grid-cols-2 lg:gap-12">
