@@ -257,43 +257,75 @@
                             <x-heroicon-o-command-line class="w-7 h-7" />
                         </div>
                         <h3 class="text-base font-semibold text-gray-900 dark:text-white">Instructor Operational Co-Pilot</h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                            Automate administrative tasks across your assigned courses. Mark registers, reschedule classes, or analyze cohort health.
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5 max-w-md mx-auto">
+                            Your full-spectrum teaching intelligence assistant. Automate attendance registers, evaluate assignments, analyze quizzes, identify at-risk students, broadcast announcements, and inspect course syllabus materials.
                         </p>
 
-                        <!-- Quick Action Chips -->
+                        <!-- Expanded Quick Action Chips -->
                         <div class="mt-6 flex flex-wrap justify-center gap-2">
                             <button
                                 type="button"
                                 wire:click="sendMessage('List my sessions scheduled for today')"
-                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-sm"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-xs cursor-pointer"
                             >
-                                <x-heroicon-o-calendar class="w-3.5 h-3.5 text-indigo-600" />
-                                <span>List my sessions scheduled for today</span>
+                                <x-heroicon-o-calendar class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                                <span>Today's Sessions</span>
                             </button>
                             <button
                                 type="button"
                                 wire:click="sendMessage('Mark everyone present for today\'s session')"
-                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-sm"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-xs cursor-pointer"
                             >
-                                <x-heroicon-o-clipboard-document-check class="w-3.5 h-3.5 text-indigo-600" />
-                                <span>Mark everyone present for today's session</span>
+                                <x-heroicon-o-clipboard-document-check class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                                <span>Mark Class Register</span>
                             </button>
                             <button
                                 type="button"
-                                wire:click="sendMessage('Reschedule an upcoming session')"
-                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-sm"
+                                wire:click="sendMessage('Show pending assignment submissions awaiting grading')"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-xs cursor-pointer"
                             >
-                                <x-heroicon-o-clock class="w-3.5 h-3.5 text-indigo-600" />
-                                <span>Reschedule an upcoming session</span>
+                                <x-heroicon-o-inbox-stack class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                                <span>Pending Submissions</span>
                             </button>
                             <button
                                 type="button"
-                                wire:click="sendMessage('Summarize quiz & attendance stats for my courses')"
-                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-sm"
+                                wire:click="sendMessage('Identify any at-risk students with low attendance or failing grades in my courses')"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-xs cursor-pointer"
                             >
-                                <x-heroicon-o-chart-bar class="w-3.5 h-3.5 text-indigo-600" />
-                                <span>Summarize quiz & attendance stats for my courses</span>
+                                <x-heroicon-o-user-group class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                                <span>At-Risk Students</span>
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="sendMessage('Inspect quiz analytics, pass rates, and struggling students across my courses')"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-xs cursor-pointer"
+                            >
+                                <x-heroicon-o-academic-cap class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                                <span>Quiz Analytics</span>
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="sendMessage('Summarize quiz & attendance performance stats for my cohort')"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-xs cursor-pointer"
+                            >
+                                <x-heroicon-o-chart-bar class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                                <span>Cohort Health Stats</span>
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="sendMessage('Search curriculum lessons, cheat sheets, and learning materials in my courses')"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-xs cursor-pointer"
+                            >
+                                <x-heroicon-o-book-open class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                                <span>Curriculum & Materials</span>
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="sendMessage('Draft an announcement broadcast to my course cohort')"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 text-gray-700 dark:text-gray-300 transition shadow-xs cursor-pointer"
+                            >
+                                <x-heroicon-o-megaphone class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                                <span>Cohort Broadcast</span>
                             </button>
                         </div>
                     </div>

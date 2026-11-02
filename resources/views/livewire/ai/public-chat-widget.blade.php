@@ -353,7 +353,7 @@
                     <div class="mt-3.5 flex flex-wrap gap-1.5 justify-center">
                         <button
                             type="button"
-                            wire:click="$set('message', 'What courses and tech tracks are available?'); sendMessage()"
+                            wire:click="sendMessage('What courses and tech tracks are available?')"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-teal-50 border border-slate-200 hover:border-teal-400 text-slate-700 hover:text-teal-900 text-xs font-medium shadow-2xs transition cursor-pointer"
                         >
                             <x-heroicon-o-book-open class="w-3.5 h-3.5 text-teal-600" />
@@ -361,7 +361,7 @@
                         </button>
                         <button
                             type="button"
-                            wire:click="$set('message', 'How do tuition, installments, and enrollment work?'); sendMessage()"
+                            wire:click="sendMessage('How do tuition, installments, and enrollment work?')"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-teal-50 border border-slate-200 hover:border-teal-400 text-slate-700 hover:text-teal-900 text-xs font-medium shadow-2xs transition cursor-pointer"
                         >
                             <x-heroicon-o-credit-card class="w-3.5 h-3.5 text-teal-600" />
@@ -369,7 +369,7 @@
                         </button>
                         <button
                             type="button"
-                            wire:click="$set('message', 'What internship, job, and career programs exist?'); sendMessage()"
+                            wire:click="sendMessage('What internship, job, and career programs exist?')"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-teal-50 border border-slate-200 hover:border-teal-400 text-slate-700 hover:text-teal-900 text-xs font-medium shadow-2xs transition cursor-pointer"
                         >
                             <x-heroicon-o-briefcase class="w-3.5 h-3.5 text-teal-600" />
@@ -377,7 +377,7 @@
                         </button>
                         <button
                             type="button"
-                            wire:click="$set('message', 'How do the Student, Parent, and Teaching portals work?'); sendMessage()"
+                            wire:click="sendMessage('How do the Student, Parent, and Teaching portals work?')"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-teal-50 border border-slate-200 hover:border-teal-400 text-slate-700 hover:text-teal-900 text-xs font-medium shadow-2xs transition cursor-pointer"
                         >
                             <x-heroicon-o-squares-2x2 class="w-3.5 h-3.5 text-teal-600" />

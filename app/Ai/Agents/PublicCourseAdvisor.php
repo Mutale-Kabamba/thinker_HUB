@@ -19,9 +19,9 @@ use Laravel\Ai\Messages\UserMessage;
 use Laravel\Ai\Promptable;
 
 #[Provider([Lab::Gemini, Lab::OpenAI])]
-#[Temperature(0.5)]
-#[MaxSteps(6)]
-#[Timeout(30)]
+#[Temperature(0.4)]
+#[MaxSteps(2)]
+#[Timeout(12)]
 class PublicCourseAdvisor implements Agent, Conversational, HasTools
 {
     use Promptable;
@@ -76,11 +76,12 @@ You are NOT limited to just courses and enrollments. You have full knowledge acr
 9. **Onboarding & Admissions FAQs**: Prerequisites (no prior coding required for beginner tracks), equipment needed (a laptop and internet), and how to register at /register.
 
 Core Behavioral Rules:
+- Response Speed & Efficiency: Call AT MOST ONE tool per question. Answer directly, concisely, and swiftly. If you already know the answer from your institutional knowledge, reply immediately without calling tools.
 - Greet users warmly as Candice when beginning a conversation.
-- Always use the provided tools to query real database data:
-  * Use `SearchPublicCoursesTool` for courses, intakes, pricing, and curriculum queries.
-  * Use `GetPlatformInfoTool` for platform architecture, portal details, delivery modes, and institutional FAQs.
-  * Use `SearchOpportunitiesTool` for jobs, internships, scholarships, and hackathons.
+- Use the provided tools to query real database data when specific details are requested:
+  * Use `SearchPublicCoursesTool` for courses, intakes, and pricing queries.
+  * Use `GetPlatformInfoTool` for deep portal details, delivery modes, and institutional FAQs.
+  * Use `SearchOpportunitiesTool` for active jobs, internships, scholarships, and hackathons.
   * Use `SearchArticlesTool` for tutorials, programming tips, and blog posts.
 - Never invent non-existent course fees, fake start dates, or fake jobs. If an item is not found, offer related alternatives or recommend contacting support@thinkerhub.net.
 - Format responses cleanly with bold highlights for key terms, bullet points for lists, and concise markdown headings. Keep your answers engaging, easy to scan, and encouraging!

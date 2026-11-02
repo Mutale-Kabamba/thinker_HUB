@@ -32,17 +32,21 @@ class PublicChatWidget extends Component
         $this->errorMessage = null;
     }
 
-    public function sendMessage(): void
+    public function sendMessage(?string $quickPrompt = null): void
     {
-        $input = trim($this->message);
+        $input = trim($quickPrompt ?: $this->message);
         if ($input === '') {
             return;
+        }
+
+        if (! app()->runningInConsole()) {
+            @set_time_limit(25);
         }
 
         $ip = request()->ip() ?? '127.0.0.1';
         $executed = RateLimiter::attempt(
             'public-ai:' . $ip,
-            10,
+            12,
             function () use ($input) {
                 $this->messages[] = [
                     'role' => 'user',
@@ -54,13 +58,13 @@ class PublicChatWidget extends Component
                 $this->errorMessage = null;
 
                 try {
-                    $history = array_slice($this->messages, -16);
+                    $history = array_slice($this->messages, -10);
                     $agent = new PublicCourseAdvisor(history: array_slice($history, 0, -1));
                     $response = $agent->prompt($input);
 
                     $replyText = trim((string) $response);
                     if ($replyText === '') {
-                        $replyText = 'Thank you for your inquiry! Please explore our course catalog or contact our admissions team for more information.';
+                        $replyText = 'Thank you for reaching out! Please explore our course catalog or contact our admissions team at support@thinkerhub.net.';
                     }
 
                     $this->messages[] = [
@@ -69,13 +73,13 @@ class PublicChatWidget extends Component
                         'created_at' => now()->format('H:i'),
                     ];
 
-                    $this->messages = array_slice($this->messages, -16);
+                    $this->messages = array_slice($this->messages, -12);
                     session(['public_ai_messages' => $this->messages]);
                 } catch (\Throwable $e) {
-                    Log::warning('PublicCourseAdvisor error: ' . $e->getMessage(), ['exception' => $e]);
+                    Log::warning('PublicCourseAdvisor timeout or error: ' . $e->getMessage(), ['exception' => $e]);
                     $this->messages[] = [
                         'role' => 'assistant',
-                        'content' => 'Candice is currently experiencing high demand. Please try again shortly or contact admissions at support@thinkerhub.net.',
+                        'content' => "I'm experiencing a brief network delay fetching live catalog data. You can explore our [Course Catalog](/courses) directly, or feel free to ask me again in just a moment!",
                         'created_at' => now()->format('H:i'),
                     ];
                 }
@@ -84,7 +88,7 @@ class PublicChatWidget extends Component
         );
 
         if (! $executed) {
-            $this->errorMessage = 'Too many requests. Please wait a minute before sending another question.';
+            $this->errorMessage = 'You have asked several questions in a short period. Please wait a moment before sending another.';
         }
     }
 
