@@ -302,10 +302,11 @@
                             />
                             <button 
                                 type="submit" 
-                                class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-xs transition cursor-pointer shrink-0"
+                                class="p-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-xs transition flex items-center justify-center cursor-pointer shrink-0"
+                                title="Send Message"
+                                aria-label="Send Message"
                             >
-                                <x-heroicon-o-paper-airplane class="w-4 h-4" />
-                                <span class="hidden sm:inline">Send</span>
+                                <x-heroicon-s-paper-airplane class="w-4 h-4" />
                             </button>
                         </form>
                     </div>

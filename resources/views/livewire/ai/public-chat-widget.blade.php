@@ -345,63 +345,43 @@
                         </svg>
                     </div>
                     <h4 class="font-bold text-slate-900 text-base">Hi, I'm Candice!</h4>
-                    <p class="text-xs text-slate-500 mt-1 leading-relaxed max-w-[280px] mx-auto">
-                        Your think.er HUB Course Advisor. Ask me anything about our courses, fees, upcoming intakes, or admission steps.
-                    <p class="text-xs text-slate-500 mt-1 leading-relaxed max-w-[300px] mx-auto">
-                        Your think.er HUB AI Advisor. Ask me anything about our courses, career tracks, internships, platform portals, or how to get started!
+                    <p class="text-xs text-slate-500 mt-1 leading-relaxed max-w-[290px] mx-auto">
+                        Your think.er HUB AI Advisor. Ask me anything about courses, career paths, internships, portals, or admissions!
                     </p>
 
-                    <div class="mt-4 flex flex-col gap-2 text-xs text-left">
+                    <!-- Minimized Compact Quick Prompts -->
+                    <div class="mt-3.5 flex flex-wrap gap-1.5 justify-center">
                         <button
                             type="button"
-                            wire:click="$set('message', 'What courses are currently available?'); sendMessage()"
                             wire:click="$set('message', 'What courses and tech tracks are available?'); sendMessage()"
-                            class="group p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50/30 text-slate-700 hover:text-teal-900 transition flex items-center justify-between shadow-xs cursor-pointer"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-teal-50 border border-slate-200 hover:border-teal-400 text-slate-700 hover:text-teal-900 text-xs font-medium shadow-2xs transition cursor-pointer"
                         >
-                            <div class="flex items-center space-x-2">
-                                <x-heroicon-o-book-open class="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
-                                <span class="font-medium">What courses are currently available?</span>
-                                <span class="font-medium">What courses and tracks are available?</span>
-                            </div>
-                            <x-heroicon-o-chevron-right class="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 transition" />
+                            <x-heroicon-o-book-open class="w-3.5 h-3.5 text-teal-600" />
+                            <span>Available Courses</span>
                         </button>
                         <button
                             type="button"
-                            wire:click="$set('message', 'How does enrollment and payment work?'); sendMessage()"
                             wire:click="$set('message', 'How do tuition, installments, and enrollment work?'); sendMessage()"
-                            class="group p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50/30 text-slate-700 hover:text-teal-900 transition flex items-center justify-between shadow-xs cursor-pointer"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-teal-50 border border-slate-200 hover:border-teal-400 text-slate-700 hover:text-teal-900 text-xs font-medium shadow-2xs transition cursor-pointer"
                         >
-                            <div class="flex items-center space-x-2">
-                                <x-heroicon-o-credit-card class="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
-                                <span class="font-medium">How does enrollment and payment work?</span>
-                                <span class="font-medium">How do tuition and enrollment work?</span>
-                            </div>
-                            <x-heroicon-o-chevron-right class="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 transition" />
+                            <x-heroicon-o-credit-card class="w-3.5 h-3.5 text-teal-600" />
+                            <span>Tuition & Enrollment</span>
                         </button>
                         <button
                             type="button"
-                            wire:click="$set('message', 'What delivery modes do you support?'); sendMessage()"
                             wire:click="$set('message', 'What internship, job, and career programs exist?'); sendMessage()"
-                            class="group p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50/30 text-slate-700 hover:text-teal-900 transition flex items-center justify-between shadow-xs cursor-pointer"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-teal-50 border border-slate-200 hover:border-teal-400 text-slate-700 hover:text-teal-900 text-xs font-medium shadow-2xs transition cursor-pointer"
                         >
-                            <div class="flex items-center space-x-2">
-                                <x-heroicon-o-tv class="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
-                                <span class="font-medium">What delivery modes do you support?</span>
-                                <x-heroicon-o-briefcase class="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
-                                <span class="font-medium">What internships and career programs exist?</span>
-                            </div>
-                            <x-heroicon-o-chevron-right class="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 transition" />
+                            <x-heroicon-o-briefcase class="w-3.5 h-3.5 text-teal-600" />
+                            <span>Internships & Careers</span>
                         </button>
                         <button
                             type="button"
                             wire:click="$set('message', 'How do the Student, Parent, and Teaching portals work?'); sendMessage()"
-                            class="group p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50/30 text-slate-700 hover:text-teal-900 transition flex items-center justify-between shadow-xs cursor-pointer"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-teal-50 border border-slate-200 hover:border-teal-400 text-slate-700 hover:text-teal-900 text-xs font-medium shadow-2xs transition cursor-pointer"
                         >
-                            <div class="flex items-center space-x-2">
-                                <x-heroicon-o-squares-2x2 class="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
-                                <span class="font-medium">How do the Student and Parent portals work?</span>
-                            </div>
-                            <x-heroicon-o-chevron-right class="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 transition" />
+                            <x-heroicon-o-squares-2x2 class="w-3.5 h-3.5 text-teal-600" />
+                            <span>Portals Guide</span>
                         </button>
                     </div>
                 </div>
@@ -439,7 +419,6 @@
             <div wire:loading wire:target="sendMessage" class="flex justify-start">
                 <div class="rounded-2xl rounded-tl-none px-3 py-2 bg-white border border-slate-200 text-slate-500 text-xs flex items-center space-x-2 shadow-sm">
                     <x-heroicon-o-arrow-path class="w-4 h-4 animate-spin text-teal-600" />
-                    <span>Candice is searching the catalog & formulating reply...</span>
                     <span>Candice is thinking & preparing your answer...</span>
                 </div>
             </div>
@@ -452,7 +431,6 @@
                     type="text"
                     wire:model="message"
                     wire:loading.attr="disabled"
-                    placeholder="Ask Candice about courses, fees, intakes..."
                     placeholder="Ask Candice about courses, careers, portals, scholarships..."
                     class="flex-1 px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:opacity-60 disabled:bg-slate-50 text-slate-900 placeholder:text-slate-400"
                 />

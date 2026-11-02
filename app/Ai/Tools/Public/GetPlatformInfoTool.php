@@ -10,22 +10,20 @@ use Stringable;
 class GetPlatformInfoTool implements Tool
 {
     /**
-     * Get the description of the tool's purpose.
+     * Get the description of the tool.
      */
     public function description(): Stringable|string
     {
-        return 'Get general information about think.er HUB, enrollment procedure, platform delivery modes, and contact options.';
-        return 'Get comprehensive knowledge about think.er HUB: platform mission, learning tracks, all 5 portals (Student, Instructor, Parent, Contributor, Admin), certifications, career services, gamification economy, tuition and payment options, delivery formats, and admissions FAQs.';
+        return 'Provides comprehensive institutional knowledge about think.er HUB, including platform mission, all 5 core portals (Student, Instructor, Parent, Contributor, Admin), curriculums, learning tracks, delivery modes, gamification, tuition & payment options, and admissions steps.';
     }
 
     /**
-     * Get the tool's schema definition.
+     * Define the parameters accepted by the tool.
      */
     public function schema(JsonSchema $schema): array
     {
-        return [];
         return [
-            'topic' => $schema->string()->nullable(),
+            'topic' => $schema->string()->description('Optional specific topic to focus on: platform, core_portals, learning_tracks, certifications_and_credentials, delivery_modes, gamification_and_rewards, tuition_and_payments, or admissions_and_onboarding.')->nullable(),
         ];
     }
 
@@ -34,15 +32,6 @@ class GetPlatformInfoTool implements Tool
      */
     public function handle(Request $request): Stringable|string
     {
-        return json_encode([
-            'platform' => 'think.er HUB',
-            'mission' => 'Empowering modern tech education through cohort-based interactive learning, hands-on coding, and gamified mastery.',
-            'enrollment_steps' => [
-                '1. Create a free Student account on think.er HUB (/register).',
-                '2. Browse available courses in the course catalog and review requirements.',
-                '3. Choose your desired cohort intake or select open enrollment.',
-                '4. Complete enrollment (or tuition payment where applicable).',
-                '5. Access live classes, interactive quizzes, study materials, and community forums via the Student Portal (/learn).',
         $topic = strtolower(trim((string) ($request['topic'] ?? '')));
 
         $info = [
@@ -53,11 +42,6 @@ class GetPlatformInfoTool implements Tool
                 'campus_location' => 'Lusaka, Zambia (Global Online & Hybrid Access)',
                 'contact_email' => 'support@thinkerhub.net',
             ],
-            'supported_delivery_modes' => [
-                'Live Virtual' => 'Interactive online Zoom / Google Meet classroom sessions with instructor feedback.',
-                'Live Physical' => 'On-site collaborative campus workshops and in-person lab sessions.',
-                'Video Guide' => 'High-yield recorded walk-throughs, tutorials, and practical code-alongs.',
-                'Reading Material' => 'Curated lecture notes, cheat sheets, and documentation kits.',
             'core_portals' => [
                 'Student Portal (/learn)' => [
                     'audience' => 'Active learners, career switchers, and young coders.',
@@ -80,13 +64,6 @@ class GetPlatformInfoTool implements Tool
                     'features' => 'User and role management, course catalog creation, intake cohort scheduling, payment reconciliation, accounting dashboard, and institutional reporting.',
                 ],
             ],
-            'support_and_contact' => [
-                'email' => 'support@thinkerhub.net',
-                'location' => 'Lusaka, Zambia (Global Online)',
-                'portals' => [
-                    'public' => '/',
-                    'student_portal' => '/learn',
-                    'instructor_portal' => '/teach',
             'learning_tracks' => [
                 'Full-Stack Web Development' => 'HTML5/CSS3, JavaScript (ES6+), PHP & Laravel, React, relational databases, REST APIs, and deployment.',
                 'Mobile App Engineering' => 'Cross-platform mobile application development using Flutter, Dart, and native Android integrations.',
@@ -126,7 +103,6 @@ class GetPlatformInfoTool implements Tool
                 ],
                 'Becoming an Instructor' => 'Experienced tech professionals can apply at /instructors/apply or contact admissions at support@thinkerhub.net.',
             ],
-        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         ];
 
         if ($topic !== '' && isset($info[$topic])) {
@@ -136,4 +112,3 @@ class GetPlatformInfoTool implements Tool
         return json_encode($info, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 }
-
