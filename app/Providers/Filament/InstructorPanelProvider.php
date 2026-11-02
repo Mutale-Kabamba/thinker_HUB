@@ -109,7 +109,11 @@ class InstructorPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
-                fn (): string => view('filament.instructor.partials.topbar-ai-button')->render(),
+                fn (): string => view('filament.partials.portal-tour-button')->render() . view('filament.instructor.partials.topbar-ai-button')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.partials.portal-tour', ['portal' => 'instructor'])->render(),
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,

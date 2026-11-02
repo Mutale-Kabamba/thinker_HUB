@@ -116,6 +116,14 @@ class AdminPanelProvider extends PanelProvider
                     'action' => route('filament.admin.pages.search'),
                 ])->render(),
             )
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => view('filament.partials.portal-tour-button')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.partials.portal-tour', ['portal' => 'admin'])->render(),
+            )
             // FIX 2: Handle expired CSRF tokens / sessions cleanly instead of showing page load errors
             ->renderHook(
                 PanelsRenderHook::BODY_END,

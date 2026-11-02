@@ -115,7 +115,7 @@
                         @if ($attachment)
                             <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800">
                                 <div class="flex items-center gap-2 min-w-0">
-                                    <span class="text-lg">📎</span>
+                                    <x-heroicon-o-paper-clip class="w-5 h-5 text-teal-600 dark:text-teal-400 shrink-0" />
                                     <div class="min-w-0">
                                         <p class="text-xs font-extrabold text-teal-900 dark:text-teal-200 truncate">
                                             {{ $attachment->getClientOriginalName() }}

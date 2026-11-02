@@ -7,6 +7,9 @@ use App\Ai\Agents\PublicCourseAdvisor;
 use App\Ai\Agents\StudentStudyBuddy;
 use App\Ai\Tools\Instructor\MarkSessionAttendanceTool;
 use App\Ai\Tools\Instructor\UpdateCourseSessionTool;
+use App\Ai\Tools\Public\GetPlatformInfoTool;
+use App\Ai\Tools\Public\SearchArticlesTool;
+use App\Ai\Tools\Public\SearchOpportunitiesTool;
 use App\Ai\Tools\Public\SearchPublicCoursesTool;
 use App\Ai\Tools\Student\ReviewCompletedQuizAttemptsTool;
 use App\Filament\Instructor\Pages\AiAssistant;
@@ -17,6 +20,8 @@ use App\Models\Course;
 use App\Models\CourseIntake;
 use App\Models\CourseSession;
 use App\Models\Enrollment;
+use App\Models\HubPost;
+use App\Models\Opportunity;
 use App\Models\Quiz;
 use App\Models\QuizAnswer;
 use App\Models\QuizAttempt;
@@ -338,5 +343,118 @@ class AiAssistantsAndToolsTest extends TestCase
         InstructorAssistant::assertPrompted(function (AgentPrompt $prompt): bool {
             return str_contains($prompt->prompt, 'List my sessions scheduled for today');
         });
+    }
+
+    public function test_candice_public_advisor_registers_all_expanded_tools(): void
+    {
+        $advisor = new PublicCourseAdvisor;
+        $tools = $advisor->tools();
+
+        $toolClasses = array_map(fn ($tool) => get_class($tool), $tools);
+
+        $this->assertContains(SearchPublicCoursesTool::class, $toolClasses);
+        $this->assertContains(GetPlatformInfoTool::class, $toolClasses);
+        $this->assertContains(SearchOpportunitiesTool::class, $toolClasses);
+        $this->assertContains(SearchArticlesTool::class, $toolClasses);
+
+        $instructions = $advisor->instructions();
+        $this->assertStringContainsString('Student Portal', $instructions);
+        $this->assertStringContainsString('Instructor Portal', $instructions);
+        $this->assertStringContainsString('Parent Portal', $instructions);
+        $this->assertStringContainsString('Contributor Studio', $instructions);
+        $this->assertStringContainsString('Admin Portal', $instructions);
+        $this->assertStringContainsString('Career Services', $instructions);
+        $this->assertStringContainsString('Gamification', $instructions);
+    }
+
+    public function test_get_platform_info_tool_returns_comprehensive_institutional_knowledge(): void
+    {
+        $tool = new GetPlatformInfoTool;
+        $result = (string) $tool->handle(new Request([]));
+
+        $data = json_decode($result, true);
+
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('platform', $data);
+        $this->assertArrayHasKey('core_portals', $data);
+        $this->assertArrayHasKey('learning_tracks', $data);
+        $this->assertArrayHasKey('certifications_and_credentials', $data);
+        $this->assertArrayHasKey('delivery_modes', $data);
+        $this->assertArrayHasKey('gamification_and_rewards', $data);
+        $this->assertArrayHasKey('tuition_and_payments', $data);
+        $this->assertArrayHasKey('admissions_and_onboarding', $data);
+
+        $this->assertStringContainsString('think.er HUB', $data['platform']['name']);
+        $this->assertArrayHasKey('Student Portal (/learn)', $data['core_portals']);
+        $this->assertArrayHasKey('Parent Portal (/parent)', $data['core_portals']);
+        $this->assertStringContainsString('Mobile Money', $data['tuition_and_payments']['Supported Payment Methods']);
+    }
+
+    public function test_search_opportunities_tool_filters_active_and_excludes_expired(): void
+    {
+        Opportunity::query()->create([
+            'title' => 'Junior Flutter Developer Internship',
+            'type' => 'Job',
+            'provider' => 'Lusaka Tech Labs',
+            'is_published' => true,
+            'expires_at' => now()->addDays(20),
+        ]);
+
+        Opportunity::query()->create([
+            'title' => 'Expired AI Hackathon',
+            'type' => 'Event',
+            'provider' => 'Old Partner',
+            'is_published' => true,
+            'expires_at' => now()->subDays(5),
+        ]);
+
+        Opportunity::query()->create([
+            'title' => 'Unpublished Scholarship',
+            'type' => 'Scholarship',
+            'provider' => 'Private Donor',
+            'is_published' => false,
+            'expires_at' => now()->addDays(30),
+        ]);
+
+        $tool = new SearchOpportunitiesTool;
+        $result = (string) $tool->handle(new Request(['keyword' => 'Flutter']));
+
+        $this->assertStringContainsString('Junior Flutter Developer Internship', $result);
+        $this->assertStringContainsString('Lusaka Tech Labs', $result);
+        $this->assertStringNotContainsString('Expired AI Hackathon', $result);
+        $this->assertStringNotContainsString('Unpublished Scholarship', $result);
+    }
+
+    public function test_search_articles_tool_returns_published_community_guides(): void
+    {
+        $author = User::factory()->create(['role' => 'blogger', 'is_active' => true]);
+
+        HubPost::query()->create([
+            'title' => 'Getting Started with Laravel and Livewire',
+            'slug' => 'getting-started-laravel-livewire',
+            'category' => 'Programming',
+            'type' => 'blog',
+            'excerpt' => 'Learn the fundamentals of reactive web applications.',
+            'content' => 'Full guide content goes here.',
+            'is_published' => true,
+            'author_id' => $author->id,
+        ]);
+
+        HubPost::query()->create([
+            'title' => 'Draft Unpublished Post',
+            'slug' => 'draft-unpublished-post',
+            'category' => 'Technology',
+            'type' => 'blog',
+            'excerpt' => 'Draft content.',
+            'is_published' => false,
+            'author_id' => $author->id,
+        ]);
+
+        $tool = new SearchArticlesTool;
+        $result = (string) $tool->handle(new Request(['keyword' => 'Livewire']));
+
+        $this->assertStringContainsString('Getting Started with Laravel and Livewire', $result);
+        $this->assertStringContainsString('Programming', $result);
+        $this->assertStringNotContainsString('Draft Unpublished Post', $result);
     }
 }

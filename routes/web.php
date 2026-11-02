@@ -1326,6 +1326,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/classroom/{course:slug}/{lessonId?}', \App\Livewire\CoursePlayer::class)
         ->name('course.classroom');
+
+    // Portal Tour completion & reset
+    Route::post('/portal-tour/complete', [\App\Http\Controllers\PortalTourController::class, 'complete'])
+        ->name('portal-tour.complete');
+    Route::post('/portal-tour/reset', [\App\Http\Controllers\PortalTourController::class, 'reset'])
+        ->name('portal-tour.reset');
 });
 
 require __DIR__.'/auth.php';

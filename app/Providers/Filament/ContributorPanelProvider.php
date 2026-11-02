@@ -105,6 +105,14 @@ class ContributorPanelProvider extends PanelProvider
                 ])->render(),
             )
             ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => view('filament.partials.portal-tour-button')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.partials.portal-tour', ['portal' => 'contributor'])->render(),
+            )
+            ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn (): \Illuminate\Support\HtmlString => new \Illuminate\Support\HtmlString('
                     <script>
