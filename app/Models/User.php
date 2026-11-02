@@ -49,6 +49,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         'grade',
         'address',
         'default_portal',
+        'completed_tours',
         'is_active',
         'email_verified_at',
         'track',
@@ -103,7 +104,33 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
             'pending_login_token_used_at' => 'datetime',
             'instructor_rating' => 'decimal:2',
             'instructor_review_count' => 'integer',
+            'completed_tours' => 'array',
         ];
+    }
+
+    public function hasCompletedTour(string $portal): bool
+    {
+        $completed = $this->completed_tours ?? [];
+
+        return in_array($portal, $completed, true);
+    }
+
+    public function completeTour(string $portal): void
+    {
+        $completed = $this->completed_tours ?? [];
+
+        if (! in_array($portal, $completed, true)) {
+            $completed[] = $portal;
+            $this->forceFill(['completed_tours' => array_values(array_unique($completed))])->saveQuietly();
+        }
+    }
+
+    public function resetTour(string $portal): void
+    {
+        $completed = $this->completed_tours ?? [];
+        $completed = array_values(array_diff($completed, [$portal]));
+
+        $this->forceFill(['completed_tours' => $completed])->saveQuietly();
     }
 
     public function assessments(): HasMany

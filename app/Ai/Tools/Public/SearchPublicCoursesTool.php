@@ -29,6 +29,7 @@ class SearchPublicCoursesTool implements Tool
             'keyword' => $schema->string()->nullable(),
             'level' => $schema->string()->nullable(),
             'category' => $schema->string()->nullable(),
+            'for_kids' => $schema->boolean()->nullable(),
         ];
     }
 
@@ -40,6 +41,7 @@ class SearchPublicCoursesTool implements Tool
         $keyword = trim((string) ($request['keyword'] ?? ''));
         $level = trim((string) ($request['level'] ?? ''));
         $category = trim((string) ($request['category'] ?? ''));
+        $forKids = $request['for_kids'] ?? null;
 
         $query = Course::query()
             ->where('is_active', true)
@@ -47,6 +49,10 @@ class SearchPublicCoursesTool implements Tool
                 $q->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
                     ->orderBy('start_date');
             }]);
+
+        if ($forKids !== null) {
+            $query->where('is_for_kids', (bool) $forKids);
+        }
 
         if ($keyword !== '') {
             $query->where(function (Builder $q) use ($keyword) {

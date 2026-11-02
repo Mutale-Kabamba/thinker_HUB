@@ -45,7 +45,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
             
             {{-- Left Wide Hero Announcement Banner (~70% / 8 cols on LG) --}}
-            <div class="lg:col-span-8 flex flex-col justify-between space-y-2.5">
+            <div id="tour-student-hero" class="lg:col-span-8 flex flex-col justify-between space-y-2.5">
                 <div 
                     class="relative overflow-hidden rounded-2xl shadow-sm h-[300px] sm:h-[230px] md:h-[220px] min-h-[300px] sm:min-h-[230px] md:min-h-[220px] max-h-[300px] sm:max-h-[230px] md:max-h-[220px] grid" 
                     style="grid-template-areas: 'slide';"
@@ -166,7 +166,7 @@
             </div>
 
             {{-- Right "My ranking" Card (~30% / 4 cols on LG) --}}
-            <div class="lg:col-span-4 edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col justify-between">
+            <div id="tour-student-ranking" class="lg:col-span-4 edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col justify-between">
                 <div class="space-y-3">
                     <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">My ranking</h2>
 
@@ -215,7 +215,7 @@
             <div class="lg:col-span-8 space-y-5">
 
                 {{-- STATUS SECTION: 3 PASTEL KPI CARDS (MATERIALS, ASSIGNMENTS, ASSESSMENTS) --}}
-                <div class="space-y-3">
+                <div id="tour-student-status" class="space-y-3">
                     <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Status</h2>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -338,7 +338,7 @@
                 </div>
 
                 {{-- MY COURSES SECTION (TABLE / LIST) --}}
-                <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
+                <div id="tour-student-courses-card" class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
                         <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">My Courses</h2>
 
@@ -490,7 +490,7 @@
             <div class="lg:col-span-4 space-y-5">
                 
                 {{-- RIGHT RAIL TOP: STATUS MINI CALENDAR --}}
-                <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-3">
+                <div id="tour-student-calendar" class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-3">
                     <div class="flex items-center justify-between">
                         <div>
                             <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ $calendar['month'] ?? 'Schedule' }}</h2>
@@ -605,7 +605,7 @@
                 </div>
 
                 {{-- RIGHT RAIL BOTTOM: UPCOMING / SELECTED DAY TIMELINE --}}
-                <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
+                <div id="tour-student-agenda" class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
                         <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
                             @if ($selectedDate)

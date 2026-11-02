@@ -109,6 +109,14 @@ class ParentPanelProvider extends PanelProvider
                 ])->render(),
             )
             ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => view('filament.partials.portal-tour-button')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.partials.portal-tour', ['portal' => 'parent'])->render(),
+            )
+            ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn (): HtmlString => new HtmlString('
                     <script>
