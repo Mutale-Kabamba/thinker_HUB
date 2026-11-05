@@ -1,7 +1,7 @@
 <button
     type="button"
     onclick="window.startPortalTour && window.startPortalTour(true)"
-    class="portal-tour-trigger-btn inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gray-100/90 hover:bg-gray-200/90 dark:bg-gray-800/80 dark:hover:bg-gray-700/80 text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-gray-700/80 text-xs font-semibold transition cursor-pointer mr-2 shadow-xs"
+    class="portal-tour-trigger-btn hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gray-100/90 hover:bg-gray-200/90 dark:bg-gray-800/80 dark:hover:bg-gray-700/80 text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-gray-700/80 text-xs font-semibold transition cursor-pointer mr-2 shadow-xs"
     title="Take Portal Tour"
     aria-label="Take Portal Tour"
 >

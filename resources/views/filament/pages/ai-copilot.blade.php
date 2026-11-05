@@ -4,6 +4,15 @@
             height: calc(100vh - 12rem);
             min-height: 580px;
         }
+        @media (max-width: 1023px) {
+            .ai-screen-grid {
+                height: calc(100dvh - 7.5rem) !important;
+                max-height: calc(100dvh - 7.5rem) !important;
+                min-height: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+        }
         .ai-panel-box {
             display: flex;
             flex-direction: column;
@@ -171,11 +180,12 @@
                     <button
                         type="button"
                         wire:click="unpinToFloating"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold transition cursor-pointer border border-gray-200 dark:border-gray-700 shadow-2xs"
+                        class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold transition cursor-pointer border border-gray-200 dark:border-gray-700 shadow-2xs shrink-0"
                         title="Unpin from full page and switch to floating chat bot on dashboard"
                     >
                         <x-heroicon-o-arrows-pointing-out class="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                        <span>Unpin to Floating Bot</span>
+                        <span class="hidden sm:inline">Unpin to Floating Bot</span>
+                        <span class="sm:hidden">Unpin</span>
                     </button>
                 </div>
             </div>

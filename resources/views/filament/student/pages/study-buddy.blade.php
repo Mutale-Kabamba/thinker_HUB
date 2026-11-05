@@ -59,6 +59,15 @@
             }
         }
 
+        @media (max-width: 1023px) {
+            .ai-screen-grid {
+                height: calc(100dvh - 7.5rem) !important;
+                max-height: calc(100dvh - 7.5rem) !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+        }
+
         .ai-screen-grid {
             height: calc(100vh - 8.5rem);
             max-height: calc(100vh - 8.5rem);
@@ -165,9 +174,9 @@
         }
     </style>
 
-    <div class="ai-screen-grid grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- Left: Conversations Sidebar (Fixed Container) -->
-        <div class="ai-panel-box lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+    <div x-data="{ showMobileSessions: false }" class="ai-screen-grid grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
+        <!-- Left: Conversations Sidebar (Desktop Only) -->
+        <div class="ai-panel-box hidden lg:flex lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
             <div class="p-4 pb-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <x-heroicon-o-chat-bubble-left-right class="w-5 h-5 text-teal-600 dark:text-teal-400" />
@@ -176,7 +185,7 @@
                 <button
                     type="button"
                     wire:click="startNewConversation"
-                    class="inline-flex items-center space-x-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 transition"
+                    class="inline-flex items-center space-x-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 transition cursor-pointer"
                     title="Start New Study Session"
                 >
                     <x-heroicon-o-plus class="w-3.5 h-3.5" />
@@ -194,16 +203,16 @@
                         <button
                             type="button"
                             wire:click="selectConversation('{{ $conv->id }}')"
-                            class="flex-1 text-left truncate mr-2 focus:outline-none"
+                            class="flex-1 text-left truncate mr-2 focus:outline-none cursor-pointer"
                         >
-                            <span class="block truncate">{{ $conv->title ?: 'Study Session' }}</span>
+                            <span class="block truncate font-medium">{{ $conv->title ?: 'Study Session' }}</span>
                             <span class="block text-[10px] text-gray-400 mt-0.5">{{ $conv->updated_at->diffForHumans() }}</span>
                         </button>
                         <button
                             type="button"
                             wire:click.stop="deleteConversation('{{ $conv->id }}')"
                             wire:confirm="Are you sure you want to delete this study session?"
-                            class="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950 text-gray-400 hover:text-red-600 transition"
+                            class="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950 text-gray-400 hover:text-red-600 transition cursor-pointer"
                             title="Delete session"
                         >
                             <x-heroicon-o-trash class="w-3.5 h-3.5" />
@@ -219,49 +228,142 @@
             </div>
         </div>
 
-        <!-- Right: Active Chat Area (Fixed Container) -->
-        <div class="ai-panel-box lg:col-span-3 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
-            <!-- Top Controls (Fixed) -->
-            <div class="p-4 bg-gray-50/75 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center">
-                        <x-heroicon-o-sparkles class="w-4 h-4" />
+        <!-- Mobile Sessions Drawer Modal (Toggled via header button on mobile) -->
+        <div
+            x-show="showMobileSessions"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-3 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+            x-transition:leave-end="opacity-0 translate-y-3 scale-95"
+            class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs lg:hidden"
+            x-on:click.self="showMobileSessions = false"
+        >
+            <div class="w-full max-w-sm max-h-[80vh] bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col overflow-hidden">
+                <div class="p-3.5 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
+                    <div class="flex items-center space-x-2">
+                        <x-heroicon-o-chat-bubble-left-right class="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                        <span class="font-bold text-sm text-gray-900 dark:text-white">Past Study Sessions</span>
                     </div>
-                    <div>
-                        <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Socratic Study Companion</h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Contextually aware of your enrolled courses, schedule, and quiz reviews</p>
+                    <div class="flex items-center space-x-1.5">
+                        <button
+                            type="button"
+                            wire:click="startNewConversation"
+                            x-on:click="showMobileSessions = false"
+                            class="inline-flex items-center space-x-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 transition cursor-pointer"
+                        >
+                            <x-heroicon-o-plus class="w-3.5 h-3.5" />
+                            <span>New</span>
+                        </button>
+                        <button
+                            type="button"
+                            x-on:click="showMobileSessions = false"
+                            class="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition cursor-pointer"
+                            aria-label="Close"
+                        >
+                            <x-heroicon-o-x-mark class="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
 
-                <!-- Document Attachment Select & Controls -->
-                <div class="flex items-center space-x-3">
-                    <div class="flex items-center space-x-2">
-                        <label for="material-select" class="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
-                            <x-heroicon-o-paper-clip class="w-3.5 h-3.5" />
-                            <span>Grounding Material:</span>
-                        </label>
-                        <select
-                            id="material-select"
-                            wire:model="selectedMaterialId"
-                            class="text-xs rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-teal-500 focus:border-teal-500 py-1.5 pl-2.5 pr-8"
+                <div class="overflow-y-auto p-3 space-y-1.5 flex-1">
+                    @forelse ($conversations as $conv)
+                        <div
+                            wire:key="m-conv-{{ $conv->id }}"
+                            class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition cursor-pointer {{ $conversationId === $conv->id ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 font-semibold border border-teal-500/30' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}"
                         >
-                            <option value="">None (Use general course context)</option>
-                            @foreach ($materials as $mat)
-                                <option value="{{ $mat->id }}">
-                                    [{{ $mat->course?->code ?? 'Course' }}] {{ Str::limit($mat->title, 35) }}
-                                </option>
-                            @endforeach
-                        </select>
+                            <button
+                                type="button"
+                                wire:click="selectConversation('{{ $conv->id }}')"
+                                x-on:click="showMobileSessions = false"
+                                class="flex-1 text-left truncate mr-2 focus:outline-none cursor-pointer"
+                            >
+                                <span class="block truncate font-medium">{{ $conv->title ?: 'Study Session' }}</span>
+                                <span class="block text-[10px] text-gray-400 mt-0.5">{{ $conv->updated_at->diffForHumans() }}</span>
+                            </button>
+                            <button
+                                type="button"
+                                wire:click.stop="deleteConversation('{{ $conv->id }}')"
+                                wire:confirm="Are you sure you want to delete this study session?"
+                                class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950 text-gray-400 hover:text-red-600 transition cursor-pointer"
+                                title="Delete session"
+                            >
+                                <x-heroicon-o-trash class="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                    @empty
+                        <div class="text-center py-8 text-gray-400 text-xs">
+                            <x-heroicon-o-chat-bubble-bottom-center-text class="w-8 h-8 mx-auto text-gray-300 dark:text-gray-700 mb-2" />
+                            <p>No past study sessions</p>
+                            <p class="text-[10px] text-gray-400 mt-1">Start a new study session below</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Active Chat Area (Full width on mobile, 3 cols on desktop) -->
+        <div class="ai-panel-box col-span-1 lg:col-span-3 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <!-- Top Controls (Fixed) -->
+            <div class="p-3 sm:p-4 bg-gray-50/75 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 flex-shrink-0">
+                <div class="flex items-center justify-between sm:justify-start space-x-2">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                            <x-heroicon-o-sparkles class="w-4 h-4" />
+                        </div>
+                        <div>
+                            <h2 class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">AI Study Buddy</h2>
+                            <p class="hidden sm:block text-xs text-gray-500 dark:text-gray-400">Contextually aware of your enrolled courses, schedule, and quiz reviews</p>
+                        </div>
                     </div>
+
+                    <!-- Mobile Sessions Drawer Trigger Button (Only visible on mobile) -->
+                    <button
+                        type="button"
+                        x-on:click="showMobileSessions = true"
+                        class="lg:hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition border border-gray-200 dark:border-gray-700 shadow-2xs"
+                        title="View Study Sessions"
+                    >
+                        <x-heroicon-o-chat-bubble-left-right class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                        <span>Sessions ({{ $conversations->count() }})</span>
+                    </button>
+                </div>
+
+                <!-- Document Attachment Select & Controls -->
+                <div class="flex items-center justify-between sm:justify-end gap-2">
+                    @if ($materials->isNotEmpty())
+                        <div class="flex items-center space-x-1.5 flex-1 sm:flex-initial min-w-0">
+                            <label for="material-select" class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1 shrink-0">
+                                <x-heroicon-o-paper-clip class="w-3.5 h-3.5" />
+                                <span class="hidden md:inline">Grounding:</span>
+                                <span class="md:hidden">Note:</span>
+                            </label>
+                            <select
+                                id="material-select"
+                                wire:model="selectedMaterialId"
+                                class="text-[11px] sm:text-xs rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-teal-500 focus:border-teal-500 py-1 sm:py-1.5 pl-2 pr-7 truncate max-w-[170px] sm:max-w-none"
+                            >
+                                <option value="">General Course Context</option>
+                                @foreach ($materials as $mat)
+                                    <option value="{{ $mat->id }}">
+                                        [{{ $mat->course?->code ?? 'Course' }}] {{ Str::limit($mat->title, 25) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
 
                     <button
                         type="button"
                         wire:click="unpinToFloating"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold transition cursor-pointer border border-gray-200 dark:border-gray-700 shadow-2xs"
+                        class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold transition cursor-pointer border border-gray-200 dark:border-gray-700 shadow-2xs shrink-0"
                         title="Unpin from full page and switch to floating chat bot on dashboard"
                     >
                         <x-heroicon-o-arrows-pointing-out class="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                        <span>Unpin to Floating Bot</span>
+                        <span class="hidden sm:inline">Unpin to Floating Bot</span>
+                        <span class="sm:hidden">Unpin</span>
                     </button>
                 </div>
             </div>
@@ -294,29 +396,29 @@
                         </p>
 
                         <!-- Quick Starter Chips -->
-                        <div class="mt-6 flex flex-wrap justify-center gap-2">
+                        <div class="mt-5 flex flex-col sm:flex-row flex-wrap justify-center gap-2 max-w-lg mx-auto">
                             <button
                                 type="button"
                                 wire:click="sendMessage('Quiz me on my enrolled course topics')"
-                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-sm"
+                                class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-2xs hover:shadow-xs cursor-pointer text-left sm:text-center w-full sm:w-auto"
                             >
-                                <x-heroicon-o-question-mark-circle class="w-3.5 h-3.5 text-teal-600" />
+                                <x-heroicon-o-question-mark-circle class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
                                 <span>Quiz me on my enrolled course topics</span>
                             </button>
                             <button
                                 type="button"
                                 wire:click="sendMessage('Explain my mistakes from my last completed quiz')"
-                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-sm"
+                                class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-2xs hover:shadow-xs cursor-pointer text-left sm:text-center w-full sm:w-auto"
                             >
-                                <x-heroicon-o-document-magnifying-glass class="w-3.5 h-3.5 text-teal-600" />
+                                <x-heroicon-o-document-magnifying-glass class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
                                 <span>Explain my mistakes from my last completed quiz</span>
                             </button>
                             <button
                                 type="button"
                                 wire:click="sendMessage('What classes do I have coming up?')"
-                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-sm"
+                                class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-2xs hover:shadow-xs cursor-pointer text-left sm:text-center w-full sm:w-auto"
                             >
-                                <x-heroicon-o-calendar-days class="w-3.5 h-3.5 text-teal-600" />
+                                <x-heroicon-o-calendar-days class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
                                 <span>What classes do I have coming up?</span>
                             </button>
                         </div>
@@ -357,19 +459,19 @@
             </div>
 
             <!-- Input Bar (Fixed at Bottom) -->
-            <div class="p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
+            <div class="p-2.5 sm:p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
                 <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
                     <input
                         type="text"
                         wire:model="message"
                         wire:loading.attr="disabled"
-                        placeholder="Ask a question, request code feedback, or review a topic..."
-                        class="flex-1 px-4 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:opacity-60"
+                        placeholder="Ask Study Buddy a question, request a quiz, or review code..."
+                        class="flex-1 px-3.5 sm:px-4 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:opacity-60"
                     />
                     <button
                         type="submit"
                         wire:loading.attr="disabled"
-                        class="p-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500/50 shadow-sm shrink-0"
+                        class="p-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500/50 shadow-sm shrink-0 cursor-pointer"
                         title="Send Message"
                         aria-label="Send Message"
                     >
