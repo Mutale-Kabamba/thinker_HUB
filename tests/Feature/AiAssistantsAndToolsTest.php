@@ -2,10 +2,28 @@
 
 namespace Tests\Feature;
 
+use App\Ai\Agents\AdminSystemCopilot;
 use App\Ai\Agents\InstructorAssistant;
 use App\Ai\Agents\PublicCourseAdvisor;
 use App\Ai\Agents\StudentStudyBuddy;
+use App\Ai\Tools\Admin\DispatchSystemBroadcastTool;
+use App\Ai\Tools\Admin\ManagePlatformCoursesTool;
+use App\Ai\Tools\Admin\ManagePromoCodesTool;
+use App\Ai\Tools\Admin\ManageSystemEnrollmentsTool;
+use App\Ai\Tools\Admin\ManageUserAccountTool;
+use App\Ai\Tools\Admin\ProcessClaimRequestsTool;
+use App\Ai\Tools\Admin\ReviewInstructorApplicationsTool;
+use App\Ai\Tools\Admin\SystemFinanceAnalyticsTool;
+use App\Ai\Tools\Admin\SystemOverviewTool;
+use App\Ai\Tools\Instructor\CreateCourseSessionTool;
+use App\Ai\Tools\Instructor\GetCohortPerformanceSummaryTool;
+use App\Ai\Tools\Instructor\InspectQuizAnalyticsTool;
+use App\Ai\Tools\Instructor\ListInstructorSessionsTool;
 use App\Ai\Tools\Instructor\MarkSessionAttendanceTool;
+use App\Ai\Tools\Instructor\ReviewPendingSubmissionsTool;
+use App\Ai\Tools\Instructor\SearchCourseCurriculumTool;
+use App\Ai\Tools\Instructor\SearchStudentProgressTool;
+use App\Ai\Tools\Instructor\SendCohortBroadcastTool;
 use App\Ai\Tools\Instructor\UpdateCourseSessionTool;
 use App\Ai\Tools\Public\GetPlatformInfoTool;
 use App\Ai\Tools\Public\SearchArticlesTool;
@@ -13,15 +31,21 @@ use App\Ai\Tools\Public\SearchOpportunitiesTool;
 use App\Ai\Tools\Public\SearchPublicCoursesTool;
 use App\Ai\Tools\Student\ReviewCompletedQuizAttemptsTool;
 use App\Filament\Instructor\Pages\AiAssistant;
+use App\Filament\Pages\AiCopilot;
 use App\Filament\Student\Pages\StudyBuddy;
 use App\Livewire\Ai\PublicChatWidget;
+use App\Models\Assignment;
+use App\Models\AssignmentSubmission;
 use App\Models\Attendance;
+use App\Models\Broadcast;
 use App\Models\Course;
 use App\Models\CourseIntake;
 use App\Models\CourseSession;
 use App\Models\Enrollment;
 use App\Models\HubPost;
+use App\Models\InstructorApplication;
 use App\Models\Opportunity;
+use App\Models\Payment;
 use App\Models\Quiz;
 use App\Models\QuizAnswer;
 use App\Models\QuizAttempt;
@@ -456,5 +480,351 @@ class AiAssistantsAndToolsTest extends TestCase
         $this->assertStringContainsString('Getting Started with Laravel and Livewire', $result);
         $this->assertStringContainsString('Programming', $result);
         $this->assertStringNotContainsString('Draft Unpublished Post', $result);
+    }
+
+    public function test_instructor_assistant_registers_all_expanded_tools(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor', 'is_active' => true]);
+        $assistant = new InstructorAssistant($instructor, [10, 20]);
+        $tools = $assistant->tools();
+
+        $toolClasses = array_map(fn ($tool) => get_class($tool), $tools);
+
+        $this->assertContains(ListInstructorSessionsTool::class, $toolClasses);
+        $this->assertContains(MarkSessionAttendanceTool::class, $toolClasses);
+        $this->assertContains(UpdateCourseSessionTool::class, $toolClasses);
+        $this->assertContains(CreateCourseSessionTool::class, $toolClasses);
+        $this->assertContains(GetCohortPerformanceSummaryTool::class, $toolClasses);
+        $this->assertContains(SearchStudentProgressTool::class, $toolClasses);
+        $this->assertContains(ReviewPendingSubmissionsTool::class, $toolClasses);
+        $this->assertContains(InspectQuizAnalyticsTool::class, $toolClasses);
+        $this->assertContains(SendCohortBroadcastTool::class, $toolClasses);
+        $this->assertContains(SearchCourseCurriculumTool::class, $toolClasses);
+
+        $instructions = $assistant->instructions();
+        $this->assertStringContainsString('Student Progress', $instructions);
+        $this->assertStringContainsString('Assignment Grading', $instructions);
+        $this->assertStringContainsString('Quiz Performance', $instructions);
+        $this->assertStringContainsString('Cohort Broadcasts', $instructions);
+        $this->assertStringContainsString('Curriculum, Syllabus', $instructions);
+    }
+
+    public function test_search_student_progress_tool_finds_enrolled_student_with_attendance_and_quizzes(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor', 'is_active' => true]);
+        $student = User::factory()->create(['role' => 'student', 'name' => 'Chanda Mwansa', 'email' => 'chanda@example.com']);
+
+        $course = Course::query()->create([
+            'title' => 'Mobile App Engineering with Flutter',
+            'code' => 'FLT-200',
+            'course_by' => (string) $instructor->id,
+            'is_active' => true,
+        ]);
+
+        Enrollment::query()->create([
+            'course_id' => $course->id,
+            'user_id' => $student->id,
+            'status' => 'active',
+        ]);
+
+        $session = CourseSession::query()->create([
+            'course_id' => $course->id,
+            'instructor_id' => $instructor->id,
+            'title' => 'State Management in Flutter',
+            'session_date' => now()->toDateString(),
+            'start_time' => '09:00',
+            'end_time' => '11:00',
+            'status' => CourseSession::STATUS_COMPLETED,
+        ]);
+
+        Attendance::query()->create([
+            'course_session_id' => $session->id,
+            'user_id' => $student->id,
+            'status' => Attendance::STATUS_PRESENT,
+        ]);
+
+        $tool = new SearchStudentProgressTool($instructor, [$course->id]);
+        $result = (string) $tool->handle(new Request(['query' => 'Chanda']));
+
+        $this->assertStringContainsString('Chanda Mwansa', $result);
+        $this->assertStringContainsString('Mobile App Engineering with Flutter', $result);
+        $this->assertStringContainsString('"rate_percentage": 100', $result);
+    }
+
+    public function test_review_pending_submissions_tool_lists_and_grades_submission(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor', 'is_active' => true]);
+        $student = User::factory()->create(['role' => 'student', 'name' => 'Lupiya Banda']);
+
+        $course = Course::query()->create([
+            'title' => 'Full-Stack Web Dev',
+            'code' => 'FSW-100',
+            'course_by' => (string) $instructor->id,
+            'is_active' => true,
+        ]);
+
+        $assignment = Assignment::query()->create([
+            'course_id' => $course->id,
+            'name' => 'Build a REST API',
+            'description' => 'Create Laravel API endpoints with Sanctum auth',
+        ]);
+
+        $submission = AssignmentSubmission::query()->create([
+            'assignment_id' => $assignment->id,
+            'user_id' => $student->id,
+            'content' => 'https://github.com/lupiya/api-project',
+            'status' => 'Submitted',
+            'submitted_at' => now(),
+        ]);
+
+        $tool = new ReviewPendingSubmissionsTool($instructor, [$course->id]);
+
+        // 1. List pending submissions
+        $listResult = (string) $tool->handle(new Request(['status' => 'pending']));
+        $this->assertStringContainsString('Build a REST API', $listResult);
+        $this->assertStringContainsString('Lupiya Banda', $listResult);
+
+        // 2. Grade submission
+        $gradeResult = (string) $tool->handle(new Request([
+            'submission_id' => $submission->id,
+            'grade' => '92',
+            'feedback' => 'Excellent work on Sanctum authentication and API resource transformers!',
+        ]));
+
+        $this->assertStringContainsString('"success": true', $gradeResult);
+
+        $submission->refresh();
+        $this->assertEquals('92', $submission->grade);
+        $this->assertEquals('Graded', $submission->status);
+        $this->assertStringContainsString('Sanctum', $submission->feedback);
+    }
+
+    public function test_inspect_quiz_analytics_tool_summarizes_cohort_performance(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor', 'is_active' => true]);
+
+        $course = Course::query()->create([
+            'title' => 'Database Architecture',
+            'code' => 'DB-201',
+            'course_by' => (string) $instructor->id,
+            'is_active' => true,
+        ]);
+
+        $quiz = Quiz::query()->create([
+            'course_id' => $course->id,
+            'title' => 'SQL Indexing & Normalization Quiz',
+            'pass_percentage' => 70,
+            'is_active' => true,
+        ]);
+
+        $student1 = User::factory()->create(['role' => 'student', 'name' => 'Passed Student']);
+        $student2 = User::factory()->create(['role' => 'student', 'name' => 'Failed Student']);
+
+        Enrollment::query()->create(['course_id' => $course->id, 'user_id' => $student1->id, 'status' => 'active']);
+        Enrollment::query()->create(['course_id' => $course->id, 'user_id' => $student2->id, 'status' => 'active']);
+
+        QuizAttempt::query()->create([
+            'quiz_id' => $quiz->id,
+            'user_id' => $student1->id,
+            'score' => 85,
+            'total_points' => 100,
+            'percentage' => 85,
+            'passed' => true,
+            'completed_at' => now(),
+        ]);
+
+        QuizAttempt::query()->create([
+            'quiz_id' => $quiz->id,
+            'user_id' => $student2->id,
+            'score' => 45,
+            'total_points' => 100,
+            'percentage' => 45,
+            'passed' => false,
+            'completed_at' => now(),
+        ]);
+
+        $tool = new InspectQuizAnalyticsTool($instructor, [$course->id]);
+        $result = (string) $tool->handle(new Request(['quiz_id' => $quiz->id]));
+
+        $this->assertStringContainsString('SQL Indexing & Normalization Quiz', $result);
+        $this->assertStringContainsString('"average_score_percentage": 65', $result);
+        $this->assertStringContainsString('"pass_rate_percentage": 50', $result);
+        $this->assertStringContainsString('Failed Student', $result);
+    }
+
+    public function test_send_cohort_broadcast_tool_creates_broadcast_record(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor', 'is_active' => true]);
+
+        $course = Course::query()->create([
+            'title' => 'DevOps & Cloud Deployments',
+            'code' => 'DEV-401',
+            'course_by' => (string) $instructor->id,
+            'is_active' => true,
+        ]);
+
+        $student = User::factory()->create(['role' => 'student', 'email' => 'devops_student@example.com']);
+        Enrollment::query()->create(['course_id' => $course->id, 'user_id' => $student->id, 'status' => 'active']);
+
+        $tool = new SendCohortBroadcastTool($instructor, [$course->id]);
+        $result = (string) $tool->handle(new Request([
+            'course_id' => $course->id,
+            'subject' => 'Docker Lab Environment Update',
+            'message' => 'Please pull the latest container image before tomorrow morning class session.',
+        ]));
+
+        $this->assertStringContainsString('"success": true', $result);
+        $this->assertStringContainsString('Docker Lab Environment Update', $result);
+
+        $this->assertDatabaseHas('broadcasts', [
+            'course_id' => $course->id,
+            'user_id' => $instructor->id,
+            'subject' => 'Docker Lab Environment Update',
+        ]);
+    }
+
+    public function test_admin_system_copilot_registers_all_expanded_system_tools(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $copilot = new AdminSystemCopilot($admin);
+        $tools = $copilot->tools();
+
+        $toolClasses = array_map(fn ($tool) => get_class($tool), $tools);
+
+        $this->assertContains(SystemOverviewTool::class, $toolClasses);
+        $this->assertContains(ManageUserAccountTool::class, $toolClasses);
+        $this->assertContains(ReviewInstructorApplicationsTool::class, $toolClasses);
+        $this->assertContains(SystemFinanceAnalyticsTool::class, $toolClasses);
+        $this->assertContains(ManagePlatformCoursesTool::class, $toolClasses);
+        $this->assertContains(ManageSystemEnrollmentsTool::class, $toolClasses);
+        $this->assertContains(ManagePromoCodesTool::class, $toolClasses);
+        $this->assertContains(ProcessClaimRequestsTool::class, $toolClasses);
+        $this->assertContains(DispatchSystemBroadcastTool::class, $toolClasses);
+        $this->assertCount(9, $tools);
+
+        $this->assertStringContainsString('System-Level Manager and AI Operations Co-Pilot', $copilot->instructions());
+    }
+
+    public function test_system_overview_tool_aggregates_platform_vitals(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        User::factory()->count(2)->create(['role' => 'student', 'is_active' => true]);
+        User::factory()->create(['role' => 'instructor', 'is_active' => true]);
+
+        $course = Course::query()->create([
+            'title' => 'Executive Cloud Architecture',
+            'code' => 'CLD-900',
+            'course_by' => (string) $admin->id,
+            'is_active' => true,
+        ]);
+
+        Payment::query()->create([
+            'user_id' => $admin->id,
+            'course_id' => $course->id,
+            'payable_type' => Course::class,
+            'payable_id' => $course->id,
+            'amount' => 1500.00,
+            'currency' => 'ZMW',
+            'status' => 'completed',
+            'payment_method' => 'card',
+            'provider' => 'broadpay',
+            'reference' => 'TEST-PAY-001',
+        ]);
+
+        $tool = new SystemOverviewTool($admin);
+        $result = (string) $tool->handle(new Request);
+
+        $this->assertStringContainsString('"active_courses":', $result);
+        $this->assertStringContainsString('"total_users":', $result);
+        $this->assertStringContainsString('"all_time_revenue": 1500', $result);
+    }
+
+    public function test_manage_user_account_tool_searches_and_toggles_active(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $targetStudent = User::factory()->create([
+            'name' => 'Grace Hopper',
+            'email' => 'hopper@navy.gov',
+            'role' => 'student',
+            'is_active' => true,
+        ]);
+
+        $tool = new ManageUserAccountTool($admin);
+
+        // Search user
+        $searchResult = (string) $tool->handle(new Request([
+            'action' => 'search',
+            'query' => 'hopper',
+        ]));
+        $this->assertStringContainsString('Grace Hopper', $searchResult);
+        $this->assertStringContainsString('hopper@navy.gov', $searchResult);
+
+        // Toggle user inactive
+        $toggleResult = (string) $tool->handle(new Request([
+            'action' => 'toggle_active',
+            'user_id' => $targetStudent->id,
+        ]));
+        $this->assertStringContainsString('"is_active": false', $toggleResult);
+        $this->assertFalse($targetStudent->fresh()->is_active);
+
+        // Prevent self-deactivation
+        $selfToggleResult = (string) $tool->handle(new Request([
+            'action' => 'toggle_active',
+            'user_id' => $admin->id,
+        ]));
+        $this->assertStringContainsString('Security Error', $selfToggleResult);
+    }
+
+    public function test_review_instructor_applications_tool_approves_and_promotes_user(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $candidate = User::factory()->create([
+            'email' => 'alan.turing@thinkerhub.net',
+            'role' => 'student',
+            'is_active' => true,
+        ]);
+
+        $app = InstructorApplication::query()->create([
+            'name' => 'Alan Turing',
+            'email' => 'alan.turing@thinkerhub.net',
+            'proficiency' => 'Cryptography & Computation',
+            'qualifications' => 'PhD Mathematics, Cambridge',
+            'course_concept_note' => 'Foundational discrete computation structures and cryptographic primitives.',
+            'proposed_curriculum' => 'Weeks 1-12 comprehensive computing foundations.',
+            'proposed_course_name' => 'Foundations of Computer Science',
+            'status' => 'pending',
+            'user_id' => $candidate->id,
+        ]);
+
+        $tool = new ReviewInstructorApplicationsTool($admin);
+        $result = (string) $tool->handle(new Request([
+            'action' => 'approve',
+            'application_id' => $app->id,
+            'admin_notes' => 'Exceptional qualifications verified.',
+        ]));
+
+        $this->assertStringContainsString('"success": true', $result);
+        $this->assertStringContainsString('"status": "approved"', $result);
+
+        $this->assertEquals('approved', $app->fresh()->status);
+        $this->assertEquals('instructor', $candidate->fresh()->role);
+    }
+
+    public function test_admin_ai_copilot_page_renders_for_admin_and_denies_student(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $student = User::factory()->create(['role' => 'student', 'is_active' => true]);
+
+        $this->actingAs($student);
+        $this->assertFalse(AiCopilot::canAccess());
+
+        $this->actingAs($admin);
+        $this->assertTrue(AiCopilot::canAccess());
+
+        Livewire::test(AiCopilot::class)
+            ->assertSuccessful()
+            ->assertSee('Executive AI System Co-Pilot')
+            ->assertSee('Admin Threads')
+            ->assertSee('System Broadcast');
     }
 }
