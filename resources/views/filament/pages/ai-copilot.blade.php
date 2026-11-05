@@ -5,6 +5,9 @@
             min-height: 580px;
         }
         @media (max-width: 1023px) {
+            .ai-sessions-sidebar {
+                display: none !important;
+            }
             .ai-screen-grid {
                 height: calc(100dvh - 7.5rem) !important;
                 max-height: calc(100dvh - 7.5rem) !important;
@@ -107,7 +110,7 @@
 
     <div class="ai-screen-grid grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Left: Conversations Sidebar (Fixed Container) -->
-        <div class="ai-panel-box lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+        <div class="ai-sessions-sidebar ai-panel-box hidden lg:flex lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
             <div class="p-4 pb-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <x-heroicon-o-chat-bubble-left-right class="w-5 h-5 text-teal-600 dark:text-teal-400" />

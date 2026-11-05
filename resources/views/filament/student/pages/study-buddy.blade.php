@@ -60,9 +60,49 @@
         }
 
         @media (max-width: 1023px) {
+            html, body {
+                height: 100dvh !important;
+                max-height: 100dvh !important;
+                overflow: hidden !important;
+            }
+            .fi-layout, .fi-main-ctn {
+                height: 100dvh !important;
+                max-height: 100dvh !important;
+                overflow: hidden !important;
+            }
+            .fi-header {
+                display: none !important;
+            }
+            .fi-page-header-main-ctn {
+                gap: 0 !important;
+                height: 100% !important;
+                max-height: 100% !important;
+            }
+            .fi-main {
+                height: 100% !important;
+                max-height: 100% !important;
+                padding: 0.35rem 0.5rem !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            .fi-page, .fi-page-main, .fi-page-content {
+                height: 100% !important;
+                max-height: 100% !important;
+                flex: 1 1 0% !important;
+                min-height: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+            }
+            .ai-sessions-sidebar {
+                display: none !important;
+            }
             .ai-screen-grid {
-                height: calc(100dvh - 7.5rem) !important;
-                max-height: calc(100dvh - 7.5rem) !important;
+                height: 100% !important;
+                max-height: 100% !important;
+                flex: 1 1 0% !important;
+                min-height: 0 !important;
                 display: flex !important;
                 flex-direction: column !important;
             }
@@ -76,12 +116,12 @@
         }
 
         .ai-panel-box {
-            height: 100% !important;
-            max-height: 100% !important;
-            min-height: 0 !important;
-            overflow: hidden !important;
-            display: flex !important;
-            flex-direction: column !important;
+            height: 100%;
+            max-height: 100%;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .ai-scroll-area {
@@ -176,7 +216,7 @@
 
     <div x-data="{ showMobileSessions: false }" class="ai-screen-grid grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
         <!-- Left: Conversations Sidebar (Desktop Only) -->
-        <div class="ai-panel-box hidden lg:flex lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+        <div class="ai-sessions-sidebar ai-panel-box hidden lg:flex lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
             <div class="p-4 pb-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <x-heroicon-o-chat-bubble-left-right class="w-5 h-5 text-teal-600 dark:text-teal-400" />
@@ -307,65 +347,74 @@
         <!-- Right: Active Chat Area (Full width on mobile, 3 cols on desktop) -->
         <div class="ai-panel-box col-span-1 lg:col-span-3 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
             <!-- Top Controls (Fixed) -->
-            <div class="p-3 sm:p-4 bg-gray-50/75 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 flex-shrink-0">
-                <div class="flex items-center justify-between sm:justify-start space-x-2">
-                    <div class="flex items-center space-x-2">
+            <div class="px-3.5 py-2.5 sm:p-4 bg-gray-50/80 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-800 flex flex-col gap-2 flex-shrink-0">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center space-x-2 min-w-0">
                         <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
                             <x-heroicon-o-sparkles class="w-4 h-4" />
                         </div>
-                        <div>
-                            <h2 class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">AI Study Buddy</h2>
+                        <div class="truncate">
+                            <h2 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate">AI Study Buddy</h2>
                             <p class="hidden sm:block text-xs text-gray-500 dark:text-gray-400">Contextually aware of your enrolled courses, schedule, and quiz reviews</p>
                         </div>
                     </div>
 
-                    <!-- Mobile Sessions Drawer Trigger Button (Only visible on mobile) -->
-                    <button
-                        type="button"
-                        x-on:click="showMobileSessions = true"
-                        class="lg:hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition border border-gray-200 dark:border-gray-700 shadow-2xs"
-                        title="View Study Sessions"
-                    >
-                        <x-heroicon-o-chat-bubble-left-right class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-                        <span>Sessions ({{ $conversations->count() }})</span>
-                    </button>
+                    <!-- Mobile Sessions Drawer & Unpin Quick Actions -->
+                    <div class="flex items-center space-x-1.5 shrink-0">
+                        <button
+                            type="button"
+                            x-on:click="showMobileSessions = true"
+                            class="lg:hidden inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 shadow-2xs hover:bg-gray-50 transition cursor-pointer"
+                            title="View Study Sessions"
+                        >
+                            <x-heroicon-o-chat-bubble-left-right class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                            <span>Sessions ({{ $conversations->count() }})</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            wire:click="unpinToFloating"
+                            class="lg:hidden inline-flex items-center justify-center p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition cursor-pointer border border-gray-200 dark:border-gray-700 shadow-2xs"
+                            title="Unpin to Floating Bot on Dashboard"
+                            aria-label="Unpin"
+                        >
+                            <x-heroicon-o-arrows-pointing-out class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                        </button>
+
+                        <button
+                            type="button"
+                            wire:click="unpinToFloating"
+                            class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold transition cursor-pointer border border-gray-200 dark:border-gray-700 shadow-2xs shrink-0"
+                            title="Unpin from full page and switch to floating chat bot on dashboard"
+                        >
+                            <x-heroicon-o-arrows-pointing-out class="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                            <span>Unpin to Floating Bot</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Document Attachment Select & Controls -->
-                <div class="flex items-center justify-between sm:justify-end gap-2">
-                    @if ($materials->isNotEmpty())
-                        <div class="flex items-center space-x-1.5 flex-1 sm:flex-initial min-w-0">
-                            <label for="material-select" class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1 shrink-0">
-                                <x-heroicon-o-paper-clip class="w-3.5 h-3.5" />
-                                <span class="hidden md:inline">Grounding:</span>
-                                <span class="md:hidden">Note:</span>
-                            </label>
-                            <select
-                                id="material-select"
-                                wire:model="selectedMaterialId"
-                                class="text-[11px] sm:text-xs rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-teal-500 focus:border-teal-500 py-1 sm:py-1.5 pl-2 pr-7 truncate max-w-[170px] sm:max-w-none"
-                            >
-                                <option value="">General Course Context</option>
-                                @foreach ($materials as $mat)
-                                    <option value="{{ $mat->id }}">
-                                        [{{ $mat->course?->code ?? 'Course' }}] {{ Str::limit($mat->title, 25) }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @endif
-
-                    <button
-                        type="button"
-                        wire:click="unpinToFloating"
-                        class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold transition cursor-pointer border border-gray-200 dark:border-gray-700 shadow-2xs shrink-0"
-                        title="Unpin from full page and switch to floating chat bot on dashboard"
-                    >
-                        <x-heroicon-o-arrows-pointing-out class="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                        <span class="hidden sm:inline">Unpin to Floating Bot</span>
-                        <span class="sm:hidden">Unpin</span>
-                    </button>
-                </div>
+                <!-- Grounding Notes Select Row (Clean on mobile, compact on desktop) -->
+                @if ($materials->isNotEmpty())
+                    <div class="flex items-center space-x-1.5 min-w-0 pt-0.5 border-t border-gray-100 dark:border-gray-800/60 lg:border-t-0 lg:pt-0">
+                        <label for="material-select" class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1 shrink-0 font-medium">
+                            <x-heroicon-o-paper-clip class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                            <span class="hidden sm:inline">Grounding Context:</span>
+                            <span class="sm:hidden">Context:</span>
+                        </label>
+                        <select
+                            id="material-select"
+                            wire:model="selectedMaterialId"
+                            class="text-[11px] sm:text-xs rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-teal-500 focus:border-teal-500 py-1 pl-2 pr-7 truncate flex-1 max-w-full sm:max-w-xs"
+                        >
+                            <option value="">General Course Context</option>
+                            @foreach ($materials as $mat)
+                                <option value="{{ $mat->id }}">
+                                    [{{ $mat->course?->code ?? 'Course' }}] {{ Str::limit($mat->title, 30) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
             </div>
 
             <!-- Error Banner (Fixed if present) -->
@@ -386,39 +435,39 @@
                 class="ai-scroll-area p-5 space-y-4 bg-gray-50/40 dark:bg-gray-950/20"
             >
                 @if ($messages->isEmpty())
-                    <div class="max-w-xl mx-auto py-10 text-center">
-                        <div class="w-14 h-14 mx-auto rounded-2xl bg-teal-50 dark:bg-teal-950 text-teal-600 dark:text-teal-400 flex items-center justify-center mb-4 border border-teal-200 dark:border-teal-800">
-                            <x-heroicon-o-academic-cap class="w-7 h-7" />
+                    <div class="max-w-xl mx-auto py-3 sm:py-8 text-center px-1 sm:px-4">
+                        <div class="w-10 h-10 sm:w-14 sm:h-14 mx-auto rounded-2xl bg-teal-50 dark:bg-teal-950 text-teal-600 dark:text-teal-400 flex items-center justify-center mb-2 sm:mb-4 border border-teal-200 dark:border-teal-800">
+                            <x-heroicon-o-academic-cap class="w-5 h-5 sm:w-7 sm:h-7" />
                         </div>
-                        <h3 class="text-base font-semibold text-gray-900 dark:text-white">How can I help you study today?</h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                            I can quiz you on key topics, break down programming concepts, explain your mistakes from past quizzes, or look up your upcoming lecture schedule.
+                        <h3 class="text-sm sm:text-base font-bold text-gray-900 dark:text-white">How can I help you study today?</h3>
+                        <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto leading-relaxed">
+                            I can quiz you on course concepts, explain quiz mistakes, break down assignments, or check your upcoming schedule.
                         </p>
 
                         <!-- Quick Starter Chips -->
-                        <div class="mt-5 flex flex-col sm:flex-row flex-wrap justify-center gap-2 max-w-lg mx-auto">
+                        <div class="mt-3 sm:mt-5 flex flex-col sm:flex-row flex-wrap justify-center gap-1.5 sm:gap-2 max-w-lg mx-auto">
                             <button
                                 type="button"
                                 wire:click="sendMessage('Quiz me on my enrolled course topics')"
-                                class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-2xs hover:shadow-xs cursor-pointer text-left sm:text-center w-full sm:w-auto"
+                                class="inline-flex items-center space-x-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-2xs hover:shadow-xs cursor-pointer text-left sm:text-center w-full sm:w-auto"
                             >
-                                <x-heroicon-o-question-mark-circle class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                                <x-heroicon-o-question-mark-circle class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-600 dark:text-teal-400 shrink-0" />
                                 <span>Quiz me on my enrolled course topics</span>
                             </button>
                             <button
                                 type="button"
                                 wire:click="sendMessage('Explain my mistakes from my last completed quiz')"
-                                class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-2xs hover:shadow-xs cursor-pointer text-left sm:text-center w-full sm:w-auto"
+                                class="inline-flex items-center space-x-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-2xs hover:shadow-xs cursor-pointer text-left sm:text-center w-full sm:w-auto"
                             >
-                                <x-heroicon-o-document-magnifying-glass class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                                <x-heroicon-o-document-magnifying-glass class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-600 dark:text-teal-400 shrink-0" />
                                 <span>Explain my mistakes from my last completed quiz</span>
                             </button>
                             <button
                                 type="button"
                                 wire:click="sendMessage('What classes do I have coming up?')"
-                                class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-2xs hover:shadow-xs cursor-pointer text-left sm:text-center w-full sm:w-auto"
+                                class="inline-flex items-center space-x-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 text-gray-700 dark:text-gray-300 transition shadow-2xs hover:shadow-xs cursor-pointer text-left sm:text-center w-full sm:w-auto"
                             >
-                                <x-heroicon-o-calendar-days class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                                <x-heroicon-o-calendar-days class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-600 dark:text-teal-400 shrink-0" />
                                 <span>What classes do I have coming up?</span>
                             </button>
                         </div>

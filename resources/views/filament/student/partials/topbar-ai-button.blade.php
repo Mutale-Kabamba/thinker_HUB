@@ -9,7 +9,7 @@
         x-data
         x-on:click.prevent="$dispatch('toggle-portal-ai-floating')"
     @endif
-    class="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/60 dark:hover:bg-teal-900/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-xs font-semibold transition mr-1 sm:mr-2 cursor-pointer shadow-2xs shrink-0"
+    class="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/60 dark:hover:bg-teal-900/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-xs font-semibold transition ml-2.5 sm:ml-0 mr-1 sm:mr-2 cursor-pointer shadow-2xs shrink-0"
     title="{{ $isUnpinned && ! $isFullAiPage ? 'Toggle Floating Study Buddy' : 'Open AI Study Buddy' }}"
     aria-label="AI Study Buddy"
 >

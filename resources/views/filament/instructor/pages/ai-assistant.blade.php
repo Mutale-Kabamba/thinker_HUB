@@ -60,9 +60,49 @@
         }
 
         @media (max-width: 1023px) {
+            html, body {
+                height: 100dvh !important;
+                max-height: 100dvh !important;
+                overflow: hidden !important;
+            }
+            .fi-layout, .fi-main-ctn {
+                height: 100dvh !important;
+                max-height: 100dvh !important;
+                overflow: hidden !important;
+            }
+            .fi-header {
+                display: none !important;
+            }
+            .fi-page-header-main-ctn {
+                gap: 0 !important;
+                height: 100% !important;
+                max-height: 100% !important;
+            }
+            .fi-main {
+                height: 100% !important;
+                max-height: 100% !important;
+                padding: 0.35rem 0.5rem !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            .fi-page, .fi-page-main, .fi-page-content {
+                height: 100% !important;
+                max-height: 100% !important;
+                flex: 1 1 0% !important;
+                min-height: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+            }
+            .ai-sessions-sidebar {
+                display: none !important;
+            }
             .ai-screen-grid {
-                height: calc(100dvh - 7.5rem) !important;
-                max-height: calc(100dvh - 7.5rem) !important;
+                height: 100% !important;
+                max-height: 100% !important;
+                flex: 1 1 0% !important;
+                min-height: 0 !important;
                 display: flex !important;
                 flex-direction: column !important;
             }
@@ -76,12 +116,12 @@
         }
 
         .ai-panel-box {
-            height: 100% !important;
-            max-height: 100% !important;
-            min-height: 0 !important;
-            overflow: hidden !important;
-            display: flex !important;
-            flex-direction: column !important;
+            height: 100%;
+            max-height: 100%;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .ai-scroll-area {
@@ -176,7 +216,7 @@
 
     <div class="ai-screen-grid grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Left: Conversations Sidebar (Fixed Container) -->
-        <div class="ai-panel-box lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+        <div class="ai-sessions-sidebar ai-panel-box hidden lg:flex lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
             <div class="p-4 pb-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <x-heroicon-o-chat-bubble-left-right class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />

@@ -9,7 +9,7 @@
         x-data
         x-on:click.prevent="$dispatch('toggle-portal-ai-floating')"
     @endif
-    class="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-semibold transition mr-1 sm:mr-2 cursor-pointer shadow-2xs shrink-0"
+    class="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-semibold transition ml-2.5 sm:ml-0 mr-1 sm:mr-2 cursor-pointer shadow-2xs shrink-0"
     title="{{ $isUnpinned && ! $isFullAiPage ? 'Toggle Floating AI Co-Pilot' : 'Open Instructor AI Co-Pilot' }}"
     aria-label="Instructor AI Co-Pilot"
 >
