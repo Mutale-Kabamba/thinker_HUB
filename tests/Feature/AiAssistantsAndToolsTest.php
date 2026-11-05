@@ -912,7 +912,7 @@ class AiAssistantsAndToolsTest extends TestCase
             ->call('sendMessage')
             ->assertDispatched('message-sent');
 
-        $this->assertDatabaseHas('conversations', [
+        $this->assertDatabaseHas((new \Laravel\Ai\Models\Conversation)->getTable(), [
             'participant_id' => (string) $admin->id,
         ]);
     }

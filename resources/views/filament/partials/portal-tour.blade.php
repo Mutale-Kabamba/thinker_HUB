@@ -245,8 +245,12 @@
         driverObj.drive();
     };
 
-    // Auto-launch on first visit if not completed
+    // Auto-launch on first visit if not completed (desktop only, disabled on mobile)
     function checkAutoLaunch() {
+        if (window.innerWidth < 640) {
+            return;
+        }
+
         let localCompleted = false;
         try {
             localCompleted = localStorage.getItem('thinker_tour_' + portal) === 'completed';
