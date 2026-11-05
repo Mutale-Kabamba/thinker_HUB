@@ -658,6 +658,15 @@ class PortalTourService
                 ],
             ],
             [
+                'element' => 'a[href*="/manage/ai-copilot"], .fi-sidebar-item:has(a[href*="ai-copilot"]), a[title*="Admin AI System Co-Pilot"]',
+                'popover' => [
+                    'title' => 'Executive AI System Co-Pilot',
+                    'description' => 'Your system-level AI operational manager. Command platform vitals, audit finances, review instructor applications, manage user accounts, and dispatch announcements.',
+                    'side' => 'right',
+                    'align' => 'start',
+                ],
+            ],
+            [
                 'element' => 'a[href*="/manage/settings"], .fi-sidebar-item:has(a[href*="settings"])',
                 'popover' => [
                     'title' => 'Platform Settings & Security',

@@ -2,9 +2,19 @@
 
 namespace Tests\Feature;
 
+use App\Ai\Agents\AdminSystemCopilot;
 use App\Ai\Agents\InstructorAssistant;
 use App\Ai\Agents\PublicCourseAdvisor;
 use App\Ai\Agents\StudentStudyBuddy;
+use App\Ai\Tools\Admin\DispatchSystemBroadcastTool;
+use App\Ai\Tools\Admin\ManagePlatformCoursesTool;
+use App\Ai\Tools\Admin\ManagePromoCodesTool;
+use App\Ai\Tools\Admin\ManageSystemEnrollmentsTool;
+use App\Ai\Tools\Admin\ManageUserAccountTool;
+use App\Ai\Tools\Admin\ProcessClaimRequestsTool;
+use App\Ai\Tools\Admin\ReviewInstructorApplicationsTool;
+use App\Ai\Tools\Admin\SystemFinanceAnalyticsTool;
+use App\Ai\Tools\Admin\SystemOverviewTool;
 use App\Ai\Tools\Instructor\CreateCourseSessionTool;
 use App\Ai\Tools\Instructor\GetCohortPerformanceSummaryTool;
 use App\Ai\Tools\Instructor\InspectQuizAnalyticsTool;
@@ -21,6 +31,7 @@ use App\Ai\Tools\Public\SearchOpportunitiesTool;
 use App\Ai\Tools\Public\SearchPublicCoursesTool;
 use App\Ai\Tools\Student\ReviewCompletedQuizAttemptsTool;
 use App\Filament\Instructor\Pages\AiAssistant;
+use App\Filament\Pages\AiCopilot;
 use App\Filament\Student\Pages\StudyBuddy;
 use App\Livewire\Ai\PublicChatWidget;
 use App\Models\Assignment;
@@ -32,7 +43,9 @@ use App\Models\CourseIntake;
 use App\Models\CourseSession;
 use App\Models\Enrollment;
 use App\Models\HubPost;
+use App\Models\InstructorApplication;
 use App\Models\Opportunity;
+use App\Models\Payment;
 use App\Models\Quiz;
 use App\Models\QuizAnswer;
 use App\Models\QuizAttempt;
@@ -668,5 +681,150 @@ class AiAssistantsAndToolsTest extends TestCase
             'user_id' => $instructor->id,
             'subject' => 'Docker Lab Environment Update',
         ]);
+    }
+
+    public function test_admin_system_copilot_registers_all_expanded_system_tools(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $copilot = new AdminSystemCopilot($admin);
+        $tools = $copilot->tools();
+
+        $toolClasses = array_map(fn ($tool) => get_class($tool), $tools);
+
+        $this->assertContains(SystemOverviewTool::class, $toolClasses);
+        $this->assertContains(ManageUserAccountTool::class, $toolClasses);
+        $this->assertContains(ReviewInstructorApplicationsTool::class, $toolClasses);
+        $this->assertContains(SystemFinanceAnalyticsTool::class, $toolClasses);
+        $this->assertContains(ManagePlatformCoursesTool::class, $toolClasses);
+        $this->assertContains(ManageSystemEnrollmentsTool::class, $toolClasses);
+        $this->assertContains(ManagePromoCodesTool::class, $toolClasses);
+        $this->assertContains(ProcessClaimRequestsTool::class, $toolClasses);
+        $this->assertContains(DispatchSystemBroadcastTool::class, $toolClasses);
+        $this->assertCount(9, $tools);
+
+        $this->assertStringContainsString('System-Level Manager and AI Operations Co-Pilot', $copilot->instructions());
+    }
+
+    public function test_system_overview_tool_aggregates_platform_vitals(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        User::factory()->count(2)->create(['role' => 'student', 'is_active' => true]);
+        User::factory()->create(['role' => 'instructor', 'is_active' => true]);
+
+        $course = Course::query()->create([
+            'title' => 'Executive Cloud Architecture',
+            'code' => 'CLD-900',
+            'course_by' => (string) $admin->id,
+            'is_active' => true,
+        ]);
+
+        Payment::query()->create([
+            'user_id' => $admin->id,
+            'course_id' => $course->id,
+            'payable_type' => Course::class,
+            'payable_id' => $course->id,
+            'amount' => 1500.00,
+            'currency' => 'ZMW',
+            'status' => 'completed',
+            'payment_method' => 'card',
+            'provider' => 'broadpay',
+            'reference' => 'TEST-PAY-001',
+        ]);
+
+        $tool = new SystemOverviewTool($admin);
+        $result = (string) $tool->handle(new Request);
+
+        $this->assertStringContainsString('"active_courses":', $result);
+        $this->assertStringContainsString('"total_users":', $result);
+        $this->assertStringContainsString('"all_time_revenue": 1500', $result);
+    }
+
+    public function test_manage_user_account_tool_searches_and_toggles_active(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $targetStudent = User::factory()->create([
+            'name' => 'Grace Hopper',
+            'email' => 'hopper@navy.gov',
+            'role' => 'student',
+            'is_active' => true,
+        ]);
+
+        $tool = new ManageUserAccountTool($admin);
+
+        // Search user
+        $searchResult = (string) $tool->handle(new Request([
+            'action' => 'search',
+            'query' => 'hopper',
+        ]));
+        $this->assertStringContainsString('Grace Hopper', $searchResult);
+        $this->assertStringContainsString('hopper@navy.gov', $searchResult);
+
+        // Toggle user inactive
+        $toggleResult = (string) $tool->handle(new Request([
+            'action' => 'toggle_active',
+            'user_id' => $targetStudent->id,
+        ]));
+        $this->assertStringContainsString('"is_active": false', $toggleResult);
+        $this->assertFalse($targetStudent->fresh()->is_active);
+
+        // Prevent self-deactivation
+        $selfToggleResult = (string) $tool->handle(new Request([
+            'action' => 'toggle_active',
+            'user_id' => $admin->id,
+        ]));
+        $this->assertStringContainsString('Security Error', $selfToggleResult);
+    }
+
+    public function test_review_instructor_applications_tool_approves_and_promotes_user(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $candidate = User::factory()->create([
+            'email' => 'alan.turing@thinkerhub.net',
+            'role' => 'student',
+            'is_active' => true,
+        ]);
+
+        $app = InstructorApplication::query()->create([
+            'name' => 'Alan Turing',
+            'email' => 'alan.turing@thinkerhub.net',
+            'proficiency' => 'Cryptography & Computation',
+            'qualifications' => 'PhD Mathematics, Cambridge',
+            'course_concept_note' => 'Foundational discrete computation structures and cryptographic primitives.',
+            'proposed_curriculum' => 'Weeks 1-12 comprehensive computing foundations.',
+            'proposed_course_name' => 'Foundations of Computer Science',
+            'status' => 'pending',
+            'user_id' => $candidate->id,
+        ]);
+
+        $tool = new ReviewInstructorApplicationsTool($admin);
+        $result = (string) $tool->handle(new Request([
+            'action' => 'approve',
+            'application_id' => $app->id,
+            'admin_notes' => 'Exceptional qualifications verified.',
+        ]));
+
+        $this->assertStringContainsString('"success": true', $result);
+        $this->assertStringContainsString('"status": "approved"', $result);
+
+        $this->assertEquals('approved', $app->fresh()->status);
+        $this->assertEquals('instructor', $candidate->fresh()->role);
+    }
+
+    public function test_admin_ai_copilot_page_renders_for_admin_and_denies_student(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $student = User::factory()->create(['role' => 'student', 'is_active' => true]);
+
+        $this->actingAs($student);
+        $this->assertFalse(AiCopilot::canAccess());
+
+        $this->actingAs($admin);
+        $this->assertTrue(AiCopilot::canAccess());
+
+        Livewire::test(AiCopilot::class)
+            ->assertSuccessful()
+            ->assertSee('Executive AI System Co-Pilot')
+            ->assertSee('Admin Threads')
+            ->assertSee('System Broadcast');
     }
 }

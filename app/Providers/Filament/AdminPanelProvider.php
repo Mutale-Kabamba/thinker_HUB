@@ -118,7 +118,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
-                fn (): string => view('filament.partials.portal-tour-button')->render(),
+                fn (): string => view('filament.partials.portal-tour-button')->render() . view('filament.admin.partials.topbar-ai-button')->render(),
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,

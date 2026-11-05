@@ -40,7 +40,7 @@ class PublicChatWidget extends Component
         }
 
         if (! app()->runningInConsole()) {
-            @set_time_limit(25);
+            @set_time_limit(60);
         }
 
         $ip = request()->ip() ?? '127.0.0.1';
@@ -60,7 +60,7 @@ class PublicChatWidget extends Component
                 try {
                     $history = array_slice($this->messages, -10);
                     $agent = new PublicCourseAdvisor(history: array_slice($history, 0, -1));
-                    $response = $agent->prompt($input);
+                    $response = $agent->prompt($input, timeout: 12);
 
                     $replyText = trim((string) $response);
                     if ($replyText === '') {
