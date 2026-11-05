@@ -51,6 +51,11 @@ class StudyBuddy extends Page
 
     public function mount(): void
     {
+        session([
+            'ai_unpinned_student' => false,
+            'ai_floating_open_student' => false,
+        ]);
+
         $user = auth()->user();
 
         if ($this->conversationId && $user) {
@@ -64,6 +69,23 @@ class StudyBuddy extends Page
                 $this->conversationId = null;
             }
         }
+    }
+
+    public function unpinToFloating()
+    {
+        session([
+            'ai_unpinned_student' => true,
+            'ai_floating_open_student' => true,
+            'ai_conversation_student' => $this->conversationId,
+        ]);
+
+        Notification::make()
+            ->title('Study Buddy Unpinned')
+            ->body('Operating as a floating bot on your student dashboard.')
+            ->success()
+            ->send();
+
+        return redirect()->to(url('/learn'));
     }
 
     public function startNewConversation(): void

@@ -233,24 +233,36 @@
                     </div>
                 </div>
 
-                <!-- Document Attachment Select -->
-                <div class="flex items-center space-x-2">
-                    <label for="material-select" class="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
-                        <x-heroicon-o-paper-clip class="w-3.5 h-3.5" />
-                        <span>Grounding Material:</span>
-                    </label>
-                    <select
-                        id="material-select"
-                        wire:model="selectedMaterialId"
-                        class="text-xs rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-teal-500 focus:border-teal-500 py-1.5 pl-2.5 pr-8"
+                <!-- Document Attachment Select & Controls -->
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2">
+                        <label for="material-select" class="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
+                            <x-heroicon-o-paper-clip class="w-3.5 h-3.5" />
+                            <span>Grounding Material:</span>
+                        </label>
+                        <select
+                            id="material-select"
+                            wire:model="selectedMaterialId"
+                            class="text-xs rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-teal-500 focus:border-teal-500 py-1.5 pl-2.5 pr-8"
+                        >
+                            <option value="">None (Use general course context)</option>
+                            @foreach ($materials as $mat)
+                                <option value="{{ $mat->id }}">
+                                    [{{ $mat->course?->code ?? 'Course' }}] {{ Str::limit($mat->title, 35) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <button
+                        type="button"
+                        wire:click="unpinToFloating"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold transition cursor-pointer border border-gray-200 dark:border-gray-700 shadow-2xs"
+                        title="Unpin from full page and switch to floating chat bot on dashboard"
                     >
-                        <option value="">None (Use general course context)</option>
-                        @foreach ($materials as $mat)
-                            <option value="{{ $mat->id }}">
-                                [{{ $mat->course?->code ?? 'Course' }}] {{ Str::limit($mat->title, 35) }}
-                            </option>
-                        @endforeach
-                    </select>
+                        <x-heroicon-o-arrows-pointing-out class="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                        <span>Unpin to Floating Bot</span>
+                    </button>
                 </div>
             </div>
 

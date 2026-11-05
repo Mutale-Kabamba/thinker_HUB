@@ -124,6 +124,10 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_END,
                 fn (): string => view('filament.partials.portal-tour', ['portal' => 'admin'])->render(),
             )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.partials.floating-ai-widget', ['portal' => 'admin'])->render(),
+            )
             // FIX 2: Handle expired CSRF tokens / sessions cleanly instead of showing page load errors
             ->renderHook(
                 PanelsRenderHook::BODY_END,

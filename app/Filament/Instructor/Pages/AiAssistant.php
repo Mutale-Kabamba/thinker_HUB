@@ -41,6 +41,11 @@ class AiAssistant extends Page
 
     public function mount(): void
     {
+        session([
+            'ai_unpinned_instructor' => false,
+            'ai_floating_open_instructor' => false,
+        ]);
+
         $user = auth()->user();
 
         if ($this->conversationId && $user) {
@@ -54,6 +59,23 @@ class AiAssistant extends Page
                 $this->conversationId = null;
             }
         }
+    }
+
+    public function unpinToFloating()
+    {
+        session([
+            'ai_unpinned_instructor' => true,
+            'ai_floating_open_instructor' => true,
+            'ai_conversation_instructor' => $this->conversationId,
+        ]);
+
+        Notification::make()
+            ->title('Instructor AI Co-Pilot Unpinned')
+            ->body('Operating as a floating bot on your instructor dashboard.')
+            ->success()
+            ->send();
+
+        return redirect()->to(url('/teach'));
     }
 
     public function startNewConversation(): void

@@ -119,6 +119,10 @@ class StudentPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_END,
                 fn (): string => view('filament.partials.portal-tour', ['portal' => 'student'])->render(),
             )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.partials.floating-ai-widget', ['portal' => 'student'])->render(),
+            )
             // FIX 2: Gracefully handle expired CSRF/sessions on background calls
             ->renderHook(
                 PanelsRenderHook::BODY_END,

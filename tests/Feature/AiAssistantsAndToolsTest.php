@@ -33,6 +33,7 @@ use App\Ai\Tools\Student\ReviewCompletedQuizAttemptsTool;
 use App\Filament\Instructor\Pages\AiAssistant;
 use App\Filament\Pages\AiCopilot;
 use App\Filament\Student\Pages\StudyBuddy;
+use App\Livewire\Ai\PortalFloatingChatWidget;
 use App\Livewire\Ai\PublicChatWidget;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
@@ -825,6 +826,94 @@ class AiAssistantsAndToolsTest extends TestCase
             ->assertSuccessful()
             ->assertSee('Executive AI System Co-Pilot')
             ->assertSee('Admin Threads')
-            ->assertSee('System Broadcast');
+            ->assertSee('System Broadcast')
+            ->assertSee('Unpin to Floating Bot');
+    }
+
+    public function test_unpin_action_on_full_pages_redirects_to_respective_dashboards(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $instructor = User::factory()->create(['role' => 'instructor', 'is_active' => true]);
+        $student = User::factory()->create(['role' => 'student', 'is_active' => true]);
+
+        // Admin Portal
+        $this->actingAs($admin);
+        Livewire::test(AiCopilot::class)
+            ->call('unpinToFloating')
+            ->assertRedirect(url('/manage'));
+        $this->assertTrue(session('ai_unpinned_admin'));
+        $this->assertTrue(session('ai_floating_open_admin'));
+
+        // Instructor Portal
+        $this->actingAs($instructor);
+        Livewire::test(AiAssistant::class)
+            ->call('unpinToFloating')
+            ->assertRedirect(url('/teach'));
+        $this->assertTrue(session('ai_unpinned_instructor'));
+        $this->assertTrue(session('ai_floating_open_instructor'));
+
+        // Student Portal
+        $this->actingAs($student);
+        Livewire::test(StudyBuddy::class)
+            ->call('unpinToFloating')
+            ->assertRedirect(url('/learn'));
+        $this->assertTrue(session('ai_unpinned_student'));
+        $this->assertTrue(session('ai_floating_open_student'));
+    }
+
+    public function test_portal_floating_chat_widget_pins_back_to_full_pages(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $instructor = User::factory()->create(['role' => 'instructor', 'is_active' => true]);
+        $student = User::factory()->create(['role' => 'student', 'is_active' => true]);
+
+        // Admin Portal pinBack
+        $this->actingAs($admin);
+        session(['ai_unpinned_admin' => true, 'ai_floating_open_admin' => true]);
+        Livewire::test(PortalFloatingChatWidget::class, ['portal' => 'admin'])
+            ->call('pinBack')
+            ->assertRedirect(url('/manage/ai-copilot'));
+        $this->assertFalse(session('ai_unpinned_admin'));
+        $this->assertFalse(session('ai_floating_open_admin'));
+
+        // Instructor Portal pinBack
+        $this->actingAs($instructor);
+        session(['ai_unpinned_instructor' => true, 'ai_floating_open_instructor' => true]);
+        Livewire::test(PortalFloatingChatWidget::class, ['portal' => 'instructor'])
+            ->call('pinBack')
+            ->assertRedirect(url('/teach/ai-assistant'));
+        $this->assertFalse(session('ai_unpinned_instructor'));
+
+        // Student Portal pinBack
+        $this->actingAs($student);
+        session(['ai_unpinned_student' => true, 'ai_floating_open_student' => true]);
+        Livewire::test(PortalFloatingChatWidget::class, ['portal' => 'student'])
+            ->call('pinBack')
+            ->assertRedirect(url('/learn/study-buddy'));
+        $this->assertFalse(session('ai_unpinned_student'));
+    }
+
+    public function test_portal_floating_chat_widget_can_toggle_and_send_message(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $this->actingAs($admin);
+
+        AdminSystemCopilot::fake([
+            'System operations online and healthy.',
+        ]);
+
+        Livewire::test(PortalFloatingChatWidget::class, ['portal' => 'admin'])
+            ->assertSet('isOpen', true)
+            ->call('toggleOpen')
+            ->assertSet('isOpen', false)
+            ->call('toggleOpen')
+            ->assertSet('isOpen', true)
+            ->set('message', 'What is the system status?')
+            ->call('sendMessage')
+            ->assertDispatched('message-sent');
+
+        $this->assertDatabaseHas('conversations', [
+            'participant_id' => (string) $admin->id,
+        ]);
     }
 }
