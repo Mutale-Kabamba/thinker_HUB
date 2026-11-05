@@ -157,9 +157,18 @@ class LearningResources extends Page
             $this->playerSource = 'processing';
             $this->playerUrl = null;
         } elseif ($video->embed_url) {
-            $this->playerSource = 'youtube';
-            $this->playerUrl = $video->embed_url.'?autoplay=1&rel=0';
-            $this->activeYoutubeId = $video->youtube_id;
+            $parsed = \App\Support\VideoEmbedParser::parse($video->youtube_url);
+            if ($parsed['is_direct_file']) {
+                $this->playerSource = 'file';
+                $this->playerUrl = $parsed['embed_url'];
+                $this->activeFileUrl = $parsed['embed_url'];
+            } else {
+                $this->playerSource = 'youtube';
+                $this->playerUrl = $parsed['youtube_id']
+                    ? \App\Support\VideoEmbedParser::appendQuery($video->embed_url, ['autoplay' => 1, 'rel' => 0, 'enablejsapi' => 1])
+                    : $video->embed_url;
+                $this->activeYoutubeId = $video->youtube_id;
+            }
         } else {
             return;
         }
@@ -195,14 +204,21 @@ class LearningResources extends Page
             return;
         }
 
-        $embed = $this->youtubeEmbed($lesson->video_url);
+        $parsed = \App\Support\VideoEmbedParser::parse($lesson->video_url);
+        $embed = $parsed['embed_url'];
         $this->activeYoutubeId = null;
         $this->activeFileUrl = null;
 
-        if ($embed) {
+        if ($embed && ! $parsed['is_direct_file']) {
             $this->playerSource = 'youtube';
-            $this->playerUrl = $embed.'?autoplay=1&rel=0';
-            $this->activeYoutubeId = Lesson::extractYoutubeId($lesson->video_url);
+            $this->playerUrl = $parsed['youtube_id']
+                ? \App\Support\VideoEmbedParser::appendQuery($embed, ['autoplay' => 1, 'rel' => 0, 'enablejsapi' => 1])
+                : $embed;
+            $this->activeYoutubeId = $parsed['youtube_id'];
+        } elseif ($parsed['is_direct_file'] && $embed) {
+            $this->playerSource = 'file';
+            $this->playerUrl = $embed;
+            $this->activeFileUrl = $embed;
         } elseif ($lesson->file_path) {
             $this->playerSource = 'file';
             $this->playerUrl = route('file.view', ['type' => 'material', 'id' => $lesson->id], false);
@@ -595,15 +611,11 @@ class LearningResources extends Page
 
     private function youtubeEmbed(?string $url): ?string
     {
-        $id = ResourceVideo::extractYoutubeId($url);
-
-        return $id ? "https://www.youtube.com/embed/{$id}" : null;
+        return \App\Support\VideoEmbedParser::parse($url)['embed_url'];
     }
 
     private function youtubeThumbnail(?string $url): ?string
     {
-        $id = ResourceVideo::extractYoutubeId($url);
-
-        return $id ? "https://img.youtube.com/vi/{$id}/hqdefault.jpg" : null;
+        return \App\Support\VideoEmbedParser::parse($url)['thumbnail_url'];
     }
 }

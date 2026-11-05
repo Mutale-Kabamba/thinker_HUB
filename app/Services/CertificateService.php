@@ -77,6 +77,10 @@ class CertificateService
             return null;
         }
 
+        if ($enrollment->completed_at === null) {
+            $enrollment->update(['completed_at' => now()]);
+        }
+
         $existing = Certificate::query()
             ->where('user_id', $user->id)
             ->where('course_id', $course->id)

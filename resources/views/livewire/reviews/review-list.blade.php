@@ -113,7 +113,7 @@
                      this.timer = setInterval(() => {
                          if (this.isPaused) return;
                          this.slideNext(true);
-                     }, 4000);
+                     }, 6500);
                  },
                  stopAutoScroll() {
                      if (this.timer) {

@@ -105,7 +105,7 @@
         </button>
     </div>
 @else
-    <div class="hub-topbar-badge flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs font-semibold tracking-wide shadow-2xs"
+    <div class="hub-topbar-badge hidden md:flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs font-semibold tracking-wide shadow-2xs"
          style="background: {{ $roleInfo['bg'] }}; color: {{ $roleInfo['color'] }}; border: 1px solid {{ $roleInfo['border'] }};">
         <span class="hub-badge-dot inline-block w-1.5 h-1.5 rounded-full"
               style="background: {{ $roleInfo['dot'] ?? $roleInfo['color'] }};"></span>

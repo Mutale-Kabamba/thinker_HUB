@@ -54,7 +54,12 @@ class ResourceCommentsTable
                     ]),
             ])
             ->recordActions([
-                DeleteAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    DeleteAction::make()
+                        ->icon('heroicon-m-trash'),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

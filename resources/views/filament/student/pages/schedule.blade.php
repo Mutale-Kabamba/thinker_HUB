@@ -425,11 +425,26 @@
                                         >
                                             <div class="absolute left-0 top-0 bottom-0 w-1 {{ $col['bar'] }}"></div>
                                             <div class="flex items-center justify-between text-[10px] pl-1">
-                                                <div class="flex items-center gap-1.5">
+                                                <div class="flex items-center gap-1.5 flex-wrap">
                                                     @if ($s['course_code'])
                                                         <span class="px-1.5 py-0.5 rounded font-extrabold {{ $col['badge_bg'] }}">{{ $s['course_code'] }}</span>
                                                     @endif
                                                     <span class="font-bold text-slate-400">{{ $s['type_label'] ?? 'Group' }}</span>
+                                                    @if (($s['delivery_mode'] ?? 'live_virtual') !== 'live_virtual')
+                                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold {{ match($s['delivery_mode'] ?? '') {
+                                                            'live_physical' => 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300',
+                                                            'video' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300',
+                                                            'read' => 'bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300',
+                                                            default => 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300'
+                                                        } }}">
+                                                            {{ match($s['delivery_mode'] ?? '') {
+                                                                'live_physical' => 'In-Person',
+                                                                'video' => 'Video',
+                                                                'read' => 'Reading',
+                                                                default => 'Live'
+                                                            } }}
+                                                        </span>
+                                                    @endif
                                                 </div>
                                                 <span class="px-2 py-0.5 rounded-full font-bold {{ $s['status'] === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' }}">
                                                     {{ ucfirst($s['status']) }}
@@ -610,6 +625,22 @@
                             <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold">
                                 {{ $selectedSessionDetails['type_label'] }}
                             </span>
+                            @php
+                                $dMode = $selectedSessionDetails['delivery_mode'] ?? 'live_virtual';
+                            @endphp
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold {{ match($dMode) {
+                                'live_physical' => 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800',
+                                'video' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800',
+                                'read' => 'bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-300 dark:border-teal-800',
+                                default => 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800'
+                            } }}">
+                                {{ match($dMode) {
+                                    'live_physical' => 'In-Person Class',
+                                    'video' => 'Video Guide',
+                                    'read' => 'Reading Material',
+                                    default => 'Virtual Class'
+                                } }}
+                            </span>
                             <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
                                 {{ ucfirst($selectedSessionDetails['status']) }}
                             </span>
@@ -664,11 +695,14 @@
                         @endif
                     </div>
 
-                    {{-- Virtual Meeting Link --}}
-                    @if ($selectedSessionDetails['meeting_link'])
+                    {{-- Virtual Meeting Link (Live Virtual Class) --}}
+                    @if (($selectedSessionDetails['delivery_mode'] ?? 'live_virtual') === 'live_virtual' && $selectedSessionDetails['meeting_link'])
                         <div class="p-3.5 rounded-xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 flex items-center justify-between gap-3">
                             <div class="min-w-0 flex-1">
-                                <p class="text-xs font-bold text-purple-900 dark:text-purple-200">Virtual Classroom</p>
+                                <p class="text-xs font-bold text-purple-900 dark:text-purple-200 flex items-center gap-1.5">
+                                    <x-heroicon-o-video-camera class="w-4 h-4 text-[#7C3AED]" />
+                                    <span>Virtual Classroom</span>
+                                </p>
                                 <p class="text-[11px] text-purple-700/80 dark:text-purple-300/80 truncate">{{ $selectedSessionDetails['meeting_link'] }}</p>
                             </div>
                             <a 
@@ -677,9 +711,70 @@
                                 rel="noopener"
                                 class="px-4 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
                             >
-                                <x-heroicon-o-video-camera class="w-3.5 h-3.5" />
+                                <x-heroicon-o-arrow-top-right-on-square class="w-3.5 h-3.5" />
                                 <span>Join Class</span>
                             </a>
+                        </div>
+                    @endif
+
+                    {{-- Physical Class Address --}}
+                    @if (($selectedSessionDetails['delivery_mode'] ?? '') === 'live_physical' && $selectedSessionDetails['physical_address'])
+                        <div class="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
+                                <x-heroicon-o-map-pin class="w-4 h-4" />
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-amber-900 dark:text-amber-200">Physical Venue / Address</p>
+                                <p class="text-xs text-amber-800/90 dark:text-amber-300/90 font-medium whitespace-pre-line">{{ $selectedSessionDetails['physical_address'] }}</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Video Guide Session --}}
+                    @if (($selectedSessionDetails['delivery_mode'] ?? '') === 'video')
+                        <div class="p-3.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900 flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+                                    <x-heroicon-o-play-circle class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                    <span>Video Guide Session</span>
+                                </p>
+                                <p class="text-[11px] text-indigo-700/80 dark:text-indigo-300/80">
+                                    Spend at least {{ $selectedSessionDetails['required_duration_minutes'] ?? 15 }} mins watching to mark your attendance.
+                                </p>
+                            </div>
+                            @if (!empty($selectedSessionDetails['viewer_url']))
+                                <a 
+                                    href="{{ $selectedSessionDetails['viewer_url'] }}" 
+                                    class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
+                                >
+                                    <x-heroicon-o-play class="w-3.5 h-3.5" />
+                                    <span>Watch Video</span>
+                                </a>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- Reading Material Session --}}
+                    @if (($selectedSessionDetails['delivery_mode'] ?? '') === 'read')
+                        <div class="p-3.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-900 flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-teal-900 dark:text-teal-200 flex items-center gap-1.5">
+                                    <x-heroicon-o-book-open class="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                                    <span>Reading Material Session</span>
+                                </p>
+                                <p class="text-[11px] text-teal-700/80 dark:text-teal-300/80">
+                                    Read actively for at least {{ $selectedSessionDetails['required_duration_minutes'] ?? 15 }} mins to mark attendance.
+                                </p>
+                            </div>
+                            @if (!empty($selectedSessionDetails['viewer_url']))
+                                <a 
+                                    href="{{ $selectedSessionDetails['viewer_url'] }}" 
+                                    class="px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
+                                >
+                                    <x-heroicon-o-document-text class="w-3.5 h-3.5" />
+                                    <span>Read Guide</span>
+                                </a>
+                            @endif
                         </div>
                     @endif
 

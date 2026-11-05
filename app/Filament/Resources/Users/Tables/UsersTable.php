@@ -31,6 +31,7 @@ class UsersTable
                     ->color(fn (string $state): string => match ($state) {
                         'admin' => 'danger',
                         'instructor' => 'info',
+                        'parent' => 'success',
                         'blogger' => 'primary',
                         'researcher' => 'warning',
                         'employer' => 'success',
@@ -71,6 +72,7 @@ class UsersTable
                 SelectFilter::make('role')
                     ->options([
                         'student' => 'Student',
+                        'parent' => 'Parent / Guardian',
                         'instructor' => 'Instructor',
                         'blogger' => 'Blogger',
                         'researcher' => 'Researcher',

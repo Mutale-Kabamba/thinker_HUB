@@ -29,6 +29,10 @@ class VideoPlayer extends Component
 
     public ?string $youtubeId = null;
 
+    public ?string $embedUrl = null;
+
+    public ?string $videoPlatform = null;
+
     public ?string $fileUrl = null;
 
     public bool $pointsEarned = false;
@@ -45,20 +49,45 @@ class VideoPlayer extends Component
             $this->lesson = $lesson instanceof Lesson ? $lesson : Lesson::query()->findOrFail($lesson);
             $this->title = $this->lesson->title;
             $this->courseTitle = $this->lesson->course?->title;
-            $this->youtubeId = $this->lesson->youtube_id;
+            $parsed = \App\Support\VideoEmbedParser::parse($this->lesson->video_url);
+            $this->youtubeId = $parsed['youtube_id'];
+            $this->videoPlatform = $parsed['platform'];
+            if ($parsed['is_direct_file']) {
+                $this->fileUrl = $parsed['embed_url'];
+            } else {
+                $this->embedUrl = $parsed['embed_url'];
+            }
             $this->initialDuration = (int) ($this->lesson->duration_seconds ?? 0);
         } elseif ($material instanceof LearningMaterial || (is_numeric($material) && $material > 0)) {
             $this->material = $material instanceof LearningMaterial ? $material : LearningMaterial::query()->findOrFail($material);
             $this->title = $this->material->title;
             $this->courseTitle = $this->material->course?->title;
-            $this->youtubeId = Lesson::extractYoutubeId($this->material->video_url);
-            $this->fileUrl = $this->material->file_path ? route('file.view', ['type' => 'material', 'id' => $this->material->id], false) : null;
+            $parsed = \App\Support\VideoEmbedParser::parse($this->material->video_url);
+            $this->youtubeId = $parsed['youtube_id'];
+            $this->videoPlatform = $parsed['platform'];
+            if ($parsed['is_direct_file']) {
+                $this->fileUrl = $parsed['embed_url'];
+            } else {
+                $this->embedUrl = $parsed['embed_url'];
+            }
+            if (! $this->fileUrl && $this->material->file_path) {
+                $this->fileUrl = route('file.view', ['type' => 'material', 'id' => $this->material->id], false);
+            }
         } elseif ($video instanceof ResourceVideo || (is_numeric($video) && $video > 0)) {
             $this->video = $video instanceof ResourceVideo ? $video : ResourceVideo::query()->findOrFail($video);
             $this->title = $this->video->title;
             $this->courseTitle = $this->video->course?->title;
-            $this->youtubeId = $this->video->youtube_id;
-            $this->fileUrl = $this->video->playableLocalVideo()?->url();
+            $parsed = \App\Support\VideoEmbedParser::parse($this->video->youtube_url);
+            $this->youtubeId = $parsed['youtube_id'];
+            $this->videoPlatform = $parsed['platform'];
+            if ($parsed['is_direct_file']) {
+                $this->fileUrl = $parsed['embed_url'];
+            } else {
+                $this->embedUrl = $parsed['embed_url'];
+            }
+            if ($localUrl = $this->video->playableLocalVideo()?->url()) {
+                $this->fileUrl = $localUrl;
+            }
         }
 
         $subject = $this->getSubjectModel();

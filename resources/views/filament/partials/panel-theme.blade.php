@@ -1,3 +1,4 @@
+@vite(['resources/css/app.css', 'resources/js/app.js'])
 <style>
     :root {
         --color-canvas: #f8fafc;
@@ -113,9 +114,9 @@
        GLOBAL PREMIUM BUTTON DESIGN SYSTEM (ALL PANELS)
        ========================================================================== */
     [hidden],
-    .hidden,
+    .hidden:not([class*="md:"]):not([class*="lg:"]):not([class*="sm:"]):not([class*="xl:"]),
     .fi-hidden,
-    [x-cloak],
+    [x-cloak]:not(.fi-toggle):not(.fi-fo-toggle):not([role="switch"]):not(.fi-fo-toggle-buttons):not(.fi-fo-toggle-buttons-btn-ctn),
     [style*="display: none"],
     [style*="display:none"] {
         display: none !important;
@@ -162,46 +163,56 @@
 
     /* --- PRIMARY BUTTONS (Save changes, Create, Submit, New, etc.) --- */
     .fi-btn-color-primary,
+    .fi-color-primary.fi-btn,
+    .fi-btn.fi-color-primary,
     [data-color="primary"].fi-btn,
     .hub-btn-primary,
-    .fi-form-actions button[type="submit"]:not(.fi-btn-color-gray):not(.fi-btn-color-danger),
+    :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions) button[type="submit"]:not(.fi-btn-color-gray):not(.fi-btn-color-danger),
     .fi-modal-footer-actions button[type="submit"]:not(.fi-btn-color-gray):not(.fi-btn-color-danger) {
-        background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%) !important;
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
         color: #ffffff !important;
-        border-color: #6D28D9 !important;
-        box-shadow: 0 4px 14px -2px rgba(124, 58, 237, 0.38) !important;
+        border-color: #0f766e !important;
+        box-shadow: 0 4px 14px -2px rgba(13, 148, 136, 0.4) !important;
     }
 
     .fi-btn-color-primary:hover,
+    .fi-color-primary.fi-btn:hover,
+    .fi-btn.fi-color-primary:hover,
     [data-color="primary"].fi-btn:hover,
     .hub-btn-primary:hover,
-    .fi-form-actions button[type="submit"]:not(.fi-btn-color-gray):not(.fi-btn-color-danger):hover,
+    :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions) button[type="submit"]:not(.fi-btn-color-gray):not(.fi-btn-color-danger):hover,
     .fi-modal-footer-actions button[type="submit"]:not(.fi-btn-color-gray):not(.fi-btn-color-danger):hover {
-        background: linear-gradient(135deg, #6D28D9 0%, #5B21B6 100%) !important;
+        background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
         color: #ffffff !important;
         transform: translateY(-1px) !important;
-        box-shadow: 0 6px 20px -2px rgba(124, 58, 237, 0.48) !important;
+        box-shadow: 0 6px 20px -2px rgba(13, 148, 136, 0.5) !important;
     }
 
     .fi-btn-color-primary:active,
+    .fi-color-primary.fi-btn:active,
+    .fi-btn.fi-color-primary:active,
     [data-color="primary"].fi-btn:active {
         transform: translateY(0) !important;
-        box-shadow: 0 2px 8px -2px rgba(124, 58, 237, 0.3) !important;
+        box-shadow: 0 2px 8px -2px rgba(13, 148, 136, 0.3) !important;
     }
 
     .fi-btn-color-primary svg,
+    .fi-color-primary.fi-btn svg,
+    .fi-btn.fi-color-primary svg,
     [data-color="primary"].fi-btn svg {
         color: #ffffff !important;
     }
 
     /* --- GRAY / SECONDARY BUTTONS (Cancel, Close, Dismiss, Filter, Back, etc.) --- */
     .fi-btn-color-gray,
+    .fi-color-gray.fi-btn,
+    .fi-btn.fi-color-gray,
     [data-color="gray"].fi-btn,
     .fi-btn-color-secondary,
     .hub-btn-secondary,
     .fi-modal-close-btn,
-    .fi-form-actions button[type="button"]:not(.fi-btn-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info),
-    .fi-modal-footer-actions button[type="button"]:not(.fi-btn-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info) {
+    :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions) button[type="button"]:not(.fi-btn-color-primary):not(.fi-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info),
+    .fi-modal-footer-actions button[type="button"]:not(.fi-btn-color-primary):not(.fi-color-primary):not(.fi-btn-color-warning):not(.fi-btn-color-danger):not(.fi-btn-color-success):not(.fi-btn-color-info) {
         background: #f8fafc !important;
         color: #475569 !important;
         border: 1px solid #e2e8f0 !important;
@@ -404,11 +415,201 @@
         flex-wrap: wrap !important;
     }
 
-    .fi-input,
-    .fi-select-input,
-    .fi-textarea {
-        border-radius: 12px !important;
-        border-color: color-mix(in oklab, var(--hub-border) 84%, #ffffff 16%) !important;
+    .fi-input-wrp {
+        border-radius: 10px !important;
+        border: 1px solid #cbd5e1 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+        transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease !important;
+    }
+
+    .dark .fi-input-wrp {
+        border-color: #243844 !important;
+        background-color: #0e181f !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .fi-input-wrp:hover {
+        border-color: #94a3b8 !important;
+    }
+
+    .dark .fi-input-wrp:hover {
+        border-color: #334e5e !important;
+    }
+
+    .fi-input-wrp:focus-within {
+        border-color: #0d9488 !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.16) !important;
+    }
+
+    /* Reset unlayered @tailwindcss/forms & preflight overrides inside Filament input wrappers */
+    .fi-input-wrp input.fi-input,
+    .fi-input-wrp textarea.fi-input,
+    .fi-input-wrp .fi-textarea {
+        border: none !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        border-radius: 10px !important;
+        padding: 0.55rem 0.85rem !important;
+        font-size: 0.84rem !important;
+        font-weight: 500 !important;
+        line-height: 1.45 !important;
+        color: #0f172a !important;
+        width: 100% !important;
+    }
+
+    .dark .fi-input-wrp input.fi-input,
+    .dark .fi-input-wrp textarea.fi-input,
+    .dark .fi-input-wrp .fi-textarea {
+        color: #f8fafc !important;
+    }
+
+    .fi-input-wrp input.fi-input::placeholder,
+    .fi-input-wrp textarea.fi-input::placeholder,
+    .fi-fo-textarea textarea::placeholder {
+        color: #94a3b8 !important;
+        font-weight: 400 !important;
+    }
+
+    .dark .fi-input-wrp input.fi-input::placeholder,
+    .dark .fi-input-wrp textarea.fi-input::placeholder,
+    .dark .fi-fo-textarea textarea::placeholder {
+        color: #64748b !important;
+    }
+
+    /* Non-native & Searchable Select (.fi-select-input div wrapper + .fi-select-input-btn) */
+    div.fi-select-input {
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        width: 100% !important;
+    }
+
+    div.fi-select-input > .fi-select-input-ctn {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    div.fi-select-input .fi-select-input-btn {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        min-height: 2.45rem !important;
+        padding: 0.55rem 2.35rem 0.55rem 0.85rem !important;
+        border: none !important;
+        border-radius: 10px !important;
+        background-color: transparent !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.65' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+        background-position: right 0.65rem center !important;
+        background-repeat: no-repeat !important;
+        background-size: 1.25rem 1.25rem !important;
+        font-size: 0.84rem !important;
+        font-weight: 500 !important;
+        line-height: 1.45 !important;
+        color: #0f172a !important;
+        text-align: left !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .dark div.fi-select-input .fi-select-input-btn {
+        color: #f8fafc !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.65' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+    }
+
+    div.fi-select-input > .fi-select-input-ctn.fi-select-input-ctn-clearable > .fi-select-input-btn {
+        padding-right: 3.85rem !important;
+    }
+
+    div.fi-select-input .fi-select-input-btn.fi-select-input-placeholder,
+    div.fi-select-input .fi-select-input-btn.fi-select-input-placeholder .fi-select-input-value-label {
+        color: #94a3b8 !important;
+        font-weight: 400 !important;
+    }
+
+    .dark div.fi-select-input .fi-select-input-btn.fi-select-input-placeholder,
+    .dark div.fi-select-input .fi-select-input-btn.fi-select-input-placeholder .fi-select-input-value-label {
+        color: #64748b !important;
+    }
+
+    div.fi-select-input .fi-select-input-value-label {
+        display: block !important;
+        width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        text-align: left !important;
+    }
+
+    div.fi-select-input .fi-select-input-value-remove-btn {
+        position: absolute !important;
+        right: 2.15rem !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 1.35rem !important;
+        height: 1.35rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 6px !important;
+        border: none !important;
+        background: transparent !important;
+        color: #94a3b8 !important;
+        padding: 0 !important;
+        cursor: pointer !important;
+        z-index: 2 !important;
+        transition: color 0.15s ease, background-color 0.15s ease !important;
+    }
+
+    div.fi-select-input .fi-select-input-value-remove-btn:hover {
+        color: #ef4444 !important;
+        background-color: rgba(239, 68, 68, 0.08) !important;
+    }
+
+    /* Native Select (<select class="fi-select-input">) */
+    select.fi-select-input {
+        border: none !important;
+        background-color: transparent !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.65' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+        background-position: right 0.65rem center !important;
+        background-repeat: no-repeat !important;
+        background-size: 1.25rem 1.25rem !important;
+        padding: 0.55rem 2.35rem 0.55rem 0.85rem !important;
+        font-size: 0.84rem !important;
+        font-weight: 500 !important;
+        line-height: 1.45 !important;
+        color: #0f172a !important;
+        width: 100% !important;
+        min-height: 2.45rem !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+        outline: none !important;
+        cursor: pointer !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+    }
+
+    .dark select.fi-select-input {
+        color: #f8fafc !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.65' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+    }
+
+    /* Fix LTR / RTL directional icons (e.g. Breadcrumb double chevrons > <) */
+    html:not([dir="rtl"]) .fi-rtl,
+    html:not([dir="rtl"]) .fi-breadcrumbs-item-separator.fi-rtl {
+        display: none !important;
+    }
+
+    html[dir="rtl"] .fi-ltr,
+    html[dir="rtl"] .fi-breadcrumbs-item-separator.fi-ltr {
+        display: none !important;
     }
 
     .fi-ta-table {
@@ -1064,7 +1265,7 @@
         scroll-margin-top: 6rem;
     }
 
-    [x-cloak] {
+    [x-cloak]:not(.fi-toggle):not(.fi-fo-toggle):not([role="switch"]):not(.fi-fo-toggle-buttons):not(.fi-fo-toggle-buttons-btn-ctn) {
         display: none !important;
     }
 
@@ -2523,6 +2724,14 @@
     /* ============================================================ */
     .hub-desktop-only { display: block !important; }
     .hub-mobile-only  { display: none !important; }
+
+    @media (min-width: 769px) {
+        .md\:block { display: block !important; }
+        .md\:flex { display: flex !important; }
+        .md\:inline-flex { display: inline-flex !important; }
+        .md\:grid { display: grid !important; }
+        .md\:hidden { display: none !important; }
+    }
 
     /* Stats grid: 4 columns on desktop by default */
     .hub-stats-grid {
@@ -4027,6 +4236,7 @@
         .fi-ta-search-field input {
             width: 100% !important;
         }
+    }
 
     /* ==========================================================================
        DESKTOP & ULTRA-WIDE CONTAINER CONSTRAINTS (1024px, 1440px, 1920px, 4K)
@@ -4197,24 +4407,24 @@
     }
 
     /* ==========================================================================
-       MODERN HIGH-END UI DESIGN SYSTEM FOR ALL EDIT PAGES (INSTRUCTOR & ADMIN)
+       MODERN HIGH-END UI DESIGN SYSTEM FOR CREATE, EDIT, AND VIEW RESOURCE PAGES
        ========================================================================== */
-    .fi-resource-edit-record-page {
-        max-width: 1280px !important;
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) {
+        max-width: 1200px !important;
         margin-inline: auto !important;
         width: 100% !important;
         padding-bottom: 5rem !important;
     }
 
     /* 1. Modern Command-Center Hero Header Card */
-    .fi-resource-edit-record-page > .fi-page-header-main-ctn > .fi-header {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-page-header-main-ctn > .fi-header, header.fi-header) {
         display: flex !important;
         flex-direction: column !important;
-        gap: 1rem !important;
+        gap: 0.75rem !important;
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.94) 100%) !important;
         border: 1px solid rgba(226, 232, 240, 0.9) !important;
         border-radius: 20px !important;
-        padding: 1.4rem 1.75rem !important;
+        padding: 1.25rem 1.65rem !important;
         box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
         position: relative !important;
         overflow: hidden !important;
@@ -4223,13 +4433,13 @@
         margin-bottom: 1.5rem !important;
     }
 
-    .dark .fi-resource-edit-record-page > .fi-page-header-main-ctn > .fi-header {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-page-header-main-ctn > .fi-header, header.fi-header) {
         background: linear-gradient(135deg, rgba(16, 32, 40, 0.98) 0%, rgba(11, 20, 26, 0.95) 100%) !important;
         border-color: rgba(35, 56, 66, 0.9) !important;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4) !important;
     }
 
-    .fi-resource-edit-record-page > .fi-page-header-main-ctn > .fi-header::before {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-page-header-main-ctn > .fi-header, header.fi-header)::before {
         content: '';
         position: absolute;
         top: 0;
@@ -4240,15 +4450,15 @@
     }
 
     @media (min-width: 768px) {
-        .fi-resource-edit-record-page > .fi-page-header-main-ctn > .fi-header {
+        :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-page-header-main-ctn > .fi-header, header.fi-header) {
             flex-direction: row !important;
             align-items: center !important;
             justify-content: space-between !important;
         }
     }
 
-    /* Breadcrumbs inside Edit Page */
-    .fi-resource-edit-record-page .fi-breadcrumbs {
+    /* Breadcrumbs inside Resource Pages */
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-breadcrumbs {
         display: flex !important;
         align-items: center !important;
         gap: 0.35rem !important;
@@ -4257,30 +4467,30 @@
         font-weight: 600 !important;
     }
 
-    .fi-resource-edit-record-page .fi-breadcrumbs-item-label {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-breadcrumbs-item-label {
         color: #64748b !important;
         padding: 0.15rem 0.45rem !important;
         border-radius: 6px !important;
         transition: all 0.15s ease !important;
     }
 
-    .fi-resource-edit-record-page .fi-breadcrumbs-item-label:hover {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-breadcrumbs-item-label:hover {
         background: #f1f5f9 !important;
         color: #0d9488 !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-breadcrumbs-item-label {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-breadcrumbs-item-label {
         color: #94a3b8 !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-breadcrumbs-item-label:hover {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-breadcrumbs-item-label:hover {
         background: #1e293b !important;
         color: #14b8a6 !important;
     }
 
     /* Heading & Subheading */
-    .fi-resource-edit-record-page .fi-header-heading {
-        font-size: clamp(1.4rem, 2.2vw, 1.85rem) !important;
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-header-heading {
+        font-size: clamp(1.35rem, 2vw, 1.75rem) !important;
         font-weight: 800 !important;
         color: #0f172a !important;
         letter-spacing: -0.025em !important;
@@ -4291,11 +4501,11 @@
         flex-wrap: wrap !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-header-heading {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-header-heading {
         color: #ffffff !important;
     }
 
-    .fi-resource-edit-record-page .fi-header-subheading {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-header-subheading {
         font-size: 0.825rem !important;
         color: #64748b !important;
         margin-top: 0.35rem !important;
@@ -4303,12 +4513,12 @@
         font-weight: 500 !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-header-subheading {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-header-subheading {
         color: #94a3b8 !important;
     }
 
     /* Header Actions */
-    .fi-resource-edit-record-page .fi-header-actions {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-header-actions {
         display: flex !important;
         align-items: center !important;
         gap: 0.65rem !important;
@@ -4316,12 +4526,13 @@
     }
 
     /* 2. Modern Form Layout & Sections */
-    .fi-resource-edit-record-page form#form {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) form#form,
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) form {
         display: grid !important;
         gap: 1.5rem !important;
     }
 
-    .fi-resource-edit-record-page .fi-section {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section {
         background: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
         border-radius: 18px !important;
@@ -4330,34 +4541,34 @@
         transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-section {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section {
         background: #111b21 !important;
         border-color: #1f2c34 !important;
         box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.3) !important;
     }
 
-    .fi-resource-edit-record-page .fi-section:hover {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section:hover {
         border-color: #cbd5e1 !important;
         box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.07) !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-section:hover {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section:hover {
         border-color: #2a3942 !important;
     }
 
     /* Section Header */
-    .fi-resource-edit-record-page .fi-section-header {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-header {
         padding: 1.15rem 1.5rem !important;
         border-bottom: 1px solid #f1f5f9 !important;
         background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%) !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-section-header {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-header {
         border-bottom-color: #1a2730 !important;
         background: linear-gradient(180deg, #16232b 0%, #111b21 100%) !important;
     }
 
-    .fi-resource-edit-record-page .fi-section-header-heading {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-header-heading {
         font-size: 1.02rem !important;
         font-weight: 700 !important;
         color: #0f172a !important;
@@ -4367,11 +4578,11 @@
         letter-spacing: -0.01em !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-section-header-heading {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-header-heading {
         color: #f1f5f9 !important;
     }
 
-    .fi-resource-edit-record-page .fi-section-header-heading::before {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-header-heading::before {
         content: '';
         display: inline-block;
         width: 4px;
@@ -4381,7 +4592,7 @@
         flex-shrink: 0;
     }
 
-    .fi-resource-edit-record-page .fi-section-header-description {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-header-description {
         font-size: 0.78rem !important;
         color: #64748b !important;
         margin-top: 0.25rem !important;
@@ -4389,50 +4600,50 @@
         font-weight: 400 !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-section-header-description {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-header-description {
         color: #94a3b8 !important;
     }
 
-    .fi-resource-edit-record-page .fi-section-content {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-content {
         padding: 1.5rem !important;
     }
 
     /* 3. Field Wrappers, Labels, and Validation */
-    .fi-resource-edit-record-page .fi-fo-field-wrp {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-field-wrp {
         margin-bottom: 0.4rem !important;
     }
 
-    .fi-resource-edit-record-page .fi-fo-field-wrp-label {
-        font-size: 0.79rem !important;
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-field-wrp-label {
+        font-size: 0.8rem !important;
         font-weight: 700 !important;
         color: #334155 !important;
         letter-spacing: 0.01em !important;
         margin-bottom: 0.35rem !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-fo-field-wrp-label {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-field-wrp-label {
         color: #cbd5e1 !important;
     }
 
-    .fi-resource-edit-record-page .fi-fo-field-wrp-label sup {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-field-wrp-label sup {
         color: #ef4444 !important;
         font-weight: 800 !important;
         font-size: 0.85rem !important;
         margin-left: 2px !important;
     }
 
-    .fi-resource-edit-record-page .fi-fo-field-wrp-helper-text {
-        font-size: 0.73rem !important;
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-field-wrp-helper-text {
+        font-size: 0.74rem !important;
         color: #64748b !important;
         line-height: 1.4 !important;
         margin-top: 0.35rem !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-fo-field-wrp-helper-text {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-field-wrp-helper-text {
         color: #94a3b8 !important;
     }
 
-    .fi-resource-edit-record-page .fi-fo-field-wrp-error-message {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-field-wrp-error-message {
         font-size: 0.73rem !important;
         font-weight: 600 !important;
         color: #ef4444 !important;
@@ -4440,89 +4651,224 @@
     }
 
     /* 4. Modern Input Containers & Controls */
-    .fi-resource-edit-record-page .fi-input-wrp {
-        background-color: #f8fafc !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 12px !important;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) inset !important;
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp {
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
         transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-input-wrp {
-        background-color: #0b141a !important;
-        border-color: #233842 !important;
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp {
+        background-color: #0e181f !important;
+        border-color: #243844 !important;
     }
 
-    .fi-resource-edit-record-page .fi-input-wrp:hover {
-        border-color: #cbd5e1 !important;
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:hover {
+        border-color: #94a3b8 !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-input-wrp:hover {
-        border-color: #2e4754 !important;
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:hover {
+        border-color: #334e5e !important;
     }
 
-    .fi-resource-edit-record-page .fi-input-wrp:focus-within {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:focus-within {
         background-color: #ffffff !important;
         border-color: #0d9488 !important;
-        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18) !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.16) !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-input-wrp:focus-within {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:focus-within {
         background-color: #111b21 !important;
         border-color: #0d9488 !important;
         box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25) !important;
     }
 
-    .fi-resource-edit-record-page .fi-input,
-    .fi-resource-edit-record-page .fi-textarea {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) input.fi-input {
         font-size: 0.84rem !important;
         font-weight: 500 !important;
         color: #0f172a !important;
         line-height: 1.45 !important;
         padding: 0.58rem 0.85rem !important;
+        border: none !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-input,
-    .dark .fi-resource-edit-record-page .fi-textarea {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) input.fi-input {
         color: #f8fafc !important;
     }
 
-    .fi-resource-edit-record-page .fi-select-input {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) div.fi-select-input {
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) select.fi-select-input {
         font-size: 0.84rem !important;
         font-weight: 500 !important;
         color: #0f172a !important;
-        cursor: pointer !important;
-        padding: 0.58rem 0.85rem !important;
+        line-height: 1.45 !important;
+        padding: 0.58rem 2.35rem 0.58rem 0.85rem !important;
+        border: none !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-select-input {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) select.fi-select-input {
         color: #f8fafc !important;
     }
 
+    /* Clean Card Container for Standalone Toggle Switch Fields inside Sections */
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-content .fi-fo-field:has(.fi-toggle):not(.fi-fo-repeater-item .fi-fo-field) {
+        background-color: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 0.8rem 1rem !important;
+        transition: border-color 0.16s ease, background-color 0.16s ease !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-content .fi-fo-field:has(.fi-toggle):not(.fi-fo-repeater-item .fi-fo-field) {
+        background-color: #0e181f !important;
+        border-color: #1f333f !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-content .fi-fo-field:has(.fi-toggle):not(.fi-fo-repeater-item .fi-fo-field):hover {
+        border-color: #cbd5e1 !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-section-content .fi-fo-field:has(.fi-toggle):not(.fi-fo-repeater-item .fi-fo-field):hover {
+        border-color: #2e4754 !important;
+    }
+
+    /* Dedicated Textarea Styling (matches input containers with premium rounded corners) */
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) textarea,
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea textarea,
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-textarea {
+        background-color: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0.65rem 0.85rem !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        color: #0f172a !important;
+        line-height: 1.5 !important;
+        outline: none !important;
+        width: 100% !important;
+        display: block !important;
+        resize: vertical !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:has(textarea),
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea,
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea-wrp .fi-input-wrp {
+        background-color: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) inset !important;
+        transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        overflow: hidden !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:has(textarea):hover,
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea:hover,
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea-wrp .fi-input-wrp:hover {
+        border-color: #cbd5e1 !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:has(textarea):focus-within,
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea:focus-within,
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea-wrp .fi-input-wrp:focus-within {
+        background-color: #ffffff !important;
+        border-color: #0d9488 !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18) !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) textarea,
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea textarea {
+        color: #f8fafc !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:has(textarea),
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea,
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea-wrp .fi-input-wrp {
+        background-color: #0b141a !important;
+        border-color: #233842 !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:has(textarea):hover,
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea:hover {
+        border-color: #2e4754 !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-input-wrp:has(textarea):focus-within,
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-textarea:focus-within {
+        background-color: #111b21 !important;
+        border-color: #0d9488 !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25) !important;
+    }
+
+    /* Tabs Styling & Overflow Suppression */
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-sc-tabs,
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-tabs {
+        background: transparent !important;
+        border: none !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-sc-tabs-header, .fi-tabs-header) {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        padding: 0.4rem !important;
+        box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.05) !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-sc-tabs-header, .fi-tabs-header) {
+        background: #111b21 !important;
+        border-color: #1f2c34 !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-sc-tabs nav,
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-tabs nav {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-sc-tabs nav::-webkit-scrollbar,
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-tabs nav::-webkit-scrollbar {
+        display: none !important;
+    }
+
     /* Modern File Uploads */
-    .fi-resource-edit-record-page .fi-fo-file-upload {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-file-upload {
         border-radius: 16px !important;
     }
 
-    .fi-resource-edit-record-page .filepond--drop-label {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .filepond--drop-label {
         border: 2px dashed #cbd5e1 !important;
         border-radius: 14px !important;
         background: #f8fafc !important;
         transition: all 0.2s ease !important;
     }
 
-    .dark .fi-resource-edit-record-page .filepond--drop-label {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .filepond--drop-label {
         border-color: #233842 !important;
         background: #0b141a !important;
     }
 
-    .fi-resource-edit-record-page .filepond--drop-label:hover {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .filepond--drop-label:hover {
         border-color: #0d9488 !important;
         background: rgba(13, 148, 136, 0.04) !important;
     }
 
     /* Repeater & Builder Items */
-    .fi-resource-edit-record-page .fi-fo-repeater-item {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-repeater-item {
         border-radius: 14px !important;
         border: 1px solid #e2e8f0 !important;
         background: #fafbfc !important;
@@ -4531,12 +4877,12 @@
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-fo-repeater-item {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-repeater-item {
         border-color: #1f2c34 !important;
         background: #0e171d !important;
     }
 
-    .fi-resource-edit-record-page .fi-fo-repeater-item-header {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-repeater-item-header {
         background: #f1f5f9 !important;
         padding: 0.55rem 0.95rem !important;
         font-weight: 700 !important;
@@ -4545,41 +4891,46 @@
         color: #475569 !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-fo-repeater-item-header {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-fo-repeater-item-header {
         background: #16232b !important;
         border-color: #1f2c34 !important;
         color: #cbd5e1 !important;
     }
 
     /* 5. Sticky Floating Action Dock (Form Footer) */
-    .fi-resource-edit-record-page .fi-form-actions {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) {
+        margin-top: 2rem !important;
+        width: 100% !important;
+        display: block !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(.fi-ac, .fi-form-actions-ctn) {
         position: sticky !important;
         bottom: 1.25rem !important;
         z-index: 35 !important;
-        background: rgba(255, 255, 255, 0.9) !important;
+        background: rgba(255, 255, 255, 0.95) !important;
         backdrop-filter: blur(16px) !important;
         -webkit-backdrop-filter: blur(16px) !important;
         border: 1px solid rgba(226, 232, 240, 0.95) !important;
         border-radius: 9999px !important;
         box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.05) !important;
-        padding: 0.65rem 1.35rem !important;
-        display: flex !important;
+        padding: 0.55rem 1.25rem !important;
+        display: inline-flex !important;
         align-items: center !important;
         justify-content: flex-end !important;
         gap: 0.75rem !important;
-        margin-top: 1.5rem !important;
         width: fit-content !important;
         margin-left: auto !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-form-actions {
-        background: rgba(17, 27, 33, 0.9) !important;
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(.fi-ac, .fi-form-actions-ctn) {
+        background: rgba(17, 27, 33, 0.95) !important;
         border-color: rgba(35, 56, 66, 0.95) !important;
         box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5) !important;
     }
 
-    /* Save Changes Button in Edit Pages */
-    .fi-resource-edit-record-page .fi-form-actions button[type="submit"] {
+    /* Primary Submit Button (Create / Save) */
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(button[type="submit"], button.fi-btn-color-primary, button.fi-color-primary, button[wire\:click="create"], button[wire\:target="create"], button[wire\:click="save"], button[wire\:target="save"]) {
         background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
         color: #ffffff !important;
         border: 1px solid #0f766e !important;
@@ -4588,57 +4939,94 @@
         padding: 0.55rem 1.4rem !important;
         font-weight: 700 !important;
         font-size: 0.825rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.45rem !important;
+        cursor: pointer !important;
         transition: all 0.18s ease !important;
+        text-decoration: none !important;
     }
 
-    .fi-resource-edit-record-page .fi-form-actions button[type="submit"]:hover {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(button[type="submit"], button.fi-btn-color-primary, button.fi-color-primary, button[wire\:click="create"], button[wire\:target="create"], button[wire\:click="save"], button[wire\:target="save"]):hover {
         background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
         transform: translateY(-1px) !important;
         box-shadow: 0 6px 20px -2px rgba(13, 148, 136, 0.5) !important;
     }
 
-    /* Cancel / Back Button in Edit Pages */
-    .fi-resource-edit-record-page .fi-form-actions button[type="button"],
-    .fi-resource-edit-record-page .fi-form-actions a {
-        background: #f8fafc !important;
-        color: #475569 !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 9999px !important;
-        padding: 0.55rem 1.2rem !important;
-        font-weight: 600 !important;
-        font-size: 0.825rem !important;
-        transition: all 0.18s ease !important;
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(button[type="submit"], button.fi-btn-color-primary, button.fi-color-primary) * {
+        color: #ffffff !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-form-actions button[type="button"],
-    .dark .fi-resource-edit-record-page .fi-form-actions a {
+    /* Secondary Action Button ("Create & create another" / Gray buttons) */
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(button.fi-btn-color-gray, button[wire\:click="createAnother"], button[wire\:target="createAnother"]) {
+        background: #ffffff !important;
+        color: #334155 !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+        border-radius: 9999px !important;
+        padding: 0.55rem 1.25rem !important;
+        font-weight: 600 !important;
+        font-size: 0.825rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.4rem !important;
+        cursor: pointer !important;
+        transition: all 0.18s ease !important;
+        text-decoration: none !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(button.fi-btn-color-gray, button[wire\:click="createAnother"], button[wire\:target="createAnother"]) {
         background: #1e293b !important;
         color: #cbd5e1 !important;
         border-color: #334155 !important;
     }
 
-    .fi-resource-edit-record-page .fi-form-actions button[type="button"]:hover,
-    .fi-resource-edit-record-page .fi-form-actions a:hover {
-        background: #f1f5f9 !important;
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(button.fi-btn-color-gray, button[wire\:click="createAnother"], button[wire\:target="createAnother"]):hover {
+        background: #f8fafc !important;
         color: #0f172a !important;
+        border-color: #94a3b8 !important;
         transform: translateY(-1px) !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-form-actions button[type="button"]:hover,
-    .dark .fi-resource-edit-record-page .fi-form-actions a:hover {
-        background: #334155 !important;
+    /* Cancel / Back Button */
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(button[wire\:click="cancel"], button[x-on\:click*="history.back"], button:not([type="submit"]):not([wire\:click="createAnother"]), a.fi-btn) {
+        background: transparent !important;
+        color: #64748b !important;
+        border: 1px solid transparent !important;
+        border-radius: 9999px !important;
+        padding: 0.55rem 1.15rem !important;
+        font-weight: 600 !important;
+        font-size: 0.825rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        cursor: pointer !important;
+        transition: all 0.18s ease !important;
+        text-decoration: none !important;
+    }
+
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(button[wire\:click="cancel"], button[x-on\:click*="history.back"], button:not([type="submit"]):not([wire\:click="createAnother"]), a.fi-btn):hover {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(button[wire\:click="cancel"], button[x-on\:click*="history.back"], button:not([type="submit"]):not([wire\:click="createAnother"]), a.fi-btn) {
+        color: #94a3b8 !important;
+    }
+
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) :is(.fi-form-actions, .fi-sc-actions, #content\.form-actions, [wire\:partial*="form-actions"]) :is(button[wire\:click="cancel"], button[x-on\:click*="history.back"], button:not([type="submit"]):not([wire\:click="createAnother"]), a.fi-btn):hover {
+        background: #1e293b !important;
         color: #ffffff !important;
     }
 
-    /* 6. Relation Managers Under Edit Pages */
-    .fi-resource-edit-record-page .fi-resource-relation-managers {
+    /* 6. Relation Managers Under Edit / View Pages */
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-resource-relation-managers {
         margin-top: 2rem !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 1.5rem !important;
     }
 
-    .fi-resource-edit-record-page .fi-resource-relation-managers .fi-tabs {
+    :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-resource-relation-managers .fi-tabs {
         background: var(--hub-surface-soft, #f1f5f9) !important;
         border: 1px solid #e2e8f0 !important;
         border-radius: 12px !important;
@@ -4646,9 +5034,653 @@
         gap: 4px !important;
     }
 
-    .dark .fi-resource-edit-record-page .fi-resource-relation-managers .fi-tabs {
+    .dark :is(.fi-resource-create-record-page, .fi-resource-edit-record-page, .fi-resource-view-record-page) .fi-resource-relation-managers .fi-tabs {
         background: #16232b !important;
         border-color: #233842 !important;
+    }
+
+    /* ==========================================================================
+       7. HIGH-VISIBILITY TOGGLE SWITCHES & SELECTION BUTTON CONTROLS
+       ========================================================================== */
+
+    /* Force toggle switch to always be visible and never collapsed, transparent, or hidden by x-cloak */
+    :is(button, div, input, label)[role="switch"],
+    :is(button, div, input, label).fi-toggle,
+    :is(button, div, input, label).fi-fo-toggle,
+    :is(button, div, input, label).fi-ta-toggle,
+    .fi-fo-field-label button.fi-toggle,
+    .fi-fo-field-label [role="switch"],
+    button[role="switch"][x-cloak],
+    .fi-toggle[x-cloak],
+    .fi-fo-toggle[x-cloak] {
+        display: inline-flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 48px !important;
+        min-width: 48px !important;
+        height: 26px !important;
+        min-height: 26px !important;
+        border-radius: 9999px !important;
+        cursor: pointer !important;
+        position: relative !important;
+        align-items: center !important;
+        flex-shrink: 0 !important;
+        padding: 2px !important;
+        transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        outline: none !important;
+        vertical-align: middle !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Disabled toggle switch styling */
+    button[role="switch"]:disabled,
+    button[role="switch"][disabled],
+    .fi-toggle:disabled,
+    .fi-toggle[disabled] {
+        opacity: 0.55 !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+    }
+
+    /* Keep hidden preloader elements hidden */
+    .fi-toggle.fi-hidden,
+    .fi-hidden.fi-toggle {
+        display: none !important;
+    }
+
+    /* Track: OFF state - high contrast slate so it is clearly visible on white/light cards */
+    .fi-toggle:not(.fi-toggle-on):not([aria-checked="true"]),
+    .fi-toggle-off,
+    button[role="switch"][aria-checked="false"],
+    button[role="switch"]:not([aria-checked="true"]):not(.fi-toggle-on) {
+        background-color: #cbd5e1 !important;
+        border: 2px solid #94a3b8 !important;
+        box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.15) !important;
+    }
+
+    .dark .fi-toggle:not(.fi-toggle-on):not([aria-checked="true"]),
+    .dark .fi-toggle-off,
+    .dark button[role="switch"][aria-checked="false"],
+    .dark button[role="switch"]:not([aria-checked="true"]):not(.fi-toggle-on) {
+        background-color: #334155 !important;
+        border: 2px solid #475569 !important;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    /* Track: HOVER when OFF */
+    .fi-toggle:not(.fi-toggle-on):not([aria-checked="true"]):hover,
+    button[role="switch"][aria-checked="false"]:hover {
+        background-color: #94a3b8 !important;
+        border-color: #64748b !important;
+    }
+
+    .dark .fi-toggle:not(.fi-toggle-on):not([aria-checked="true"]):hover,
+    .dark button[role="switch"][aria-checked="false"]:hover {
+        background-color: #475569 !important;
+        border-color: #64748b !important;
+    }
+
+    /* Track: ON state - vibrant teal gradient */
+    .fi-toggle.fi-toggle-on,
+    .fi-toggle[aria-checked="true"],
+    button[role="switch"][aria-checked="true"],
+    button[role="switch"].fi-toggle-on {
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+        border: 2px solid #0f766e !important;
+        box-shadow: 0 0 0 1px rgba(13, 148, 136, 0.3), 0 3px 8px -1px rgba(13, 148, 136, 0.5) !important;
+    }
+
+    /* Track: HOVER when ON */
+    .fi-toggle.fi-toggle-on:hover,
+    button[role="switch"][aria-checked="true"]:hover {
+        background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
+        border-color: #115e59 !important;
+    }
+
+    /* Focus visible */
+    .fi-toggle:focus-visible,
+    button[role="switch"]:focus-visible {
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.4) !important;
+    }
+
+    /* Toggle Knob / Thumb (the white sliding circle) */
+    .fi-toggle > div:first-child,
+    .fi-toggle > :first-child {
+        width: 18px !important;
+        min-width: 18px !important;
+        height: 18px !important;
+        min-height: 18px !important;
+        border-radius: 9999px !important;
+        background-color: #ffffff !important;
+        display: block !important;
+        position: relative !important;
+        box-shadow: 0 2px 5px rgba(15, 23, 42, 0.35), 0 1px 2px rgba(15, 23, 42, 0.2) !important;
+        transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease !important;
+        flex-shrink: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* Knob Position: OFF */
+    .fi-toggle:not(.fi-toggle-on):not([aria-checked="true"]) > div:first-child,
+    .fi-toggle-off > div:first-child,
+    button[role="switch"][aria-checked="false"] > div:first-child,
+    button[role="switch"]:not(.fi-toggle-on):not([aria-checked="true"]) > :first-child {
+        transform: translateX(0px) !important;
+    }
+
+    /* Knob Position: ON */
+    .fi-toggle.fi-toggle-on > div:first-child,
+    .fi-toggle[aria-checked="true"] > div:first-child,
+    button[role="switch"][aria-checked="true"] > div:first-child,
+    button[role="switch"].fi-toggle-on > :first-child {
+        transform: translateX(22px) !important;
+    }
+
+    /* RTL support for Knob */
+    [dir="rtl"] .fi-toggle.fi-toggle-on > div:first-child,
+    [dir="rtl"] button[role="switch"][aria-checked="true"] > div:first-child {
+        transform: translateX(-22px) !important;
+    }
+
+    /* Ensure label row flexes nicely with the toggle switch */
+    .fi-fo-field-label:has(.fi-toggle),
+    .fi-fo-field-label:has([role="switch"]),
+    .fi-fo-field-label:has(.fi-fo-toggle),
+    .fi-fo-field:has(.fi-toggle) .fi-fo-field-label,
+    .fi-fo-field:has([role="switch"]) .fi-fo-field-label {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        cursor: pointer !important;
+        user-select: none !important;
+    }
+
+    .fi-fo-field-label > .fi-toggle,
+    .fi-fo-field-label > [role="switch"] {
+        margin-right: 0.5rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* ==========================================================================
+       TOGGLE BUTTONS & SEGMENTED SELECTION BUTTONS (.fi-fo-toggle-buttons)
+       ========================================================================== */
+
+    .fi-fo-toggle-buttons,
+    .fi-toggle-buttons {
+        display: inline-flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.625rem !important;
+        align-items: center !important;
+        margin-top: 0.25rem !important;
+    }
+
+    .fi-fo-toggle-buttons-btn-ctn,
+    .fi-toggle-buttons-btn-ctn {
+        display: inline-flex !important;
+        position: relative !important;
+    }
+
+    /* Hide the native radio input inside toggle buttons */
+    .fi-fo-toggle-buttons-input,
+    .fi-toggle-buttons-input {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Base / Unchecked toggle button pill */
+    .fi-fo-toggle-buttons label,
+    .fi-fo-toggle-buttons label.fi-btn,
+    .fi-toggle-buttons label,
+    .fi-toggle-buttons label.fi-btn {
+        border-radius: 9999px !important;
+        font-weight: 600 !important;
+        font-size: 0.8125rem !important;
+        line-height: 1.25 !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        cursor: pointer !important;
+        border: 1.5px solid #cbd5e1 !important;
+        background: #ffffff !important;
+        color: #334155 !important;
+        padding: 0.5rem 1.15rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+        user-select: none !important;
+        transform: none !important;
+        text-decoration: none !important;
+    }
+
+    .fi-fo-toggle-buttons label svg,
+    .fi-fo-toggle-buttons label.fi-btn svg,
+    .fi-toggle-buttons label svg,
+    .fi-toggle-buttons label.fi-btn svg {
+        color: #64748b !important;
+        width: 1.15rem !important;
+        height: 1.15rem !important;
+        transition: color 0.2s ease !important;
+    }
+
+    /* Dark mode unchecked button pill */
+    .dark .fi-fo-toggle-buttons label,
+    .dark .fi-fo-toggle-buttons label.fi-btn,
+    .dark .fi-toggle-buttons label,
+    .dark .fi-toggle-buttons label.fi-btn {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+        color: #cbd5e1 !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .dark .fi-fo-toggle-buttons label svg,
+    .dark .fi-fo-toggle-buttons label.fi-btn svg,
+    .dark .fi-toggle-buttons label svg,
+    .dark .fi-toggle-buttons label.fi-btn svg {
+        color: #94a3b8 !important;
+    }
+
+    /* Hover state for unchecked button pill */
+    .fi-fo-toggle-buttons label:hover,
+    .fi-toggle-buttons label:hover {
+        border-color: #0d9488 !important;
+        color: #0f172a !important;
+        background: #f8fafc !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 3px 8px -1px rgba(15, 23, 42, 0.12) !important;
+    }
+
+    .dark .fi-fo-toggle-buttons label:hover,
+    .dark .fi-toggle-buttons label:hover {
+        background: #243447 !important;
+        border-color: #0d9488 !important;
+        color: #ffffff !important;
+    }
+
+    /* ACTIVE / CHECKED Toggle Button (Selected State) */
+    .fi-fo-toggle-buttons-btn-ctn:has(input:checked) label,
+    .fi-fo-toggle-buttons input:checked + label,
+    .fi-fo-toggle-buttons input:checked ~ label,
+    .fi-toggle-buttons-btn-ctn:has(input:checked) label,
+    .fi-toggle-buttons input:checked + label,
+    .fi-toggle-buttons input:checked ~ label,
+    .fi-fo-toggle-buttons label[aria-checked="true"],
+    .fi-toggle-buttons label[aria-checked="true"] {
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+        border-color: #0f766e !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 14px -1px rgba(13, 148, 136, 0.45) !important;
+    }
+
+    .fi-fo-toggle-buttons-btn-ctn:has(input:checked) label *,
+    .fi-fo-toggle-buttons input:checked + label *,
+    .fi-fo-toggle-buttons input:checked ~ label *,
+    .fi-toggle-buttons-btn-ctn:has(input:checked) label *,
+    .fi-toggle-buttons input:checked + label *,
+    .fi-toggle-buttons input:checked ~ label *,
+    .fi-fo-toggle-buttons label[aria-checked="true"] *,
+    .fi-toggle-buttons label[aria-checked="true"] * {
+        color: #ffffff !important;
+    }
+
+    /* ==========================================================================
+       RADIO BUTTON SELECTION CONTROLS (.fi-fo-radio)
+       ========================================================================== */
+
+    .fi-fo-radio,
+    .fi-radio {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.85rem !important;
+        margin-top: 0.25rem !important;
+    }
+
+    .fi-fo-radio label,
+    .fi-radio label {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.6rem !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        color: #334155 !important;
+        cursor: pointer !important;
+        user-select: none !important;
+    }
+
+    .dark .fi-fo-radio label,
+    .dark .fi-radio label {
+        color: #cbd5e1 !important;
+    }
+
+    input[type="radio"].fi-radio-input,
+    .fi-fo-radio input[type="radio"] {
+        width: 1.25rem !important;
+        height: 1.25rem !important;
+        min-width: 1.25rem !important;
+        min-height: 1.25rem !important;
+        border: 2px solid #94a3b8 !important;
+        border-radius: 9999px !important;
+        cursor: pointer !important;
+        background-color: #ffffff !important;
+        transition: all 0.18s ease !important;
+        vertical-align: middle !important;
+        position: relative !important;
+        margin: 0 !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        display: inline-grid !important;
+        place-content: center !important;
+    }
+
+    .dark input[type="radio"].fi-radio-input,
+    .dark .fi-fo-radio input[type="radio"] {
+        background-color: #1e293b !important;
+        border-color: #64748b !important;
+    }
+
+    input[type="radio"].fi-radio-input::before,
+    .fi-fo-radio input[type="radio"]::before {
+        content: "" !important;
+        width: 0.6rem !important;
+        height: 0.6rem !important;
+        border-radius: 50% !important;
+        transform: scale(0) !important;
+        transition: 120ms transform ease-in-out !important;
+        background-color: #ffffff !important;
+    }
+
+    input[type="radio"].fi-radio-input:checked,
+    .fi-fo-radio input[type="radio"]:checked {
+        border-color: #0d9488 !important;
+        background-color: #0d9488 !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25) !important;
+    }
+
+    input[type="radio"].fi-radio-input:checked::before,
+    .fi-fo-radio input[type="radio"]:checked::before {
+        transform: scale(1) !important;
+    }
+
+    /* ==========================================================================
+       UI/UX REFINEMENT: COMPACT TABLES, NICE ACTIONS, CLEAR BUTTONS,
+       NICE CARDS & SMOOTH SPA NAVIGATION
+       ========================================================================== */
+
+    /* 1. Smooth SPA Navigation & Page Transitions */
+    #nprogress .bar {
+        background: linear-gradient(90deg, #0d9488, #14b8a6, #0ea5e9) !important;
+        height: 2.5px !important;
+    }
+
+    #nprogress .peg {
+        box-shadow: 0 0 8px #0d9488, 0 0 4px #14b8a6 !important;
+    }
+
+    .fi-main {
+        animation: hubSpaFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes hubSpaFadeIn {
+        from {
+            opacity: 0.92;
+            transform: translateY(2px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fi-sidebar-item-btn,
+    .fi-topbar-item-btn,
+    .fi-tabs-item {
+        transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease !important;
+    }
+
+    /* 2. Compact High-Density Tables */
+    .fi-ta-ctn {
+        border-radius: 14px !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+        overflow: hidden !important;
+    }
+
+    .dark .fi-ta-ctn {
+        border-color: #1f333f !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22) !important;
+    }
+
+    .fi-ta-header-toolbar {
+        padding: 0.55rem 0.9rem !important;
+        gap: 0.5rem !important;
+    }
+
+    .fi-ta-header {
+        padding: 0.65rem 0.95rem !important;
+    }
+
+    .fi-ta-header-cell,
+    .edtech-table th,
+    .hub-table th {
+        padding: 0.45rem 0.75rem !important;
+        font-size: 0.68rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.055em !important;
+        text-transform: uppercase !important;
+        line-height: 1.25 !important;
+        white-space: nowrap !important;
+    }
+
+    .fi-ta-cell,
+    .edtech-table td,
+    .hub-table td {
+        padding: 0.36rem 0.75rem !important;
+        font-size: 0.8rem !important;
+        line-height: 1.35 !important;
+        vertical-align: middle !important;
+    }
+
+    .fi-ta-text,
+    .fi-ta-text-item {
+        padding-top: 0.1rem !important;
+        padding-bottom: 0.1rem !important;
+        font-size: 0.8rem !important;
+        line-height: 1.35 !important;
+    }
+
+    .fi-ta-row {
+        transition: background-color 0.12s ease !important;
+    }
+
+    /* Compact Badges & Avatars inside Tables */
+    .fi-ta-cell .fi-badge {
+        padding: 0.12rem 0.48rem !important;
+        font-size: 0.68rem !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        line-height: 1.25 !important;
+    }
+
+    .fi-ta-cell .fi-ta-image img,
+    .fi-ta-cell .fi-avatar {
+        width: 1.85rem !important;
+        height: 1.85rem !important;
+    }
+
+    .fi-pagination {
+        padding: 0.5rem 0.9rem !important;
+    }
+
+    /* 3. Nice Table Actions & Crisp Dropdown Triggers */
+    td.fi-ta-actions-cell,
+    .fi-ta-cell:has(.fi-ta-actions) {
+        width: 1% !important;
+        white-space: nowrap !important;
+        text-align: right !important;
+        padding-right: 0.65rem !important;
+        padding-left: 0.35rem !important;
+    }
+
+    .fi-ta-actions {
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
+    }
+
+    /* ActionGroup 3-dot trigger button in tables */
+    .fi-ta-actions .fi-ac-icon-btn-group,
+    .fi-ta-actions .fi-icon-btn {
+        width: 1.9rem !important;
+        height: 1.9rem !important;
+        min-width: 1.9rem !important;
+        min-height: 1.9rem !important;
+        padding: 0 !important;
+        border-radius: 8px !important;
+        border: 1px solid #e2e8f0 !important;
+        background: #ffffff !important;
+        color: #475569 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+        transition: all 0.15s ease !important;
+    }
+
+    .fi-ta-actions .fi-ac-icon-btn-group:hover,
+    .fi-ta-actions .fi-icon-btn:hover {
+        border-color: #0d9488 !important;
+        background: #f0fdfa !important;
+        color: #0f766e !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 3px 6px rgba(13, 148, 136, 0.12) !important;
+    }
+
+    .dark .fi-ta-actions .fi-ac-icon-btn-group,
+    .dark .fi-ta-actions .fi-icon-btn {
+        background: #16232b !important;
+        border-color: #243c49 !important;
+        color: #cbd5e1 !important;
+    }
+
+    .dark .fi-ta-actions .fi-ac-icon-btn-group:hover,
+    .dark .fi-ta-actions .fi-icon-btn:hover {
+        background: rgba(20, 184, 166, 0.14) !important;
+        border-color: #14b8a6 !important;
+        color: #5eead4 !important;
+    }
+
+    /* Compact & Crisp Dropdown Menu Panels */
+    .fi-dropdown-panel {
+        min-width: 11.5rem !important;
+        border-radius: 12px !important;
+        padding: 0.3rem !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 4px 10px -4px rgba(15, 23, 42, 0.06) !important;
+    }
+
+    .dark .fi-dropdown-panel {
+        background: #111c23 !important;
+        border-color: #243c49 !important;
+        box-shadow: 0 14px 30px -6px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .fi-dropdown-list {
+        padding: 0.15rem !important;
+    }
+
+    .fi-dropdown-list-item {
+        border-radius: 8px !important;
+        padding: 0.4rem 0.65rem !important;
+        font-size: 0.79rem !important;
+        font-weight: 600 !important;
+        gap: 0.5rem !important;
+        transition: background-color 0.12s ease, color 0.12s ease !important;
+    }
+
+    .fi-dropdown-list-item-icon {
+        width: 1rem !important;
+        height: 1rem !important;
+    }
+
+    /* 4. Clear, Crisp Buttons */
+    .fi-btn {
+        border-radius: 10px !important;
+        padding: 0.42rem 0.9rem !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        line-height: 1.3 !important;
+        letter-spacing: 0.01em !important;
+        gap: 0.4rem !important;
+        transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .fi-btn-size-sm {
+        padding: 0.3rem 0.68rem !important;
+        font-size: 0.73rem !important;
+        border-radius: 8px !important;
+    }
+
+    .fi-ta-actions .fi-btn {
+        padding: 0.26rem 0.6rem !important;
+        font-size: 0.73rem !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+    }
+
+    /* 5. Nice, Balanced Cards & Sections */
+    .fi-section,
+    .fi-wi-stats-overview-stat,
+    .edtech-card,
+    .edtech-stat-card,
+    .hub-card {
+        border-radius: 14px !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease !important;
+    }
+
+    .dark .fi-section,
+    .dark .fi-wi-stats-overview-stat,
+    .dark .edtech-card,
+    .dark .edtech-stat-card,
+    .dark .hub-card {
+        border-color: #1f333f !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .fi-wi-stats-overview-stat:hover,
+    .edtech-stat-card:hover {
+        border-color: rgba(13, 148, 136, 0.38) !important;
+        box-shadow: 0 6px 16px -4px rgba(13, 148, 136, 0.1) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    .fi-section-header {
+        padding: 0.85rem 1.2rem !important;
+    }
+
+    .fi-section-content {
+        padding: 1.05rem 1.2rem !important;
+    }
+
+    .fi-wi-stats-overview-stat {
+        padding: 1rem 1.15rem !important;
+    }
+
+    .fi-header {
+        margin-bottom: 0.5rem !important;
+        gap: 0.75rem !important;
+    }
+
+    .fi-header-heading {
+        font-size: 1.35rem !important;
+        line-height: 1.25 !important;
+        letter-spacing: -0.02em !important;
     }
 </style>
 
@@ -4728,6 +5760,4 @@
         });
     })();
 </script>
-
-@vite(['resources/css/app.css', 'resources/js/app.js'])
 

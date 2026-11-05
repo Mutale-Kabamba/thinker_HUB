@@ -98,7 +98,7 @@
                                         @endif
                                     </button>
                                     @if (!empty($material['file_path']))
-                                        <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'material', 'id' => $material['id']])), @js($material['title'] . '.' . pathinfo($material['file_path'], PATHINFO_EXTENSION))); $wire.recordView({{ $material['id'] }});" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View file">View</button>
+                                        <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'material', 'id' => $material['id']])), @js(rtrim($material['title'], '.') . '.' . pathinfo($material['file_path'], PATHINFO_EXTENSION))); $wire.recordView({{ $material['id'] }});" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#0e7490;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='none'" title="View file">View</button>
                                         <button type="button" wire:click="downloadFile({{ $material['id'] }})" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.25rem 0.5rem;font-size:0.72rem;cursor:pointer;color:#6d28d9;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" title="Download file">Download</button>
                                     @endif
                                     @if (!empty($material['link_url']))
@@ -190,7 +190,7 @@
                             @endif
                         </button>
                         @if (!empty($material['file_path']))
-                            <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'material', 'id' => $material['id']])), @js($material['title'] . '.' . pathinfo($material['file_path'], PATHINFO_EXTENSION))); $wire.recordView({{ $material['id'] }});" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#0e7490;font-weight:600;">View</button>
+                            <button type="button" @click="openViewer(@js(route('file.view', ['type' => 'material', 'id' => $material['id']])), @js(rtrim($material['title'], '.') . '.' . pathinfo($material['file_path'], PATHINFO_EXTENSION))); $wire.recordView({{ $material['id'] }});" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#0e7490;font-weight:600;">View</button>
                             <button type="button" wire:click="downloadFile({{ $material['id'] }})" style="background:none;border:1px solid var(--hub-border);border-radius:6px;padding:0.3rem 0.65rem;font-size:0.75rem;cursor:pointer;color:#6d28d9;font-weight:600;">Download</button>
                         @endif
                         @if (!empty($material['link_url']))

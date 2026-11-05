@@ -28,6 +28,23 @@ class Review extends Model
         'is_verified' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        $syncRating = static function (self $review): void {
+            try {
+                $target = $review->reviewable;
+                if ($target && method_exists($target, 'updateCachedRating')) {
+                    $target->updateCachedRating();
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        };
+
+        static::saved($syncRating);
+        static::deleted($syncRating);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -87,7 +87,19 @@ Artisan::command('seo:generate {--base-url=}', function (): int {
                 ->setLastModificationDate(now())
         )
         ->add(
+            Url::create($routeUrl('hub.index'))
+                ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
+                ->setPriority(0.85)
+                ->setLastModificationDate(now())
+        )
+        ->add(
             Url::create($routeUrl('landing.instructors'))
+                ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
+                ->setPriority(0.75)
+                ->setLastModificationDate(now())
+        )
+        ->add(
+            Url::create($routeUrl('landing.instructors.apply'))
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                 ->setPriority(0.7)
                 ->setLastModificationDate(now())
@@ -125,7 +137,7 @@ Artisan::command('seo:generate {--base-url=}', function (): int {
 
         if (config('database.default') === 'sqlite') {
             $sqlitePath = (string) config('database.connections.sqlite.database');
-            $hasSqliteDatabaseFile = $sqlitePath !== '' && is_file($sqlitePath);
+            $hasSqliteDatabaseFile = $sqlitePath === ':memory:' || ($sqlitePath !== '' && is_file($sqlitePath));
         }
 
         if ($hasSqliteDatabaseFile && Schema::hasTable('courses')) {
@@ -133,13 +145,13 @@ Artisan::command('seo:generate {--base-url=}', function (): int {
                 ->where('is_active', true)
                 ->latest('updated_at')
                 ->get(['id', 'title', 'code', 'updated_at'])
-                ->each(function (Course $course) use ($coursesSitemap, &$courseUrlsCount): void {
+                ->each(function (Course $course) use ($coursesSitemap, &$courseUrlsCount, $routeUrl, $baseUrl): void {
                     $slugSource = trim((string) ($course->title ?: $course->code ?: $course->id));
                     $slug = Str::slug($slugSource);
 
                     $courseUrl = Url::create($routeUrl('landing.courses.show', ['course' => $course->id, 'slug' => $slug]))
                         ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
-                        ->setPriority(0.8)
+                        ->setPriority(0.85)
                         ->setLastModificationDate($course->updated_at ?? now());
 
                     // Attach a representative image for richer sitemap indexing.
@@ -149,9 +161,42 @@ Artisan::command('seo:generate {--base-url=}', function (): int {
                     $courseUrlsCount++;
                 });
         }
+
+        if ($hasSqliteDatabaseFile && Schema::hasTable('hub_posts')) {
+            \App\Models\HubPost::query()
+                ->where('is_published', true)
+                ->latest('updated_at')
+                ->get(['id', 'slug', 'title', 'updated_at'])
+                ->each(function (\App\Models\HubPost $post) use ($staticSitemap, $routeUrl): void {
+                    if (! empty($post->slug)) {
+                        $staticSitemap->add(
+                            Url::create($routeUrl('hub.show', ['post' => $post->slug]))
+                                ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
+                                ->setPriority(0.75)
+                                ->setLastModificationDate($post->updated_at ?? now())
+                        );
+                    }
+                });
+        }
+
+        if ($hasSqliteDatabaseFile && Schema::hasTable('users')) {
+            \App\Models\User::query()
+                ->whereIn('role', ['instructor', 'researcher', 'blogger', 'employer'])
+                ->where('is_active', true)
+                ->get(['id', 'name', 'updated_at'])
+                ->each(function (\App\Models\User $member) use ($staticSitemap, $routeUrl): void {
+                    $slug = Str::slug($member->name ?: (string) $member->id);
+                    $staticSitemap->add(
+                        Url::create($routeUrl('landing.instructors.show', ['instructor' => $member->id, 'slug' => $slug]))
+                            ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
+                            ->setPriority(0.65)
+                            ->setLastModificationDate($member->updated_at ?? now())
+                    );
+                });
+        }
     } catch (\Throwable $e) {
         report($e);
-        $this->warn('Courses could not be loaded for sitemap. Static pages were still generated.');
+        $this->warn('Dynamic records could not be loaded for sitemap. Static pages were still generated.');
     }
 
     $staticPath = public_path('sitemap-static.xml');
@@ -185,6 +230,14 @@ Artisan::command('seo:generate {--base-url=}', function (): int {
     $robots = implode(PHP_EOL, [
         'User-agent: *',
         'Allow: /',
+        'Disallow: /manage',
+        'Disallow: /instructor',
+        'Disallow: /student',
+        'Disallow: /parent',
+        'Disallow: /dashboard',
+        'Disallow: /checkout',
+        'Disallow: /profile',
+        'Disallow: /livewire',
         'Sitemap: '.$sitemapUrl,
         '',
     ]);

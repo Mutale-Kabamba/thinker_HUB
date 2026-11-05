@@ -277,7 +277,16 @@ class Schedule extends Page
             'start_time' => Carbon::parse($session->getEffectiveStartTime())->format('g:i A'),
             'end_time' => Carbon::parse($session->getEffectiveEndTime())->format('g:i A'),
             'status' => $session->status,
+            'delivery_mode' => $session->delivery_mode ?? \App\Models\CourseSession::DELIVERY_LIVE_VIRTUAL,
             'meeting_link' => $session->meeting_link,
+            'physical_address' => $session->physical_address,
+            'video_url' => $session->video_url,
+            'has_video' => filled($session->video_url) || filled($session->video_file_path),
+            'has_reading' => filled($session->reading_file_path) || filled($session->reading_content),
+            'viewer_url' => in_array($session->delivery_mode, [\App\Models\CourseSession::DELIVERY_VIDEO, \App\Models\CourseSession::DELIVERY_READ], true)
+                ? route('sessions.view', ['session' => $session->id])
+                : null,
+            'required_duration_minutes' => $session->required_duration_minutes ?? 15,
             'notes' => $session->notes,
             'is_today' => $effectiveDate->isToday(),
             'is_past' => $effectiveDate->isPast() && ! $effectiveDate->isToday(),
@@ -425,8 +434,7 @@ class Schedule extends Page
                         ->where('student_id', $user->id);
                 });
             })
-            ->orderBy('session_date')
-            ->orderBy('start_time');
+            ->scheduledFirst();
 
         $allAccessibleSessions = $allAccessibleQuery->get();
 
@@ -556,6 +564,7 @@ class Schedule extends Page
                 'start_time' => filled($startTime) ? Carbon::parse($startTime)->format('g:i A') : '—',
                 'end_time' => filled($endTime) ? Carbon::parse($endTime)->format('g:i A') : '—',
                 'status' => $s->status,
+                'delivery_mode' => $s->delivery_mode ?? \App\Models\CourseSession::DELIVERY_LIVE_VIRTUAL,
                 'notes' => $s->notes,
                 'is_today' => $effectiveDate->isToday(),
                 'is_past' => $effectiveDate->isPast() && ! $effectiveDate->isToday(),

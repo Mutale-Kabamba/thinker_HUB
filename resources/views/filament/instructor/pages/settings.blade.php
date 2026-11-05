@@ -8,8 +8,8 @@
     <div class="space-y-6 font-sans">
         {{-- Header Card --}}
         <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-[#7C3AED] dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800">
-                Account & Preferences
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800">
+                Account &amp; Preferences
             </span>
             <h1 class="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
                 Instructor Settings
@@ -44,7 +44,7 @@
                             name="name" 
                             type="text" 
                             value="{{ old('name', $user->name) }}" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             required
                         />
                         @error('name')
@@ -61,7 +61,7 @@
                             name="email" 
                             type="email" 
                             value="{{ old('email', $user->email) }}" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             required
                         />
                         @error('email')
@@ -78,10 +78,10 @@
                                 <img 
                                     src="{{ $user->getFilamentAvatarUrl() }}" 
                                     alt="Profile photo" 
-                                    class="w-14 h-14 rounded-full object-cover border-2 border-[#7C3AED] shadow-sm"
+                                    class="w-14 h-14 rounded-full object-cover border-2 border-teal-500 shadow-sm"
                                 />
                             @else
-                                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#7C3AED] to-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-sm">
+                                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-teal-600 to-emerald-600 text-white font-black text-lg flex items-center justify-center shadow-sm">
                                     {{ Str::upper(substr($user->name, 0, 2)) }}
                                 </div>
                             @endif
@@ -90,7 +90,7 @@
                                 name="profile_photo" 
                                 type="file" 
                                 accept="image/*" 
-                                class="text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 file:text-[#7C3AED] hover:file:bg-purple-100 transition"
+                                class="text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 transition"
                             />
                         </div>
                         @error('profile_photo')
@@ -107,7 +107,7 @@
                             <select 
                                 id="default_portal" 
                                 name="default_portal" 
-                                class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition"
+                                class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
                             >
                                 @foreach ($user->getAvailablePortals() as $portalKey => $portalData)
                                     <option value="{{ $portalKey }}" {{ old('default_portal', $user->default_portal ?? '') === $portalKey ? 'selected' : '' }}>
@@ -124,7 +124,7 @@
                     <div class="pt-2 flex items-center gap-3">
                         <button 
                             type="submit" 
-                            class="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-purple-600 dark:hover:bg-purple-500 shadow-sm transition transform hover:-translate-y-0.5"
+                            class="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition transform hover:-translate-y-0.5"
                         >
                             Save Profile
                         </button>
@@ -142,7 +142,7 @@
             <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
                 <div class="border-b border-slate-100 dark:border-[#233842] pb-3">
                     <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
-                        Teaching Credentials & Bio
+                        Teaching Credentials &amp; Bio
                     </h2>
                     <p class="text-xs text-slate-400 dark:text-slate-500">
                         Information visible to students across courses and webinars.
@@ -155,14 +155,14 @@
 
                     <div class="space-y-1">
                         <label for="instr_proficiency" class="block text-xs font-bold text-slate-700 dark:text-slate-200">
-                            Expertise & Topics
+                            Expertise &amp; Topics
                         </label>
                         <input 
                             id="instr_proficiency" 
                             name="proficiency" 
                             type="text" 
                             value="{{ old('proficiency', $user->proficiency) }}" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             placeholder="e.g. Data Science, Machine Learning, Full-Stack"
                         />
                         @error('proficiency')
@@ -179,7 +179,7 @@
                             name="occupation" 
                             type="text" 
                             value="{{ old('occupation', $user->occupation) }}" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             placeholder="e.g. Senior Software Architect"
                         />
                         @error('occupation')
@@ -195,7 +195,7 @@
                             id="instr_bio" 
                             name="bio" 
                             rows="3" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             placeholder="Write a brief description about your teaching style, experience, and background..."
                         >{{ old('bio', $user->bio) }}</textarea>
                         @error('bio')
@@ -206,18 +206,18 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="space-y-1">
                             <label for="instr_whatsapp" class="block text-xs font-bold text-slate-700 dark:text-slate-200">WhatsApp</label>
-                            <input id="instr_whatsapp" name="whatsapp" type="text" value="{{ old('whatsapp', $user->whatsapp) }}" class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition" placeholder="+260 97 xxxxxxx" />
+                            <input id="instr_whatsapp" name="whatsapp" type="text" value="{{ old('whatsapp', $user->whatsapp) }}" class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" placeholder="+260 97 xxxxxxx" />
                         </div>
                         <div class="space-y-1">
                             <label for="instr_linkedin" class="block text-xs font-bold text-slate-700 dark:text-slate-200">LinkedIn</label>
-                            <input id="instr_linkedin" name="linkedin_url" type="url" value="{{ old('linkedin_url', $user->linkedin_url) }}" class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition" placeholder="https://linkedin.com/in/..." />
+                            <input id="instr_linkedin" name="linkedin_url" type="url" value="{{ old('linkedin_url', $user->linkedin_url) }}" class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" placeholder="https://linkedin.com/in/..." />
                         </div>
                     </div>
 
                     <div class="pt-2 flex items-center gap-3">
                         <button 
                             type="submit" 
-                            class="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-purple-600 dark:hover:bg-purple-500 shadow-sm transition transform hover:-translate-y-0.5"
+                            class="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition transform hover:-translate-y-0.5"
                         >
                             Save Details
                         </button>
@@ -238,7 +238,7 @@
                 <div class="border-b border-slate-100 dark:border-[#233842] pb-3 flex items-center justify-between">
                     <div>
                         <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
-                            Recent Alerts & Notifications
+                            Recent Alerts &amp; Notifications
                         </h2>
                         <p class="text-xs text-slate-400 dark:text-slate-500">
                             Activity logs and system broadcasts.
@@ -254,7 +254,7 @@
                             x-show="!cleared" 
                             x-transition.opacity
                             @click="fetch('/notifications/{{ $note->id }}/clear', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }); cleared = true;"
-                            class="p-3 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/70 dark:bg-slate-800/40 hover:bg-purple-50/50 dark:hover:bg-slate-800 transition cursor-pointer flex items-center justify-between gap-3"
+                            class="p-3 rounded-xl border border-slate-100 dark:border-[#233842] bg-slate-50/70 dark:bg-slate-800/40 hover:bg-teal-50/50 dark:hover:bg-slate-800 transition cursor-pointer flex items-center justify-between gap-3"
                             title="Click to mark as read"
                         >
                             <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
@@ -276,7 +276,7 @@
             <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
                 <div class="border-b border-slate-100 dark:border-[#233842] pb-3">
                     <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
-                        Security & Password
+                        Security &amp; Password
                     </h2>
                     <p class="text-xs text-slate-400 dark:text-slate-500">
                         Ensure your account uses a strong, secure passphrase.
@@ -295,7 +295,7 @@
                             id="instr_current_password" 
                             name="current_password" 
                             type="password" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             autocomplete="current-password"
                         />
                         @if ($errors->updatePassword->has('current_password'))
@@ -311,7 +311,7 @@
                             id="instr_new_password" 
                             name="password" 
                             type="password" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             autocomplete="new-password"
                         />
                         @if ($errors->updatePassword->has('password'))
@@ -327,7 +327,7 @@
                             id="instr_new_password_confirm" 
                             name="password_confirmation" 
                             type="password" 
-                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-[#7C3AED] focus:border-[#7C3AED] transition" 
+                            class="w-full text-xs font-medium rounded-xl border border-slate-300 dark:border-[#233842] bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" 
                             autocomplete="new-password"
                         />
                     </div>
@@ -335,7 +335,7 @@
                     <div class="pt-2 flex items-center gap-3">
                         <button 
                             type="submit" 
-                            class="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-[#7C3AED] hover:bg-[#6D28D9] dark:bg-purple-600 dark:hover:bg-purple-500 shadow-sm transition transform hover:-translate-y-0.5"
+                            class="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition transform hover:-translate-y-0.5"
                         >
                             Update Password
                         </button>

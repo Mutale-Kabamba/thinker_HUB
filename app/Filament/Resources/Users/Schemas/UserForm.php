@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Users\Schemas;
 use App\Models\Course;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -29,6 +30,7 @@ class UserForm
                 Select::make('role')
                     ->options([
                         'student' => 'Student',
+                        'parent' => 'Parent / Guardian',
                         'instructor' => 'Instructor',
                         'blogger' => 'Blogger (Short Blogs)',
                         'researcher' => 'Researcher (Tips & Tricks)',
@@ -42,6 +44,23 @@ class UserForm
                     ->required(fn (callable $get): bool => $get('role') === 'student')
                     ->default('Beginner')
                     ->visible(fn (callable $get): bool => $get('role') === 'student'),
+                Select::make('gender')
+                    ->label('Gender')
+                    ->options([
+                        'Male' => 'Male',
+                        'Female' => 'Female',
+                        'Other' => 'Other',
+                    ])
+                    ->placeholder('Select gender'),
+                TextInput::make('nrc_passport')
+                    ->label('NRC / Passport Number')
+                    ->placeholder('e.g. 123456/11/1 or Passport No.')
+                    ->maxLength(50),
+                Textarea::make('bio')
+                    ->label('Instructor Bio')
+                    ->rows(4)
+                    ->columnSpanFull()
+                    ->visible(fn (callable $get): bool => in_array($get('role'), ['instructor', 'admin'], true)),
                 Select::make('instructorCourses')
                     ->label('Assigned Instructor Courses')
                     ->relationship('instructorCourses', 'title')
@@ -57,10 +76,3 @@ class UserForm
             ]);
     }
 }
-
-use Filament\Forms\Components\Textarea;
-
-Textarea::make('bio')
-    ->label('Instructor Bio')
-    ->rows(4)
-    ->columnSpanFull();

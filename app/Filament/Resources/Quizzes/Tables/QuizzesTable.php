@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Quizzes\Tables;
 
+use App\Filament\Actions\ExportQuizzesAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -52,10 +53,19 @@ class QuizzesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
-                EditAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    EditAction::make()
+                        ->icon('heroicon-m-pencil-square'),
+                    ExportQuizzesAction::makeRowAction(),
+                    \Filament\Actions\DeleteAction::make()
+                        ->icon('heroicon-m-trash'),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    ExportQuizzesAction::makeBulkAction(),
                     DeleteBulkAction::make(),
                 ]),
             ]);

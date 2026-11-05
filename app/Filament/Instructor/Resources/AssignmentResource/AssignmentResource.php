@@ -117,26 +117,15 @@ class AssignmentResource extends Resource
                     ->helperText('Choose All Students to send to all students in the selected course and level.'),
 
                 FileUpload::make('file_paths')
-                    ->label('Assignment Document(s)')
+                    ->label('Assignment Attachment(s) (PDF, PPTX, ZIP, .py, etc.)')
                     ->disk('public')
                     ->directory('assignments')
                     ->multiple()
                     ->reorderable()
+                    ->openable()
+                    ->downloadable()
                     ->maxSize(10240)
-                    ->acceptedFileTypes([
-                        'application/pdf',
-                        'application/msword',
-                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                        'application/vnd.ms-powerpoint',
-                        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                        'application/vnd.ms-excel',
-                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                        'text/plain',
-                        'text/csv',
-                        'image/*',
-                        'application/zip',
-                    ])
-                    ->helperText('Attach one or more assignment files, briefs, or resources.')
+                    ->helperText('Attach one or more assignment files, code files (.py), archives (.zip), slides (.pptx), or briefs (all file types supported, up to 10MB per file).')
                     ->columnSpanFull(),
 
                 DatePicker::make('date_given')
@@ -190,6 +179,20 @@ class AssignmentResource extends Resource
             ->recordActions([
                 \Filament\Actions\ActionGroup::make([
                     EditAction::make()->icon('heroicon-m-pencil-square'),
+                    \Filament\Actions\Action::make('view_assignment_document')
+                        ->label('View Document')
+                        ->icon('heroicon-m-eye')
+                        ->color('info')
+                        ->visible(fn ($record) => ! empty($record->all_file_paths))
+                        ->url(fn ($record): string => route('file.view', ['type' => 'assignment', 'id' => $record->id]))
+                        ->openUrlInNewTab(),
+                    \Filament\Actions\Action::make('download_assignment_document')
+                        ->label('Download Document')
+                        ->icon('heroicon-m-arrow-down-tray')
+                        ->color('gray')
+                        ->visible(fn ($record) => ! empty($record->all_file_paths))
+                        ->url(fn ($record): string => route('file.download', ['type' => 'assignment', 'id' => $record->id]))
+                        ->openUrlInNewTab(),
                     \Filament\Actions\Action::make('downloadSubmissionsZip')
                         ->label('Download Submissions (ZIP)')
                         ->icon('heroicon-m-arrow-down-tray')

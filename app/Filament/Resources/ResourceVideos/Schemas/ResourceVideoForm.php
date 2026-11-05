@@ -3,14 +3,20 @@
 namespace App\Filament\Resources\ResourceVideos\Schemas;
 
 use App\Models\Course;
+use App\Models\CourseIntake;
 use App\Models\ResourceVideo;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ToggleButtons;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 
 class ResourceVideoForm
 {
@@ -23,116 +29,183 @@ class ResourceVideoForm
 
         return $schema
             ->components([
-                TextInput::make('title')
-                    ->required()
-                    ->maxLength(255),
+                Section::make('Video Content & Stream Source')
+                    ->description('Media title, author attribution, and streaming video source.')
+                    ->icon('heroicon-o-video-camera')
+                    ->columnSpanFull()
+                    ->schema([
+                        TextInput::make('title')
+                            ->label('Video Title')
+                            ->placeholder('e.g. Masterclass: Building High-Performance Web Apps')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(['default' => 1, 'sm' => 2, 'lg' => 2]),
 
-                Radio::make('video_source')
-                    ->label('Video source')
-                    ->options([
-                        'youtube' => 'YouTube URL',
-                        'upload' => 'Upload video file',
+                        TextInput::make('channel_name')
+                            ->label('Channel / Source Attribution')
+                            ->placeholder('e.g. think.er HUB / Instructor Name')
+                            ->maxLength(255)
+                            ->columnSpan(1),
+
+                        TextInput::make('sort_order')
+                            ->label('Catalog Sort Order')
+                            ->numeric()
+                            ->default(0)
+                            ->helperText('Lower numbers appear first in the library.')
+                            ->columnSpan(1),
+
+                        ToggleButtons::make('video_source')
+                            ->label('Video Source Format')
+                            ->options([
+                                'youtube' => 'Embedded Video URL (YouTube, Vimeo, Loom, etc.)',
+                                'upload' => 'Upload Video File (Local/Storage)',
+                            ])
+                            ->icons([
+                                'youtube' => 'heroicon-o-play-circle',
+                                'upload' => 'heroicon-o-arrow-up-tray',
+                            ])
+                            ->colors([
+                                'youtube' => 'primary',
+                                'upload' => 'primary',
+                            ])
+                            ->default(fn (?ResourceVideo $record): string => $record?->hasLocalVideo() ? 'upload' : 'youtube')
+                            ->inline()
+                            ->live()
+                            ->columnSpanFull(),
+
+                        TextInput::make('youtube_url')
+                            ->label('Embedded Video URL (YouTube, Vimeo, Loom, etc.)')
+                            ->placeholder('https://www.youtube.com/watch?v=... or https://vimeo.com/...')
+                            ->url()
+                            ->helperText('Paste any video link from YouTube, Vimeo, Loom, Dailymotion, Wistia, Google Drive, or other video platforms.')
+                            ->maxLength(255)
+                            ->visible(fn (callable $get): bool => $get('video_source') !== 'upload')
+                            ->required(fn (callable $get): bool => $get('video_source') !== 'upload')
+                            ->live()
+                            ->columnSpanFull(),
+
+                        Placeholder::make('video_preview')
+                            ->label('Live Video Player Preview')
+                            ->visible(fn (callable $get): bool => $get('video_source') !== 'upload' && filled($get('youtube_url')))
+                            ->content(function (callable $get, ?ResourceVideo $record): HtmlString {
+                                $url = $get('youtube_url') ?? $record?->youtube_url;
+                                if ($get('video_source') !== 'upload' && filled($url)) {
+                                    $parsed = \App\Support\VideoEmbedParser::parse((string) $url);
+                                    $embedUrl = $parsed['embed_url'];
+                                    if ($embedUrl && ! $parsed['is_direct_file']) {
+                                        $escaped = htmlspecialchars($embedUrl, ENT_QUOTES, 'UTF-8');
+
+                                        return new HtmlString("
+                                            <div style='position: relative; max-width: 640px; padding-bottom: 36.25%; height: 0; overflow: hidden; border-radius: 0.75rem; border: 1px solid var(--hub-border, #334155); background: #000; box-shadow: 0 4px 14px rgba(0,0,0,0.15);'>
+                                                <iframe src='{$escaped}' style='position: absolute; top:0; left: 0; width: 100%; height: 100%; border: 0;' allowfullscreen></iframe>
+                                            </div>
+                                        ");
+                                    }
+                                }
+
+                                return new HtmlString('');
+                            })
+                            ->columnSpanFull(),
+
+                        FileUpload::make('video_file')
+                            ->label('Video Media File')
+                            ->disk(config('videos.upload_disk', 'public'))
+                            ->directory('resource-videos')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska', 'video/mpeg', 'video/3gpp'])
+                            ->maxSize(30720)
+                            ->storeFileNamesIn('video_file_original_name')
+                            ->helperText('MP4, WebM, MOV, MKV up to 30 MB. Background transcoding runs automatically.')
+                            ->visible(fn (callable $get): bool => $get('video_source') === 'upload')
+                            ->required(fn (callable $get, ?ResourceVideo $record): bool => $get('video_source') === 'upload' && ! $record?->hasLocalVideo())
+                            ->columnSpanFull(),
+
+                        Textarea::make('description')
+                            ->label('Video Description & Key Topics')
+                            ->rows(3)
+                            ->placeholder('Summarize lesson topics, timestamps, prerequisites, or downloadable attachments...')
+                            ->columnSpanFull(),
                     ])
-                    ->default(fn (?ResourceVideo $record): string => $record?->hasLocalVideo() ? 'upload' : 'youtube')
-                    ->helperText('Provide exactly one source: a YouTube link or an uploaded file.')
-                    ->live(),
+                    ->columns(['default' => 1, 'sm' => 2, 'lg' => 4]),
 
-                TextInput::make('youtube_url')
-                    ->label('YouTube URL')
-                    ->url()
-                    ->helperText('Paste any YouTube link (watch, youtu.be, shorts, or embed).')
-                    ->maxLength(255)
-                    ->visible(fn (callable $get): bool => $get('video_source') !== 'upload')
-                    ->required(fn (callable $get): bool => $get('video_source') !== 'upload'),
+                Section::make('Access Scope & Classification')
+                    ->description('Assign viewing audience, course connection, cohort level, and publication status.')
+                    ->icon('heroicon-o-shield-check')
+                    ->columnSpanFull()
+                    ->schema([
+                        Grid::make(['default' => 1, 'sm' => 2])
+                            ->schema([
+                                Select::make('category')
+                                    ->label('Category')
+                                    ->options(ResourceVideo::categoryOptions())
+                                    ->default('General')
+                                    ->required()
+                                    ->selectablePlaceholder(false)
+                                    ->searchable()
+                                    ->helperText('Select the primary catalog category for this video.'),
 
-                FileUpload::make('video_file')
-                    ->label('Video file')
-                    ->disk(config('videos.upload_disk', 'public'))
-                    ->directory('resource-videos')
-                    ->visibility('public')
-                    ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska', 'video/mpeg', 'video/3gpp'])
-                    ->maxSize(30720) // KB — below Livewire temp cap (30 MB) and php.ini limits (40M)
-                    ->storeFileNamesIn('video_file_original_name')
-                    ->helperText('MP4, WebM, MOV, MKV or MPEG up to 30 MB. Transcoding runs in the background; without FFmpeg the original file is served as-is.')
-                    ->visible(fn (callable $get): bool => $get('video_source') === 'upload')
-                    ->required(fn (callable $get, ?ResourceVideo $record): bool => $get('video_source') === 'upload' && ! $record?->hasLocalVideo()),
+                                Select::make('course_id')
+                                    ->label('Course Scope')
+                                    ->options($resolveCourseOptions)
+                                    ->searchable()
+                                    ->nullable()
+                                    ->placeholder('All Courses (Visible to all students)')
+                                    ->helperText('Assign to a specific course, or leave open to all students.')
+                                    ->live(),
 
-                Select::make('course_id')
-                    ->label('Course')
-                    ->options($resolveCourseOptions)
-                    ->searchable()
-                    ->nullable()
-                    ->placeholder('All Courses (Visible to all students)')
-                    ->helperText('Assign to a specific course so only enrolled students can view it, or leave empty to make it visible to all students.')
-                    ->live(),
+                                Select::make('course_intake_id')
+                                    ->label('Target Intake / Class')
+                                    ->nullable()
+                                    ->searchable()
+                                    ->options(function (callable $get): array {
+                                        $courseId = $get('course_id');
+                                        if (! $courseId) {
+                                            return [];
+                                        }
 
-                Select::make('course_intake_id')
-                    ->label('Target Intake / Class')
-                    ->nullable()
-                    ->searchable()
-                    ->options(function (callable $get): array {
-                        $courseId = $get('course_id');
-                        if (! $courseId) {
-                            return [];
-                        }
+                                        return CourseIntake::query()
+                                            ->where('course_id', $courseId)
+                                            ->where('status', '!=', CourseIntake::STATUS_ARCHIVED)
+                                            ->orderBy('start_date', 'desc')
+                                            ->pluck('name', 'id')
+                                            ->toArray();
+                                    })
+                                    ->placeholder('All Intakes / Entire Course')
+                                    ->helperText('Leave empty to share across all cohorts.')
+                                    ->visible(fn (callable $get): bool => filled($get('course_id'))),
 
-                        return \App\Models\CourseIntake::query()
-                            ->where('course_id', $courseId)
-                            ->where('status', '!=', \App\Models\CourseIntake::STATUS_ARCHIVED)
-                            ->orderBy('start_date', 'desc')
-                            ->pluck('name', 'id')
-                            ->toArray();
-                    })
-                    ->placeholder('All Intakes / Entire Course')
-                    ->helperText('Leave empty to share with all cohorts across the course.')
-                    ->visible(fn (callable $get): bool => filled($get('course_id'))),
+                                Select::make('target_level')
+                                    ->label('Target Level')
+                                    ->options([
+                                        'Beginner' => 'Beginner',
+                                        'Intermediate' => 'Intermediate',
+                                        'Advanced' => 'Advanced',
+                                    ])
+                                    ->nullable()
+                                    ->placeholder('All Levels')
+                                    ->helperText('Target a specific proficiency tier.')
+                                    ->visible(fn (callable $get): bool => filled($get('course_id'))),
+                            ]),
 
-                Select::make('target_level')
-                    ->label('Target level')
-                    ->options([
-                        'Beginner' => 'Beginner',
-                        'Intermediate' => 'Intermediate',
-                        'Advanced' => 'Advanced',
-                    ])
-                    ->nullable()
-                    ->placeholder('All Levels')
-                    ->helperText('Leave empty to show this video to all levels in the selected course.')
-                    ->visible(fn (callable $get): bool => filled($get('course_id'))),
+                        Grid::make(['default' => 1, 'sm' => 2])
+                            ->schema([
+                                Toggle::make('is_recorded_lesson')
+                                    ->label('Recorded Lesson')
+                                    ->helperText('Tag as an official cohort recorded lesson.')
+                                    ->default(false)
+                                    ->afterStateUpdated(function ($state, callable $set): void {
+                                        if ($state) {
+                                            $set('category', 'Recorded Lessons');
+                                        }
+                                    })
+                                    ->live(),
 
-                Toggle::make('is_recorded_lesson')
-                    ->label('Recorded lesson')
-                    ->helperText('Turn on if this video is an official recorded lesson for enrolled students.')
-                    ->default(false)
-                    ->afterStateUpdated(function ($state, callable $set): void {
-                        if ($state) {
-                            $set('category', 'Recorded Lessons');
-                        }
-                    })
-                    ->live(),
-
-                Select::make('category')
-                    ->label('Category')
-                    ->options(ResourceVideo::categoryOptions())
-                    ->default('General')
-                    ->required()
-                    ->searchable(),
-
-                TextInput::make('channel_name')
-                    ->label('Channel / Source')
-                    ->maxLength(255),
-
-                Textarea::make('description')
-                    ->rows(3)
-                    ->columnSpanFull(),
-
-                TextInput::make('sort_order')
-                    ->numeric()
-                    ->default(0)
-                    ->helperText('Lower numbers appear first.'),
-
-                Toggle::make('is_published')
-                    ->label('Published (visible to students)')
-                    ->default(true),
+                                Toggle::make('is_published')
+                                    ->label('Published (Visible to Students)')
+                                    ->helperText('Make this video immediately visible to learners.')
+                                    ->default(true),
+                            ]),
+                    ]),
             ]);
     }
 }

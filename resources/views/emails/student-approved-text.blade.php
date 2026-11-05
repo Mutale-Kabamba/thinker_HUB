@@ -28,4 +28,4 @@ If you have any questions or need assistance, reply to this email or reach us at
 Best regards,
 The think.er HUB Team
 Livingstone, Zambia
-https://oristudiozm.com
+http://thinkerhub.online

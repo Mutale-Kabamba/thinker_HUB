@@ -69,6 +69,93 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        if ($this->app->environment('local')) {
+            if (! $this->app->runningInConsole()) {
+                @ini_set('max_execution_time', '120');
+            } else {
+                @ini_set('max_execution_time', '0');
+            }
+        }
+
+        // Ensure outbound HTTPS requests (such as AI API calls) have a valid SSL CA bundle on environments missing curl.cainfo
+        $caPath = storage_path('certs/ca-bundle.crt');
+        if (file_exists($caPath) && (empty(ini_get('curl.cainfo')) || ! file_exists((string) ini_get('curl.cainfo')))) {
+            \Illuminate\Support\Facades\Http::globalOptions(['verify' => $caPath]);
+        } elseif ($this->app->environment('local', 'testing') && (empty(ini_get('curl.cainfo')) || ! file_exists((string) ini_get('curl.cainfo')))) {
+            \Illuminate\Support\Facades\Http::globalOptions(['verify' => false]);
+        }
+
+        // Ensure laravel/ai Gemini provider has the API key if services.gemini.api_key is set
+        if (empty(config('ai.providers.gemini.key')) && ! empty(config('services.gemini.api_key'))) {
+            config(['ai.providers.gemini.key' => config('services.gemini.api_key')]);
+        }
+
+        // Align 'public' disk configuration with Laravel Cloud automatic disk or default cloud storage
+        $rawCloudConfig = $_SERVER['LARAVEL_CLOUD_DISK_CONFIG']
+            ?? $_ENV['LARAVEL_CLOUD_DISK_CONFIG']
+            ?? env('LARAVEL_CLOUD_DISK_CONFIG')
+            ?? (function_exists('getenv') ? getenv('LARAVEL_CLOUD_DISK_CONFIG') : null);
+
+        if (! empty($rawCloudConfig)) {
+            try {
+                $cloudDisks = is_array($rawCloudConfig) ? $rawCloudConfig : json_decode((string) $rawCloudConfig, true);
+                if (is_array($cloudDisks) && ! empty($cloudDisks)) {
+                    if (isset($cloudDisks['disk'])) {
+                        $cloudDisks = [$cloudDisks];
+                    }
+                    $chosen = collect($cloudDisks)->firstWhere('is_default', true) ?? ($cloudDisks[0] ?? null);
+                    if ($chosen && ! empty($chosen['disk'])) {
+                        $diskName = (string) $chosen['disk'];
+                        $cloudDiskConfig = config('filesystems.disks.' . $diskName) ?: [
+                            'driver' => 's3',
+                            'key' => $chosen['access_key_id'] ?? config('filesystems.disks.s3.key'),
+                            'secret' => $chosen['access_key_secret'] ?? config('filesystems.disks.s3.secret'),
+                            'region' => $chosen['region'] ?? 'auto',
+                            'bucket' => $chosen['bucket'] ?? config('filesystems.disks.s3.bucket'),
+                            'url' => $chosen['url'] ?? config('filesystems.disks.s3.url'),
+                            'endpoint' => $chosen['endpoint'] ?? config('filesystems.disks.s3.endpoint'),
+                            'use_path_style_endpoint' => (bool) ($chosen['use_path_style_endpoint'] ?? false),
+                            'throw' => false,
+                            'report' => false,
+                        ];
+
+                        config([
+                            'filesystems.disks.' . $diskName => $cloudDiskConfig,
+                            'filesystems.disks.public' => $cloudDiskConfig,
+                            'filesystems.default' => $diskName,
+                        ]);
+
+                        if ($this->app->resolved('filesystem')) {
+                            $this->app['filesystem']->forgetDisk('public');
+                            $this->app['filesystem']->forgetDisk($diskName);
+                        }
+                    }
+                }
+            } catch (\Throwable) {
+                // Ignore parsing errors during early boot
+            }
+        } elseif (config('filesystems.default') && ! in_array(config('filesystems.default'), ['local', 'public'], true)) {
+            $defaultConfig = config('filesystems.disks.' . config('filesystems.default'));
+            if ($defaultConfig && ($defaultConfig['driver'] ?? '') === 's3') {
+                config(['filesystems.disks.public' => $defaultConfig]);
+                if ($this->app->resolved('filesystem')) {
+                    $this->app['filesystem']->forgetDisk('public');
+                }
+            }
+        } elseif (! empty(config('filesystems.disks.s3.key')) && ! empty(config('filesystems.disks.s3.bucket'))) {
+            $s3Config = config('filesystems.disks.s3');
+            if ($s3Config) {
+                config(['filesystems.disks.public' => $s3Config]);
+                if ($this->app->resolved('filesystem')) {
+                    $this->app['filesystem']->forgetDisk('public');
+                }
+            }
+        }
+
+        // Ensure Livewire temporary uploads always stage onto the local filesystem
+        // so that fopen($tmp->getRealPath()) succeeds when streaming files to cloud storage disks like S3/R2.
+        config(['livewire.temporary_file_upload.disk' => env('LIVEWIRE_TMP_DISK', 'local')]);
+
         // Dynamically align WebAuthn Relying Party ID and Allowed Origins with current request
         if (! $this->app->runningInConsole()) {
             try {
@@ -109,6 +196,11 @@ class AppServiceProvider extends ServiceProvider
                     app(GamificationService::class)->recordDailyLogin($event->user);
                 } catch (\Throwable $e) {
                     report($e);
+                }
+
+                if (session()) {
+                    session()->forget('instructor_reminder_shown_for_session');
+                    session()->forget('instructor_reminder_dismissed_session');
                 }
             }
         });

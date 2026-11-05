@@ -6,364 +6,404 @@
 @endphp
 
 <x-filament-panels::page>
-    <div class="hub-shell" style="max-width: 100%; padding: 0.25rem 0;">
-        {{-- Compact Top Navigation & Stats Ribbon --}}
-        <div class="hub-card" style="padding: 0.75rem 1rem; border-radius: 12px; margin-bottom: 0.75rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.6rem;">
-                <div>
-                    <div style="display: flex; align-items: center; gap: 0.4rem;">
-                        <span style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--hub-primary); letter-spacing: 0.04em;">
-                            Grading & Evaluations
-                        </span>
-                        <span style="color: var(--hub-border);">•</span>
-                        <span style="font-size: 0.72rem; color: var(--hub-muted);">
-                            {{ count($students) }} Students • {{ $tasksData['totals']['total'] }} Taken Tasks (FILO)
-                        </span>
-                    </div>
-                    <h2 class="hub-title" style="font-size: 1.1rem; margin: 0.15rem 0 0 0;">Evaluation Results</h2>
+    <div class="space-y-6">
+
+        {{-- 1. TOP NAVIGATION & STATS RIBBON --}}
+        <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-4 sm:p-5 border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 flex items-center justify-center shadow-2xs border border-teal-100 dark:border-teal-900/60">
+                    <x-heroicon-o-academic-cap class="w-5 h-5" />
                 </div>
-
-                {{-- Mode Switcher & Export CSV --}}
-                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-                    <div style="display: inline-flex; background: var(--hub-surface-soft); padding: 2px; border-radius: 8px; border: 1px solid var(--hub-border);">
-                        <button type="button"
-                                wire:click="setViewMode('tasks')"
-                                style="font-size: 0.72rem; font-weight: 600; padding: 0.25rem 0.65rem; border-radius: 6px; border: none; cursor: pointer; background: {{ $viewMode === 'tasks' ? 'var(--hub-primary)' : 'transparent' }}; color: {{ $viewMode === 'tasks' ? '#ffffff' : 'var(--hub-muted)' }}; transition: all 0.15s ease;">
-                            <x-heroicon-o-squares-2x2 style="width: 0.8rem; height: 0.8rem; display: inline-block; vertical-align: -1px;" />
-                            Evaluation Cards
-                        </button>
-                        <button type="button"
-                                wire:click="setViewMode('students')"
-                                style="font-size: 0.72rem; font-weight: 600; padding: 0.25rem 0.65rem; border-radius: 6px; border: none; cursor: pointer; background: {{ $viewMode === 'students' ? 'var(--hub-primary)' : 'transparent' }}; color: {{ $viewMode === 'students' ? '#ffffff' : 'var(--hub-muted)' }}; transition: all 0.15s ease;">
-                            <x-heroicon-o-users style="width: 0.8rem; height: 0.8rem; display: inline-block; vertical-align: -1px;" />
-                            Per Student
-                        </button>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-teal-600 dark:text-teal-400">
+                            Grading &amp; Evaluations
+                        </span>
+                        <span class="text-slate-300 dark:text-slate-600">•</span>
+                        <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                            {{ count($students) }} Students • {{ $tasksData['totals']['total'] }} Taken Tasks
+                        </span>
                     </div>
+                    <h2 class="text-base font-extrabold text-slate-900 dark:text-slate-100">Student &amp; Task Evaluation Results</h2>
+                </div>
+            </div>
 
-                    <button type="button"
-                            wire:click="exportCsv"
-                            style="font-size: 0.72rem; padding: 0.35rem 0.65rem; background: var(--hub-surface); border: 1px solid var(--hub-border); color: var(--hub-ink); border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; font-weight: 500;">
-                        <x-heroicon-o-arrow-down-tray style="width: 0.8rem; height: 0.8rem; color: var(--hub-primary);" />
-                        <span class="hub-btn-label">CSV</span>
+            {{-- Mode Switcher & Export CSV --}}
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-[#233842] flex items-center gap-1">
+                    <button 
+                        type="button"
+                        wire:click="setViewMode('tasks')"
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1.5 {{ $viewMode === 'tasks' ? 'bg-teal-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}"
+                    >
+                        <x-heroicon-o-squares-2x2 class="w-3.5 h-3.5" />
+                        <span>Evaluation Cards</span>
+                    </button>
+                    <button 
+                        type="button"
+                        wire:click="setViewMode('students')"
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1.5 {{ $viewMode === 'students' ? 'bg-teal-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}"
+                    >
+                        <x-heroicon-o-users class="w-3.5 h-3.5" />
+                        <span>Per Student</span>
                     </button>
                 </div>
-            </div>
 
-            {{-- Compact Inline Stats Ribbon --}}
-            <div style="display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.65rem; padding-top: 0.5rem; border-top: 1px solid var(--hub-border); font-size: 0.72rem;">
-                <div style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--hub-surface-soft); padding: 0.2rem 0.5rem; border-radius: 6px;">
-                    <span style="color: var(--hub-muted);">Class Avg:</span>
-                    <strong style="color: {{ $kpi['avg_overall'] !== null ? ($kpi['avg_overall'] >= 75 ? '#059669' : ($kpi['avg_overall'] >= 50 ? '#d97706' : '#dc2626')) : 'var(--hub-ink)' }};">
-                        {{ $kpi['avg_overall'] !== null ? $kpi['avg_overall'].'%' : '—' }}
-                    </strong>
-                </div>
-                <div style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--hub-surface-soft); padding: 0.2rem 0.5rem; border-radius: 6px;">
-                    <span style="color: var(--hub-muted);">Task Order:</span>
-                    <strong style="color: var(--hub-primary);">FILO (Most Recent Taken First)</strong>
-                </div>
-                <div style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--hub-surface-soft); padding: 0.2rem 0.5rem; border-radius: 6px;">
-                    <span style="color: var(--hub-muted);">Student Rank:</span>
-                    <strong style="color: #059669;">DEC (Highest Score First)</strong>
-                </div>
+                <button 
+                    type="button"
+                    wire:click="exportCsv"
+                    class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#233842] bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition-colors inline-flex items-center gap-1.5"
+                    title="Export Results to CSV"
+                >
+                    <x-heroicon-o-arrow-down-tray class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                    <span>Export CSV</span>
+                </button>
             </div>
         </div>
 
-        {{-- Minimal Search & Filter Bar --}}
-        <div class="hub-card" style="padding: 0.6rem 0.75rem; border-radius: 12px; margin-bottom: 0.75rem;">
-            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; justify-content: space-between;">
-                {{-- Search Box --}}
-                <div style="flex: 1; min-width: 180px; position: relative;">
-                    <div style="position: absolute; left: 0.6rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--hub-muted);">
-                        <x-heroicon-o-magnifying-glass style="width: 0.85rem; height: 0.85rem;" />
-                    </div>
-                    <input type="text"
-                           wire:model.live.debounce.300ms="search"
-                           placeholder="Search student or taken task..."
-                           style="width: 100%; padding: 0.35rem 0.6rem 0.35rem 1.9rem; border-radius: 6px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.76rem;" />
-                </div>
+        {{-- KPI STATS PILLS RIBBON --}}
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-[#102028] border border-slate-100 dark:border-[#233842] shadow-2xs">
+                <span class="text-slate-400 dark:text-slate-500 font-medium">Class Average:</span>
+                <strong class="{{ $kpi['avg_overall'] !== null ? ($kpi['avg_overall'] >= 75 ? 'text-emerald-600 dark:text-emerald-400' : ($kpi['avg_overall'] >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400')) : 'text-slate-700 dark:text-slate-300' }}">
+                    {{ $kpi['avg_overall'] !== null ? $kpi['avg_overall'].'%' : '—' }}
+                </strong>
+            </div>
 
-                {{-- Filters --}}
-                <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
-                    {{-- Course Filter --}}
-                    <select wire:model.live="courseFilter"
-                            style="padding: 0.35rem 0.5rem; border-radius: 6px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.74rem; cursor: pointer; max-width: 140px;">
-                        <option value="">All Courses</option>
-                        @foreach ($this->courseOptions as $cId => $cTitle)
-                            <option value="{{ $cId }}">{{ $cTitle }}</option>
-                        @endforeach
-                    </select>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-[#102028] border border-slate-100 dark:border-[#233842] shadow-2xs">
+                <span class="text-slate-400 dark:text-slate-500 font-medium">Task Ordering:</span>
+                <strong class="text-teal-600 dark:text-teal-400 font-bold">FILO (Latest Taken First)</strong>
+            </div>
 
-                    {{-- Track Filter --}}
-                    <select wire:model.live="trackFilter"
-                            style="padding: 0.35rem 0.5rem; border-radius: 6px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.74rem; cursor: pointer;">
-                        <option value="">All Levels</option>
-                        <option value="Beginner">Beginner</option>
-                        <option value="Intermediate">Intermediate</option>
-                        <option value="Advanced">Advanced</option>
-                    </select>
-
-                    @if(!empty($search) || !empty($courseFilter) || !empty($trackFilter) || $activeCategory !== 'quizzes')
-                        <button type="button"
-                                wire:click="resetFilters"
-                                style="padding: 0.35rem 0.5rem; font-size: 0.72rem; background: var(--hub-surface-soft); border: 1px solid var(--hub-border); border-radius: 6px; color: var(--hub-muted); cursor: pointer;"
-                                title="Reset filters">
-                            <x-heroicon-o-x-mark style="width: 0.75rem; height: 0.75rem; display: inline-block; vertical-align: -1px;" />
-                        </button>
-                    @endif
-                </div>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-[#102028] border border-slate-100 dark:border-[#233842] shadow-2xs">
+                <span class="text-slate-400 dark:text-slate-500 font-medium">Student Ranking:</span>
+                <strong class="text-emerald-600 dark:text-emerald-400 font-bold">DEC (Highest Score First)</strong>
             </div>
         </div>
 
-        {{-- ==================== VIEW 1: 3 HORIZONTAL CATEGORY CARDS (TAKEN TASKS ONLY • FILO ORDER) ==================== --}}
+        {{-- 2. SEARCH & FILTER CONTROLS BAR --}}
+        <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-3.5 border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex-1 min-w-[200px] relative">
+                <x-heroicon-o-magnifying-glass class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input 
+                    type="text"
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search student or task title..."
+                    class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                />
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                {{-- Course Filter --}}
+                <select 
+                    wire:model.live="courseFilter"
+                    class="px-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                    <option value="">All Courses</option>
+                    @foreach ($this->courseOptions as $cId => $cTitle)
+                        <option value="{{ $cId }}">{{ $cTitle }}</option>
+                    @endforeach
+                </select>
+
+                {{-- Track Filter --}}
+                <select 
+                    wire:model.live="trackFilter"
+                    class="px-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                    <option value="">All Levels</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                </select>
+
+                @if(!empty($search) || !empty($courseFilter) || !empty($trackFilter) || $activeCategory !== 'quizzes')
+                    <button 
+                        type="button"
+                        wire:click="resetFilters"
+                        class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                        title="Reset all filters"
+                    >
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                    </button>
+                @endif
+            </div>
+        </div>
+
+        {{-- ==================== VIEW 1: CATEGORY CARDS & TASK MATRIX (FILO ORDER) ==================== --}}
         @if($viewMode === 'tasks')
-            {{-- 3 Horizontal Cards Container --}}
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; margin-bottom: 0.85rem;">
-                {{-- 1. ALL QUIZZES CARD --}}
+
+            {{-- 3 Category Selector Cards --}}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {{-- 1. QUIZZES CATEGORY CARD --}}
                 @php $isQuizActive = ($activeCategory === 'quizzes' || $activeCategory === 'all'); @endphp
-                <div wire:click="selectCategory('quizzes')"
-                     style="cursor: pointer; border-radius: 12px; padding: 0.85rem 1rem; border: 2px solid {{ $isQuizActive ? '#10b981' : 'var(--hub-border)' }}; background: {{ $isQuizActive ? 'rgba(16, 185, 129, 0.04)' : 'var(--hub-card)' }}; box-shadow: {{ $isQuizActive ? '0 4px 18px rgba(16, 185, 129, 0.18)' : 'none' }}; transition: all 0.2s ease;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                        <div style="display: flex; align-items: center; gap: 0.4rem;">
-                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 8px; background: rgba(16, 185, 129, 0.15); color: #047857;">
-                                <x-heroicon-o-academic-cap style="width: 1rem; height: 1rem;" />
-                            </span>
-                            <strong style="font-size: 0.88rem; color: var(--hub-ink);">Quizzes</strong>
+                <div 
+                    wire:click="selectCategory('quizzes')"
+                    class="cursor-pointer rounded-2xl p-4 sm:p-5 transition-all {{ $isQuizActive ? 'border-2 border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20 shadow-md ring-2 ring-emerald-500/20' : 'edtech-card bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] hover:border-emerald-300 dark:hover:border-emerald-800 shadow-sm' }}"
+                >
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
+                                <x-heroicon-o-academic-cap class="w-4 h-4" />
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Quizzes</h3>
                         </div>
-                        <span class="hub-chip" style="font-size: 0.62rem; padding: 0.1rem 0.4rem; background: rgba(16, 185, 129, 0.15); color: #047857; font-weight: 700;">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100/80 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                             {{ $catStats['quizzes']['count'] }} Taken
                         </span>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin: 0.45rem 0 0.35rem 0;">
+                    <div class="flex items-baseline justify-between my-2">
                         <div>
-                            <span style="font-size: 0.66rem; color: var(--hub-muted); display: block;">Quiz Avg</span>
-                            <span style="font-size: 1.25rem; font-weight: 800; color: #10b981;">
+                            <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 block">Average Score</span>
+                            <span class="text-xl font-black text-emerald-600 dark:text-emerald-400">
                                 {{ $catStats['quizzes']['avg_score'] !== null ? $catStats['quizzes']['avg_score'].'%' : '—' }}
                             </span>
                         </div>
-                        <div style="text-align: right; font-size: 0.72rem;">
-                            <span style="color: var(--hub-muted);">Attempts:</span>
-                            <strong style="color: var(--hub-ink);">{{ $catStats['quizzes']['attempts'] }}</strong>
+                        <div class="text-right text-xs">
+                            <span class="text-slate-400 dark:text-slate-500">Attempts:</span>
+                            <strong class="text-slate-800 dark:text-slate-200 ml-1 font-bold">{{ $catStats['quizzes']['attempts'] }}</strong>
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; padding-top: 0.4rem; border-top: 1px solid var(--hub-border); color: var(--hub-muted);">
-                        <span>Passed: <strong style="color: #059669;">{{ $catStats['quizzes']['passed'] }}</strong></span>
-                        <span style="font-weight: 700; color: {{ $isQuizActive ? '#059669' : 'var(--hub-muted)' }};">
-                            {{ $isQuizActive ? '▲ Viewing Taken' : '▼ Click to Open' }}
+                    <div class="flex items-center justify-between text-xs pt-3 mt-2 border-t border-slate-100 dark:border-[#233842]/80">
+                        <span class="text-slate-500 dark:text-slate-400">
+                            Passed: <strong class="text-emerald-600 dark:text-emerald-400 font-bold">{{ $catStats['quizzes']['passed'] }}</strong>
+                        </span>
+                        <span class="text-[11px] font-extrabold {{ $isQuizActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400' }}">
+                            {{ $isQuizActive ? '▲ Active' : '▼ Click to View' }}
                         </span>
                     </div>
                 </div>
 
-                {{-- 2. ALL ASSIGNMENTS CARD --}}
+                {{-- 2. ASSIGNMENTS CATEGORY CARD --}}
                 @php $isAssignActive = ($activeCategory === 'assignments' || $activeCategory === 'all'); @endphp
-                <div wire:click="selectCategory('assignments')"
-                     style="cursor: pointer; border-radius: 12px; padding: 0.85rem 1rem; border: 2px solid {{ $isAssignActive ? '#6366f1' : 'var(--hub-border)' }}; background: {{ $isAssignActive ? 'rgba(99, 102, 241, 0.04)' : 'var(--hub-card)' }}; box-shadow: {{ $isAssignActive ? '0 4px 18px rgba(99, 102, 241, 0.18)' : 'none' }}; transition: all 0.2s ease;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                        <div style="display: flex; align-items: center; gap: 0.4rem;">
-                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 8px; background: rgba(99, 102, 241, 0.15); color: #4338ca;">
-                                <x-heroicon-o-document-text style="width: 1rem; height: 1rem;" />
-                            </span>
-                            <strong style="font-size: 0.88rem; color: var(--hub-ink);">Assignments</strong>
+                <div 
+                    wire:click="selectCategory('assignments')"
+                    class="cursor-pointer rounded-2xl p-4 sm:p-5 transition-all {{ $isAssignActive ? 'border-2 border-teal-500 bg-teal-50/40 dark:bg-teal-950/20 shadow-md ring-2 ring-teal-500/20' : 'edtech-card bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] hover:border-teal-300 dark:hover:border-teal-800 shadow-sm' }}"
+                >
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 flex items-center justify-center">
+                                <x-heroicon-o-document-text class="w-4 h-4" />
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Assignments</h3>
                         </div>
-                        <span class="hub-chip" style="font-size: 0.62rem; padding: 0.1rem 0.4rem; background: rgba(99, 102, 241, 0.15); color: #4338ca; font-weight: 700;">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100/80 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
                             {{ $catStats['assignments']['count'] }} Taken
                         </span>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin: 0.45rem 0 0.35rem 0;">
+                    <div class="flex items-baseline justify-between my-2">
                         <div>
-                            <span style="font-size: 0.66rem; color: var(--hub-muted); display: block;">Assignment Avg</span>
-                            <span style="font-size: 1.25rem; font-weight: 800; color: #6366f1;">
+                            <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 block">Average Score</span>
+                            <span class="text-xl font-black text-teal-600 dark:text-teal-400">
                                 {{ $catStats['assignments']['avg_score'] !== null ? $catStats['assignments']['avg_score'].'%' : '—' }}
                             </span>
                         </div>
-                        <div style="text-align: right; font-size: 0.72rem;">
-                            <span style="color: var(--hub-muted);">Submissions:</span>
-                            <strong style="color: var(--hub-ink);">{{ $catStats['assignments']['submissions'] }}</strong>
+                        <div class="text-right text-xs">
+                            <span class="text-slate-400 dark:text-slate-500">Submissions:</span>
+                            <strong class="text-slate-800 dark:text-slate-200 ml-1 font-bold">{{ $catStats['assignments']['submissions'] }}</strong>
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; padding-top: 0.4rem; border-top: 1px solid var(--hub-border); color: var(--hub-muted);">
-                        <span>Graded: <strong style="color: #6366f1;">{{ $catStats['assignments']['graded'] }}</strong></span>
-                        <span style="font-weight: 700; color: {{ $isAssignActive ? '#6366f1' : 'var(--hub-muted)' }};">
-                            {{ $isAssignActive ? '▲ Viewing Taken' : '▼ Click to Open' }}
+                    <div class="flex items-center justify-between text-xs pt-3 mt-2 border-t border-slate-100 dark:border-[#233842]/80">
+                        <span class="text-slate-500 dark:text-slate-400">
+                            Graded: <strong class="text-teal-600 dark:text-teal-400 font-bold">{{ $catStats['assignments']['graded'] }}</strong>
+                        </span>
+                        <span class="text-[11px] font-extrabold {{ $isAssignActive ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400' }}">
+                            {{ $isAssignActive ? '▲ Active' : '▼ Click to View' }}
                         </span>
                     </div>
                 </div>
 
-                {{-- 3. ALL ASSESSMENTS CARD --}}
+                {{-- 3. ASSESSMENTS CATEGORY CARD --}}
                 @php $isAssessActive = ($activeCategory === 'assessments' || $activeCategory === 'all'); @endphp
-                <div wire:click="selectCategory('assessments')"
-                     style="cursor: pointer; border-radius: 12px; padding: 0.85rem 1rem; border: 2px solid {{ $isAssessActive ? '#8b5cf6' : 'var(--hub-border)' }}; background: {{ $isAssessActive ? 'rgba(139, 92, 246, 0.04)' : 'var(--hub-card)' }}; box-shadow: {{ $isAssessActive ? '0 4px 18px rgba(139, 92, 246, 0.18)' : 'none' }}; transition: all 0.2s ease;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                        <div style="display: flex; align-items: center; gap: 0.4rem;">
-                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 8px; background: rgba(139, 92, 246, 0.15); color: #6d28d9;">
-                                <x-heroicon-o-clipboard-document-check style="width: 1rem; height: 1rem;" />
-                            </span>
-                            <strong style="font-size: 0.88rem; color: var(--hub-ink);">Assessments</strong>
+                <div 
+                    wire:click="selectCategory('assessments')"
+                    class="cursor-pointer rounded-2xl p-4 sm:p-5 transition-all {{ $isAssessActive ? 'border-2 border-indigo-500 bg-indigo-50/40 dark:bg-indigo-950/20 shadow-md ring-2 ring-indigo-500/20' : 'edtech-card bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] hover:border-indigo-300 dark:hover:border-indigo-800 shadow-sm' }}"
+                >
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
+                                <x-heroicon-o-clipboard-document-check class="w-4 h-4" />
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Assessments</h3>
                         </div>
-                        <span class="hub-chip" style="font-size: 0.62rem; padding: 0.1rem 0.4rem; background: rgba(139, 92, 246, 0.15); color: #6d28d9; font-weight: 700;">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100/80 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                             {{ $catStats['assessments']['count'] }} Taken
                         </span>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin: 0.45rem 0 0.35rem 0;">
+                    <div class="flex items-baseline justify-between my-2">
                         <div>
-                            <span style="font-size: 0.66rem; color: var(--hub-muted); display: block;">Assessment Avg</span>
-                            <span style="font-size: 1.25rem; font-weight: 800; color: #8b5cf6;">
+                            <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 block">Average Score</span>
+                            <span class="text-xl font-black text-indigo-600 dark:text-indigo-400">
                                 {{ $catStats['assessments']['avg_score'] !== null ? $catStats['assessments']['avg_score'].'%' : '—' }}
                             </span>
                         </div>
-                        <div style="text-align: right; font-size: 0.72rem;">
-                            <span style="color: var(--hub-muted);">Submissions:</span>
-                            <strong style="color: var(--hub-ink);">{{ $catStats['assessments']['submissions'] }}</strong>
+                        <div class="text-right text-xs">
+                            <span class="text-slate-400 dark:text-slate-500">Submissions:</span>
+                            <strong class="text-slate-800 dark:text-slate-200 ml-1 font-bold">{{ $catStats['assessments']['submissions'] }}</strong>
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; padding-top: 0.4rem; border-top: 1px solid var(--hub-border); color: var(--hub-muted);">
-                        <span>Graded: <strong style="color: #8b5cf6;">{{ $catStats['assessments']['graded'] }}</strong></span>
-                        <span style="font-weight: 700; color: {{ $isAssessActive ? '#8b5cf6' : 'var(--hub-muted)' }};">
-                            {{ $isAssessActive ? '▲ Viewing Taken' : '▼ Click to Open' }}
+                    <div class="flex items-center justify-between text-xs pt-3 mt-2 border-t border-slate-100 dark:border-[#233842]/80">
+                        <span class="text-slate-500 dark:text-slate-400">
+                            Graded: <strong class="text-indigo-600 dark:text-indigo-400 font-bold">{{ $catStats['assessments']['graded'] }}</strong>
+                        </span>
+                        <span class="text-[11px] font-extrabold {{ $isAssessActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400' }}">
+                            {{ $isAssessActive ? '▲ Active' : '▼ Click to View' }}
                         </span>
                     </div>
                 </div>
             </div>
 
-            {{-- ==================== OPENED FULL CATEGORY DETAILS SECTION (COLLAPSIBLE TASKS IN FILO ORDER) ==================== --}}
-            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-                {{-- 1. FULL QUIZZES DETAIL (FILO ORDER) --}}
+            {{-- ==================== OPENED CATEGORY DETAILS (FILO ORDER) ==================== --}}
+            <div class="space-y-6">
+
+                {{-- 1. FULL QUIZZES SECTION --}}
                 @if($isQuizActive)
-                    <div class="hub-card" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1.5px solid #10b981;">
-                        {{-- Category Section Header --}}
-                        <div style="padding: 0.65rem 0.85rem; background: rgba(16, 185, 129, 0.08); border-bottom: 1px solid var(--hub-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-                            <div style="display: flex; align-items: center; gap: 0.4rem;">
-                                <x-heroicon-o-academic-cap style="width: 1.1rem; height: 1.1rem; color: #047857;" />
-                                <h3 style="font-size: 0.92rem; font-weight: 800; color: var(--hub-ink); margin: 0;">
+                    <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl border border-emerald-500/30 dark:border-emerald-800/40 shadow-sm overflow-hidden">
+                        {{-- Header --}}
+                        <div class="p-4 bg-emerald-50/70 dark:bg-emerald-950/40 border-b border-emerald-100 dark:border-emerald-900/50 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5">
+                                <x-heroicon-o-academic-cap class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">
                                     Quizzes Taken (FILO Order • Student Scores in DEC Order)
                                 </h3>
                             </div>
-                            <span style="font-size: 0.7rem; color: var(--hub-muted);">
+                            <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
                                 {{ count($tasksData['quizzes']) }} Taken • {{ $catStats['quizzes']['attempts'] }} Total Attempts
                             </span>
                         </div>
 
                         @if(count($tasksData['quizzes']) === 0)
-                            <div style="padding: 1.5rem; text-align: center; color: var(--hub-muted); font-size: 0.78rem;">
+                            <div class="p-8 text-center text-slate-400 dark:text-slate-500 text-xs">
                                 No quizzes have been taken yet. Once students take a quiz, it will appear here in FILO order.
                             </div>
                         @else
-                            <div style="display: flex; flex-direction: column;">
+                            <div class="divide-y divide-slate-100 dark:divide-[#233842]">
                                 @foreach ($tasksData['quizzes'] as $q)
                                     @php $isTaskOpen = $this->isTaskExpanded($q['key']); @endphp
-                                    <div style="border-bottom: {{ $loop->last ? 'none' : '1px solid var(--hub-border)' }};">
-                                        {{-- Individual Quiz Collapsible Header --}}
-                                        <div wire:click="toggleTask('{{ $q['key'] }}')"
-                                             style="padding: 0.6rem 0.85rem; background: var(--hub-surface-soft); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; cursor: pointer; transition: background 0.15s ease;">
-                                            <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
-                                                <span style="color: var(--hub-primary);">
+                                    <div>
+                                        {{-- Task Row Header --}}
+                                        <div 
+                                            wire:click="toggleTask('{{ $q['key'] }}')"
+                                            class="p-4 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 flex flex-wrap items-center justify-between gap-3 cursor-pointer transition-colors"
+                                        >
+                                            <div class="flex items-center gap-3 min-w-0">
+                                                <span class="text-teal-600 dark:text-teal-400">
                                                     @if($isTaskOpen)
-                                                        <x-heroicon-o-chevron-down style="width: 1rem; height: 1rem;" />
+                                                        <x-heroicon-o-chevron-down class="w-4 h-4" />
                                                     @else
-                                                        <x-heroicon-o-chevron-right style="width: 1rem; height: 1rem;" />
+                                                        <x-heroicon-o-chevron-right class="w-4 h-4" />
                                                     @endif
                                                 </span>
                                                 <div>
-                                                    <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-                                                        <span style="font-weight: 800; font-size: 0.84rem; color: var(--hub-ink);">{{ $q['title'] }}</span>
-                                                        <span class="hub-chip" style="font-size: 0.6rem; padding: 0.06rem 0.3rem;">{{ $q['course_code'] }}</span>
-                                                        <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(16, 185, 129, 0.12); color: #047857;">Taken</span>
+                                                    <div class="flex items-center gap-2 flex-wrap">
+                                                        <span class="font-extrabold text-xs text-slate-900 dark:text-slate-100">{{ $q['title'] }}</span>
+                                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">{{ $q['course_code'] }}</span>
+                                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">Taken</span>
                                                     </div>
-                                                    <div style="font-size: 0.68rem; color: var(--hub-muted);">
+                                                    <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
                                                         {{ $q['course'] }} • Pass: {{ $q['pass_percentage'] }}% • {{ $q['results_count'] }} Attempts
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.72rem;">
-                                                <div style="background: var(--hub-surface); border: 1px solid var(--hub-border); padding: 0.15rem 0.45rem; border-radius: 6px;">
-                                                    <span style="color: var(--hub-muted); font-size: 0.62rem;">Average:</span>
-                                                    <strong style="color: {{ $q['avg_score'] >= 70 ? '#059669' : ($q['avg_score'] >= 50 ? '#d97706' : '#dc2626') }};">
+                                            <div class="flex items-center gap-2.5 text-xs">
+                                                <div class="px-2.5 py-1 rounded-lg bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842]">
+                                                    <span class="text-slate-400 text-[10px]">Avg:</span>
+                                                    <strong class="{{ $q['avg_score'] >= 70 ? 'text-emerald-600 dark:text-emerald-400' : ($q['avg_score'] >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">
                                                         {{ $q['avg_score'] !== null ? $q['avg_score'].'%' : '—' }}
                                                     </strong>
                                                 </div>
-                                                <div style="background: var(--hub-surface); border: 1px solid var(--hub-border); padding: 0.15rem 0.45rem; border-radius: 6px;">
-                                                    <span style="color: var(--hub-muted); font-size: 0.62rem;">Passed:</span>
-                                                    <strong style="color: #059669;">{{ $q['passed_count'] }}/{{ $q['results_count'] }}</strong>
+                                                <div class="px-2.5 py-1 rounded-lg bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842]">
+                                                    <span class="text-slate-400 text-[10px]">Passed:</span>
+                                                    <strong class="text-emerald-600 dark:text-emerald-400">{{ $q['passed_count'] }}/{{ $q['results_count'] }}</strong>
                                                 </div>
-                                                <span style="font-size: 0.68rem; color: var(--hub-primary); font-weight: 600;">
+                                                <span class="text-teal-600 dark:text-teal-400 font-bold text-xs">
                                                     {{ $isTaskOpen ? '▲ Collapse' : '▼ Expand' }}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        {{-- Student Attempts List in DEC Order (Collapsible) --}}
+                                        {{-- Student Attempts Matrix (DEC Order) --}}
                                         @if($isTaskOpen)
-                                            <div style="display: flex; flex-direction: column;">
+                                            <div class="divide-y divide-slate-100 dark:divide-[#233842] pl-6 sm:pl-10 pr-4 bg-white dark:bg-[#102028]">
                                                 @foreach ($q['results'] as $idx => $res)
-                                                    <div style="padding: 0.45rem 0.85rem 0.45rem 1.8rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-top: 1px solid var(--hub-border); background: {{ $idx % 2 === 0 ? 'transparent' : 'var(--hub-surface-soft)' }}; font-size: 0.76rem;">
-                                                        <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1;">
-                                                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 1.3rem; height: 1.3rem; border-radius: 9999px; font-size: 0.64rem; font-weight: 800; background: {{ match($idx) {
-                                                                0 => 'linear-gradient(135deg, #f59e0b, #d97706)',
-                                                                1 => 'linear-gradient(135deg, #94a3b8, #64748b)',
-                                                                2 => 'linear-gradient(135deg, #b45309, #78350f)',
-                                                                default => 'var(--hub-surface-soft)'
-                                                            } }}; color: {{ $idx < 3 ? '#ffffff' : 'var(--hub-muted)' }}; border: 1px solid var(--hub-border);">
+                                                    <div class="py-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+                                                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                                                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 {{ match($idx) {
+                                                                0 => 'bg-amber-400 text-amber-950 ring-2 ring-amber-300 shadow-xs',
+                                                                1 => 'bg-slate-300 text-slate-800 ring-2 ring-slate-200 shadow-xs',
+                                                                2 => 'bg-amber-700 text-amber-100 ring-2 ring-amber-600 shadow-xs',
+                                                                default => 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                                                            } }}">
                                                                 {{ $idx + 1 }}
                                                             </span>
 
-                                                            <div style="min-width: 0;">
-                                                                <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-                                                                    <span style="font-weight: 700; color: var(--hub-ink);">{{ $res['student_name'] }}</span>
-                                                                    <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.3rem;">{{ $res['student_track'] }}</span>
+                                                            <div class="min-w-0">
+                                                                <div class="flex items-center gap-2 flex-wrap">
+                                                                    <span class="font-bold text-slate-900 dark:text-slate-100">{{ $res['student_name'] }}</span>
+                                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{{ $res['student_track'] }}</span>
                                                                 </div>
-                                                                <div style="font-size: 0.66rem; color: var(--hub-muted);">
+                                                                <div class="text-[11px] text-slate-400 dark:text-slate-500">
                                                                     {{ $res['student_email'] }}
                                                                 </div>
                                                             </div>
                                                         </div>
 
-                                                        <div style="display: flex; align-items: center; gap: 0.55rem; text-align: right; flex-wrap: wrap;">
-                                                            <span style="font-size: 0.7rem; color: var(--hub-muted);">
+                                                        <div class="flex items-center gap-2.5 flex-wrap justify-end">
+                                                            <span class="text-slate-400 text-[11px]">
                                                                 {{ $res['score'] ?? 0 }}/{{ $res['total_points'] ?? '—' }} pts
                                                             </span>
 
-                                                            <span style="font-size: 0.88rem; font-weight: 800; min-width: 46px; color: {{ $res['percentage'] >= 70 ? '#059669' : ($res['percentage'] >= 50 ? '#d97706' : '#dc2626') }};">
+                                                            <span class="text-sm font-extrabold min-w-[48px] text-right {{ $res['percentage'] >= 70 ? 'text-emerald-600 dark:text-emerald-400' : ($res['percentage'] >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">
                                                                 {{ $res['percentage'] !== null ? $res['percentage'].'%' : '—' }}
                                                             </span>
 
-                                                            <span class="hub-chip {{ $res['passed'] ? 'hub-chip-green' : 'hub-chip-danger' }}" style="font-size: 0.6rem; padding: 0.08rem 0.35rem;">
+                                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black {{ $res['passed'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800' }}">
                                                                 {{ $res['passed'] ? 'Passed' : 'Failed' }}
                                                             </span>
 
                                                             @if(!empty($res['is_retake']))
-                                                                <span class="hub-chip" style="font-size: 0.58rem; padding: 0.08rem 0.3rem; background: rgba(59, 130, 246, 0.12); color: #1d4ed8; font-weight: 700;" title="2nd Attempt (Capped at pass mark {{ $q['pass_percentage'] ?? 50 }}%)">
+                                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800" title="2nd Attempt (Capped at pass mark {{ $q['pass_percentage'] ?? 50 }}%)">
                                                                     2nd Try
                                                                 </span>
                                                             @endif
 
-                                                            <button type="button" wire:click="viewQuizAttempt({{ $res['attempt_id'] }})"
-                                                                    style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: var(--hub-surface-soft); color: var(--hub-ink); border: 1px solid var(--hub-border); border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.2rem;"
-                                                                    title="View questions, student selected options, and submitted answers">
-                                                                <x-heroicon-o-eye style="width: 0.75rem; height: 0.75rem; color: var(--hub-primary);" />
-                                                                View Answers
+                                                            <button 
+                                                                type="button" 
+                                                                wire:click="viewQuizAttempt({{ $res['attempt_id'] }})"
+                                                                class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-bold inline-flex items-center gap-1 transition-colors"
+                                                                title="View full questions and student submitted choices"
+                                                            >
+                                                                <x-heroicon-o-eye class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                                                                <span>View Answers</span>
                                                             </button>
 
                                                             @if(!empty($res['retake_allowed']))
-                                                                <button type="button" wire:click="revokeQuizRetake({{ $res['student_id'] }}, {{ $q['id'] }})"
-                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; cursor: pointer; font-weight: 700;"
-                                                                        title="Click to revoke 2nd try permission">
+                                                                <button 
+                                                                    type="button" 
+                                                                    wire:click="revokeQuizRetake({{ $res['student_id'] }}, {{ $q['id'] }})"
+                                                                    class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold transition-colors"
+                                                                    title="Click to revoke 2nd try permission"
+                                                                >
                                                                     ⭐ 2nd Try Granted (Revoke)
                                                                 </button>
                                                             @else
-                                                                <button type="button" wire:click="grantQuizRetake({{ $res['student_id'] }}, {{ $q['id'] }})"
-                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: var(--hub-surface); color: var(--hub-primary); border: 1px solid var(--hub-border); border-radius: 6px; cursor: pointer; font-weight: 600;"
-                                                                        title="Allow student to take this quiz again (score capped at pass mark)">
+                                                                <button 
+                                                                    type="button" 
+                                                                    wire:click="grantQuizRetake({{ $res['student_id'] }}, {{ $q['id'] }})"
+                                                                    class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-[#233842] text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-[11px] font-bold transition-colors"
+                                                                    title="Allow student to take this quiz again (score capped at pass mark)"
+                                                                >
                                                                     + Grant 2nd Try
                                                                 </button>
                                                             @endif
 
-                                                            <span style="font-size: 0.66rem; color: var(--hub-muted); min-width: 75px;">
+                                                            <span class="text-[10px] text-slate-400 min-w-[70px] text-right">
                                                                 {{ $res['completed_at'] }}
                                                             </span>
                                                         </div>
@@ -378,139 +418,149 @@
                     </div>
                 @endif
 
-                {{-- 2. FULL ASSIGNMENTS DETAIL (FILO ORDER) --}}
+                {{-- 2. FULL ASSIGNMENTS SECTION --}}
                 @if($isAssignActive)
-                    <div class="hub-card" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1.5px solid #6366f1;">
-                        {{-- Category Section Header --}}
-                        <div style="padding: 0.65rem 0.85rem; background: rgba(99, 102, 241, 0.08); border-bottom: 1px solid var(--hub-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-                            <div style="display: flex; align-items: center; gap: 0.4rem;">
-                                <x-heroicon-o-document-text style="width: 1.1rem; height: 1.1rem; color: #4338ca;" />
-                                <h3 style="font-size: 0.92rem; font-weight: 800; color: var(--hub-ink); margin: 0;">
+                    <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl border border-teal-500/30 dark:border-teal-800/40 shadow-sm overflow-hidden">
+                        {{-- Header --}}
+                        <div class="p-4 bg-teal-50/70 dark:bg-teal-950/40 border-b border-teal-100 dark:border-teal-900/50 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5">
+                                <x-heroicon-o-document-text class="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">
                                     Assignments Taken (FILO Order • Student Grades in DEC Order)
                                 </h3>
                             </div>
-                            <span style="font-size: 0.7rem; color: var(--hub-muted);">
+                            <span class="text-xs font-semibold text-teal-800 dark:text-teal-300">
                                 {{ count($tasksData['assignments']) }} Taken • {{ $catStats['assignments']['submissions'] }} Submissions
                             </span>
                         </div>
 
                         @if(count($tasksData['assignments']) === 0)
-                            <div style="padding: 1.5rem; text-align: center; color: var(--hub-muted); font-size: 0.78rem;">
+                            <div class="p-8 text-center text-slate-400 dark:text-slate-500 text-xs">
                                 No assignments have been submitted yet. Once students submit an assignment, it will appear here in FILO order.
                             </div>
                         @else
-                            <div style="display: flex; flex-direction: column;">
+                            <div class="divide-y divide-slate-100 dark:divide-[#233842]">
                                 @foreach ($tasksData['assignments'] as $a)
                                     @php $isTaskOpen = $this->isTaskExpanded($a['key']); @endphp
-                                    <div style="border-bottom: {{ $loop->last ? 'none' : '1px solid var(--hub-border)' }};">
-                                        {{-- Individual Assignment Collapsible Header --}}
-                                        <div wire:click="toggleTask('{{ $a['key'] }}')"
-                                             style="padding: 0.6rem 0.85rem; background: var(--hub-surface-soft); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; cursor: pointer; transition: background 0.15s ease;">
-                                            <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
-                                                <span style="color: var(--hub-primary);">
+                                    <div>
+                                        {{-- Task Row Header --}}
+                                        <div 
+                                            wire:click="toggleTask('{{ $a['key'] }}')"
+                                            class="p-4 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 flex flex-wrap items-center justify-between gap-3 cursor-pointer transition-colors"
+                                        >
+                                            <div class="flex items-center gap-3 min-w-0">
+                                                <span class="text-teal-600 dark:text-teal-400">
                                                     @if($isTaskOpen)
-                                                        <x-heroicon-o-chevron-down style="width: 1rem; height: 1rem;" />
+                                                        <x-heroicon-o-chevron-down class="w-4 h-4" />
                                                     @else
-                                                        <x-heroicon-o-chevron-right style="width: 1rem; height: 1rem;" />
+                                                        <x-heroicon-o-chevron-right class="w-4 h-4" />
                                                     @endif
                                                 </span>
                                                 <div>
-                                                    <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-                                                        <span style="font-weight: 800; font-size: 0.84rem; color: var(--hub-ink);">{{ $a['title'] }}</span>
-                                                        <span class="hub-chip" style="font-size: 0.6rem; padding: 0.06rem 0.3rem;">{{ $a['course_code'] }}</span>
-                                                        <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(99, 102, 241, 0.12); color: #4338ca;">Taken</span>
+                                                    <div class="flex items-center gap-2 flex-wrap">
+                                                        <span class="font-extrabold text-xs text-slate-900 dark:text-slate-100">{{ $a['title'] }}</span>
+                                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">{{ $a['course_code'] }}</span>
+                                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">Taken</span>
                                                     </div>
-                                                    <div style="font-size: 0.68rem; color: var(--hub-muted);">
+                                                    <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
                                                         {{ $a['course'] }} • Due: {{ $a['due_date'] }} • {{ $a['results_count'] }} Submissions
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.72rem;">
-                                                <div style="background: var(--hub-surface); border: 1px solid var(--hub-border); padding: 0.15rem 0.45rem; border-radius: 6px;">
-                                                    <span style="color: var(--hub-muted); font-size: 0.62rem;">Average:</span>
-                                                    <strong style="color: {{ $a['avg_score'] >= 70 ? '#059669' : ($a['avg_score'] >= 50 ? '#d97706' : '#dc2626') }};">
+                                            <div class="flex items-center gap-2.5 text-xs">
+                                                <div class="px-2.5 py-1 rounded-lg bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842]">
+                                                    <span class="text-slate-400 text-[10px]">Avg:</span>
+                                                    <strong class="{{ $a['avg_score'] >= 70 ? 'text-emerald-600 dark:text-emerald-400' : ($a['avg_score'] >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">
                                                         {{ $a['avg_score'] !== null ? $a['avg_score'].'%' : '—' }}
                                                     </strong>
                                                 </div>
-                                                <div style="background: var(--hub-surface); border: 1px solid var(--hub-border); padding: 0.15rem 0.45rem; border-radius: 6px;">
-                                                    <span style="color: var(--hub-muted); font-size: 0.62rem;">Graded:</span>
-                                                    <strong style="color: #6366f1;">{{ $a['graded_count'] }}/{{ $a['results_count'] }}</strong>
+                                                <div class="px-2.5 py-1 rounded-lg bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842]">
+                                                    <span class="text-slate-400 text-[10px]">Graded:</span>
+                                                    <strong class="text-teal-600 dark:text-teal-400">{{ $a['graded_count'] }}/{{ $a['results_count'] }}</strong>
                                                 </div>
-                                                <span style="font-size: 0.68rem; color: var(--hub-primary); font-weight: 600;">
+                                                <span class="text-teal-600 dark:text-teal-400 font-bold text-xs">
                                                     {{ $isTaskOpen ? '▲ Collapse' : '▼ Expand' }}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        {{-- Student Submissions List in DEC Order (Collapsible) --}}
+                                        {{-- Student Submissions Matrix (DEC Order) --}}
                                         @if($isTaskOpen)
-                                            <div style="display: flex; flex-direction: column;">
+                                            <div class="divide-y divide-slate-100 dark:divide-[#233842] pl-6 sm:pl-10 pr-4 bg-white dark:bg-[#102028]">
                                                 @foreach ($a['results'] as $idx => $res)
-                                                    <div style="padding: 0.45rem 0.85rem 0.45rem 1.8rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-top: 1px solid var(--hub-border); background: {{ $idx % 2 === 0 ? 'transparent' : 'var(--hub-surface-soft)' }}; font-size: 0.76rem;">
-                                                        <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1;">
-                                                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 1.3rem; height: 1.3rem; border-radius: 9999px; font-size: 0.64rem; font-weight: 800; background: {{ match($idx) {
-                                                                0 => 'linear-gradient(135deg, #f59e0b, #d97706)',
-                                                                1 => 'linear-gradient(135deg, #94a3b8, #64748b)',
-                                                                2 => 'linear-gradient(135deg, #b45309, #78350f)',
-                                                                default => 'var(--hub-surface-soft)'
-                                                            } }}; color: {{ $idx < 3 ? '#ffffff' : 'var(--hub-muted)' }}; border: 1px solid var(--hub-border);">
+                                                    <div class="py-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+                                                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                                                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 {{ match($idx) {
+                                                                0 => 'bg-amber-400 text-amber-950 ring-2 ring-amber-300 shadow-xs',
+                                                                1 => 'bg-slate-300 text-slate-800 ring-2 ring-slate-200 shadow-xs',
+                                                                2 => 'bg-amber-700 text-amber-100 ring-2 ring-amber-600 shadow-xs',
+                                                                default => 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                                                            } }}">
                                                                 {{ $idx + 1 }}
                                                             </span>
 
-                                                            <div style="min-width: 0;">
-                                                                <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-                                                                    <span style="font-weight: 700; color: var(--hub-ink);">{{ $res['student_name'] }}</span>
-                                                                    <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.3rem;">{{ $res['student_track'] }}</span>
+                                                            <div class="min-w-0">
+                                                                <div class="flex items-center gap-2 flex-wrap">
+                                                                    <span class="font-bold text-slate-900 dark:text-slate-100">{{ $res['student_name'] }}</span>
+                                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{{ $res['student_track'] }}</span>
                                                                 </div>
-                                                                <div style="font-size: 0.66rem; color: var(--hub-muted);">
+                                                                <div class="text-[11px] text-slate-400 dark:text-slate-500">
                                                                     {{ $res['student_email'] }}
                                                                 </div>
                                                                 @if(!empty($res['feedback']))
-                                                                    <div style="font-size: 0.66rem; color: var(--hub-muted); font-style: italic;">
+                                                                    <div class="text-[11px] text-slate-500 dark:text-slate-400 italic mt-0.5">
                                                                         "{{ \Illuminate\Support\Str::limit($res['feedback'], 50) }}"
                                                                     </div>
                                                                 @endif
                                                             </div>
                                                         </div>
 
-                                                        <div style="display: flex; align-items: center; gap: 0.55rem; text-align: right; flex-wrap: wrap;">
-                                                            <span style="font-size: 0.88rem; font-weight: 800; min-width: 46px; color: {{ $res['grade'] !== null ? ($res['grade'] >= 70 ? '#059669' : ($res['grade'] >= 50 ? '#d97706' : '#dc2626')) : 'var(--hub-muted)' }};">
+                                                        <div class="flex items-center gap-2.5 flex-wrap justify-end">
+                                                            <span class="text-sm font-extrabold min-w-[48px] text-right {{ $res['grade'] !== null ? ($res['grade'] >= 70 ? 'text-emerald-600 dark:text-emerald-400' : ($res['grade'] >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400')) : 'text-slate-400' }}">
                                                                 {{ $res['grade'] !== null ? $res['grade'].'%' : 'Ungraded' }}
                                                             </span>
 
-                                                            <span class="hub-chip {{ ($res['status'] ?? '') === 'Graded' ? 'hub-chip-green' : 'hub-chip-amber' }}" style="font-size: 0.6rem; padding: 0.08rem 0.35rem;">
+                                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black {{ ($res['status'] ?? '') === 'Graded' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800' }}">
                                                                 {{ $res['status'] ?? 'Submitted' }}
                                                             </span>
 
                                                             @if(!empty($res['is_retake']))
-                                                                <span class="hub-chip" style="font-size: 0.58rem; padding: 0.08rem 0.3rem; background: rgba(99, 102, 241, 0.12); color: #4338ca; font-weight: 700;" title="2nd Attempt (Capped at 50%)">
+                                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800" title="2nd Attempt (Capped at 50%)">
                                                                     2nd Try
                                                                 </span>
                                                             @endif
 
                                                             @if(!empty($res['retake_allowed']))
-                                                                <button type="button" wire:click="revokeAssignmentRetake({{ $res['submission_id'] }})"
-                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: rgba(99, 102, 241, 0.15); color: #4338ca; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 6px; cursor: pointer; font-weight: 700;"
-                                                                        title="Click to revoke 2nd try permission">
+                                                                <button 
+                                                                    type="button" 
+                                                                    wire:click="revokeAssignmentRetake({{ $res['submission_id'] }})"
+                                                                    class="px-2.5 py-1 rounded-lg bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-[11px] font-bold transition-colors"
+                                                                    title="Click to revoke 2nd try permission"
+                                                                >
                                                                     ⭐ 2nd Try Granted (Revoke)
                                                                 </button>
                                                             @else
-                                                                <button type="button" wire:click="grantAssignmentRetake({{ $res['submission_id'] }})"
-                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: var(--hub-surface); color: #4338ca; border: 1px solid var(--hub-border); border-radius: 6px; cursor: pointer; font-weight: 600;"
-                                                                        title="Allow student to submit a second attempt (grade capped at 50%)">
+                                                                <button 
+                                                                    type="button" 
+                                                                    wire:click="grantAssignmentRetake({{ $res['submission_id'] }})"
+                                                                    class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-[#233842] text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-[11px] font-bold transition-colors"
+                                                                    title="Allow student to submit a second attempt (grade capped at 50%)"
+                                                                >
                                                                     + Grant 2nd Try
                                                                 </button>
                                                             @endif
 
-                                                            <span style="font-size: 0.66rem; color: var(--hub-muted); min-width: 75px;">
+                                                            <span class="text-[10px] text-slate-400 min-w-[70px] text-right">
                                                                 {{ $res['submitted_at'] }}
                                                             </span>
 
                                                             @if(!empty($res['submission_id']))
-                                                                <a href="{{ route('filament.instructor.resources.assignment-submission-resource.assignment-submissions.edit', ['record' => $res['submission_id']]) }}"
-                                                                   style="font-size: 0.68rem; padding: 0.2rem 0.45rem; background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: 4px; color: var(--hub-primary); text-decoration: none; font-weight: 600;">
-                                                                    Grade / Review
+                                                                <a 
+                                                                    href="{{ route('filament.instructor.resources.assignment-submission-resource.assignment-submissions.edit', ['record' => $res['submission_id']]) }}"
+                                                                    class="px-3 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-bold shadow-2xs transition-all no-underline inline-flex items-center gap-1"
+                                                                >
+                                                                    <span>Grade / Review</span>
                                                                 </a>
                                                             @endif
                                                         </div>
@@ -525,139 +575,149 @@
                     </div>
                 @endif
 
-                {{-- 3. FULL ASSESSMENTS DETAIL (FILO ORDER) --}}
+                {{-- 3. FULL ASSESSMENTS SECTION --}}
                 @if($isAssessActive)
-                    <div class="hub-card" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1.5px solid #8b5cf6;">
-                        {{-- Category Section Header --}}
-                        <div style="padding: 0.65rem 0.85rem; background: rgba(139, 92, 246, 0.08); border-bottom: 1px solid var(--hub-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-                            <div style="display: flex; align-items: center; gap: 0.4rem;">
-                                <x-heroicon-o-clipboard-document-check style="width: 1.1rem; height: 1.1rem; color: #6d28d9;" />
-                                <h3 style="font-size: 0.92rem; font-weight: 800; color: var(--hub-ink); margin: 0;">
+                    <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl border border-indigo-500/30 dark:border-indigo-800/40 shadow-sm overflow-hidden">
+                        {{-- Header --}}
+                        <div class="p-4 bg-indigo-50/70 dark:bg-indigo-950/40 border-b border-indigo-100 dark:border-indigo-900/50 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5">
+                                <x-heroicon-o-clipboard-document-check class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">
                                     Assessments Taken (FILO Order • Student Scores in DEC Order)
                                 </h3>
                             </div>
-                            <span style="font-size: 0.7rem; color: var(--hub-muted);">
+                            <span class="text-xs font-semibold text-indigo-800 dark:text-indigo-300">
                                 {{ count($tasksData['assessments']) }} Taken • {{ $catStats['assessments']['submissions'] }} Submissions
                             </span>
                         </div>
 
                         @if(count($tasksData['assessments']) === 0)
-                            <div style="padding: 1.5rem; text-align: center; color: var(--hub-muted); font-size: 0.78rem;">
+                            <div class="p-8 text-center text-slate-400 dark:text-slate-500 text-xs">
                                 No assessments have been submitted yet. Once students submit an assessment, it will appear here in FILO order.
                             </div>
                         @else
-                            <div style="display: flex; flex-direction: column;">
+                            <div class="divide-y divide-slate-100 dark:divide-[#233842]">
                                 @foreach ($tasksData['assessments'] as $as)
                                     @php $isTaskOpen = $this->isTaskExpanded($as['key']); @endphp
-                                    <div style="border-bottom: {{ $loop->last ? 'none' : '1px solid var(--hub-border)' }};">
-                                        {{-- Individual Assessment Collapsible Header --}}
-                                        <div wire:click="toggleTask('{{ $as['key'] }}')"
-                                             style="padding: 0.6rem 0.85rem; background: var(--hub-surface-soft); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; cursor: pointer; transition: background 0.15s ease;">
-                                            <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
-                                                <span style="color: var(--hub-primary);">
+                                    <div>
+                                        {{-- Task Row Header --}}
+                                        <div 
+                                            wire:click="toggleTask('{{ $as['key'] }}')"
+                                            class="p-4 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 flex flex-wrap items-center justify-between gap-3 cursor-pointer transition-colors"
+                                        >
+                                            <div class="flex items-center gap-3 min-w-0">
+                                                <span class="text-teal-600 dark:text-teal-400">
                                                     @if($isTaskOpen)
-                                                        <x-heroicon-o-chevron-down style="width: 1rem; height: 1rem;" />
+                                                        <x-heroicon-o-chevron-down class="w-4 h-4" />
                                                     @else
-                                                        <x-heroicon-o-chevron-right style="width: 1rem; height: 1rem;" />
+                                                        <x-heroicon-o-chevron-right class="w-4 h-4" />
                                                     @endif
                                                 </span>
                                                 <div>
-                                                    <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-                                                        <span style="font-weight: 800; font-size: 0.84rem; color: var(--hub-ink);">{{ $as['title'] }}</span>
-                                                        <span class="hub-chip" style="font-size: 0.6rem; padding: 0.06rem 0.3rem;">{{ $as['course_code'] }}</span>
-                                                        <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(139, 92, 246, 0.12); color: #6d28d9;">Taken</span>
+                                                    <div class="flex items-center gap-2 flex-wrap">
+                                                        <span class="font-extrabold text-xs text-slate-900 dark:text-slate-100">{{ $as['title'] }}</span>
+                                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">{{ $as['course_code'] }}</span>
+                                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">Taken</span>
                                                     </div>
-                                                    <div style="font-size: 0.68rem; color: var(--hub-muted);">
+                                                    <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
                                                         {{ $as['course'] }} • Due: {{ $as['due_date'] }} • {{ $as['results_count'] }} Submissions
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.72rem;">
-                                                <div style="background: var(--hub-surface); border: 1px solid var(--hub-border); padding: 0.15rem 0.45rem; border-radius: 6px;">
-                                                    <span style="color: var(--hub-muted); font-size: 0.62rem;">Average:</span>
-                                                    <strong style="color: {{ $as['avg_score'] >= 70 ? '#059669' : ($as['avg_score'] >= 50 ? '#d97706' : '#dc2626') }};">
+                                            <div class="flex items-center gap-2.5 text-xs">
+                                                <div class="px-2.5 py-1 rounded-lg bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842]">
+                                                    <span class="text-slate-400 text-[10px]">Avg:</span>
+                                                    <strong class="{{ $as['avg_score'] >= 70 ? 'text-emerald-600 dark:text-emerald-400' : ($as['avg_score'] >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">
                                                         {{ $as['avg_score'] !== null ? $as['avg_score'].'%' : '—' }}
                                                     </strong>
                                                 </div>
-                                                <div style="background: var(--hub-surface); border: 1px solid var(--hub-border); padding: 0.15rem 0.45rem; border-radius: 6px;">
-                                                    <span style="color: var(--hub-muted); font-size: 0.62rem;">Graded:</span>
-                                                    <strong style="color: #8b5cf6;">{{ $as['graded_count'] }}/{{ $as['results_count'] }}</strong>
+                                                <div class="px-2.5 py-1 rounded-lg bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842]">
+                                                    <span class="text-slate-400 text-[10px]">Graded:</span>
+                                                    <strong class="text-indigo-600 dark:text-indigo-400">{{ $as['graded_count'] }}/{{ $as['results_count'] }}</strong>
                                                 </div>
-                                                <span style="font-size: 0.68rem; color: var(--hub-primary); font-weight: 600;">
+                                                <span class="text-teal-600 dark:text-teal-400 font-bold text-xs">
                                                     {{ $isTaskOpen ? '▲ Collapse' : '▼ Expand' }}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        {{-- Student Submissions List in DEC Order (Collapsible) --}}
+                                        {{-- Student Submissions Matrix (DEC Order) --}}
                                         @if($isTaskOpen)
-                                            <div style="display: flex; flex-direction: column;">
+                                            <div class="divide-y divide-slate-100 dark:divide-[#233842] pl-6 sm:pl-10 pr-4 bg-white dark:bg-[#102028]">
                                                 @foreach ($as['results'] as $idx => $res)
-                                                    <div style="padding: 0.45rem 0.85rem 0.45rem 1.8rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-top: 1px solid var(--hub-border); background: {{ $idx % 2 === 0 ? 'transparent' : 'var(--hub-surface-soft)' }}; font-size: 0.76rem;">
-                                                        <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1;">
-                                                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 1.3rem; height: 1.3rem; border-radius: 9999px; font-size: 0.64rem; font-weight: 800; background: {{ match($idx) {
-                                                                0 => 'linear-gradient(135deg, #f59e0b, #d97706)',
-                                                                1 => 'linear-gradient(135deg, #94a3b8, #64748b)',
-                                                                2 => 'linear-gradient(135deg, #b45309, #78350f)',
-                                                                default => 'var(--hub-surface-soft)'
-                                                            } }}; color: {{ $idx < 3 ? '#ffffff' : 'var(--hub-muted)' }}; border: 1px solid var(--hub-border);">
+                                                    <div class="py-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+                                                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                                                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 {{ match($idx) {
+                                                                0 => 'bg-amber-400 text-amber-950 ring-2 ring-amber-300 shadow-xs',
+                                                                1 => 'bg-slate-300 text-slate-800 ring-2 ring-slate-200 shadow-xs',
+                                                                2 => 'bg-amber-700 text-amber-100 ring-2 ring-amber-600 shadow-xs',
+                                                                default => 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                                                            } }}">
                                                                 {{ $idx + 1 }}
                                                             </span>
 
-                                                            <div style="min-width: 0;">
-                                                                <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-                                                                    <span style="font-weight: 700; color: var(--hub-ink);">{{ $res['student_name'] }}</span>
-                                                                    <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.3rem;">{{ $res['student_track'] }}</span>
+                                                            <div class="min-w-0">
+                                                                <div class="flex items-center gap-2 flex-wrap">
+                                                                    <span class="font-bold text-slate-900 dark:text-slate-100">{{ $res['student_name'] }}</span>
+                                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{{ $res['student_track'] }}</span>
                                                                 </div>
-                                                                <div style="font-size: 0.66rem; color: var(--hub-muted);">
+                                                                <div class="text-[11px] text-slate-400 dark:text-slate-500">
                                                                     {{ $res['student_email'] }}
                                                                 </div>
                                                                 @if(!empty($res['feedback']))
-                                                                    <div style="font-size: 0.66rem; color: var(--hub-muted); font-style: italic;">
+                                                                    <div class="text-[11px] text-slate-500 dark:text-slate-400 italic mt-0.5">
                                                                         "{{ \Illuminate\Support\Str::limit($res['feedback'], 50) }}"
                                                                     </div>
                                                                 @endif
                                                             </div>
                                                         </div>
 
-                                                        <div style="display: flex; align-items: center; gap: 0.55rem; text-align: right; flex-wrap: wrap;">
-                                                            <span style="font-size: 0.88rem; font-weight: 800; min-width: 46px; color: {{ $res['score'] !== null ? ($res['score'] >= 70 ? '#059669' : ($res['score'] >= 50 ? '#d97706' : '#dc2626')) : 'var(--hub-muted)' }};">
+                                                        <div class="flex items-center gap-2.5 flex-wrap justify-end">
+                                                            <span class="text-sm font-extrabold min-w-[48px] text-right {{ $res['score'] !== null ? ($res['score'] >= 70 ? 'text-emerald-600 dark:text-emerald-400' : ($res['score'] >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400')) : 'text-slate-400' }}">
                                                                 {{ $res['score'] !== null ? $res['score'].'%' : 'Ungraded' }}
                                                             </span>
 
-                                                            <span class="hub-chip {{ ($res['status'] ?? '') === 'Graded' ? 'hub-chip-green' : 'hub-chip-amber' }}" style="font-size: 0.6rem; padding: 0.08rem 0.35rem;">
+                                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black {{ ($res['status'] ?? '') === 'Graded' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800' }}">
                                                                 {{ $res['status'] ?? 'Submitted' }}
                                                             </span>
 
                                                             @if(!empty($res['is_retake']))
-                                                                <span class="hub-chip" style="font-size: 0.58rem; padding: 0.08rem 0.3rem; background: rgba(14, 165, 233, 0.12); color: #0369a1; font-weight: 700;" title="2nd Attempt (Capped at 50%)">
+                                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800" title="2nd Attempt (Capped at 50%)">
                                                                     2nd Try
                                                                 </span>
                                                             @endif
 
                                                             @if(!empty($res['retake_allowed']))
-                                                                <button type="button" wire:click="revokeAssessmentRetake({{ $res['submission_id'] }})"
-                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: rgba(14, 165, 233, 0.15); color: #0369a1; border: 1px solid rgba(14, 165, 233, 0.3); border-radius: 6px; cursor: pointer; font-weight: 700;"
-                                                                        title="Click to revoke 2nd try permission">
+                                                                <button 
+                                                                    type="button" 
+                                                                    wire:click="revokeAssessmentRetake({{ $res['submission_id'] }})"
+                                                                    class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-[11px] font-bold transition-colors"
+                                                                    title="Click to revoke 2nd try permission"
+                                                                >
                                                                     ⭐ 2nd Try Granted (Revoke)
                                                                 </button>
                                                             @else
-                                                                <button type="button" wire:click="grantAssessmentRetake({{ $res['submission_id'] }})"
-                                                                        style="font-size: 0.65rem; padding: 0.15rem 0.45rem; background: var(--hub-surface); color: #0369a1; border: 1px solid var(--hub-border); border-radius: 6px; cursor: pointer; font-weight: 600;"
-                                                                        title="Allow student to submit a second attempt (score capped at 50%)">
+                                                                <button 
+                                                                    type="button" 
+                                                                    wire:click="grantAssessmentRetake({{ $res['submission_id'] }})"
+                                                                    class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-[#233842] text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-[11px] font-bold transition-colors"
+                                                                    title="Allow student to submit a second attempt (score capped at 50%)"
+                                                                >
                                                                     + Grant 2nd Try
                                                                 </button>
                                                             @endif
 
-                                                            <span style="font-size: 0.66rem; color: var(--hub-muted); min-width: 75px;">
+                                                            <span class="text-[10px] text-slate-400 min-w-[70px] text-right">
                                                                 {{ $res['submitted_at'] }}
                                                             </span>
 
                                                             @if(!empty($res['submission_id']))
-                                                                <a href="{{ route('filament.instructor.resources.assessment-submission-resource.assessment-submissions.edit', ['record' => $res['submission_id']]) }}"
-                                                                   style="font-size: 0.68rem; padding: 0.2rem 0.45rem; background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: 4px; color: var(--hub-primary); text-decoration: none; font-weight: 600;">
-                                                                    Grade / Review
+                                                                <a 
+                                                                    href="{{ route('filament.instructor.resources.assessment-submission-resource.assessment-submissions.edit', ['record' => $res['submission_id']]) }}"
+                                                                    class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold shadow-2xs transition-all no-underline inline-flex items-center gap-1"
+                                                                >
+                                                                    <span>Grade / Review</span>
                                                                 </a>
                                                             @endif
                                                         </div>
@@ -673,177 +733,184 @@
                 @endif
             </div>
 
-        {{-- ==================== VIEW 2: PER STUDENT (CONSOLIDATED VIEW) ==================== --}}
+        {{-- ==================== VIEW 2: PER STUDENT TABLE & EXPANDABLE DRAWER ==================== --}}
         @else
-            <div class="hub-card" style="padding: 0; overflow: hidden; border-radius: 10px; border: 1px solid var(--hub-border);">
+            <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl border border-slate-200 dark:border-[#233842] shadow-sm overflow-hidden">
                 @if(count($students) === 0)
-                    <div style="padding: 2rem 1rem; text-align: center;">
-                        <x-heroicon-o-users style="width: 2rem; height: 2rem; color: var(--hub-muted); margin: 0 auto 0.5rem auto;" />
-                        <p style="font-size: 0.84rem; font-weight: 600; color: var(--hub-ink); margin: 0;">No students found</p>
+                    <div class="p-12 text-center">
+                        <x-heroicon-o-users class="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                        <p class="text-sm font-extrabold text-slate-800 dark:text-slate-200">No students found matching your criteria</p>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Try clearing search filters to see all enrolled learners.</p>
                     </div>
                 @else
-                    <div style="display: flex; flex-direction: column;">
+                    <div class="divide-y divide-slate-100 dark:divide-[#233842]">
                         @foreach ($students as $idx => $row)
                             @php $isExpanded = !empty($this->expandedStudents[$row['id']]); @endphp
-                            <div style="border-bottom: 1px solid var(--hub-border); background: {{ $isExpanded ? 'var(--hub-surface-soft)' : ($idx % 2 === 0 ? 'transparent' : 'var(--hub-surface-soft)') }};">
+                            <div class="{{ $isExpanded ? 'bg-teal-50/20 dark:bg-teal-950/10' : '' }} transition-colors">
                                 {{-- Student Summary Row --}}
-                                <div style="padding: 0.55rem 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                                    <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1;">
-                                        <button type="button"
-                                                wire:click="toggleExpand({{ $row['id'] }})"
-                                                style="background: none; border: none; cursor: pointer; color: var(--hub-muted); padding: 0.15rem;">
+                                <div class="p-4 flex flex-wrap items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                                        <button 
+                                            type="button"
+                                            wire:click="toggleExpand({{ $row['id'] }})"
+                                            class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                        >
                                             @if($isExpanded)
-                                                <x-heroicon-o-chevron-down style="width: 0.95rem; height: 0.95rem; color: var(--hub-primary);" />
+                                                <x-heroicon-o-chevron-down class="w-4 h-4 text-teal-600 dark:text-teal-400" />
                                             @else
-                                                <x-heroicon-o-chevron-right style="width: 0.95rem; height: 0.95rem;" />
+                                                <x-heroicon-o-chevron-right class="w-4 h-4" />
                                             @endif
                                         </button>
 
-                                        <div style="min-width: 0;">
-                                            <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-                                                <span style="font-weight: 700; font-size: 0.84rem; color: var(--hub-ink);">{{ $row['name'] }}</span>
-                                                <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.3rem;">{{ $row['track'] }}</span>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="font-extrabold text-sm text-slate-900 dark:text-slate-100">{{ $row['name'] }}</span>
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{{ $row['track'] }}</span>
 
-                                                {{-- Overall Course Completion Badge --}}
                                                 @if(!empty($row['all_courses_completed']))
-                                                    <span class="hub-chip hub-chip-green" style="font-size: 0.58rem; padding: 0.05rem 0.3rem; display: inline-flex; align-items: center; gap: 0.2rem;">
-                                                        <x-heroicon-s-check-circle style="width: 0.65rem; height: 0.65rem;" /> Completed
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 inline-flex items-center gap-1">
+                                                        <x-heroicon-s-check-circle class="w-3 h-3" /> Completed
                                                     </span>
                                                 @endif
                                             </div>
-                                            <div style="font-size: 0.68rem; color: var(--hub-muted);">
+                                            <div class="text-[11px] text-slate-400 dark:text-slate-500">
                                                 {{ $row['email'] }}
                                             </div>
                                         </div>
                                     </div>
 
                                     {{-- Mini Scores Breakdown & Course Completion Actions --}}
-                                    <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.72rem; flex-wrap: wrap;">
-                                        <div style="text-align: center;">
-                                            <span style="color: var(--hub-muted); font-size: 0.64rem; display: block;">Quiz</span>
-                                            <strong style="color: #10b981;">{{ $row['avg_quiz_score'] !== null ? $row['avg_quiz_score'].'%' : '—' }}</strong>
+                                    <div class="flex items-center gap-3 flex-wrap text-xs">
+                                        <div class="px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-[#233842] text-center">
+                                            <span class="text-slate-400 text-[10px] block font-semibold">Quiz</span>
+                                            <strong class="text-emerald-600 dark:text-emerald-400">{{ $row['avg_quiz_score'] !== null ? $row['avg_quiz_score'].'%' : '—' }}</strong>
                                         </div>
-                                        <div style="text-align: center;">
-                                            <span style="color: var(--hub-muted); font-size: 0.64rem; display: block;">Assign</span>
-                                            <strong style="color: #6366f1;">{{ $row['avg_assignment_grade'] !== null ? $row['avg_assignment_grade'].'%' : '—' }}</strong>
+                                        <div class="px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-[#233842] text-center">
+                                            <span class="text-slate-400 text-[10px] block font-semibold">Assign</span>
+                                            <strong class="text-teal-600 dark:text-teal-400">{{ $row['avg_assignment_grade'] !== null ? $row['avg_assignment_grade'].'%' : '—' }}</strong>
                                         </div>
-                                        <div style="text-align: center;">
-                                            <span style="color: var(--hub-muted); font-size: 0.64rem; display: block;">Assess</span>
-                                            <strong style="color: #8b5cf6;">{{ $row['avg_assessment_score'] !== null ? $row['avg_assessment_score'].'%' : '—' }}</strong>
+                                        <div class="px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-[#233842] text-center">
+                                            <span class="text-slate-400 text-[10px] block font-semibold">Assess</span>
+                                            <strong class="text-indigo-600 dark:text-indigo-400">{{ $row['avg_assessment_score'] !== null ? $row['avg_assessment_score'].'%' : '—' }}</strong>
                                         </div>
 
                                         {{-- Overall Score --}}
-                                        <div style="text-align: right; min-width: 55px;">
-                                            <span style="color: var(--hub-muted); font-size: 0.64rem; display: block;">Overall</span>
-                                            <span style="font-size: 0.88rem; font-weight: 800; color: {{ match($row['tier_key']) {
-                                                'distinction' => '#059669',
-                                                'merit' => '#0284c7',
-                                                'pass' => '#d97706',
-                                                default => '#dc2626'
-                                            } }};">
+                                        <div class="text-right min-w-[55px] px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-[#233842]">
+                                            <span class="text-slate-400 text-[10px] block font-semibold">Overall</span>
+                                            <span class="text-sm font-black {{ match($row['tier_key']) {
+                                                'distinction' => 'text-emerald-600 dark:text-emerald-400',
+                                                'merit' => 'text-cyan-600 dark:text-cyan-400',
+                                                'pass' => 'text-amber-600 dark:text-amber-400',
+                                                default => 'text-rose-600 dark:text-rose-400'
+                                            } }}">
                                                 {{ $row['overall_score'] !== null ? $row['overall_score'].'%' : '—' }}
                                             </span>
                                         </div>
 
-                                        {{-- Quick Mark Complete Buttons (Per Enrolled Course) --}}
+                                        {{-- Quick Mark Complete Buttons --}}
                                         @foreach ($row['courses'] as $c)
                                             @if($c['is_completed'])
-                                                <span class="hub-chip hub-chip-green" style="font-size: 0.64rem; padding: 0.2rem 0.45rem; display: inline-flex; align-items: center; gap: 0.25rem;">
-                                                    <x-heroicon-s-check-circle style="width: 0.75rem; height: 0.75rem;" />
-                                                    {{ $c['code'] ?: 'Course' }}: Ready
+                                                <span class="px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold inline-flex items-center gap-1.5">
+                                                    <x-heroicon-s-check-circle class="w-3.5 h-3.5" />
+                                                    <span>{{ $c['code'] ?: 'Course' }}: Ready</span>
                                                 </span>
                                             @else
-                                                <button type="button"
-                                                        wire:click="markCourseComplete({{ $row['id'] }}, {{ $c['id'] }})"
-                                                        style="font-size: 0.68rem; padding: 0.22rem 0.5rem; background: #059669; color: #ffffff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem; transition: background 0.15s ease;"
-                                                        onmouseover="this.style.background='#047857'"
-                                                        onmouseout="this.style.background='#059669'"
-                                                        title="Mark course as completed to release certificate for {{ $row['name'] }}">
-                                                    <x-heroicon-s-check style="width: 0.75rem; height: 0.75rem;" />
-                                                    Complete {{ $c['code'] ?: 'Course' }}
+                                                <button 
+                                                    type="button"
+                                                    wire:click="markCourseComplete({{ $row['id'] }}, {{ $c['id'] }})"
+                                                    class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all inline-flex items-center gap-1.5"
+                                                    title="Mark course as completed to release certificate for {{ $row['name'] }}"
+                                                >
+                                                    <x-heroicon-s-check class="w-3.5 h-3.5" />
+                                                    <span>Complete {{ $c['code'] ?: 'Course' }}</span>
                                                 </button>
                                             @endif
                                         @endforeach
 
-                                        <button type="button"
-                                                wire:click="openAwardModal({{ $row['id'] }})"
-                                                style="font-size: 0.68rem; padding: 0.22rem 0.5rem; background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem; transition: opacity 0.15s ease;"
-                                                title="Award XP Points & Badges for off-platform activities (Presentations, Hackathons, Debate, etc.)">
-                                            <x-heroicon-s-sparkles style="width: 0.75rem; height: 0.75rem;" />
-                                            Award XP/Badge
+                                        {{-- Award XP/Badge Button --}}
+                                        <button 
+                                            type="button"
+                                            wire:click="openAwardModal({{ $row['id'] }})"
+                                            class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-bold shadow-2xs transition-all inline-flex items-center gap-1.5"
+                                            title="Award XP Points & Badges for presentations, hackathons, and off-platform excellence"
+                                        >
+                                            <x-heroicon-s-sparkles class="w-3.5 h-3.5" />
+                                            <span>Award XP/Badge</span>
                                         </button>
 
-                                        <button type="button"
-                                                wire:click="toggleExpand({{ $row['id'] }})"
-                                                style="font-size: 0.68rem; padding: 0.2rem 0.45rem; background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: 4px; color: var(--hub-ink); cursor: pointer;">
+                                        <button 
+                                            type="button"
+                                            wire:click="toggleExpand({{ $row['id'] }})"
+                                            class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-[#233842] bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors"
+                                        >
                                             {{ $isExpanded ? 'Hide' : 'Details' }}
                                         </button>
                                     </div>
                                 </div>
 
-                                {{-- Expanded Student Breakdown (DEC Order & Course Completion Card) --}}
+                                {{-- Expanded Student Breakdown --}}
                                 @if($isExpanded)
-                                    <div style="padding: 0.6rem 0.85rem 0.75rem 2.2rem; background: var(--hub-surface); border-top: 1px solid var(--hub-border);">
+                                    <div class="px-6 sm:px-12 pb-5 pt-2 bg-slate-50/50 dark:bg-slate-900/40 border-t border-slate-100 dark:border-[#233842] space-y-4">
                                         
                                         {{-- Course Completion & Certificate Section --}}
-                                        <div style="margin-bottom: 0.75rem; padding: 0.55rem 0.75rem; background: var(--hub-surface-soft); border-radius: 8px; border: 1px solid var(--hub-border);">
-                                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.35rem;">
-                                                <span style="font-size: 0.7rem; font-weight: 700; color: var(--hub-primary); text-transform: uppercase; letter-spacing: 0.03em;">
+                                        <div class="p-3.5 rounded-xl bg-white dark:bg-[#102028] border border-slate-200/80 dark:border-[#233842] space-y-2.5">
+                                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                                <span class="text-[11px] font-black uppercase tracking-wider text-teal-600 dark:text-teal-400">
                                                     Course Completion &amp; Certificate Readiness
                                                 </span>
-                                                <span style="font-size: 0.65rem; color: var(--hub-muted);">
-                                                    Certificates are unlocked once instructor clicks completion
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-500">
+                                                    Certificates become available once instructor marks completion
                                                 </span>
                                             </div>
 
-                                            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                            <div class="space-y-2">
                                                 @foreach ($row['courses'] as $c)
-                                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; padding: 0.35rem 0.5rem; background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: 6px; font-size: 0.74rem;">
-                                                        <div>
-                                                            <strong style="color: var(--hub-ink);">{{ $c['title'] }}</strong>
+                                                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-[#233842] flex items-center justify-between flex-wrap gap-2 text-xs">
+                                                        <div class="flex items-center gap-2">
+                                                            <strong class="text-slate-900 dark:text-slate-100">{{ $c['title'] }}</strong>
                                                             @if(!empty($c['code']))
-                                                                <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem;">{{ $c['code'] }}</span>
+                                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">{{ $c['code'] }}</span>
                                                             @endif
                                                         </div>
 
-                                                        <div style="display: flex; align-items: center; gap: 0.45rem;">
+                                                        <div class="flex items-center gap-2">
                                                             @if($c['is_completed'])
-                                                                <span class="hub-chip hub-chip-green" style="font-size: 0.62rem; padding: 0.1rem 0.4rem; display: inline-flex; align-items: center; gap: 0.2rem;">
-                                                                    <x-heroicon-s-check-circle style="width: 0.75rem; height: 0.75rem;" />
-                                                                    Completed on {{ $c['completed_at'] }}
+                                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 inline-flex items-center gap-1">
+                                                                    <x-heroicon-s-check-circle class="w-3 h-3" /> Completed on {{ $c['completed_at'] }}
                                                                 </span>
-                                                                <span class="hub-chip" style="font-size: 0.62rem; padding: 0.1rem 0.4rem; background: rgba(16, 185, 129, 0.12); color: #065f46; font-weight: 700;">
+                                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
                                                                     Certificate Ready
                                                                 </span>
-                                                                <button type="button"
-                                                                        wire:click="unmarkCourseComplete({{ $row['id'] }}, {{ $c['id'] }})"
-                                                                        style="font-size: 0.62rem; padding: 0.15rem 0.35rem; background: transparent; border: 1px solid var(--hub-border); border-radius: 4px; color: var(--hub-muted); cursor: pointer;"
-                                                                        title="Reset completion status">
+                                                                <button 
+                                                                    type="button"
+                                                                    wire:click="unmarkCourseComplete({{ $row['id'] }}, {{ $c['id'] }})"
+                                                                    class="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline ml-1"
+                                                                    title="Reset completion status"
+                                                                >
                                                                     Reset
                                                                 </button>
                                                             @else
-                                                                <span class="hub-chip hub-chip-amber" style="font-size: 0.62rem; padding: 0.1rem 0.4rem;">
+                                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                                                                     In Progress
                                                                 </span>
-                                                                <button type="button"
-                                                                        wire:click="markCourseComplete({{ $row['id'] }}, {{ $c['id'] }})"
-                                                                        style="font-size: 0.7rem; padding: 0.25rem 0.65rem; background: #059669; color: #ffffff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; transition: background 0.15s ease;"
-                                                                        onmouseover="this.style.background='#047857'"
-                                                                        onmouseout="this.style.background='#059669'">
-                                                                    <x-heroicon-s-check-circle style="width: 0.8rem; height: 0.8rem;" />
-                                                                    Mark Complete &amp; Issue Certificate
+                                                                <button 
+                                                                    type="button"
+                                                                    wire:click="markCourseComplete({{ $row['id'] }}, {{ $c['id'] }})"
+                                                                    class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-2xs inline-flex items-center gap-1"
+                                                                >
+                                                                    <x-heroicon-s-check-circle class="w-3.5 h-3.5" />
+                                                                    <span>Mark Complete</span>
                                                                 </button>
                                                             @endif
 
-                                                            <button type="button"
-                                                                    wire:click="removeStudentFromCourse({{ $row['id'] }}, {{ $c['id'] }})"
-                                                                    wire:confirm="Are you sure you want to remove {{ $row['name'] }} from '{{ $c['title'] }}'? This will unenrol the student from the course."
-                                                                    style="font-size: 0.65rem; padding: 0.2rem 0.45rem; background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem; transition: all 0.15s ease;"
-                                                                    onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'"
-                                                                    onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'"
-                                                                    title="Remove student from this course">
-                                                                <x-heroicon-o-trash style="width: 0.75rem; height: 0.75rem;" />
-                                                                Remove
+                                                            <button 
+                                                                type="button"
+                                                                wire:click="removeStudentFromCourse({{ $row['id'] }}, {{ $c['id'] }})"
+                                                                wire:confirm="Are you sure you want to remove {{ $row['name'] }} from '{{ $c['title'] }}'? This will unenrol the student from the course."
+                                                                class="p-1 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-700 transition-colors ml-1"
+                                                                title="Remove student from this course"
+                                                            >
+                                                                <x-heroicon-o-trash class="w-4 h-4" />
                                                             </button>
                                                         </div>
                                                     </div>
@@ -851,39 +918,52 @@
                                             </div>
                                         </div>
 
-                                        {{-- Quizzes DEC --}}
+                                        {{-- Quizzes (DEC Order) --}}
                                         @if(count($row['quiz_details']) > 0)
-                                            <div style="margin-bottom: 0.5rem;">
-                                                <span style="font-size: 0.68rem; font-weight: 700; color: #10b981; text-transform: uppercase;">Quizzes (DEC Order)</span>
-                                                <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.2rem;">
+                                            <div class="space-y-1.5">
+                                                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                                                    Quizzes (DEC Order)
+                                                </span>
+                                                <div class="space-y-1">
                                                     @foreach ($row['quiz_details'] as $qd)
-                                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; padding: 0.25rem 0.4rem; background: var(--hub-surface-soft); border-radius: 4px; flex-wrap: wrap; gap: 0.3rem;">
-                                                            <span>{{ $qd['title'] }} ({{ $qd['course'] }})</span>
-                                                            <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;">
-                                                                <strong style="color: {{ $qd['passed'] ? '#059669' : '#dc2626' }};">{{ $qd['percentage'] }}%</strong>
+                                                        <div class="p-2.5 rounded-xl bg-white dark:bg-[#102028] border border-slate-100 dark:border-[#233842] flex items-center justify-between flex-wrap gap-2 text-xs">
+                                                            <span class="font-medium text-slate-800 dark:text-slate-200">{{ $qd['title'] }} ({{ $qd['course'] }})</span>
+                                                            <div class="flex items-center gap-2 flex-wrap">
+                                                                <strong class="{{ $qd['passed'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
+                                                                    {{ $qd['percentage'] }}%
+                                                                </strong>
+
                                                                 @if(!empty($qd['is_retake']))
-                                                                    <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(59, 130, 246, 0.12); color: #1d4ed8; font-weight: 700;">2nd Try</span>
+                                                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300">2nd Try</span>
                                                                 @endif
 
-                                                                <button type="button" wire:click="viewQuizAttempt({{ $qd['id'] }})"
-                                                                        style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: var(--hub-surface); color: var(--hub-ink); border: 1px solid var(--hub-border); border-radius: 4px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.2rem;"
-                                                                        title="View questions, student selected options, and submitted answers">
-                                                                    <x-heroicon-o-eye style="width: 0.7rem; height: 0.7rem; color: var(--hub-primary);" />
-                                                                    Answers
+                                                                <button 
+                                                                    type="button" 
+                                                                    wire:click="viewQuizAttempt({{ $qd['id'] }})"
+                                                                    class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[10px] font-bold inline-flex items-center gap-1 transition-colors"
+                                                                >
+                                                                    <x-heroicon-o-eye class="w-3 h-3 text-teal-600 dark:text-teal-400" />
+                                                                    <span>Answers</span>
                                                                 </button>
 
                                                                 @if(!empty($qd['retake_allowed']))
-                                                                    <button type="button" wire:click="revokeQuizRetake({{ $row['id'] }}, {{ $qd['quiz_id'] }})"
-                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 4px; cursor: pointer; font-weight: 700;">
+                                                                    <button 
+                                                                        type="button" 
+                                                                        wire:click="revokeQuizRetake({{ $row['id'] }}, {{ $qd['quiz_id'] }})"
+                                                                        class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold"
+                                                                    >
                                                                         ⭐ 2nd Try Granted (Revoke)
                                                                     </button>
                                                                 @else
-                                                                    <button type="button" wire:click="grantQuizRetake({{ $row['id'] }}, {{ $qd['quiz_id'] }})"
-                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: var(--hub-surface); color: var(--hub-primary); border: 1px solid var(--hub-border); border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                                                    <button 
+                                                                        type="button" 
+                                                                        wire:click="grantQuizRetake({{ $row['id'] }}, {{ $qd['quiz_id'] }})"
+                                                                        class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-[#233842] text-teal-600 dark:text-teal-400 text-[10px] font-bold"
+                                                                    >
                                                                         + Grant 2nd Try
                                                                     </button>
                                                                 @endif
-                                                                <span style="color: var(--hub-muted); font-size: 0.65rem;">{{ $qd['date'] }}</span>
+                                                                <span class="text-slate-400 text-[10px]">{{ $qd['date'] }}</span>
                                                             </div>
                                                         </div>
                                                     @endforeach
@@ -891,28 +971,41 @@
                                             </div>
                                         @endif
 
-                                        {{-- Assignments DEC --}}
+                                        {{-- Assignments (DEC Order) --}}
                                         @if(count($row['assignment_details']) > 0)
-                                            <div style="margin-bottom: 0.5rem;">
-                                                <span style="font-size: 0.68rem; font-weight: 700; color: #6366f1; text-transform: uppercase;">Assignments (DEC Order)</span>
-                                                <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.2rem;">
+                                            <div class="space-y-1.5">
+                                                <span class="text-[10px] font-black uppercase tracking-wider text-teal-600 dark:text-teal-400">
+                                                    Assignments (DEC Order)
+                                                </span>
+                                                <div class="space-y-1">
                                                     @foreach ($row['assignment_details'] as $ad)
-                                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; padding: 0.25rem 0.4rem; background: var(--hub-surface-soft); border-radius: 4px; flex-wrap: wrap; gap: 0.3rem;">
-                                                            <span>{{ $ad['title'] }} ({{ $ad['course'] }})</span>
-                                                            <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;">
-                                                                <strong>{{ $ad['grade'] !== null ? $ad['grade'].'%' : 'Ungraded' }}</strong>
-                                                                <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem;">{{ $ad['status'] }}</span>
+                                                        <div class="p-2.5 rounded-xl bg-white dark:bg-[#102028] border border-slate-100 dark:border-[#233842] flex items-center justify-between flex-wrap gap-2 text-xs">
+                                                            <span class="font-medium text-slate-800 dark:text-slate-200">{{ $ad['title'] }} ({{ $ad['course'] }})</span>
+                                                            <div class="flex items-center gap-2 flex-wrap">
+                                                                <strong class="{{ $ad['grade'] !== null ? ($ad['grade'] >= 70 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400') : 'text-slate-400' }}">
+                                                                    {{ $ad['grade'] !== null ? $ad['grade'].'%' : 'Ungraded' }}
+                                                                </strong>
+
+                                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{{ $ad['status'] }}</span>
+
                                                                 @if(!empty($ad['is_retake']))
-                                                                    <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(99, 102, 241, 0.12); color: #4338ca; font-weight: 700;">2nd Try</span>
+                                                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300">2nd Try</span>
                                                                 @endif
+
                                                                 @if(!empty($ad['retake_allowed']))
-                                                                    <button type="button" wire:click="revokeAssignmentRetake({{ $ad['id'] }})"
-                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: rgba(99, 102, 241, 0.15); color: #4338ca; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 4px; cursor: pointer; font-weight: 700;">
+                                                                    <button 
+                                                                        type="button" 
+                                                                        wire:click="revokeAssignmentRetake({{ $ad['id'] }})"
+                                                                        class="px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-[10px] font-bold"
+                                                                    >
                                                                         ⭐ 2nd Try Granted (Revoke)
                                                                     </button>
                                                                 @else
-                                                                    <button type="button" wire:click="grantAssignmentRetake({{ $ad['id'] }})"
-                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: var(--hub-surface); color: #4338ca; border: 1px solid var(--hub-border); border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                                                    <button 
+                                                                        type="button" 
+                                                                        wire:click="grantAssignmentRetake({{ $ad['id'] }})"
+                                                                        class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-[#233842] text-teal-600 dark:text-teal-400 text-[10px] font-bold"
+                                                                    >
                                                                         + Grant 2nd Try
                                                                     </button>
                                                                 @endif
@@ -923,28 +1016,41 @@
                                             </div>
                                         @endif
 
-                                        {{-- Assessments DEC --}}
+                                        {{-- Assessments (DEC Order) --}}
                                         @if(count($row['assessment_details']) > 0)
-                                            <div>
-                                                <span style="font-size: 0.68rem; font-weight: 700; color: #8b5cf6; text-transform: uppercase;">Assessments (DEC Order)</span>
-                                                <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.2rem;">
+                                            <div class="space-y-1.5">
+                                                <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                                                    Assessments (DEC Order)
+                                                </span>
+                                                <div class="space-y-1">
                                                     @foreach ($row['assessment_details'] as $asub)
-                                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; padding: 0.25rem 0.4rem; background: var(--hub-surface-soft); border-radius: 4px; flex-wrap: wrap; gap: 0.3rem;">
-                                                            <span>{{ $asub['title'] }} ({{ $asub['course'] }})</span>
-                                                            <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;">
-                                                                <strong>{{ $asub['score'] !== null ? $asub['score'].'%' : 'Ungraded' }}</strong>
-                                                                <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem;">{{ $asub['status'] }}</span>
+                                                        <div class="p-2.5 rounded-xl bg-white dark:bg-[#102028] border border-slate-100 dark:border-[#233842] flex items-center justify-between flex-wrap gap-2 text-xs">
+                                                            <span class="font-medium text-slate-800 dark:text-slate-200">{{ $asub['title'] }} ({{ $asub['course'] }})</span>
+                                                            <div class="flex items-center gap-2 flex-wrap">
+                                                                <strong class="{{ $asub['score'] !== null ? ($asub['score'] >= 70 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400') : 'text-slate-400' }}">
+                                                                    {{ $asub['score'] !== null ? $asub['score'].'%' : 'Ungraded' }}
+                                                                </strong>
+
+                                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{{ $asub['status'] }}</span>
+
                                                                 @if(!empty($asub['is_retake']))
-                                                                    <span class="hub-chip" style="font-size: 0.58rem; padding: 0.05rem 0.25rem; background: rgba(14, 165, 233, 0.12); color: #0369a1; font-weight: 700;">2nd Try</span>
+                                                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300">2nd Try</span>
                                                                 @endif
+
                                                                 @if(!empty($asub['retake_allowed']))
-                                                                    <button type="button" wire:click="revokeAssessmentRetake({{ $asub['id'] }})"
-                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: rgba(14, 165, 233, 0.15); color: #0369a1; border: 1px solid rgba(14, 165, 233, 0.3); border-radius: 4px; cursor: pointer; font-weight: 700;">
+                                                                    <button 
+                                                                        type="button" 
+                                                                        wire:click="revokeAssessmentRetake({{ $asub['id'] }})"
+                                                                        class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-[10px] font-bold"
+                                                                    >
                                                                         ⭐ 2nd Try Granted (Revoke)
                                                                     </button>
                                                                 @else
-                                                                    <button type="button" wire:click="grantAssessmentRetake({{ $asub['id'] }})"
-                                                                            style="font-size: 0.62rem; padding: 0.1rem 0.35rem; background: var(--hub-surface); color: #0369a1; border: 1px solid var(--hub-border); border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                                                    <button 
+                                                                        type="button" 
+                                                                        wire:click="grantAssessmentRetake({{ $asub['id'] }})"
+                                                                        class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-[#233842] text-indigo-600 dark:text-indigo-400 text-[10px] font-bold"
+                                                                    >
                                                                         + Grant 2nd Try
                                                                     </button>
                                                                 @endif
@@ -963,56 +1069,69 @@
             </div>
         @endif
 
-        {{-- ==================== QUIZ ATTEMPT ANSWERS REVIEW MODAL ==================== --}}
+        {{-- ==================== MODAL 1: QUIZ ATTEMPT ANSWERS REVIEW ==================== --}}
         @if ($this->selectedQuizAttempt)
-            <div style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);"
-                 x-data
-                 @keydown.escape.window="$wire.closeQuizAttemptModal()">
-                <div style="position: relative; width: 100%; max-width: 920px; max-height: 90vh; background: #ffffff; border-radius: 14px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--hub-border);">
-                    {{-- Modal Top Bar --}}
-                    <div style="padding: 0.75rem 1.25rem; background: #f8fafc; border-bottom: 1px solid var(--hub-border); display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(13, 148, 136, 0.12); display: flex; align-items: center; justify-content: center;">
-                                <x-heroicon-o-academic-cap style="width: 1.1rem; height: 1.1rem; color: var(--hub-primary);" />
+            <div 
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+                x-data
+                @keydown.escape.window="$wire.closeQuizAttemptModal()"
+            >
+                <div class="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150">
+                    {{-- Modal Header --}}
+                    <div class="px-5 py-4 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-[#233842] flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 flex items-center justify-center border border-teal-100 dark:border-teal-900/60">
+                                <x-heroicon-o-academic-cap class="w-4 h-4" />
                             </div>
                             <div>
-                                <span style="font-weight: 800; font-size: 0.95rem; color: var(--hub-ink); display: block; line-height: 1.2;">
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">
                                     Student Quiz Review &amp; Answers
-                                </span>
-                                <span style="font-size: 0.7rem; color: var(--hub-muted);">
+                                </h3>
+                                <p class="text-[11px] text-slate-400 dark:text-slate-500">
                                     Full question breakdown, student selections, and answer accuracy
-                                </span>
+                                </p>
                             </div>
                         </div>
-                        <button type="button" wire:click="closeQuizAttemptModal"
-                                style="background: transparent; border: none; font-size: 1.3rem; line-height: 1; color: var(--hub-muted); cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 6px;"
-                                title="Close modal">
+                        <button 
+                            type="button" 
+                            wire:click="closeQuizAttemptModal"
+                            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xl font-bold leading-none"
+                            title="Close modal"
+                        >
                             &times;
                         </button>
                     </div>
 
                     {{-- Scrollable Content Body --}}
-                    <div style="padding: 1.25rem; overflow-y: auto; flex: 1; background: #fafafa;">
+                    <div class="p-5 overflow-y-auto flex-1 bg-slate-50/40 dark:bg-slate-900/40">
                         @include('filament.instructor.modals.quiz-attempt-answers', ['attempt' => $this->selectedQuizAttempt])
                     </div>
 
                     {{-- Modal Footer --}}
-                    <div style="padding: 0.75rem 1.25rem; background: #f8fafc; border-top: 1px solid var(--hub-border); display: flex; justify-content: flex-end; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                    <div class="px-5 py-3.5 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-[#233842] flex items-center justify-end gap-2.5 flex-wrap">
                         @php $modalAttempt = $this->selectedQuizAttempt; @endphp
                         @if ($modalAttempt && !empty($modalAttempt->retake_allowed))
-                            <button type="button" wire:click="revokeQuizRetake({{ $modalAttempt->user_id }}, {{ $modalAttempt->quiz_id }})"
-                                    style="font-size: 0.78rem; padding: 0.4rem 0.85rem; background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; cursor: pointer; font-weight: 700;">
+                            <button 
+                                type="button" 
+                                wire:click="revokeQuizRetake({{ $modalAttempt->user_id }}, {{ $modalAttempt->quiz_id }})"
+                                class="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold transition-colors"
+                            >
                                 ⭐ 2nd Try Granted (Revoke)
                             </button>
                         @elseif ($modalAttempt && $modalAttempt->completed_at)
-                            <button type="button" wire:click="grantQuizRetake({{ $modalAttempt->user_id }}, {{ $modalAttempt->quiz_id }})"
-                                    style="font-size: 0.78rem; padding: 0.4rem 0.85rem; background: var(--hub-primary); color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">
+                            <button 
+                                type="button" 
+                                wire:click="grantQuizRetake({{ $modalAttempt->user_id }}, {{ $modalAttempt->quiz_id }})"
+                                class="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-2xs transition-all"
+                            >
                                 + Grant 2nd Try
                             </button>
                         @endif
-                        <button type="button" wire:click="closeQuizAttemptModal"
-                                class="hub-btn"
-                                style="font-size: 0.78rem; padding: 0.4rem 0.95rem; border-radius: 6px; cursor: pointer;">
+                        <button 
+                            type="button" 
+                            wire:click="closeQuizAttemptModal"
+                            class="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors"
+                        >
                             Close
                         </button>
                     </div>
@@ -1020,43 +1139,50 @@
             </div>
         @endif
 
-        {{-- ==================== AWARD XP & BADGES MODAL ==================== --}}
+        {{-- ==================== MODAL 2: AWARD XP & BADGES ==================== --}}
         @if ($this->showAwardModal)
-            <div style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);"
-                 x-data
-                 @keydown.escape.window="$wire.closeAwardModal()">
-                <div style="position: relative; width: 100%; max-width: 580px; max-height: 90vh; background: #ffffff; border-radius: 14px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--hub-border);">
-                    {{-- Modal Top Bar --}}
-                    <div style="padding: 0.85rem 1.25rem; background: var(--hub-surface-soft); border-bottom: 1px solid var(--hub-border); display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <div style="width: 32px; height: 32px; border-radius: 8px; background: #f59e0b; display: flex; align-items: center; justify-content: center; color: #ffffff;">
-                                <x-heroicon-s-sparkles style="width: 1.2rem; height: 1.2rem;" />
+            <div 
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+                x-data
+                @keydown.escape.window="$wire.closeAwardModal()"
+            >
+                <div class="relative w-full max-w-lg max-h-[90vh] bg-white dark:bg-[#102028] border border-slate-200 dark:border-[#233842] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150">
+                    {{-- Modal Header --}}
+                    <div class="px-5 py-4 bg-amber-50/70 dark:bg-amber-950/30 border-b border-amber-100 dark:border-amber-900/40 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                                <x-heroicon-s-sparkles class="w-4 h-4" />
                             </div>
                             <div>
-                                <span style="font-weight: 800; font-size: 0.95rem; color: #92400e; display: block; line-height: 1.2;">
+                                <h3 class="text-sm font-extrabold text-amber-950 dark:text-amber-200">
                                     Award XP &amp; Badges to {{ $this->awardStudentName }}
-                                </span>
-                                <span style="font-size: 0.7rem; color: #b45309;">
-                                    Recognize presentations, hackathons, debate, and off-platform excellence
-                                </span>
+                                </h3>
+                                <p class="text-[11px] text-amber-800 dark:text-amber-400">
+                                    Recognize presentations, hackathons, and off-platform excellence
+                                </p>
                             </div>
                         </div>
-                        <button type="button" wire:click="closeAwardModal"
-                                style="background: transparent; border: none; font-size: 1.3rem; line-height: 1; color: #92400e; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 6px;"
-                                title="Close modal">
+                        <button 
+                            type="button" 
+                            wire:click="closeAwardModal"
+                            class="text-amber-800 dark:text-amber-300 hover:text-amber-950 text-xl font-bold leading-none"
+                            title="Close modal"
+                        >
                             &times;
                         </button>
                     </div>
 
-                    {{-- Form Content Body --}}
-                    <div style="padding: 1.25rem; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.82rem;">
+                    {{-- Form Body --}}
+                    <div class="p-5 overflow-y-auto flex-1 space-y-4 text-xs">
                         {{-- Course Select --}}
                         <div>
-                            <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
+                            <label class="block font-bold text-slate-800 dark:text-slate-200 mb-1">
                                 Associated Course (Optional)
                             </label>
-                            <select wire:model.live="awardCourseId"
-                                    style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem;">
+                            <select 
+                                wire:model.live="awardCourseId"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            >
                                 <option value="">None / General Off-Platform Activity</option>
                                 @foreach ($this->instructorCourseOptions() as $cId => $cTitle)
                                     <option value="{{ $cId }}">{{ $cTitle }}</option>
@@ -1066,18 +1192,20 @@
 
                         {{-- Activity Type --}}
                         <div>
-                            <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
-                                Activity / Recognition Reason <span style="color: #dc2626;">*</span>
+                            <label class="block font-bold text-slate-800 dark:text-slate-200 mb-1">
+                                Activity / Recognition Reason <span class="text-rose-500">*</span>
                             </label>
-                            <select wire:model.live="awardActivityType"
-                                    style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem;">
+                            <select 
+                                wire:model.live="awardActivityType"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            >
                                 <option value="Outstanding Presentation">🎤 Outstanding Presentation</option>
-                                <option value="Classroom Participation & Debate">💬 Classroom Participation & Debate</option>
-                                <option value="Project Demo & Showcase">💻 Project Demo & Showcase</option>
+                                <option value="Classroom Participation &amp; Debate">💬 Classroom Participation &amp; Debate</option>
+                                <option value="Project Demo &amp; Showcase">💻 Project Demo &amp; Showcase</option>
                                 <option value="Hackathon / Competition Winner">🚀 Hackathon / Competition Winner</option>
-                                <option value="Peer Mentoring & Collaboration">🤝 Peer Mentoring & Collaboration</option>
+                                <option value="Peer Mentoring &amp; Collaboration">🤝 Peer Mentoring &amp; Collaboration</option>
                                 <option value="Lab Practical Excellence">⚙️ Lab Practical Excellence</option>
-                                <option value="Leadership & Teamwork">👑 Leadership & Teamwork</option>
+                                <option value="Leadership &amp; Teamwork">👑 Leadership &amp; Teamwork</option>
                                 <option value="Extracurricular Contribution">🌟 Extracurricular Contribution</option>
                                 <option value="custom">➕ Other / Custom Activity</option>
                             </select>
@@ -1085,35 +1213,48 @@
 
                         @if ($this->awardActivityType === 'custom')
                             <div>
-                                <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
-                                    Custom Activity Name <span style="color: #dc2626;">*</span>
+                                <label class="block font-bold text-slate-800 dark:text-slate-200 mb-1">
+                                    Custom Activity Name <span class="text-rose-500">*</span>
                                 </label>
-                                <input type="text" wire:model="awardCustomActivity"
-                                       placeholder="e.g. AI Prompt Challenge Winner"
-                                       style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem;" />
+                                <input 
+                                    type="text" 
+                                    wire:model="awardCustomActivity"
+                                    placeholder="e.g. AI Prompt Challenge Winner"
+                                    class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                />
                             </div>
                         @endif
 
                         {{-- XP and Coins Grid --}}
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
-                                    XP Points <span style="color: #dc2626;">*</span>
+                                <label class="block font-bold text-slate-800 dark:text-slate-200 mb-1">
+                                    XP Points <span class="text-rose-500">*</span>
                                 </label>
-                                <input type="number" wire:model.live.debounce.300ms="awardXp" min="1" max="2000"
-                                       style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem; font-weight: 700;" />
-                                <span style="font-size: 0.65rem; color: var(--hub-muted); display: block; margin-top: 0.15rem;">
+                                <input 
+                                    type="number" 
+                                    wire:model.live.debounce.300ms="awardXp" 
+                                    min="1" 
+                                    max="2000"
+                                    class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                />
+                                <span class="text-[10px] text-slate-400 block mt-1">
                                     Contributes to lifetime rank
                                 </span>
                             </div>
 
                             <div>
-                                <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
+                                <label class="block font-bold text-slate-800 dark:text-slate-200 mb-1">
                                     Thinker Coins (TC)
                                 </label>
-                                <input type="number" wire:model="awardCoins" min="0" max="1000"
-                                       style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem; font-weight: 700;" />
-                                <span style="font-size: 0.65rem; color: var(--hub-muted); display: block; margin-top: 0.15rem;">
+                                <input 
+                                    type="number" 
+                                    wire:model="awardCoins" 
+                                    min="0" 
+                                    max="1000"
+                                    class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                />
+                                <span class="text-[10px] text-slate-400 block mt-1">
                                     Spendable reward coins (30%)
                                 </span>
                             </div>
@@ -1121,11 +1262,13 @@
 
                         {{-- Badge Selection --}}
                         <div>
-                            <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
+                            <label class="block font-bold text-slate-800 dark:text-slate-200 mb-1">
                                 Award Badge (Optional)
                             </label>
-                            <select wire:model.live="awardBadgeId"
-                                    style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem;">
+                            <select 
+                                wire:model.live="awardBadgeId"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            >
                                 <option value="">No Badge (XP / Coins only)</option>
                                 @foreach (\App\Models\Badge::all() as $b)
                                     <option value="{{ $b->id }}">{{ $b->icon }} {{ $b->name }} (+{{ $b->xp_reward }} XP)</option>
@@ -1134,9 +1277,9 @@
                         </div>
 
                         @if ($this->awardBadgeId)
-                            <div style="display: flex; align-items: center; gap: 0.4rem;">
-                                <input type="checkbox" id="awardBadgeBonusXp" wire:model="awardBadgeBonusXp" style="cursor: pointer;" />
-                                <label for="awardBadgeBonusXp" style="font-size: 0.74rem; color: var(--hub-ink); cursor: pointer;">
+                            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30">
+                                <input type="checkbox" id="awardBadgeBonusXp" wire:model="awardBadgeBonusXp" class="rounded text-amber-600 focus:ring-amber-500 cursor-pointer" />
+                                <label for="awardBadgeBonusXp" class="text-xs text-slate-700 dark:text-slate-200 cursor-pointer font-medium">
                                     Also grant badge's inherent bonus XP reward to student
                                 </label>
                             </div>
@@ -1144,30 +1287,39 @@
 
                         {{-- Commendation Note --}}
                         <div>
-                            <label style="font-weight: 700; color: var(--hub-ink); display: block; margin-bottom: 0.25rem; font-size: 0.76rem;">
+                            <label class="block font-bold text-slate-800 dark:text-slate-200 mb-1">
                                 Commendation Note / Reason (Optional)
                             </label>
-                            <textarea wire:model="awardNote" rows="2"
-                                      placeholder="e.g. Delivered a captivating presentation with outstanding live demonstration."
-                                      style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid var(--hub-border); background: var(--hub-surface); color: var(--hub-ink); font-size: 0.8rem;"></textarea>
+                            <textarea 
+                                wire:model="awardNote" 
+                                rows="2"
+                                placeholder="e.g. Delivered a captivating presentation with outstanding live demonstration."
+                                class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#233842] bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            ></textarea>
                         </div>
                     </div>
 
                     {{-- Modal Footer --}}
-                    <div style="padding: 0.75rem 1.25rem; background: #f8fafc; border-top: 1px solid var(--hub-border); display: flex; justify-content: flex-end; align-items: center; gap: 0.6rem;">
-                        <button type="button" wire:click="closeAwardModal"
-                                class="hub-btn"
-                                style="font-size: 0.78rem; padding: 0.4rem 0.95rem; border-radius: 6px; cursor: pointer;">
+                    <div class="px-5 py-3.5 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-[#233842] flex items-center justify-end gap-2.5">
+                        <button 
+                            type="button" 
+                            wire:click="closeAwardModal"
+                            class="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors"
+                        >
                             Cancel
                         </button>
-                        <button type="button" wire:click="submitAward"
-                                style="font-size: 0.78rem; padding: 0.4rem 1.1rem; background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
-                            <x-heroicon-s-sparkles style="width: 0.85rem; height: 0.85rem;" />
-                            Award Recognition
+                        <button 
+                            type="button" 
+                            wire:click="submitAward"
+                            class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-bold shadow-2xs transition-all inline-flex items-center gap-1.5"
+                        >
+                            <x-heroicon-s-sparkles class="w-3.5 h-3.5" />
+                            <span>Award Recognition</span>
                         </button>
                     </div>
                 </div>
             </div>
         @endif
+
     </div>
 </x-filament-panels::page>

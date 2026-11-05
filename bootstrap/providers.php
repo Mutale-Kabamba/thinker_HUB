@@ -6,4 +6,5 @@ return [
     App\Providers\Filament\InstructorPanelProvider::class,
     App\Providers\Filament\StudentPanelProvider::class,
     App\Providers\Filament\ContributorPanelProvider::class,
+    App\Providers\Filament\ParentPanelProvider::class,
 ];

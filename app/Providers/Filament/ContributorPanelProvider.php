@@ -47,6 +47,7 @@ class ContributorPanelProvider extends PanelProvider
                 'danger' => Color::Rose,
             ])
             ->font('Plus Jakarta Sans', url: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap')
+            ->spa()
             ->databaseNotifications()
             ->databaseNotificationsPolling(null)
             ->errorNotifications(false)
@@ -102,6 +103,14 @@ class ContributorPanelProvider extends PanelProvider
                 fn (): string => view('filament.partials.top-search', [
                     'action' => '',
                 ])->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => view('filament.partials.portal-tour-button')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.partials.portal-tour', ['portal' => 'contributor'])->render(),
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,

@@ -33,20 +33,62 @@ class QuizPlayerEmbedded extends Component
         $totalQuestions = $questions->count();
         $totalPoints = $questions->sum('points') ?: $totalQuestions;
         $earnedPoints = 0;
+        $autoGradingService = app(\App\Services\QuizAutoGradingService::class);
+        $user = Auth::user();
+        $attempt = null;
+
+        if ($user) {
+            $attempt = QuizAttempt::create([
+                'quiz_id' => $this->quiz->id,
+                'user_id' => $user->id,
+                'started_at' => now(),
+            ]);
+        }
 
         foreach ($questions as $question) {
             $userAnswer = $this->answers[$question->id] ?? null;
+            $qPoints = $question->points ?: 1;
+            $pointsAwarded = 0;
+            $isCorrect = false;
+            $optionId = null;
+            $textAnswer = null;
+            $feedback = null;
 
             if ($question->isMultipleChoice()) {
+                $optionId = $userAnswer ? (int) $userAnswer : null;
                 $correctOption = $question->options->firstWhere('is_correct', true);
-                if ($correctOption && (int) $userAnswer === (int) $correctOption->id) {
-                    $earnedPoints += ($question->points ?: 1);
-                }
+                $isCorrect = $correctOption && $optionId === (int) $correctOption->id;
+                $pointsAwarded = $isCorrect ? $qPoints : 0;
+                $earnedPoints += $pointsAwarded;
             } else {
-                // Non-MCQ question: give full points if an answer was provided
-                if (! empty($userAnswer)) {
-                    $earnedPoints += ($question->points ?: 1);
+                $textAnswer = is_string($userAnswer) ? trim($userAnswer) : '';
+                if ($autoGradingService->isConfigured()) {
+                    $evaluation = $autoGradingService->grade($question, $textAnswer);
+                    $pointsAwarded = $evaluation['points_earned'];
+                    $isCorrect = $evaluation['is_correct'];
+                    $feedback = $evaluation['feedback'];
+                } else {
+                    $isCorrect = $textAnswer !== '';
+                    $pointsAwarded = $isCorrect ? $qPoints : 0;
+                    $feedback = $isCorrect ? 'Response recorded.' : 'No response provided.';
                 }
+                $earnedPoints += $pointsAwarded;
+            }
+
+            if ($attempt) {
+                \App\Models\QuizAnswer::updateOrCreate(
+                    [
+                        'quiz_attempt_id' => $attempt->id,
+                        'quiz_question_id' => $question->id,
+                    ],
+                    [
+                        'quiz_option_id' => $optionId,
+                        'text_answer' => $textAnswer,
+                        'is_correct' => $isCorrect,
+                        'points_earned' => $pointsAwarded,
+                        'feedback' => $feedback,
+                    ]
+                );
             }
         }
 
@@ -54,6 +96,17 @@ class QuizPlayerEmbedded extends Component
         $passingScore = $this->quiz->pass_percentage ?? 70;
         $this->hasPassed = $this->scorePercentage >= $passingScore;
         $this->submitted = true;
+
+        if ($attempt) {
+            $attempt->update([
+                'completed_at' => now(),
+                'score' => $earnedPoints,
+                'total_points' => $totalPoints,
+                'percentage' => $this->scorePercentage,
+                'passed' => $this->hasPassed,
+                'raw_score' => $earnedPoints,
+            ]);
+        }
 
         if ($this->hasPassed) {
             $this->dispatch('quizPassed');

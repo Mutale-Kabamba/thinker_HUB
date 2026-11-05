@@ -56,7 +56,14 @@ class OpportunitiesTable
                     ->label('Published'),
             ])
             ->recordActions([
-                EditAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    EditAction::make()
+                        ->icon('heroicon-m-pencil-square'),
+                    \Filament\Actions\DeleteAction::make()
+                        ->icon('heroicon-m-trash'),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

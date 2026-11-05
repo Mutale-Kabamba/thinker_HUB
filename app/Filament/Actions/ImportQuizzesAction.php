@@ -3,6 +3,7 @@
 namespace App\Filament\Actions;
 
 use App\Models\Course;
+use App\Models\CourseIntake;
 use App\Models\Quiz;
 use App\Models\QuizOption;
 use App\Models\QuizQuestion;
@@ -175,8 +176,12 @@ class ImportQuizzesAction
 
         static::validateQuestions($questions);
 
+        // --- Intake / Class (optional) ---
+        $intakeId = static::resolveIntake($row, $course);
+
         $quizPayload = [
             'course_id' => $course->id,
+            'course_intake_id' => $intakeId,
             'title' => $title,
             'description' => static::nullableString(Arr::get($row, 'description')),
             'publish_at' => static::nullableString(Arr::get($row, 'publish_at')),
@@ -187,11 +192,19 @@ class ImportQuizzesAction
             'is_active' => (bool) Arr::get($row, 'is_active', true),
         ];
 
-        return DB::transaction(function () use ($course, $title, $quizPayload, $questions, $replaceQuestions): string {
-            $existing = Quiz::query()
+        return DB::transaction(function () use ($course, $intakeId, $title, $quizPayload, $questions, $replaceQuestions): string {
+            $query = Quiz::query()
                 ->where('course_id', $course->id)
-                ->where('title', $title)
-                ->first();
+                ->where('title', $title);
+
+            if ($intakeId !== null) {
+                $query->where(function ($q) use ($intakeId) {
+                    $q->where('course_intake_id', $intakeId)
+                      ->orWhereNull('course_intake_id');
+                });
+            }
+
+            $existing = $query->first();
 
             if ($existing) {
                 $existing->fill($quizPayload)->save();
@@ -251,6 +264,49 @@ class ImportQuizzesAction
             }
 
             return $query->first();
+        }
+
+        return null;
+    }
+
+    // ---------------------------------------------------------------
+    //  Intake resolution
+    // ---------------------------------------------------------------
+
+    private static function resolveIntake(array $row, Course $course): ?int
+    {
+        $intakeId = Arr::get($row, 'course_intake_id') ?? Arr::get($row, 'intake_id');
+        if (! empty($intakeId) && is_numeric($intakeId)) {
+            $intake = CourseIntake::query()
+                ->where('course_id', $course->id)
+                ->where('id', (int) $intakeId)
+                ->first();
+
+            if ($intake) {
+                return $intake->id;
+            }
+        }
+
+        $intakeName = static::pickString($row, ['intake', 'intake_name', 'intakeName', 'class', 'cohort', 'cohort_name']);
+        if ($intakeName !== '') {
+            $intake = CourseIntake::query()
+                ->where('course_id', $course->id)
+                ->where(function ($q) use ($intakeName) {
+                    $q->whereRaw('LOWER(name) = ?', [mb_strtolower($intakeName)])
+                      ->orWhere('name', 'LIKE', "%{$intakeName}%");
+                })
+                ->first();
+
+            if (! $intake) {
+                $intake = CourseIntake::create([
+                    'course_id' => $course->id,
+                    'name' => $intakeName,
+                    'status' => CourseIntake::STATUS_ACTIVE,
+                    'is_active' => true,
+                ]);
+            }
+
+            return $intake->id;
         }
 
         return null;

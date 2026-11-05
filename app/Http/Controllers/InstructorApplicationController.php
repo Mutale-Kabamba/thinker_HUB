@@ -61,7 +61,21 @@ class InstructorApplicationController extends Controller
             // New course fields
             'proposed_course_name' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:255'],
             'proposed_course_code' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:255'],
-            'proposed_course_description' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:10000'],
+            'proposed_course_description' => [
+                'required_if:proposal_type,new',
+                'nullable',
+                'string',
+                'max:10000',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! filled($value)) {
+                        return;
+                    }
+                    $words = preg_split('/\s+/u', trim((string) $value), -1, PREG_SPLIT_NO_EMPTY);
+                    if (is_array($words) && count($words) > 250) {
+                        $fail('The Detailed Description must not exceed 250 words (currently ' . count($words) . ' words).');
+                    }
+                },
+            ],
             'proposed_course_overview' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:10000'],
             'proposed_course_timeline' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:255'],
             'proposed_course_fees' => ['required_if:proposal_type,new', 'nullable', 'string', 'max:10000'],

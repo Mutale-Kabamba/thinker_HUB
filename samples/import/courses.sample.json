@@ -2,6 +2,8 @@
   {
     "title": "Full-Stack Web Development Mastery",
     "code": "WEB-101",
+    "course_by": "think.er HUB",
+    "offering_mode": "ongoing",
     "description": "Comprehensive journey from HTML/CSS fundamentals to modern React frontends, robust Laravel APIs, and live cloud deployment.",
     "overview": "Designed for aspiring software developers, this hands-on course covers modern frontend and backend architectures. You will build real-world responsive web applications, integrate relational databases, handle authentication, and deploy production-grade code with automated workflows.",
     "timeline": "8 Weeks (approx. 6-8 hours per week)",
@@ -52,11 +54,15 @@
       }
     ],
     "key_outcome": "Build, test, and deploy 3 production-grade portfolio web applications, complete with interactive UI, secure APIs, and responsive design.",
+    "is_open_enrollment": true,
+    "is_for_kids": false,
     "is_active": true
   },
   {
     "title": "Python & Data Science Foundations",
     "code": "PY-201",
+    "course_by": "think.er HUB",
+    "offering_mode": "ongoing",
     "description": "Master core Python programming, data analysis with Pandas and NumPy, data visualization, and foundational machine learning techniques.",
     "overview": "An applied, project-based introduction to the Python data stack. Learners explore real-world datasets, clean messy data, perform statistical analysis, create interactive visual dashboards, and train predictive machine learning models.",
     "timeline": "6 Weeks (approx. 5-7 hours per week)",
@@ -94,6 +100,50 @@
       }
     ],
     "key_outcome": "Extract actionable business insights from raw data, produce reproducible Jupyter analytical reports, and train baseline predictive models.",
+    "is_open_enrollment": true,
+    "is_for_kids": false,
+    "is_active": true
+  },
+  {
+    "title": "Junior Creative Coding with Scratch & Python",
+    "code": "KID-001",
+    "course_by": "think.er HUB Junior",
+    "offering_mode": "ongoing",
+    "description": "Fun, safe, parent-supervised introduction to logic, animations, and game development for young thinkers.",
+    "overview": "Specially crafted for kids aged 8-14. Kids learn sequential logic, loops, conditional decision-making, and basic interactive game architecture using block-based Scratch before transitioning to playful Python turtle graphics.",
+    "timeline": "4 Weeks (approx. 2-3 hours per week)",
+    "fees": [
+      {
+        "category": "Group",
+        "level": "Beginner",
+        "amount": "K200",
+        "duration": "4 Weeks"
+      },
+      {
+        "category": "One-On-One",
+        "level": "Beginner",
+        "amount": "K400",
+        "duration": "4 Weeks"
+      }
+    ],
+    "requirements": [
+      "Desktop computer or tablet with keyboard",
+      "Parent or guardian supervision during setup and live sessions",
+      "No prior experience necessary"
+    ],
+    "level_progression": [
+      {
+        "level": "Beginner",
+        "details": "Scratch sprites, motion blocks, basic keyboard controls, and interactive storytelling."
+      },
+      {
+        "level": "Intermediate",
+        "details": "Score counters, game loops, sound effects, and introductory Python turtle shapes."
+      }
+    ],
+    "key_outcome": "Create and present 2 playable mini-games to family and fellow young thinkers.",
+    "is_open_enrollment": true,
+    "is_for_kids": true,
     "is_active": true
   }
 ]

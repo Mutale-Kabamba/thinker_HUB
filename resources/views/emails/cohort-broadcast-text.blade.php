@@ -11,4 +11,4 @@ You are receiving this announcement because you are enrolled in {{ $course->titl
 Visit {{ route('dashboard') }} to access your coursework.
 
 think.er HUB • Livingstone, Zambia
-https://oristudiozm.com
+http://thinkerhub.online

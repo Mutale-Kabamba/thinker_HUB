@@ -210,8 +210,8 @@
                                 </div>
 
                                 <div>
-                                    <label for="proposed_course_description" class="block text-sm font-semibold text-slate-700 mb-1">Description *</label>
-                                    <textarea id="proposed_course_description" name="proposed_course_description" rows="4" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Describe the course in detail.">{{ old('proposed_course_description') }}</textarea>
+                                    <label for="proposed_course_description" class="block text-sm font-semibold text-slate-700 mb-1">Detailed Description <span class="text-xs font-normal text-slate-500">(Max 250 words)</span> *</label>
+                                    <textarea id="proposed_course_description" name="proposed_course_description" rows="4" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Describe the course in detail (maximum 250 words).">{{ old('proposed_course_description') }}</textarea>
                                     @error('proposed_course_description') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                                 </div>
 
@@ -241,8 +241,8 @@
                                 </div>
 
                                 <div>
-                                    <label for="proposed_course_requirements" class="block text-sm font-semibold text-slate-700 mb-1">Requirements *</label>
-                                    <textarea id="proposed_course_requirements" name="proposed_course_requirements" rows="4" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Add each requirement on a new line.">{{ old('proposed_course_requirements') }}</textarea>
+                                    <label for="proposed_course_requirements" class="block text-sm font-semibold text-slate-700 mb-1">Requirements &amp; Prerequisites (by Section) *</label>
+                                    <textarea id="proposed_course_requirements" name="proposed_course_requirements" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Group requirements under headings such as Hardware, Knowledge, Software, etc.:&#10;Hardware:&#10;- Laptop or desktop with 8GB+ RAM&#10;Knowledge:&#10;- Basic computer literacy&#10;Software:&#10;- Python 3.11+ &amp; VS Code installed">{{ old('proposed_course_requirements') }}</textarea>
                                     @error('proposed_course_requirements') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                                 </div>
 
@@ -352,11 +352,8 @@
         </section>
     </main>
 
-    <footer class="bg-white border-t border-slate-200 py-12">
-        <div class="mx-auto max-w-6xl px-6 lg:px-8 text-center">
-            <p class="text-xs text-slate-500">© {{ now()->year }} Thinker Hub. All rights reserved.</p>
-        </div>
-    </footer>
+    @include('partials.public-footer')
+    @include('partials.legal-modals')
 
 </body>
 </html>

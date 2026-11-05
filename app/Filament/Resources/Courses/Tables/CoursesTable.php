@@ -3,10 +3,13 @@
 namespace App\Filament\Resources\Courses\Tables;
 
 use App\Models\Course;
+use App\Models\InstructorApplication;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -40,6 +43,13 @@ class CoursesTable
                     ->formatStateUsing(fn (?string $state): string => ($state ?? 'once_off') === 'ongoing' ? 'Ongoing (Intakes)' : 'Once-off')
                     ->color(fn (?string $state): string => ($state ?? 'once_off') === 'ongoing' ? 'info' : 'gray')
                     ->visibleFrom('md'),
+                TextColumn::make('instructors.name')
+                    ->label('Instructor(s)')
+                    ->badge()
+                    ->color('info')
+                    ->placeholder('TBA (Unassigned)')
+                    ->searchable()
+                    ->visibleFrom('md'),
                 TextColumn::make('activeIntake.name')
                     ->label('Active Intake')
                     ->placeholder('None active')
@@ -51,8 +61,16 @@ class CoursesTable
                     ->badge()
                     ->formatStateUsing(fn (?bool $state): string => $state === false ? 'Locked' : 'Open')
                     ->color(fn (?bool $state): string => $state === false ? 'gray' : 'success'),
-                IconColumn::make('is_active')
-                    ->boolean(),
+                TextColumn::make('is_for_kids')
+                    ->label('Audience')
+                    ->badge()
+                    ->formatStateUsing(fn (?bool $state): string => $state ? 'Kids Course' : 'General')
+                    ->color(fn (?bool $state): string => $state ? 'info' : 'gray'),
+                TextColumn::make('is_active')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn (?bool $state): string => $state ? 'Active' : 'Pending Approval')
+                    ->color(fn (?bool $state): string => $state ? 'success' : 'warning'),
                 TextColumn::make('created_at')
                     ->label('Created')
                     ->date('M j, Y')
@@ -67,6 +85,12 @@ class CoursesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('is_active')
+                    ->label('Status')
+                    ->options([
+                        '1' => 'Active / Approved',
+                        '0' => 'Pending Approval / Inactive',
+                    ]),
                 SelectFilter::make('offering_mode')
                     ->label('Course Structure')
                     ->options([
@@ -96,9 +120,49 @@ class CoursesTable
                                 ->orWhereNull('is_open_enrollment');
                         });
                     }),
+                SelectFilter::make('is_for_kids')
+                    ->label('Target Audience')
+                    ->options([
+                        '1' => 'Kids Courses',
+                        '0' => 'General Courses',
+                    ]),
             ])
             ->recordActions([
                 \Filament\Actions\ActionGroup::make([
+                    Action::make('approve')
+                        ->label('Approve & Activate')
+                        ->icon('heroicon-m-check-badge')
+                        ->color('success')
+                        ->visible(fn (Course $record): bool => ! (bool) $record->is_active)
+                        ->requiresConfirmation()
+                        ->modalHeading('Approve Course')
+                        ->modalDescription('Are you sure you want to approve this course? It will immediately become active and visible in the public course catalog.')
+                        ->action(function (Course $record): void {
+                            $record->update(['is_active' => true]);
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Course Approved')
+                                ->body("{$record->title} is now active and published publicly.")
+                                ->success()
+                                ->send();
+                        }),
+                    Action::make('deactivate')
+                        ->label('Deactivate')
+                        ->icon('heroicon-m-x-circle')
+                        ->color('danger')
+                        ->visible(fn (Course $record): bool => (bool) $record->is_active)
+                        ->requiresConfirmation()
+                        ->modalHeading('Deactivate Course')
+                        ->modalDescription('Are you sure you want to deactivate this course? It will be hidden from the public course catalog.')
+                        ->action(function (Course $record): void {
+                            $record->update(['is_active' => false]);
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Course Deactivated')
+                                ->body("{$record->title} is now inactive.")
+                                ->warning()
+                                ->send();
+                        }),
                     Action::make('viewDetails')
                         ->label('View Details')
                         ->icon('heroicon-m-eye')
@@ -114,6 +178,75 @@ class CoursesTable
                             'progressionCards' => self::levelProgressionCards($record->level_progression),
                         ])),
                     EditAction::make()->icon('heroicon-m-pencil-square'),
+                    Action::make('unassign_instructor')
+                        ->label('Unassign Instructor')
+                        ->icon('heroicon-m-user-minus')
+                        ->color('danger')
+                        ->visible(fn (Course $record): bool => $record->instructors()->exists())
+                        ->form([
+                            Select::make('instructor_id')
+                                ->label('Select Instructor to Unassign')
+                                ->options(fn (Course $record) => $record->instructors()->pluck('name', 'users.id'))
+                                ->required()
+                                ->default(fn (Course $record) => $record->instructors()->count() === 1 ? $record->instructors()->first()?->id : null),
+                        ])
+                        ->requiresConfirmation()
+                        ->modalHeading('Unassign Instructor from Course')
+                        ->modalDescription(fn (Course $record): string => "Select which instructor to unassign from {$record->title}.")
+                        ->action(function (Course $record, array $data): void {
+                            $instructorId = (int) $data['instructor_id'];
+                            $instructor = User::find($instructorId);
+                            $record->instructors()->detach($instructorId);
+
+                            InstructorApplication::query()
+                                ->where('user_id', $instructorId)
+                                ->where('assigned_course_id', $record->id)
+                                ->update([
+                                    'assigned_course_id' => null,
+                                    'course_assignment_action' => 'unassign',
+                                ]);
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Instructor Unassigned')
+                                ->body(($instructor?->name ?? 'Instructor') . " has been unassigned from {$record->title}.")
+                                ->success()
+                                ->send();
+                        }),
+                    Action::make('assign_instructor')
+                        ->label('Assign Instructor')
+                        ->icon('heroicon-m-user-plus')
+                        ->color('success')
+                        ->form([
+                            Select::make('instructor_id')
+                                ->label('Select Instructor to Assign')
+                                ->options(fn () => User::query()
+                                    ->where('is_active', true)
+                                    ->where(fn ($q) => $q
+                                        ->where('role', 'instructor')
+                                        ->orWhere('role', 'admin')
+                                        ->orWhereHas('instructorApplication', fn ($sub) => $sub->where('status', 'approved'))
+                                        ->orWhereHas('instructorCourses')
+                                    )
+                                    ->orderBy('name')
+                                    ->pluck('name', 'id')
+                                )
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+                        ])
+                        ->modalHeading('Assign Instructor to Course')
+                        ->modalDescription(fn (Course $record): string => "Select an instructor to assign to {$record->title}.")
+                        ->action(function (Course $record, array $data): void {
+                            $instructorId = (int) $data['instructor_id'];
+                            $instructor = User::find($instructorId);
+                            $record->instructors()->syncWithoutDetaching([$instructorId]);
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Instructor Assigned')
+                                ->body(($instructor?->name ?? 'Instructor') . " has been assigned to {$record->title}.")
+                                ->success()
+                                ->send();
+                        }),
                 ])
                 ->icon('heroicon-m-ellipsis-vertical')
                 ->color('gray'),
@@ -128,7 +261,7 @@ class CoursesTable
     /**
      * @return array<int, array{key: string, label: string, rows: array<int, array{level: string, amount: string, duration: string}>}>
      */
-    private static function feeSections(?string $value): array
+    public static function feeSections(?string $value): array
     {
         $rows = self::parseFeeRows($value);
         $groups = [
@@ -287,45 +420,20 @@ class CoursesTable
     /**
      * @return array<int, array{level: string, details: string}>
      */
-    private static function levelProgressionCards(?string $value): array
+    public static function levelProgressionCards(?string $value): array
     {
         $entries = self::parseLevelProgressions($value);
+
+        if (! empty($entries)) {
+            return $entries;
+        }
+
         $levels = ['Beginner', 'Intermediate', 'Advanced'];
-        $sourceText = trim(implode("\n", array_map(
-            fn (array $entry): string => trim(($entry['level'] !== '' ? $entry['level'].': ' : '').$entry['details']),
-            $entries,
-        )));
 
-        return array_map(function (string $level, int $index) use ($entries, $levels, $sourceText): array {
-            foreach ($entries as $entry) {
-                if (str_contains(strtolower($entry['level']), strtolower($level)) && $entry['details'] !== '') {
-                    return ['level' => $level, 'details' => $entry['details']];
-                }
-            }
-
-            $nextLevel = $levels[$index + 1] ?? null;
-            $pattern = $nextLevel !== null
-                ? '/'.preg_quote($level, '/').'\s*[:\-]\s*([\s\S]*?)(?='.preg_quote($nextLevel, '/').'\s*[:\-]|$)/i'
-                : '/'.preg_quote($level, '/').'\s*[:\-]\s*([\s\S]*?)$/i';
-
-            if ($sourceText !== '' && preg_match($pattern, $sourceText, $match) === 1) {
-                $details = trim((string) ($match[1] ?? ''));
-
-                if ($details !== '') {
-                    return ['level' => $level, 'details' => $details];
-                }
-            }
-
-            if (count($entries) === 1 && $index === 0) {
-                $fallback = trim(($entries[0]['level'] !== '' ? $entries[0]['level'].': ' : '').$entries[0]['details']);
-
-                if ($fallback !== '') {
-                    return ['level' => $level, 'details' => $fallback];
-                }
-            }
-
-            return ['level' => $level, 'details' => 'Details coming soon.'];
-        }, $levels, array_keys($levels));
+        return array_map(fn (string $level): array => [
+            'level' => $level,
+            'details' => 'Details coming soon.',
+        ], $levels);
     }
 
     /**
@@ -337,9 +445,30 @@ class CoursesTable
             return [];
         }
 
+        $trimmed = trim($value);
+
+        if ((str_starts_with($trimmed, '[') && str_ends_with($trimmed, ']')) || (str_starts_with($trimmed, '{') && str_ends_with($trimmed, '}'))) {
+            $decoded = json_decode($trimmed, true);
+            if (is_array($decoded)) {
+                $entries = [];
+                foreach ($decoded as $item) {
+                    if (is_array($item)) {
+                        $level = trim((string) ($item['level'] ?? ''));
+                        $details = trim((string) ($item['details'] ?? ''));
+                        if ($level !== '' || $details !== '') {
+                            $entries[] = ['level' => $level, 'details' => $details];
+                        }
+                    }
+                }
+                if (! empty($entries)) {
+                    return $entries;
+                }
+            }
+        }
+
         $entries = [];
 
-        foreach (preg_split('/\R+/', $value) ?: [] as $line) {
+        foreach (preg_split('/\R+/', $trimmed) ?: [] as $line) {
             $line = trim((string) $line);
 
             if ($line === '') {

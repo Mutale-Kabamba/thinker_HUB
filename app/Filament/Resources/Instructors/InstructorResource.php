@@ -7,13 +7,16 @@ use App\Filament\Resources\Instructors\Pages\EditInstructor;
 use App\Filament\Resources\Instructors\Pages\ListInstructors;
 use App\Filament\Resources\Instructors\Pages\ViewInstructor;
 use App\Models\Course;
+use App\Models\InstructorApplication;
 use App\Models\User;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Notifications\Notification;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -213,6 +216,40 @@ class InstructorResource extends Resource
                 \Filament\Actions\ActionGroup::make([
                     ViewAction::make()->icon('heroicon-m-eye'),
                     EditAction::make()->icon('heroicon-m-pencil-square'),
+                    Action::make('unassign_course')
+                        ->label('Unassign Course')
+                        ->icon('heroicon-m-user-minus')
+                        ->color('danger')
+                        ->visible(fn (User $record): bool => $record->instructorCourses()->exists())
+                        ->form([
+                            Select::make('course_id')
+                                ->label('Select Course to Unassign')
+                                ->options(fn (User $record) => $record->instructorCourses()->pluck('title', 'courses.id'))
+                                ->required()
+                                ->default(fn (User $record) => $record->instructorCourses()->count() === 1 ? $record->instructorCourses()->first()?->id : null),
+                        ])
+                        ->requiresConfirmation()
+                        ->modalHeading('Unassign Course from Instructor')
+                        ->modalDescription(fn (User $record): string => "Select which course to unassign from {$record->name}.")
+                        ->action(function (User $record, array $data): void {
+                            $courseId = (int) $data['course_id'];
+                            $course = Course::find($courseId);
+                            $record->instructorCourses()->detach($courseId);
+
+                            InstructorApplication::query()
+                                ->where('user_id', $record->id)
+                                ->where('assigned_course_id', $courseId)
+                                ->update([
+                                    'assigned_course_id' => null,
+                                    'course_assignment_action' => 'unassign',
+                                ]);
+
+                            Notification::make()
+                                ->title('Course Unassigned')
+                                ->body("{$record->name} has been unassigned from {$course?->title}.")
+                                ->success()
+                                ->send();
+                        }),
                 ])
                 ->icon('heroicon-m-ellipsis-vertical')
                 ->color('gray'),

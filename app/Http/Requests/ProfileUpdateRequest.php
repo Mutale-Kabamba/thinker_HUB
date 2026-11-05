@@ -40,7 +40,9 @@ class ProfileUpdateRequest extends FormRequest
             'github_url' => ['nullable', 'url', 'max:255'],
             'instagram_url' => ['nullable', 'url', 'max:255'],
             'bio' => ['nullable', 'string', 'max:2000'],
-            'default_portal' => ['nullable', 'string', 'in:admin,instructor,student,contributor'],
+            'gender' => ['nullable', 'string', 'max:20', 'in:Male,Female,Other,male,female,other'],
+            'nrc_passport' => ['nullable', 'string', 'max:50'],
+            'default_portal' => ['nullable', 'string', 'in:admin,instructor,student,contributor,parent'],
         ];
     }
 }

@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\CourseIntake;
+use App\Models\InstructorApplication;
 use App\Models\User;
+use App\Services\InstructorApplicationAttachmentService;
+use App\Services\InstructorApplicationPdfService;
 use App\Services\ReportGenerationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,8 +16,19 @@ use Symfony\Component\HttpFoundation\Response;
 class ReportController extends Controller
 {
     public function __construct(
-        protected ReportGenerationService $reportService
+        protected ReportGenerationService $reportService,
+        protected InstructorApplicationPdfService $applicationPdfService,
+        protected InstructorApplicationAttachmentService $attachmentService
     ) {}
+
+    /**
+     * Ensure authorized administrators can access sensitive admin dossiers.
+     */
+    protected function authorizeAdminAccess(Request $request): void
+    {
+        $user = $request->user();
+        abort_unless($user && ($user->role === 'admin' || (bool) $user->canSwitchToAdmin()), 403, 'Unauthorized access: Administrator privileges required.');
+    }
 
     /**
      * Ensure authorized administrators and instructors can access the reporting engine.
@@ -109,4 +123,61 @@ class ReportController extends Controller
             abort(500, 'Unable to generate cohort performance report: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Download or preview Instructor Application Dossier PDF.
+     */
+    public function instructorApplicationReport(Request $request, InstructorApplication $application): Response
+    {
+        $this->authorizeAdminAccess($request);
+
+        try {
+            $pdf = $this->applicationPdfService->renderApplicationPdf($application);
+            $filename = $this->applicationPdfService->getPdfFilename($application);
+
+            if ($request->boolean('stream')) {
+                return $pdf->stream($filename);
+            }
+
+            return $pdf->download($filename);
+        } catch (\Throwable $e) {
+            report($e);
+            abort(500, 'Unable to generate instructor application dossier: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Download or view a specific attached document (roadmap, full_roadmap, curriculum, cv).
+     */
+    public function instructorApplicationAttachment(Request $request, InstructorApplication $application, string $type): Response
+    {
+        $this->authorizeAdminAccess($request);
+
+        $response = $request->boolean('view') || $request->boolean('stream')
+            ? $this->attachmentService->viewSingleAttachment($application, $type)
+            : $this->attachmentService->downloadSingleAttachment($application, $type);
+
+        if (! $response) {
+            abort(404, 'Requested attachment document was not found.');
+        }
+
+        return $response;
+    }
+
+    /**
+     * Download all attached documents for an application bundled in a ZIP archive.
+     */
+    public function instructorApplicationAttachmentsZip(Request $request, InstructorApplication $application): Response
+    {
+        $this->authorizeAdminAccess($request);
+
+        $download = $this->attachmentService->downloadApplicationAttachmentsZip($application);
+        if (! $download) {
+            abort(404, 'No attached documents available for this application.');
+        }
+
+        return $download;
+    }
 }
+
+
