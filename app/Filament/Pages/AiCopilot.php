@@ -45,6 +45,11 @@ class AiCopilot extends Page
 
     public function mount(): void
     {
+        session([
+            'ai_unpinned_admin' => false,
+            'ai_floating_open_admin' => false,
+        ]);
+
         $user = auth()->user();
 
         if ($this->conversationId && $user) {
@@ -58,6 +63,23 @@ class AiCopilot extends Page
                 $this->conversationId = null;
             }
         }
+    }
+
+    public function unpinToFloating()
+    {
+        session([
+            'ai_unpinned_admin' => true,
+            'ai_floating_open_admin' => true,
+            'ai_conversation_admin' => $this->conversationId,
+        ]);
+
+        Notification::make()
+            ->title('AI System Co-Pilot Unpinned')
+            ->body('Operating as a floating bot on your admin dashboard.')
+            ->success()
+            ->send();
+
+        return redirect()->to(url('/manage'));
     }
 
     public function startNewConversation(): void

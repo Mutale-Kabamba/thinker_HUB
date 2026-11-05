@@ -232,6 +232,18 @@
                         <p class="text-xs text-gray-500 dark:text-gray-400">Mark registers, update schedules, create sessions, and inspect cohort statistics</p>
                     </div>
                 </div>
+
+                <div class="flex items-center space-x-2">
+                    <button
+                        type="button"
+                        wire:click="unpinToFloating"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold transition cursor-pointer border border-gray-200 dark:border-gray-700 shadow-2xs"
+                        title="Unpin from full page and switch to floating chat bot on dashboard"
+                    >
+                        <x-heroicon-o-arrows-pointing-out class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                        <span>Unpin to Floating Bot</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Error Banner (Fixed if present) -->
