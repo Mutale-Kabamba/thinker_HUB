@@ -75,6 +75,7 @@
                 src="{{ $fileUrl }}"
                 controls
                 autoplay
+                playsinline
                 class="w-full h-full object-contain bg-black"
                 @play="handleFilePlay()"
                 @pause="handleFilePause()"
@@ -198,6 +199,14 @@
                     if (!this.duration || this.duration <= 0) {
                         this.duration = 300;
                     }
+                } else if (this.fileUrl) {
+                    this.$nextTick(() => {
+                        const el = this.$refs.videoElement;
+                        if (el) {
+                            const p = el.play();
+                            if (p !== undefined) p.catch(() => {});
+                        }
+                    });
                 }
             },
 
@@ -320,6 +329,9 @@
                             onReady: (event) => {
                                 const dur = event.target.getDuration();
                                 if (dur && dur > 0) this.duration = Math.round(dur);
+                                try {
+                                    event.target.playVideo();
+                                } catch (e) {}
                             },
                             onStateChange: (event) => {
                                 if (event.data === 1) { // PLAYING

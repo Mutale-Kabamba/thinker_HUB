@@ -119,6 +119,7 @@
                             src="{{ $fileUrl }}"
                             controls
                             autoplay
+                            playsinline
                             class="w-full h-full object-contain bg-black"
                             @play="handlePlay()"
                             @pause="handlePause()"
@@ -267,6 +268,17 @@
                     if (this.isRead && this.fileUrl && (this.fileUrl.includes('.pdf') || true)) {
                         this.loadPdf();
                     }
+
+                    // Autoplay direct uploaded video file if present
+                    if (this.isVideo && this.fileUrl) {
+                        this.$nextTick(() => {
+                            const el = this.$refs.videoElement;
+                            if (el) {
+                                const p = el.play();
+                                if (p !== undefined) p.catch(() => {});
+                            }
+                        });
+                    }
                 },
 
                 initYouTube() {
@@ -290,6 +302,11 @@
                     try {
                         this.ytPlayer = new YT.Player('session-youtube-iframe', {
                             events: {
+                                'onReady': (event) => {
+                                    try {
+                                        event.target.playVideo();
+                                    } catch (e) {}
+                                },
                                 'onStateChange': (event) => {
                                     // 1 = playing, 2 = paused, 0 = ended
                                     if (event.data === 1) {

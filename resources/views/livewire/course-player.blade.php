@@ -41,7 +41,7 @@
                             $videoUrl = $activeLesson->video_url;
                             $parsedVideo = \App\Support\VideoEmbedParser::parse($videoUrl);
                             $youtubeId = $parsedVideo['youtube_id'];
-                            $embedUrl = $parsedVideo['embed_url'];
+                            $embedUrl = $parsedVideo['autoplay_embed_url'] ?? $parsedVideo['embed_url'];
                             $isDirectFile = $parsedVideo['is_direct_file'];
                             $minPct = $activeLesson->min_watch_percentage ?: 90;
                             $resumeTime = $progressMap[$activeLesson->id]['last_watched_second'] ?? 0;
@@ -62,7 +62,7 @@
                                 <div class="relative aspect-video rounded-xl overflow-hidden bg-black shadow-2xl border border-slate-800">
                                     <iframe 
                                         class="w-full h-full"
-                                        src="{{ $youtubeId ? 'https://www.youtube.com/embed/' . $youtubeId . '?autoplay=1&enablejsapi=1' : $embedUrl }}" 
+                                        src="{{ $embedUrl ?: ($youtubeId ? 'https://www.youtube.com/embed/' . $youtubeId . '?autoplay=1&enablejsapi=1&rel=0' : '') }}" 
                                         title="{{ $activeLesson->title }}"
                                         frameborder="0" 
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" 
@@ -94,6 +94,13 @@
                                         const resumeTime = {{ $resumeTime }};
                                         if (resumeTime > 0) video.currentTime = resumeTime;
 
+                                        this.$nextTick(() => {
+                                            const p = video.play();
+                                            if (p !== undefined) {
+                                                p.catch(() => {});
+                                            }
+                                        });
+
                                         video.addEventListener('timeupdate', () => {
                                             if (Math.abs(video.currentTime - this.lastSaved) > 5) {
                                                 this.lastSaved = video.currentTime;
@@ -121,6 +128,8 @@
                                 <video 
                                     x-ref="videoElement" 
                                     controls 
+                                    autoplay
+                                    playsinline
                                     controlsList="nodownload" 
                                     class="w-full h-full object-contain"
                                     src="{{ $videoUrl ?: '' }}"

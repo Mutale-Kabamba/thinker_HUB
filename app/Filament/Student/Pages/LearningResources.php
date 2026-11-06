@@ -162,12 +162,14 @@ class LearningResources extends Page
                 $this->playerSource = 'file';
                 $this->playerUrl = $parsed['embed_url'];
                 $this->activeFileUrl = $parsed['embed_url'];
-            } else {
+            } elseif ($parsed['platform'] === 'youtube') {
                 $this->playerSource = 'youtube';
-                $this->playerUrl = $parsed['youtube_id']
-                    ? \App\Support\VideoEmbedParser::appendQuery($video->embed_url, ['autoplay' => 1, 'rel' => 0, 'enablejsapi' => 1])
-                    : $video->embed_url;
+                $this->playerUrl = $parsed['autoplay_embed_url'] ?? \App\Support\VideoEmbedParser::appendQuery($video->embed_url, ['autoplay' => 1, 'rel' => 0, 'enablejsapi' => 1]);
                 $this->activeYoutubeId = $video->youtube_id;
+            } else {
+                $this->playerSource = 'embed';
+                $this->playerUrl = $parsed['autoplay_embed_url'] ?? $parsed['embed_url'];
+                $this->activeYoutubeId = null;
             }
         } else {
             return;
@@ -205,15 +207,13 @@ class LearningResources extends Page
         }
 
         $parsed = \App\Support\VideoEmbedParser::parse($lesson->video_url);
-        $embed = $parsed['embed_url'];
+        $embed = $parsed['autoplay_embed_url'] ?? $parsed['embed_url'];
         $this->activeYoutubeId = null;
         $this->activeFileUrl = null;
 
         if ($embed && ! $parsed['is_direct_file']) {
-            $this->playerSource = 'youtube';
-            $this->playerUrl = $parsed['youtube_id']
-                ? \App\Support\VideoEmbedParser::appendQuery($embed, ['autoplay' => 1, 'rel' => 0, 'enablejsapi' => 1])
-                : $embed;
+            $this->playerSource = $parsed['platform'] === 'youtube' ? 'youtube' : 'embed';
+            $this->playerUrl = $embed;
             $this->activeYoutubeId = $parsed['youtube_id'];
         } elseif ($parsed['is_direct_file'] && $embed) {
             $this->playerSource = 'file';

@@ -76,7 +76,16 @@
                     }
                 }
                 else if (['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) this.viewerType = 'image';
-                else if (['mp4','webm','ogg'].includes(ext)) this.viewerType = 'video';
+                else if (['mp4','webm','ogg'].includes(ext)) {
+                    this.viewerType = 'video';
+                    setTimeout(() => {
+                        const v = document.querySelector('.doc-viewer-body video');
+                        if (v) {
+                            const p = v.play();
+                            if (p !== undefined) p.catch(() => {});
+                        }
+                    }, 50);
+                }
                 else if (ext === 'docx') {
                     // In-app rendering via mammoth.js (client-side docx → HTML).
                     // Falls back to the download card when the CDN script
@@ -175,7 +184,7 @@
                 <img :src="viewerUrl" style="max-width:100%;max-height:75vh;object-fit:contain;align-self:center;" />
             </template>
             <template x-if="viewerType === 'video'">
-                <video :src="viewerUrl" controls style="max-width:100%;max-height:75vh;align-self:center;"></video>
+                <video :src="viewerUrl" controls autoplay playsinline style="max-width:100%;max-height:75vh;align-self:center;"></video>
             </template>
             <template x-if="viewerType === 'docx'">
                 <div style="width:100%;height:75vh;overflow:auto;background:#fff;border-radius:8px;" class="doc-viewer-frame">
