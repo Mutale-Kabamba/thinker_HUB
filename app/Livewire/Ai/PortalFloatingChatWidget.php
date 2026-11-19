@@ -186,6 +186,10 @@ class PortalFloatingChatWidget extends Component
             }
         }
 
+        if (! app()->runningInConsole()) {
+            @set_time_limit(60);
+        }
+
         try {
             $agent = match ($this->portal) {
                 'admin' => new AdminSystemCopilot($user),
@@ -200,7 +204,7 @@ class PortalFloatingChatWidget extends Component
                 $agent->forUser($user);
             }
 
-            $agent->prompt($input, attachments: $attachments, timeout: 25);
+            $agent->prompt($input, attachments: $attachments, timeout: 18);
 
             $this->conversationId = $agent->currentConversation();
             session(['ai_conversation_' . $this->portal => $this->conversationId]);
@@ -208,12 +212,13 @@ class PortalFloatingChatWidget extends Component
             $this->dispatch('message-sent');
         } catch (\Throwable $e) {
             Log::error("PortalFloatingChatWidget [{$this->portal}] error: " . $e->getMessage(), ['exception' => $e]);
-            $this->errorMessage = 'AI Co-Pilot error: ' . $e->getMessage();
+            $friendly = AdminSystemCopilot::formatUserFriendlyError($e);
+            $this->errorMessage = $friendly;
 
             Notification::make()
-                ->title('AI response failed')
-                ->body($e->getMessage())
-                ->danger()
+                ->title('AI Co-Pilot temporarily unavailable')
+                ->body($friendly)
+                ->warning()
                 ->send();
         }
     }

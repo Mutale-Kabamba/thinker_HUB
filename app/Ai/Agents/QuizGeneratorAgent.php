@@ -2,6 +2,7 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Concerns\ResolvesAiProviders;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Attributes\Provider;
 use Laravel\Ai\Attributes\Temperature;
@@ -17,27 +18,7 @@ use Laravel\Ai\Promptable;
 class QuizGeneratorAgent implements Agent, HasStructuredOutput
 {
     use Promptable;
-
-    /**
-     * Determine the provider dynamically based on available configuration.
-     * Gemini is primary, OpenAI is automatic failover.
-     *
-     * @return array<int, Lab>|Lab|string
-     */
-    public function provider(): array|Lab|string
-    {
-        $providers = [];
-
-        if (! empty(config('ai.providers.gemini.key')) || ! empty(config('services.gemini.api_key'))) {
-            $providers[] = Lab::Gemini;
-        }
-
-        if (! empty(config('ai.providers.openai.key'))) {
-            $providers[] = Lab::OpenAI;
-        }
-
-        return $providers !== [] ? $providers : [Lab::Gemini, Lab::OpenAI];
-    }
+    use ResolvesAiProviders;
 
     /**
      * Get the instructions that the agent should follow.

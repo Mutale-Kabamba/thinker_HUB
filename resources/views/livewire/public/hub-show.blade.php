@@ -84,11 +84,11 @@
                     <div class="mb-10 rounded-[2.5rem] overflow-hidden bg-black border border-slate-800 relative aspect-video">
                         @if ($post->video_id)
                             <iframe
-                                src="https://www.youtube-nocookie.com/embed/{{ $post->video_id }}?autoplay=0"
+                                src="https://www.youtube-nocookie.com/embed/{{ $post->video_id }}?autoplay=1&enablejsapi=1&rel=0"
                                 title="{{ $post->title }}"
                                 class="w-full h-full"
                                 frameborder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                                 allowfullscreen
                             ></iframe>
                         @else

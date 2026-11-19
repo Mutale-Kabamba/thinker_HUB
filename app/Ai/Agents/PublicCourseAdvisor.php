@@ -2,6 +2,7 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Concerns\ResolvesAiProviders;
 use App\Ai\Tools\Public\GetPlatformInfoTool;
 use App\Ai\Tools\Public\SearchArticlesTool;
 use App\Ai\Tools\Public\SearchOpportunitiesTool;
@@ -25,29 +26,10 @@ use Laravel\Ai\Promptable;
 class PublicCourseAdvisor implements Agent, Conversational, HasTools
 {
     use Promptable;
+    use ResolvesAiProviders;
 
     public function __construct(public array $history = [])
     {
-    }
-
-    /**
-     * Determine the provider dynamically based on available configuration.
-     *
-     * @return array<int, Lab>|Lab|string
-     */
-    public function provider(): array|Lab|string
-    {
-        $providers = [];
-
-        if (! empty(config('ai.providers.gemini.key')) || ! empty(config('services.gemini.api_key'))) {
-            $providers[] = Lab::Gemini;
-        }
-
-        if (! empty(config('ai.providers.openai.key'))) {
-            $providers[] = Lab::OpenAI;
-        }
-
-        return $providers !== [] ? $providers : [Lab::Gemini, Lab::OpenAI];
     }
 
     /**

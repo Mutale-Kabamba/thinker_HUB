@@ -44,7 +44,7 @@ class SessionViewer extends Component
         if ($parsed['is_direct_file']) {
             $this->fileUrl = $parsed['embed_url'];
         } else {
-            $this->embedUrl = $parsed['embed_url'];
+            $this->embedUrl = $parsed['autoplay_embed_url'] ?? $parsed['embed_url'];
         }
 
         if ($session->isVideo() && $session->video_file_path) {

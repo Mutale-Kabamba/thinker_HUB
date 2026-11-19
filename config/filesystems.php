@@ -32,21 +32,27 @@ $defaultDisk = ($cloudDefaultDisk && (! filled($rawFilesystemDisk) || $rawFilesy
     ? $cloudDefaultDisk
     : (string) env('FILESYSTEM_DISK', $cloudDefaultDisk ?: 'local');
 
-$publicDiskDriver = strtolower((string) env('PUBLIC_DISK_DRIVER', in_array($defaultDisk, ['s3', $cloudDefaultDisk], true) ? 's3' : 'local'));
-$useS3PublicDisk = ($publicDiskDriver === 's3' || $defaultDisk === 's3' || ($cloudDefaultDisk !== null && $defaultDisk === $cloudDefaultDisk)) && $s3AdapterAvailable;
+$publicDiskDriver = strtolower((string) env('PUBLIC_DISK_DRIVER', in_array($defaultDisk, ['s3', 'r2', $cloudDefaultDisk], true) ? $defaultDisk : 'local'));
+$useS3PublicDisk = (in_array($publicDiskDriver, ['s3', 'r2'], true) || in_array($defaultDisk, ['s3', 'r2', $cloudDefaultDisk], true)) && $s3AdapterAvailable;
 
-if (in_array($defaultDisk, ['s3', 'public'], true) && ! $s3AdapterAvailable && $publicDiskDriver === 's3') {
+if (in_array($defaultDisk, ['s3', 'r2', 'public'], true) && ! $s3AdapterAvailable && in_array($publicDiskDriver, ['s3', 'r2'], true)) {
     // Prevent hard failure when S3 is configured but the adapter package is missing.
     $defaultDisk = 'local';
 }
 
-$s3Key = env('AWS_ACCESS_KEY_ID');
-$s3Secret = env('AWS_SECRET_ACCESS_KEY');
-$s3Region = env('AWS_DEFAULT_REGION', env('AWS_REGION', 'auto')) ?: 'auto';
-$s3Bucket = env('AWS_BUCKET');
-$s3Url = env('AWS_URL');
-$s3Endpoint = env('AWS_ENDPOINT', env('AWS_ENDPOINT_URL'));
-$s3UsePathStyle = env('AWS_USE_PATH_STYLE_ENDPOINT', false);
+$s3Key = env('AWS_ACCESS_KEY_ID', env('CLOUDFLARE_R2_ACCESS_KEY_ID'));
+$s3Secret = env('AWS_SECRET_ACCESS_KEY', env('CLOUDFLARE_R2_SECRET_ACCESS_KEY'));
+$s3Region = env('AWS_DEFAULT_REGION', env('AWS_REGION', env('CLOUDFLARE_R2_REGION', 'auto'))) ?: 'auto';
+$s3Bucket = env('AWS_BUCKET', env('CLOUDFLARE_R2_BUCKET'));
+$s3Url = env('AWS_URL', env('CLOUDFLARE_R2_URL'));
+$s3Endpoint = env('AWS_ENDPOINT', env('AWS_ENDPOINT_URL', env('CLOUDFLARE_R2_ENDPOINT')));
+$s3UsePathStyle = env('AWS_USE_PATH_STYLE_ENDPOINT', env('CLOUDFLARE_R2_USE_PATH_STYLE_ENDPOINT', false));
+
+// Normalize endpoint: Cloudflare dashboard UI displays "https://<account-id>.r2.cloudflarestorage.com/<bucket>"
+// If the user pastes that entire URL into AWS_ENDPOINT, strip the trailing bucket name so S3Client does not duplicate it.
+if ($s3Endpoint && $s3Bucket && str_ends_with(rtrim($s3Endpoint, '/'), '/' . $s3Bucket)) {
+    $s3Endpoint = substr(rtrim($s3Endpoint, '/'), 0, -strlen('/' . $s3Bucket));
+}
 
 $disks = [
 
@@ -93,6 +99,19 @@ $disks = [
         'report' => false,
     ],
 
+    'r2' => [
+        'driver' => 's3',
+        'key' => $s3Key,
+        'secret' => $s3Secret,
+        'region' => $s3Region,
+        'bucket' => $s3Bucket,
+        'url' => $s3Url,
+        'endpoint' => $s3Endpoint,
+        'use_path_style_endpoint' => (bool) $s3UsePathStyle,
+        'throw' => false,
+        'report' => false,
+    ],
+
 ];
 
 // Register dynamic disks from Laravel Cloud
@@ -123,8 +142,10 @@ if ($targetCloudDisk && isset($disks[$targetCloudDisk])) {
     }
 } elseif (! empty($s3Key) && ! empty($s3Bucket) && $s3AdapterAvailable) {
     $disks['public'] = $disks['s3'];
+    $disks['public'] = $disks[$defaultDisk === 'r2' ? 'r2' : 's3'];
     if (! filled($rawFilesystemDisk) || $rawFilesystemDisk === 'local') {
         $defaultDisk = 's3';
+        $defaultDisk = in_array($rawFilesystemDisk, ['s3', 'r2'], true) ? $rawFilesystemDisk : 's3';
     }
 }
 

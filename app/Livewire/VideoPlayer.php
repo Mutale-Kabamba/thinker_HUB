@@ -55,7 +55,7 @@ class VideoPlayer extends Component
             if ($parsed['is_direct_file']) {
                 $this->fileUrl = $parsed['embed_url'];
             } else {
-                $this->embedUrl = $parsed['embed_url'];
+                $this->embedUrl = $parsed['autoplay_embed_url'] ?? $parsed['embed_url'];
             }
             $this->initialDuration = (int) ($this->lesson->duration_seconds ?? 0);
         } elseif ($material instanceof LearningMaterial || (is_numeric($material) && $material > 0)) {
@@ -68,7 +68,7 @@ class VideoPlayer extends Component
             if ($parsed['is_direct_file']) {
                 $this->fileUrl = $parsed['embed_url'];
             } else {
-                $this->embedUrl = $parsed['embed_url'];
+                $this->embedUrl = $parsed['autoplay_embed_url'] ?? $parsed['embed_url'];
             }
             if (! $this->fileUrl && $this->material->file_path) {
                 $this->fileUrl = route('file.view', ['type' => 'material', 'id' => $this->material->id], false);
@@ -83,7 +83,7 @@ class VideoPlayer extends Component
             if ($parsed['is_direct_file']) {
                 $this->fileUrl = $parsed['embed_url'];
             } else {
-                $this->embedUrl = $parsed['embed_url'];
+                $this->embedUrl = $parsed['autoplay_embed_url'] ?? $parsed['embed_url'];
             }
             if ($localUrl = $this->video->playableLocalVideo()?->url()) {
                 $this->fileUrl = $localUrl;

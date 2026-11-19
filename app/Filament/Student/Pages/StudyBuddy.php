@@ -175,6 +175,10 @@ class StudyBuddy extends Page
             }
         }
 
+        if (! app()->runningInConsole()) {
+            @set_time_limit(60);
+        }
+
         try {
             $agent = new StudentStudyBuddy($user);
 
@@ -184,17 +188,18 @@ class StudyBuddy extends Page
                 $agent->forUser($user);
             }
 
-            $agent->prompt($input, attachments: $attachments);
+            $agent->prompt($input, attachments: $attachments, timeout: 18);
 
             $this->conversationId = $agent->currentConversation();
         } catch (\Throwable $e) {
             Log::error('StudentStudyBuddy error: ' . $e->getMessage(), ['exception' => $e]);
-            $this->errorMessage = 'AI study companion error: ' . $e->getMessage();
+            $friendly = StudentStudyBuddy::formatUserFriendlyError($e);
+            $this->errorMessage = $friendly;
 
             Notification::make()
-                ->title('AI response failed')
-                ->body($e->getMessage())
-                ->danger()
+                ->title('Study Buddy temporarily unavailable')
+                ->body($friendly)
+                ->warning()
                 ->send();
         }
     }

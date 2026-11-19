@@ -256,12 +256,23 @@
                                 allowfullscreen
                                 @load="onIframeLoaded()"
                             ></iframe>
+                        @elseif ($playerSource === 'embed')
+                            <iframe
+                                id="lr-embed-iframe-{{ $activeVideoId }}"
+                                x-ref="embedIframe"
+                                src="{{ $playerUrl }}"
+                                style="width:100%;height:100%;border:0;display:block;"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                                allowfullscreen
+                                @load="onGenericEmbedLoaded()"
+                            ></iframe>
                         @elseif ($playerSource === 'file')
                             <video
                                 x-ref="videoElement"
                                 src="{{ $playerUrl }}"
                                 controls
                                 autoplay
+                                playsinline
                                 style="width:100%;height:100%;background:#000;object-fit:contain;"
                                 @play="handleFilePlay()"
                                 @pause="handleFilePause()"
@@ -279,7 +290,7 @@
                     </div>
 
                     <!-- Watch Progress Tracker (Compact & Responsive) -->
-                    @if ($playerSource === 'youtube' || $playerSource === 'file')
+                    @if ($playerSource === 'youtube' || $playerSource === 'file' || $playerSource === 'embed')
                         <div style="padding:0.5rem 0.85rem;background:#020617;border-bottom:1px solid #1e293b;">
                             <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;margin-bottom:0.35rem;gap:0.4rem;">
                                 <div style="display:flex;align-items:center;gap:0.35rem;min-width:0;">
@@ -371,6 +382,16 @@
                     if (this.youtubeId) {
                         this.setupYouTubePostMessage();
                         this.setupYouTubeApi();
+                    } else if (this.fileUrl) {
+                        this.$nextTick(() => {
+                            const video = this.$refs.videoElement;
+                            if (video) {
+                                const playPromise = video.play();
+                                if (playPromise !== undefined) {
+                                    playPromise.catch(() => {});
+                                }
+                            }
+                        });
                     }
                 },
 
@@ -453,6 +474,14 @@
                     }, 2000);
                 },
 
+                onGenericEmbedLoaded() {
+                    if (!this.duration || this.duration <= 0) {
+                        this.duration = 300;
+                    }
+                    this.isPlaying = !document.hidden;
+                    this.startWatchTimer();
+                },
+
                 setupYouTubeApi() {
                     if (window.YT && window.YT.Player) {
                         this.initPlayer();
@@ -493,6 +522,9 @@
                                 onReady: (event) => {
                                     const dur = event.target.getDuration();
                                     if (dur && dur > 0) this.duration = Math.round(dur);
+                                    try {
+                                        event.target.playVideo();
+                                    } catch (e) {}
                                 },
                                 onStateChange: (event) => {
                                     if (event.data === 1) { // Playing

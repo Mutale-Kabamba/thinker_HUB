@@ -25,6 +25,7 @@ class VideoEmbedParser
             'video_id' => null,
             'youtube_id' => null,
             'embed_url' => null,
+            'autoplay_embed_url' => null,
             'thumbnail_url' => null,
             'is_direct_file' => false,
         ];
@@ -46,11 +47,14 @@ class VideoEmbedParser
         // 1. YouTube (watch, youtu.be, shorts, live, embed, or raw 11-char ID)
         $youtubeId = self::extractYoutubeId($trimmed);
         if ($youtubeId !== null) {
+            $embedUrl = "https://www.youtube.com/embed/{$youtubeId}";
+
             return [
                 'platform' => 'youtube',
                 'video_id' => $youtubeId,
                 'youtube_id' => $youtubeId,
-                'embed_url' => "https://www.youtube.com/embed/{$youtubeId}",
+                'embed_url' => $embedUrl,
+                'autoplay_embed_url' => self::buildAutoplayUrl($embedUrl, 'youtube'),
                 'thumbnail_url' => "https://img.youtube.com/vi/{$youtubeId}/hqdefault.jpg",
                 'is_direct_file' => false,
             ];
@@ -70,6 +74,7 @@ class VideoEmbedParser
                 'video_id' => $vimeoId,
                 'youtube_id' => null,
                 'embed_url' => $embedUrl,
+                'autoplay_embed_url' => self::buildAutoplayUrl($embedUrl, 'vimeo'),
                 'thumbnail_url' => "https://vumbnail.com/{$vimeoId}.jpg",
                 'is_direct_file' => false,
             ];
@@ -78,12 +83,14 @@ class VideoEmbedParser
         // 3. Loom (loom.com/share/{id} or loom.com/embed/{id})
         if (preg_match('~loom\.com/(?:share|embed)/([a-zA-Z0-9]+)~i', $trimmed, $loomMatches)) {
             $loomId = $loomMatches[1];
+            $embedUrl = "https://www.loom.com/embed/{$loomId}";
 
             return [
                 'platform' => 'loom',
                 'video_id' => $loomId,
                 'youtube_id' => null,
-                'embed_url' => "https://www.loom.com/embed/{$loomId}",
+                'embed_url' => $embedUrl,
+                'autoplay_embed_url' => self::buildAutoplayUrl($embedUrl, 'loom'),
                 'thumbnail_url' => null,
                 'is_direct_file' => false,
             ];
@@ -92,12 +99,14 @@ class VideoEmbedParser
         // 4. Dailymotion (dailymotion.com/video/{id}, dai.ly/{id}, dailymotion.com/embed/video/{id})
         if (preg_match('~(?:dailymotion\.com/(?:embed/)?video/|dai\.ly/)([a-zA-Z0-9]+)~i', $trimmed, $dmMatches)) {
             $dmId = strtok($dmMatches[1], '_');
+            $embedUrl = "https://www.dailymotion.com/embed/video/{$dmId}";
 
             return [
                 'platform' => 'dailymotion',
                 'video_id' => $dmId,
                 'youtube_id' => null,
-                'embed_url' => "https://www.dailymotion.com/embed/video/{$dmId}",
+                'embed_url' => $embedUrl,
+                'autoplay_embed_url' => self::buildAutoplayUrl($embedUrl, 'dailymotion'),
                 'thumbnail_url' => "https://www.dailymotion.com/thumbnail/video/{$dmId}",
                 'is_direct_file' => false,
             ];
@@ -106,12 +115,14 @@ class VideoEmbedParser
         // 5. Wistia (*.wistia.com/medias/{id}, fast.wistia.net/embed/iframe/{id})
         if (preg_match('~(?:wistia\.com/medias/|fast\.wistia\.(?:net|com)/embed/iframe/)([a-zA-Z0-9]+)~i', $trimmed, $wistiaMatches)) {
             $wistiaId = $wistiaMatches[1];
+            $embedUrl = "https://fast.wistia.net/embed/iframe/{$wistiaId}";
 
             return [
                 'platform' => 'wistia',
                 'video_id' => $wistiaId,
                 'youtube_id' => null,
-                'embed_url' => "https://fast.wistia.net/embed/iframe/{$wistiaId}",
+                'embed_url' => $embedUrl,
+                'autoplay_embed_url' => self::buildAutoplayUrl($embedUrl, 'wistia'),
                 'thumbnail_url' => null,
                 'is_direct_file' => false,
             ];
@@ -120,12 +131,14 @@ class VideoEmbedParser
         // 6. Google Drive (drive.google.com/file/d/{id}/view or /preview)
         if (preg_match('~drive\.google\.com/file/d/([a-zA-Z0-9_-]+)~i', $trimmed, $driveMatches)) {
             $driveId = $driveMatches[1];
+            $embedUrl = "https://drive.google.com/file/d/{$driveId}/preview";
 
             return [
                 'platform' => 'google_drive',
                 'video_id' => $driveId,
                 'youtube_id' => null,
-                'embed_url' => "https://drive.google.com/file/d/{$driveId}/preview",
+                'embed_url' => $embedUrl,
+                'autoplay_embed_url' => self::buildAutoplayUrl($embedUrl, 'google_drive'),
                 'thumbnail_url' => null,
                 'is_direct_file' => false,
             ];
@@ -139,6 +152,7 @@ class VideoEmbedParser
                 'video_id' => null,
                 'youtube_id' => null,
                 'embed_url' => $trimmed,
+                'autoplay_embed_url' => $trimmed,
                 'thumbnail_url' => null,
                 'is_direct_file' => true,
             ];
@@ -151,12 +165,35 @@ class VideoEmbedParser
                 'video_id' => null,
                 'youtube_id' => null,
                 'embed_url' => $trimmed,
+                'autoplay_embed_url' => self::buildAutoplayUrl($trimmed, 'embed'),
                 'thumbnail_url' => null,
                 'is_direct_file' => false,
             ];
         }
 
         return $empty;
+    }
+
+    /**
+     * Build an autoplay-enabled embed URL for any supported video platform.
+     */
+    public static function buildAutoplayUrl(?string $embedUrl, ?string $platform): ?string
+    {
+        if (! $embedUrl) {
+            return null;
+        }
+
+        return match ($platform) {
+            'youtube' => self::appendQuery($embedUrl, ['autoplay' => 1, 'enablejsapi' => 1, 'rel' => 0]),
+            'vimeo' => self::appendQuery($embedUrl, ['autoplay' => 1, 'autopause' => 0]),
+            'loom' => self::appendQuery($embedUrl, ['autoplay' => 1]),
+            'dailymotion' => self::appendQuery($embedUrl, ['autoplay' => 1]),
+            'wistia' => self::appendQuery($embedUrl, ['autoPlay' => 'true', 'autoplay' => 1]),
+            'google_drive', 'direct' => $embedUrl,
+            default => str_contains(strtolower($embedUrl), 'autoplay')
+                ? $embedUrl
+                : self::appendQuery($embedUrl, ['autoplay' => 1]),
+        };
     }
 
     /**

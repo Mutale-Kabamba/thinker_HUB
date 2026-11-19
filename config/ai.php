@@ -107,8 +107,34 @@ return [
             'models' => [
                 'text' => [
                     'default' => env('GEMINI_MODEL', 'gemini-3.5-flash-lite'),
-                    'cheapest' => 'gemini-3.5-flash-lite',
+                    'cheapest' => 'gemini-3.1-flash-lite',
                     'smartest' => env('GEMINI_MODEL', 'gemini-3.5-flash-lite'),
+                ],
+            ],
+        ],
+
+        'gemini-fallback' => [
+            'driver' => 'gemini',
+            'key' => env('GEMINI_API_KEY'),
+            'url' => env('GEMINI_URL', 'https://generativelanguage.googleapis.com/v1beta/'),
+            'models' => [
+                'text' => [
+                    'default' => env('GEMINI_FALLBACK_MODEL', 'gemini-3.8-flash'),
+                    'cheapest' => env('GEMINI_FALLBACK_MODEL', 'gemini-3.8-flash'),
+                    'smartest' => env('GEMINI_FALLBACK_MODEL', 'gemini-3.8-flash'),
+                ],
+            ],
+        ],
+
+        'gemini-backup' => [
+            'driver' => 'gemini',
+            'key' => env('GEMINI_API_KEY'),
+            'url' => env('GEMINI_URL', 'https://generativelanguage.googleapis.com/v1beta/'),
+            'models' => [
+                'text' => [
+                    'default' => env('GEMINI_BACKUP_MODEL', 'gemini-3.1-flash-lite'),
+                    'cheapest' => env('GEMINI_BACKUP_MODEL', 'gemini-3.1-flash-lite'),
+                    'smartest' => env('GEMINI_BACKUP_MODEL', 'gemini-3.1-flash-lite'),
                 ],
             ],
         ],

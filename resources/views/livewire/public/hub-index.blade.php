@@ -1155,11 +1155,11 @@
                 <div class="relative aspect-video bg-black">
                     @if ($activeVideo->video_id)
                         <iframe
-                            src="https://www.youtube-nocookie.com/embed/{{ $activeVideo->video_id }}?autoplay=1"
+                            src="https://www.youtube-nocookie.com/embed/{{ $activeVideo->video_id }}?autoplay=1&enablejsapi=1&rel=0"
                             title="{{ $activeVideo->title }}"
                             class="w-full h-full"
                             frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                             allowfullscreen
                         ></iframe>
                     @else
