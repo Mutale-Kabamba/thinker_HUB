@@ -188,7 +188,7 @@ class StudyBuddy extends Page
                 $agent->forUser($user);
             }
 
-            $agent->prompt($input, attachments: $attachments, timeout: 18);
+            $agent->prompt($input, attachments: $attachments, timeout: 10);
 
             $this->conversationId = $agent->currentConversation();
         } catch (\Throwable $e) {

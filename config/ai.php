@@ -106,9 +106,9 @@ return [
             'url' => env('GEMINI_URL', 'https://generativelanguage.googleapis.com/v1beta/'),
             'models' => [
                 'text' => [
-                    'default' => env('GEMINI_MODEL', 'gemini-3.5-flash-lite'),
+                    'default' => env('GEMINI_MODEL', 'gemini-3.1-flash-lite'),
                     'cheapest' => 'gemini-3.1-flash-lite',
-                    'smartest' => env('GEMINI_MODEL', 'gemini-3.5-flash-lite'),
+                    'smartest' => env('GEMINI_MODEL', 'gemini-3.1-flash-lite'),
                 ],
             ],
         ],
@@ -132,9 +132,9 @@ return [
             'url' => env('GEMINI_URL', 'https://generativelanguage.googleapis.com/v1beta/'),
             'models' => [
                 'text' => [
-                    'default' => env('GEMINI_BACKUP_MODEL', 'gemini-3.1-flash-lite'),
-                    'cheapest' => env('GEMINI_BACKUP_MODEL', 'gemini-3.1-flash-lite'),
-                    'smartest' => env('GEMINI_BACKUP_MODEL', 'gemini-3.1-flash-lite'),
+                    'default' => env('GEMINI_BACKUP_MODEL', 'gemini-3.5-flash-lite'),
+                    'cheapest' => env('GEMINI_BACKUP_MODEL', 'gemini-3.5-flash-lite'),
+                    'smartest' => env('GEMINI_BACKUP_MODEL', 'gemini-3.5-flash-lite'),
                 ],
             ],
         ],
@@ -165,6 +165,13 @@ return [
             'key' => env('OPENAI_API_KEY'),
             'url' => env('OPENAI_URL', 'https://api.openai.com/v1'),
             'store' => env('OPENAI_STORE', true),
+            'models' => [
+                'text' => [
+                    'default' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+                    'cheapest' => 'gpt-4o-mini',
+                    'smartest' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+                ],
+            ],
         ],
 
         'openai-compatible' => [

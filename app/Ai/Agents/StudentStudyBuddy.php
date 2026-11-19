@@ -22,7 +22,7 @@ use Laravel\Ai\Promptable;
 #[Provider([Lab::Gemini, Lab::OpenAI])]
 #[Temperature(0.4)]
 #[MaxSteps(4)]
-#[Timeout(18)]
+#[Timeout(10)]
 class StudentStudyBuddy implements Agent, Conversational, HasTools, RemembersConversationsContract
 {
     use Promptable;

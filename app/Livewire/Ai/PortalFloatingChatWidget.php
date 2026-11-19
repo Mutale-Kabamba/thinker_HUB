@@ -204,7 +204,7 @@ class PortalFloatingChatWidget extends Component
                 $agent->forUser($user);
             }
 
-            $agent->prompt($input, attachments: $attachments, timeout: 18);
+            $agent->prompt($input, attachments: $attachments, timeout: 10);
 
             $this->conversationId = $agent->currentConversation();
             session(['ai_conversation_' . $this->portal => $this->conversationId]);
