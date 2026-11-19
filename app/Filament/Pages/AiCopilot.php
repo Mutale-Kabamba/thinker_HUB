@@ -173,7 +173,7 @@ class AiCopilot extends Page
                 $agent->forUser($user);
             }
 
-            $agent->prompt($input, timeout: 18);
+            $agent->prompt($input, timeout: 10);
 
             $this->conversationId = $agent->currentConversation();
         } catch (\Throwable $e) {
