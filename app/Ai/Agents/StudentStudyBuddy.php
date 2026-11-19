@@ -2,6 +2,7 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Concerns\ResolvesAiProviders;
 use App\Ai\Tools\Student\GetStudentUpcomingScheduleTool;
 use App\Ai\Tools\Student\ReviewCompletedQuizAttemptsTool;
 use App\Ai\Tools\Student\SearchStudentMaterialsTool;
@@ -20,35 +21,16 @@ use Laravel\Ai\Promptable;
 
 #[Provider([Lab::Gemini, Lab::OpenAI])]
 #[Temperature(0.4)]
-#[MaxSteps(5)]
-#[Timeout(30)]
+#[MaxSteps(4)]
+#[Timeout(18)]
 class StudentStudyBuddy implements Agent, Conversational, HasTools, RemembersConversationsContract
 {
     use Promptable;
     use RemembersConversations;
+    use ResolvesAiProviders;
 
     public function __construct(public User $student)
     {
-    }
-
-    /**
-     * Determine the provider dynamically based on available configuration.
-     *
-     * @return array<int, Lab>|Lab|string
-     */
-    public function provider(): array|Lab|string
-    {
-        $providers = [];
-
-        if (! empty(config('ai.providers.gemini.key')) || ! empty(config('services.gemini.api_key'))) {
-            $providers[] = Lab::Gemini;
-        }
-
-        if (! empty(config('ai.providers.openai.key'))) {
-            $providers[] = Lab::OpenAI;
-        }
-
-        return $providers !== [] ? $providers : [Lab::Gemini, Lab::OpenAI];
     }
 
     /**

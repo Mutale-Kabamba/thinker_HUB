@@ -32,24 +32,14 @@ $defaultDisk = ($cloudDefaultDisk && (! filled($rawFilesystemDisk) || $rawFilesy
     ? $cloudDefaultDisk
     : (string) env('FILESYSTEM_DISK', $cloudDefaultDisk ?: 'local');
 
-$publicDiskDriver = strtolower((string) env('PUBLIC_DISK_DRIVER', in_array($defaultDisk, ['s3', $cloudDefaultDisk], true) ? 's3' : 'local'));
-$useS3PublicDisk = ($publicDiskDriver === 's3' || $defaultDisk === 's3' || ($cloudDefaultDisk !== null && $defaultDisk === $cloudDefaultDisk)) && $s3AdapterAvailable;
 $publicDiskDriver = strtolower((string) env('PUBLIC_DISK_DRIVER', in_array($defaultDisk, ['s3', 'r2', $cloudDefaultDisk], true) ? $defaultDisk : 'local'));
 $useS3PublicDisk = (in_array($publicDiskDriver, ['s3', 'r2'], true) || in_array($defaultDisk, ['s3', 'r2', $cloudDefaultDisk], true)) && $s3AdapterAvailable;
 
-if (in_array($defaultDisk, ['s3', 'public'], true) && ! $s3AdapterAvailable && $publicDiskDriver === 's3') {
 if (in_array($defaultDisk, ['s3', 'r2', 'public'], true) && ! $s3AdapterAvailable && in_array($publicDiskDriver, ['s3', 'r2'], true)) {
     // Prevent hard failure when S3 is configured but the adapter package is missing.
     $defaultDisk = 'local';
 }
 
-$s3Key = env('AWS_ACCESS_KEY_ID');
-$s3Secret = env('AWS_SECRET_ACCESS_KEY');
-$s3Region = env('AWS_DEFAULT_REGION', env('AWS_REGION', 'auto')) ?: 'auto';
-$s3Bucket = env('AWS_BUCKET');
-$s3Url = env('AWS_URL');
-$s3Endpoint = env('AWS_ENDPOINT', env('AWS_ENDPOINT_URL'));
-$s3UsePathStyle = env('AWS_USE_PATH_STYLE_ENDPOINT', false);
 $s3Key = env('AWS_ACCESS_KEY_ID', env('CLOUDFLARE_R2_ACCESS_KEY_ID'));
 $s3Secret = env('AWS_SECRET_ACCESS_KEY', env('CLOUDFLARE_R2_SECRET_ACCESS_KEY'));
 $s3Region = env('AWS_DEFAULT_REGION', env('AWS_REGION', env('CLOUDFLARE_R2_REGION', 'auto'))) ?: 'auto';

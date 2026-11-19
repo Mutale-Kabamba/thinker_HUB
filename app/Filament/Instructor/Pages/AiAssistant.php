@@ -151,6 +151,10 @@ class AiAssistant extends Page
         $this->message = '';
         $this->errorMessage = null;
 
+        if (! app()->runningInConsole()) {
+            @set_time_limit(60);
+        }
+
         try {
             $courseIds = static::instructorCourseIds();
             $agent = new InstructorAssistant($user, $courseIds);
@@ -161,17 +165,18 @@ class AiAssistant extends Page
                 $agent->forUser($user);
             }
 
-            $agent->prompt($input);
+            $agent->prompt($input, timeout: 18);
 
             $this->conversationId = $agent->currentConversation();
         } catch (\Throwable $e) {
             Log::error('InstructorAssistant error: ' . $e->getMessage(), ['exception' => $e]);
-            $this->errorMessage = 'AI execution error: ' . $e->getMessage();
+            $friendly = InstructorAssistant::formatUserFriendlyError($e);
+            $this->errorMessage = $friendly;
 
             Notification::make()
-                ->title('AI execution failed')
-                ->body($e->getMessage())
-                ->danger()
+                ->title('AI Co-Pilot temporarily unavailable')
+                ->body($friendly)
+                ->warning()
                 ->send();
         }
     }

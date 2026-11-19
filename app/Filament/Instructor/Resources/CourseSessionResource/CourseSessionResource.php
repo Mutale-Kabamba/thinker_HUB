@@ -285,13 +285,7 @@ class CourseSessionResource extends Resource
             ])
             ->recordActions([
                 \Filament\Actions\ActionGroup::make([
-                    Action::make('markCompleted')
-                        ->label('Mark Completed')
-                        ->icon('heroicon-m-check-circle')
-                        ->color('success')
-                        ->requiresConfirmation()
-                        ->visible(fn (CourseSession $record): bool => $record->status === 'scheduled')
-                        ->action(fn (CourseSession $record) => $record->update(['status' => 'completed'])),
+                    \App\Filament\Actions\MarkSessionCompletedAction::make(),
 
                     Action::make('reschedule')
                         ->label('Reschedule')

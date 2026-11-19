@@ -160,6 +160,10 @@ class AiCopilot extends Page
         $this->message = '';
         $this->errorMessage = null;
 
+        if (! app()->runningInConsole()) {
+            @set_time_limit(60);
+        }
+
         try {
             $agent = new AdminSystemCopilot($user);
 
@@ -169,17 +173,18 @@ class AiCopilot extends Page
                 $agent->forUser($user);
             }
 
-            $agent->prompt($input);
+            $agent->prompt($input, timeout: 18);
 
             $this->conversationId = $agent->currentConversation();
         } catch (\Throwable $e) {
             Log::error('AdminSystemCopilot error: ' . $e->getMessage(), ['exception' => $e]);
-            $this->errorMessage = 'AI System execution error: ' . $e->getMessage();
+            $friendly = AdminSystemCopilot::formatUserFriendlyError($e);
+            $this->errorMessage = $friendly;
 
             Notification::make()
-                ->title('Co-Pilot execution failed')
-                ->body($e->getMessage())
-                ->danger()
+                ->title('AI Co-Pilot temporarily unavailable')
+                ->body($friendly)
+                ->warning()
                 ->send();
         }
     }
