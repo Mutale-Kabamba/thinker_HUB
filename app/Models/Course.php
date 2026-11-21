@@ -34,6 +34,7 @@ class Course extends Model
         'key_outcome',
         'level_progression',
         'is_open_enrollment',
+        'is_for_kids',
         'is_active',
         'gamification_settings',
         'average_rating',
@@ -45,10 +46,31 @@ class Course extends Model
         return [
             'is_active' => 'boolean',
             'is_open_enrollment' => 'boolean',
+            'is_for_kids' => 'boolean',
             'gamification_settings' => 'array',
             'average_rating' => 'decimal:2',
             'review_count' => 'integer',
         ];
+    }
+
+    /**
+     * Determine if this course is designated for Kids (parent-supervised, private community).
+     */
+    public function isForKids(): bool
+    {
+        return (bool) $this->is_for_kids;
+    }
+
+    public function scopeForKids($query)
+    {
+        return $query->where('is_for_kids', true);
+    }
+
+    public function scopeGeneral($query)
+    {
+        return $query->where(function ($q): void {
+            $q->where('is_for_kids', false)->orWhereNull('is_for_kids');
+        });
     }
 
     public function getTimelineAttribute($value): ?string
@@ -58,6 +80,26 @@ class Course extends Model
         }
 
         return trim(preg_replace('/\s*\(.*\)/', '', $value));
+    }
+
+    /**
+     * Determine if this course is affiliated with Play it Forward (e.g. Digital Skills Program DSP-PIF).
+     */
+    public function isPlayItForward(): bool
+    {
+        $code = strtoupper((string) $this->code);
+        $title = strtoupper((string) $this->title);
+        $desc = strtoupper((string) $this->description);
+        $overview = strtoupper((string) $this->overview);
+
+        return str_contains($code, 'PIF')
+            || str_contains($code, 'PLAY IT FORWARD')
+            || str_contains($title, 'PLAY IT FORWARD')
+            || str_contains($code, 'DS_PIZ')
+            || str_contains($code, 'DSP')
+            || str_contains($title, 'DIGITAL SKILLS')
+            || str_contains($desc, 'PLAY IT FORWARD')
+            || str_contains($overview, 'PLAY IT FORWARD');
     }
 
     public function getCourseOwnerLabelAttribute(): string
@@ -74,7 +116,15 @@ class Course extends Model
     public function getInstructorLabelAttribute(): string
     {
         if (! $this->relationLoaded('instructors')) {
-            return 'TBA';
+            try {
+                $this->load([
+                    'instructors' => static fn ($instructorQuery) => $instructorQuery
+                        ->select('users.id', 'users.name')
+                        ->orderBy('name'),
+                ]);
+            } catch (\Throwable) {
+                return 'TBA';
+            }
         }
 
         /** @var Collection<int, string> $names */
@@ -247,12 +297,153 @@ class Course extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function promoCodes(): HasMany
+    {
+        return $this->hasMany(PromoCode::class);
+    }
+
+    public function activePromoCodes(): HasMany
+    {
+        return $this->hasMany(PromoCode::class)->active();
+    }
+
+    public function getActivePromoCode(): ?PromoCode
+    {
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable('promo_codes')) {
+                return null;
+            }
+
+            if ($this->relationLoaded('activePromoCodes')) {
+                return $this->activePromoCodes->first();
+            }
+
+            if ($this->relationLoaded('promoCodes')) {
+                return $this->promoCodes
+                    ->filter(fn (PromoCode $promo): bool => $promo->status_label === 'Active')
+                    ->sortByDesc(fn (PromoCode $promo): float => (float) $promo->discount_value)
+                    ->first();
+            }
+
+            return $this->promoCodes()->active()->orderByDesc('discount_value')->first();
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Return promo badge metadata if this course has an active promo code.
+     *
+     * @return ?array{label: string, short_label: string, code: string, discount: string, description: ?string, classes: string, icon: string}
+     */
+    public function getPromoBadge(?PromoCode $contextPromo = null): ?array
+    {
+        if ($this->is_open_enrollment === false) {
+            return null;
+        }
+
+        $promo = $this->getActivePromoCode();
+
+        if (! $promo && $contextPromo) {
+            $fee = $this->getNumericFee();
+            if ($fee > 0 && $contextPromo->isValidFor($this, $fee)['valid']) {
+                $promo = $contextPromo;
+            }
+        }
+
+        if (! $promo) {
+            return null;
+        }
+
+        if ($promo->isPercentage()) {
+            $val = rtrim(rtrim(number_format((float) $promo->discount_value, 2), '0'), '.');
+            $discountText = ((float) $promo->discount_value >= 100) ? '100% FREE' : "{$val}% OFF";
+        } else {
+            $val = number_format((float) $promo->discount_value, 0);
+            $discountText = "K{$val} OFF";
+        }
+
+        return [
+            'label' => "PROMO • {$discountText}",
+            'short_label' => $discountText,
+            'code' => $promo->code,
+            'discount' => $promo->formattedDiscount(),
+            'description' => $promo->description,
+            'classes' => 'hub-promo-badge bg-rose-600 text-white border-rose-500 shadow-xs',
+            'icon' => 'fa-solid fa-tag',
+        ];
+    }
+
     public function getNumericFee(): float
     {
         $fees = trim((string) $this->fees);
 
         if ($fees === '') {
             return 0.0;
+        }
+
+        $decoded = json_decode($fees, true);
+        if (is_array($decoded)) {
+            $extractFromEntry = static function (mixed $entry): float {
+                if (is_numeric($entry)) {
+                    return (float) $entry > 0 ? (float) $entry : 0.0;
+                }
+                if (is_string($entry)) {
+                    if (preg_match('/(?:ZMW|K|USD|\$)\s*([\d,]+(?:\.\d+)?)/i', $entry, $m) === 1) {
+                        return (float) str_replace(',', '', $m[1]);
+                    }
+                    $clean = (float) str_replace(',', '', (string) preg_replace('/[^\d.,]/', '', $entry));
+                    return $clean > 0 ? $clean : 0.0;
+                }
+                if (is_array($entry)) {
+                    $raw = $entry['amount'] ?? $entry['fee'] ?? null;
+                    if ($raw !== null) {
+                        $clean = (float) str_replace(',', '', (string) preg_replace('/[^\d.,]/', '', (string) $raw));
+                        if ($clean > 0) {
+                            return $clean;
+                        }
+                    }
+                }
+                return 0.0;
+            };
+
+            foreach (['group', 'one_on_one', 'self_paced'] as $sectionKey) {
+                if (! empty($decoded[$sectionKey]) && is_array($decoded[$sectionKey])) {
+                    foreach ($decoded[$sectionKey] as $entry) {
+                        $val = $extractFromEntry($entry);
+                        if ($val > 0) {
+                            return $val;
+                        }
+                    }
+                }
+            }
+
+            foreach ($decoded as $entry) {
+                if (is_array($entry)) {
+                    $val = $extractFromEntry($entry);
+                    if ($val > 0) {
+                        return $val;
+                    }
+                    foreach ($entry as $subEntry) {
+                        $val = $extractFromEntry($subEntry);
+                        if ($val > 0) {
+                            return $val;
+                        }
+                    }
+                } else {
+                    $val = $extractFromEntry($entry);
+                    if ($val > 0) {
+                        return $val;
+                    }
+                }
+            }
+        }
+
+        if (preg_match('/(?:ZMW|K|USD|\$)\s*([\d,]+(?:\.\d+)?)/i', $fees, $currencyMatch) === 1) {
+            $normalized = (float) str_replace(',', '', (string) $currencyMatch[1]);
+            if ($normalized > 0) {
+                return $normalized;
+            }
         }
 
         if (preg_match_all('/\d+(?:[.,]\d+)?/', $fees, $matches) !== false) {
@@ -265,6 +456,11 @@ class Course extends Model
         }
 
         return 0.0;
+    }
+
+    public function getPriceAttribute(): float
+    {
+        return $this->getNumericFee();
     }
 
     /**
@@ -305,11 +501,7 @@ class Course extends Model
         };
 
         $normalizeLevel = static function (string $raw): string {
-            $lvl = strtolower(trim($raw));
-            if (str_contains($lvl, 'beginner')) return 'Beginner';
-            if (str_contains($lvl, 'intermediate')) return 'Intermediate';
-            if (str_contains($lvl, 'advanced')) return 'Advanced';
-            return trim($raw) !== '' ? ucwords(trim($raw)) : 'Beginner';
+            return \App\Filament\Resources\Courses\Schemas\CourseForm::normalizeLevel($raw);
         };
 
         $parseAmount = static function (mixed $raw): float {
@@ -320,6 +512,8 @@ class Course extends Model
             }
             return 0.0;
         };
+
+        $levelRegex = 'Advanced\s*\(\s*Beginner\s+to\s+Advanced\s*\)|Advanced\s*\(\s*Intermediate\s+to\s+Advanced\s*\)|Intermediate\s*\(\s*Beginner\s+to\s+Intermediate\s*\)|Beginner|Intermediate|Advanced';
 
         if (is_array($parsed)) {
             // 1. Check categorized dictionary: ['group' => [...], 'one_on_one' => [...], 'self_paced' => [...]]
@@ -333,7 +527,7 @@ class Course extends Model
                             $duration = trim((string) ($entry['duration'] ?? $defaultDuration));
                             if ($amount > 0) {
                                 $options[] = [
-                                    'id' => $catKey . '_' . strtolower($level),
+                                    'id' => $catKey . '_' . \Illuminate\Support\Str::slug($level, '_'),
                                     'category' => $catKey,
                                     'mode' => $catKey,
                                     'mode_label' => $modeLabel,
@@ -361,7 +555,7 @@ class Course extends Model
                         $duration = trim((string) ($entry['duration'] ?? $defaultDuration));
                         if ($amount > 0) {
                             $options[] = [
-                                'id' => $catKey . '_' . strtolower($level),
+                                'id' => $catKey . '_' . \Illuminate\Support\Str::slug($level, '_'),
                                 'category' => $catKey,
                                 'mode' => $catKey,
                                 'mode_label' => $modeLabel,
@@ -386,7 +580,7 @@ class Course extends Model
                             $level = $normalizeLevel($k);
                             [$catKey, $modeLabel, $modeBadge, $highlight] = $normalizeCategory('group');
                             $options[] = [
-                                'id' => 'group_' . strtolower($level),
+                                'id' => 'group_' . \Illuminate\Support\Str::slug($level, '_'),
                                 'category' => 'group',
                                 'mode' => 'group',
                                 'mode_label' => $modeLabel,
@@ -420,14 +614,14 @@ class Course extends Model
                 }
                 [$catKey, $modeLabel, $modeBadge, $highlight] = $normalizeCategory($rawCat);
 
-                if (preg_match_all('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*([^()]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:Beginner|Intermediate|Advanced)\s*[:\-]|$)/i', $line, $matches, PREG_SET_ORDER) > 0) {
+                if (preg_match_all('/(?:^|[\s|;])(' . $levelRegex . ')\s*[:\-]\s*([^()|;]+?)\s*(?:\(([^)]+)\))?(?=\s*(?:' . $levelRegex . ')\s*[:\-]|$|[\s|;])/i', $line, $matches, PREG_SET_ORDER) > 0) {
                     foreach ($matches as $match) {
                         $level = $normalizeLevel((string) ($match[1] ?? ''));
                         $amount = $parseAmount($match[2] ?? 0);
                         $dur = trim((string) ($match[3] ?? $defaultDuration));
                         if ($amount > 0) {
                             $options[] = [
-                                'id' => $catKey . '_' . strtolower($level),
+                                'id' => $catKey . '_' . \Illuminate\Support\Str::slug($level, '_'),
                                 'category' => $catKey,
                                 'mode' => $catKey,
                                 'mode_label' => $modeLabel,
@@ -443,12 +637,12 @@ class Course extends Model
                     continue;
                 }
 
-                if (preg_match('/\b(Beginner|Intermediate|Advanced)\b\s*[:\-]\s*(?:ZMW|K|USD|\$)?\s*([\d,]+(?:\.\d+)?)/i', $line, $match) === 1) {
+                if (preg_match('/(' . $levelRegex . ')\s*[:\-]\s*(?:ZMW|K|USD|\$)?\s*([\d,]+(?:\.\d+)?)/i', $line, $match) === 1) {
                     $level = $normalizeLevel((string) $match[1]);
                     $amount = $parseAmount($match[2]);
                     if ($amount > 0) {
                         $options[] = [
-                            'id' => $catKey . '_' . strtolower($level),
+                            'id' => $catKey . '_' . \Illuminate\Support\Str::slug($level, '_'),
                             'category' => $catKey,
                             'mode' => $catKey,
                             'mode_label' => $modeLabel,
@@ -526,43 +720,74 @@ class Course extends Model
             $normMode = 'group';
         }
 
-        $normLevel = $level ? strtolower(trim($level)) : null;
+        $rawLevel = $level ? trim($level) : null;
+        $normLevel = $rawLevel ? strtolower($rawLevel) : null;
+        $canonicalLevel = $rawLevel
+            ? strtolower(\App\Filament\Resources\Courses\Schemas\CourseForm::normalizeLevel($rawLevel))
+            : null;
+
+        $matchesLevel = static function (string $optLevel) use ($normLevel, $canonicalLevel): bool {
+            if (! $normLevel) {
+                return false;
+            }
+            $optLower = strtolower(trim($optLevel));
+            return $optLower === $normLevel || ($canonicalLevel && $optLower === $canonicalLevel);
+        };
+
+        $matchesBaseLevel = static function (string $optLevel) use ($normLevel, $canonicalLevel): bool {
+            if (! $normLevel) {
+                return false;
+            }
+            $optLower = strtolower(trim($optLevel));
+            $baseOpt = strtolower(trim(explode('(', $optLower)[0]));
+            $baseReq = strtolower(trim(explode('(', $canonicalLevel ?: $normLevel)[0]));
+            return $baseOpt !== '' && $baseOpt === $baseReq;
+        };
 
         // 1. Exact match on both Mode & Level
         if ($normMode && $normLevel) {
             foreach ($options as $opt) {
-                if ($opt['category'] === $normMode && strtolower($opt['level']) === $normLevel) {
+                if ($opt['category'] === $normMode && $matchesLevel((string) $opt['level'])) {
                     return (float) $opt['amount'];
                 }
             }
         }
 
-        // 2. Match on Mode only (if level not given or not found in that mode)
-        if ($normMode) {
+        // 2. Exact match on Level across ANY mode (so selecting "Beginner" always returns the Beginner fee even if saved under 1:1 or self-paced)
+        if ($normLevel) {
             foreach ($options as $opt) {
-                if ($opt['category'] === $normMode) {
-                    if ($normLevel && strtolower($opt['level']) === $normLevel) {
+                if ($matchesLevel((string) $opt['level'])) {
+                    return (float) $opt['amount'];
+                }
+            }
+        }
+
+        // 3. Base-level prefix match (e.g. "Advanced" matching "Advanced (Beginner to Advanced)")
+        if ($normLevel) {
+            if ($normMode) {
+                foreach ($options as $opt) {
+                    if ($opt['category'] === $normMode && $matchesBaseLevel((string) $opt['level'])) {
                         return (float) $opt['amount'];
                     }
                 }
             }
             foreach ($options as $opt) {
+                if ($matchesBaseLevel((string) $opt['level'])) {
+                    return (float) $opt['amount'];
+                }
+            }
+        }
+
+        // 4. Match on Mode only (when Level is not specified or doesn't exist on the course)
+        if ($normMode) {
+            foreach ($options as $opt) {
                 if ($opt['category'] === $normMode) {
                     return (float) $opt['amount'];
                 }
             }
         }
 
-        // 3. Match on Level only
-        if ($normLevel) {
-            foreach ($options as $opt) {
-                if (strtolower($opt['level']) === $normLevel) {
-                    return (float) $opt['amount'];
-                }
-            }
-        }
-
-        // 4. Default to first option amount or numeric fee
+        // 5. Default to first configured option amount
         return (float) ($options[0]['amount'] ?? ($this->getNumericFee() ?: 1500.00));
     }
 
@@ -582,13 +807,26 @@ class Course extends Model
 
     public function getLevelFees(): array
     {
-        $levels = ['Beginner', 'Intermediate', 'Advanced'];
+        $options = $this->getFeeOptions();
         $result = [];
-        $defaultFee = $this->getNumericFee();
 
-        foreach ($levels as $lvl) {
-            $fee = $this->getNumericFeeForLevel($lvl);
-            $result[$lvl] = $fee > 0 ? $fee : ($defaultFee > 0 ? $defaultFee : 1500.00);
+        foreach ($options as $opt) {
+            $lvl = (string) ($opt['level'] ?? '');
+            $amt = (float) ($opt['amount'] ?? 0);
+            if ($lvl !== '' && $amt > 0 && ! isset($result[$lvl])) {
+                $result[$lvl] = $amt;
+            }
+        }
+
+        $defaultFee = ! empty($options[0]['amount'])
+            ? (float) $options[0]['amount']
+            : ($this->getNumericFee() ?: 1500.00);
+
+        foreach (['Beginner', 'Intermediate', 'Advanced'] as $lvl) {
+            if (! isset($result[$lvl])) {
+                $fee = $this->getNumericFeeForOption($lvl);
+                $result[$lvl] = $fee > 0 ? $fee : $defaultFee;
+            }
         }
 
         return $result;
@@ -863,4 +1101,508 @@ class Course extends Model
     {
         return static::getColorSchemeFor($this->id, (string) ($this->title ?? ''), (string) ($this->code ?? ''));
     }
+
+    /**
+     * Get the resolved URL for the uploaded course image, or a themed fallback.
+     */
+    public function getCourseImageUrlAttribute(): string
+    {
+        if (! empty($this->image_path)) {
+            $url = \App\Support\PublicDiskPath::url($this->image_path);
+            if ($url) {
+                return $url;
+            }
+        }
+
+        $courseImages = [
+            'images/courses/computer.png',
+            'images/courses/office.png',
+            'images/courses/design.png',
+            'images/courses/data.png',
+            'images/courses/media_ai.png',
+        ];
+
+        $courseImageKeywords = [
+            'images/courses/office.png' => ['office', 'excel', 'word', 'powerpoint'],
+            'images/courses/design.png' => ['design', 'graphics', 'ui', 'ux', 'canva', 'photoshop'],
+            'images/courses/data.png' => ['data', 'analytics', 'analysis', 'sql', 'power bi', 'tableau'],
+            'images/courses/media_ai.png' => ['social', 'media', 'marketing', 'content', 'ai'],
+            'images/courses/computer.png' => ['computer', 'digital', 'ict', 'literacy', 'fundamentals'],
+        ];
+
+        $searchText = strtolower(trim((string) ($this->title.' '.$this->code)));
+
+        foreach ($courseImageKeywords as $imagePath => $keywords) {
+            foreach ($keywords as $keyword) {
+                if (str_contains($searchText, $keyword)) {
+                    return asset($imagePath);
+                }
+            }
+        }
+
+        $seed = $this->id ?? (crc32($this->code ?: $this->title) & 0x7FFFFFFF);
+        $fallback = $courseImages[abs((int) $seed) % count($courseImages)];
+
+        return asset($fallback);
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! empty($this->image_path)) {
+            return \App\Support\PublicDiskPath::url($this->image_path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve a dynamic catalog badge for course cards based on enrollment status,
+     * student count, creation recency, ratings, and delivery mode.
+     *
+     * @return array{label: string, classes: string, icon: ?string}
+     */
+    public function getCatalogBadge(?int $maxOpenStudents = null, ?int $newestCourseId = null): array
+    {
+        if ($this->is_open_enrollment === false) {
+            return [
+                'label' => 'EXCLUSIVE',
+                'classes' => 'bg-slate-900/95 text-amber-300 border-amber-400/40',
+                'icon' => 'fa-solid fa-crown',
+            ];
+        }
+
+        $studentsCount = (int) ($this->enrollments_count ?? 0);
+        if ($studentsCount === 0) {
+            $studentsCount = (int) ($this->selected_participants_count ?? 0);
+        }
+
+        $avgRating = (float) ($this->average_rating ?? ($this->ratings_avg_rating ?? 0));
+        $ratingCount = (int) ($this->review_count ?? ($this->ratings_count ?? 0));
+
+        if ($studentsCount > 0 && $maxOpenStudents !== null && $maxOpenStudents > 0 && $studentsCount >= $maxOpenStudents) {
+            return [
+                'label' => 'BEST SELLER',
+                'classes' => 'bg-yellow-400 text-[#0a2d27] border-yellow-500/20',
+                'icon' => 'fa-solid fa-trophy',
+            ];
+        }
+
+        if (($newestCourseId !== null && (int) $this->id === $newestCourseId) || ($this->created_at && $this->created_at->gt(now()->subDays(14)) && $studentsCount === 0)) {
+            return [
+                'label' => 'NEW COURSE',
+                'classes' => 'bg-emerald-500 text-white border-emerald-400/30',
+                'icon' => 'fa-solid fa-wand-magic-sparkles',
+            ];
+        }
+
+        if ($avgRating >= 4.5 && $ratingCount >= 1) {
+            return [
+                'label' => 'TOP RATED',
+                'classes' => 'bg-amber-400 text-slate-950 border-amber-500/30',
+                'icon' => 'fa-solid fa-star',
+            ];
+        }
+
+        if ($studentsCount >= 5) {
+            return [
+                'label' => 'POPULAR',
+                'classes' => 'bg-indigo-600 text-white border-indigo-400/30',
+                'icon' => 'fa-solid fa-fire',
+            ];
+        }
+
+        if ($studentsCount > 0) {
+            return [
+                'label' => 'TRENDING',
+                'classes' => 'bg-purple-600 text-white border-purple-400/30',
+                'icon' => 'fa-solid fa-arrow-trend-up',
+            ];
+        }
+
+        if ((bool) $this->is_for_kids) {
+            return [
+                'label' => 'KIDS TRACK',
+                'classes' => 'bg-pink-500 text-white border-pink-400/30',
+                'icon' => 'fa-solid fa-child-reaching',
+            ];
+        }
+
+        if ($this->isOngoing()) {
+            return [
+                'label' => 'COHORT INTAKE',
+                'classes' => 'bg-teal-600 text-white border-teal-400/30',
+                'icon' => 'fa-solid fa-users-rectangle',
+            ];
+        }
+
+        return [
+            'label' => 'OPEN ENROLLMENT',
+            'classes' => 'bg-sky-500 text-white border-sky-400/30',
+            'icon' => 'fa-solid fa-bolt',
+        ];
+    }
+
+    /**
+     * Parse and structure course requirements into categorized sections
+     * (e.g. Hardware, Knowledge, Software, Connectivity & Environment, or custom headings).
+     *
+     * @return array<int, array{
+     *     category: string,
+     *     subtitle: string,
+     *     icon: string,
+     *     card_classes: string,
+     *     icon_classes: string,
+     *     badge_classes: string,
+     *     check_classes: string,
+     *     items: array<int, string>
+     * }>
+     */
+    public function getStructuredRequirements(): array
+    {
+        $sections = static::parseRequirementsSections($this->requirements);
+        $structured = [];
+
+        foreach ($sections as $section) {
+            $category = trim((string) ($section['category'] ?? 'General Prerequisites'));
+            $items = array_values(array_filter(array_map(
+                static fn (mixed $item): string => trim((string) preg_replace('/^(?:[-*•]+|\d+[.)])\s*/u', '', trim((string) $item))),
+                is_array($section['items'] ?? null) ? $section['items'] : (preg_split('/\R+/u', (string) ($section['items'] ?? '')) ?: [])
+            )));
+
+            if ($items === []) {
+                continue;
+            }
+
+            $meta = static::resolveRequirementCategoryMeta($category);
+
+            $structured[] = [
+                'category' => $meta['title'],
+                'subtitle' => $meta['subtitle'],
+                'icon' => $meta['icon'],
+                'card_classes' => $meta['card_classes'],
+                'icon_classes' => $meta['icon_classes'],
+                'badge_classes' => $meta['badge_classes'],
+                'check_classes' => $meta['check_classes'],
+                'items' => $items,
+            ];
+        }
+
+        return $structured;
+    }
+
+    /**
+     * Parse raw requirements (JSON, headed text blocks, or flat lines) into
+     * normalized `[ ['category' => string, 'items' => array<int, string>], ... ]`.
+     *
+     * @return array<int, array{category: string, items: array<int, string>}>
+     */
+    public static function parseRequirementsSections(mixed $raw): array
+    {
+        if ($raw === null) {
+            return [];
+        }
+
+        $cleanItem = static fn (string $line): string => trim((string) preg_replace('/^(?:[-*•]+|\d+[.)])\s*/u', '', trim($line)));
+
+        if (is_array($raw)) {
+            $decoded = $raw;
+        } elseif (is_string($raw)) {
+            $trimmed = trim($raw);
+            if ($trimmed === '') {
+                return [];
+            }
+
+            $decoded = null;
+            if ((str_starts_with($trimmed, '[') && str_ends_with($trimmed, ']')) || (str_starts_with($trimmed, '{') && str_ends_with($trimmed, '}'))) {
+                $json = json_decode($trimmed, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
+                    $decoded = $json;
+                }
+            }
+        } else {
+            return [];
+        }
+
+        if (is_array($decoded)) {
+            $grouped = [];
+
+            if (! array_is_list($decoded)) {
+                foreach ($decoded as $key => $val) {
+                    $cat = static::normalizeRequirementCategoryName((string) $key);
+                    $lines = is_array($val) ? $val : (preg_split('/\R+/u', (string) $val) ?: []);
+                    foreach ($lines as $line) {
+                        if (is_array($line)) {
+                            $subCat = static::normalizeRequirementCategoryName((string) ($line['category'] ?? $cat));
+                            $subItems = is_array($line['items'] ?? null)
+                                ? $line['items']
+                                : (preg_split('/\R+/u', (string) ($line['items'] ?? $line['item'] ?? '')) ?: []);
+                            foreach ($subItems as $si) {
+                                $cleaned = $cleanItem((string) $si);
+                                if ($cleaned !== '') {
+                                    $grouped[$subCat][] = $cleaned;
+                                }
+                            }
+                            continue;
+                        }
+                        $cleaned = $cleanItem((string) $line);
+                        if ($cleaned !== '') {
+                            $grouped[$cat][] = $cleaned;
+                        }
+                    }
+                }
+            } else {
+                $flatStrings = [];
+                foreach ($decoded as $entry) {
+                    if (is_array($entry)) {
+                        $rawCat = trim((string) ($entry['category'] ?? ''));
+                        if (strtolower($rawCat) === 'other' && ! empty($entry['custom_category'])) {
+                            $rawCat = trim((string) $entry['custom_category']);
+                        }
+                        $cat = static::normalizeRequirementCategoryName($rawCat !== '' ? $rawCat : 'Knowledge');
+                        $rawItems = $entry['items'] ?? $entry['details'] ?? $entry['requirements'] ?? [];
+                        $lines = is_array($rawItems) ? $rawItems : (preg_split('/\R+/u', (string) $rawItems) ?: []);
+                        foreach ($lines as $line) {
+                            $cleaned = $cleanItem((string) $line);
+                            if ($cleaned !== '') {
+                                $grouped[$cat][] = $cleaned;
+                            }
+                        }
+                    } elseif (is_string($entry) && trim($entry) !== '') {
+                        $flatStrings[] = trim($entry);
+                    }
+                }
+
+                if ($flatStrings !== [] && $grouped === []) {
+                    return static::parseRequirementsSections(implode("\n", $flatStrings));
+                }
+            }
+
+            $result = [];
+            foreach ($grouped as $cat => $items) {
+                $uniqueItems = array_values(array_unique(array_filter($items, static fn (string $i): bool => $i !== '')));
+                if ($uniqueItems !== []) {
+                    $result[] = [
+                        'category' => $cat,
+                        'items' => $uniqueItems,
+                    ];
+                }
+            }
+
+            return $result;
+        }
+
+        // Plain-text parsing: check for explicit section headers or "Heading: item" lines
+        $lines = preg_split('/\R+/u', trim((string) $raw)) ?: [];
+        $explicitGroups = [];
+        $currentHeading = null;
+        $unheadedLines = [];
+
+        $knownHeadingPattern = '/^(?:#+\s*|\*\*)?(Hardware(?:\s*&\s*Equipment|\s*Requirements|\s*Specs)?|Software(?:\s*&\s*Tools|\s*Installations|\s*Requirements)?|Knowledge(?:\s*&\s*Prerequisites|\s*Prerequisites)?|Prerequisites?|Installations?|Tools(?:\s*&\s*Software)?|Equipment|Connectivity(?:\s*&\s*Environment)?|Internet(?:\s*&\s*Connectivity)?|Environment|Materials(?:\s*&\s*Accounts)?|Accounts?)(?:\*\*)?\s*(?:[:\-]\s*(.*))?$/iu';
+
+        foreach ($lines as $rawLine) {
+            $line = trim((string) $rawLine);
+            if ($line === '') {
+                continue;
+            }
+
+            // Check "[Heading]" or "### Heading" or "Heading:" with empty remainder
+            if (preg_match('/^(?:\[([^\]]+)\]|#+\s*(.+?)|([A-Za-z][A-Za-z0-9\s&\/\-]{1,38}):)$/', $line, $hMatch) === 1) {
+                $headingCandidate = trim((string) ($hMatch[1] ?: ($hMatch[2] ?: $hMatch[3])));
+                $currentHeading = static::normalizeRequirementCategoryName($headingCandidate);
+                if (! isset($explicitGroups[$currentHeading])) {
+                    $explicitGroups[$currentHeading] = [];
+                }
+                continue;
+            }
+
+            // Check "KnownHeading: item1; item2"
+            if (preg_match($knownHeadingPattern, $line, $kMatch) === 1) {
+                $headingCandidate = static::normalizeRequirementCategoryName((string) $kMatch[1]);
+                $remainder = trim((string) ($kMatch[2] ?? ''));
+                $currentHeading = $headingCandidate;
+                if ($remainder !== '') {
+                    foreach (preg_split('/\s*[;|]\s*/u', $remainder) ?: [$remainder] as $part) {
+                        $cleaned = $cleanItem($part);
+                        if ($cleaned !== '') {
+                            $explicitGroups[$currentHeading][] = $cleaned;
+                        }
+                    }
+                }
+                continue;
+            }
+
+            $cleaned = $cleanItem($line);
+            if ($cleaned === '') {
+                continue;
+            }
+
+            if ($currentHeading !== null) {
+                $explicitGroups[$currentHeading][] = $cleaned;
+            } else {
+                $unheadedLines[] = $cleaned;
+            }
+        }
+
+        // Auto-classify any unheaded lines into Hardware, Knowledge, Software, Connectivity & Environment
+        if ($unheadedLines !== []) {
+            foreach ($unheadedLines as $line) {
+                $guessed = static::guessRequirementCategory($line);
+                $explicitGroups[$guessed][] = $line;
+            }
+        }
+
+        // Sort standard categories first (Hardware -> Knowledge -> Software -> Connectivity & Environment -> others)
+        $preferredOrder = ['Hardware', 'Knowledge', 'Software', 'Connectivity & Environment', 'Materials & Accounts'];
+        uksort($explicitGroups, static function (string $a, string $b) use ($preferredOrder): int {
+            $posA = array_search($a, $preferredOrder, true);
+            $posB = array_search($b, $preferredOrder, true);
+            $rankA = $posA === false ? 999 : $posA;
+            $rankB = $posB === false ? 999 : $posB;
+
+            return $rankA <=> $rankB;
+        });
+
+        $result = [];
+        foreach ($explicitGroups as $cat => $items) {
+            $uniqueItems = array_values(array_unique(array_filter($items, static fn (string $i): bool => $i !== '')));
+            if ($uniqueItems !== []) {
+                $result[] = [
+                    'category' => $cat,
+                    'items' => $uniqueItems,
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    public static function normalizeRequirementCategoryName(string $rawCategory): string
+    {
+        $clean = trim((string) preg_replace('/^[\s#*\[(\-]+|[\s#*\]):\-]+$/u', '', $rawCategory));
+        $lower = strtolower($clean);
+
+        if ($lower === '' || in_array($lower, ['knowledge', 'prerequisite', 'prerequisites', 'prior knowledge', 'background', 'skills', 'knowledge & prerequisites'], true)) {
+            return 'Knowledge';
+        }
+
+        if (in_array($lower, ['hardware', 'hardward', 'device', 'devices', 'equipment', 'computer', 'system requirements', 'hardware & equipment', 'hardware requirements', 'specs', 'specifications'], true)) {
+            return 'Hardware';
+        }
+
+        if (in_array($lower, ['software', 'installation', 'installations', 'tools', 'tools & software', 'software & tools', 'software & installations', 'software installations', 'applications', 'apps'], true)) {
+            return 'Software';
+        }
+
+        if (in_array($lower, ['connectivity', 'internet', 'network', 'environment', 'workspace', 'connectivity & environment', 'internet & connectivity'], true)) {
+            return 'Connectivity & Environment';
+        }
+
+        if (in_array($lower, ['materials', 'accounts', 'materials & accounts', 'resources', 'datasets'], true)) {
+            return 'Materials & Accounts';
+        }
+
+        return ucwords($clean);
+    }
+
+    public static function guessRequirementCategory(string $line): string
+    {
+        $lower = strtolower($line);
+
+        // Knowledge / Prerequisite checks first for phrases like "basic computer literacy" or "no prior experience"
+        if (preg_match('/\b(literacy|understanding|familiar|familiarity|knowledge|prerequisite|experience|beginner|willingness|passion|motivation|interest|logic|mathematics|math|algebra|statistics|english|proficiency|fundamentals|concepts|mindset|dedication|commitment|hours?\s+per\s+week|hours?\/week)\b/i', $lower) === 1) {
+            return 'Knowledge';
+        }
+
+        // Connectivity & Environment checks
+        if (preg_match('/\b(internet|wi-?fi|broadband|network\s+connection|stable\s+connection|data\s+bundle|quiet\s+place|workspace)\b/i', $lower) === 1) {
+            return 'Connectivity & Environment';
+        }
+
+        // Software & Installations checks
+        if (preg_match('/\b(install|installed|installation|python|vs\s*code|visual\s+studio|pycharm|intellij|code\s+editor|text\s+editor|ide|git|github|docker|postman|node\.?js|npm|composer|php|mysql|postgresql|sqlite|mongodb|anaconda|jupyter|flutter|android\s+studio|xcode|figma|canva|photoshop|illustrator|excel|word|powerpoint|microsoft\s+office|google\s+sheets|power\s+bi|tableau|browser|chrome|firefox|zoom|google\s+meet|teams|terminal|sdk|jdk|package|software)\b/i', $lower) === 1) {
+            return 'Software';
+        }
+
+        // Hardware checks
+        if (preg_match('/\b(laptop|desktop|pc|macbook|computer|ram|gb\b|tb\b|ssd|hdd|disk\s+space|storage|processor|cpu|gpu|core\s+i[3579]|ryzen|webcam|camera|microphone|mic\b|headset|headphones|earphones|monitor|screen|smartphone|tablet|mouse|keyboard|hardware)\b/i', $lower) === 1) {
+            return 'Hardware';
+        }
+
+        return 'Knowledge';
+    }
+
+    /**
+     * @return array{
+     *     title: string,
+     *     subtitle: string,
+     *     icon: string,
+     *     card_classes: string,
+     *     icon_classes: string,
+     *     badge_classes: string,
+     *     check_classes: string
+     * }
+     */
+    public static function resolveRequirementCategoryMeta(string $category): array
+    {
+        $normalized = static::normalizeRequirementCategoryName($category);
+
+        return match ($normalized) {
+            'Hardware' => [
+                'title' => 'Hardware',
+                'subtitle' => 'Hardware & Device Requirements',
+                'icon' => 'fa-solid fa-laptop',
+                'card_classes' => 'border-amber-200/80 bg-amber-50/35',
+                'icon_classes' => 'bg-amber-100 text-amber-700 border border-amber-200/80',
+                'badge_classes' => 'bg-amber-100/80 text-amber-800 border-amber-200',
+                'check_classes' => 'bg-amber-100 text-amber-700',
+            ],
+            'Knowledge' => [
+                'title' => 'Knowledge',
+                'subtitle' => 'Prerequisites & Prior Knowledge',
+                'icon' => 'fa-solid fa-brain',
+                'card_classes' => 'border-teal-200/80 bg-teal-50/35',
+                'icon_classes' => 'bg-teal-100 text-teal-700 border border-teal-200/80',
+                'badge_classes' => 'bg-teal-100/80 text-teal-800 border-teal-200',
+                'check_classes' => 'bg-teal-100 text-teal-700',
+            ],
+            'Software' => [
+                'title' => 'Software',
+                'subtitle' => 'Required Software & Installations',
+                'icon' => 'fa-solid fa-cubes',
+                'card_classes' => 'border-indigo-200/80 bg-indigo-50/35',
+                'icon_classes' => 'bg-indigo-100 text-indigo-700 border border-indigo-200/80',
+                'badge_classes' => 'bg-indigo-100/80 text-indigo-800 border-indigo-200',
+                'check_classes' => 'bg-indigo-100 text-indigo-700',
+            ],
+            'Connectivity & Environment' => [
+                'title' => 'Connectivity & Environment',
+                'subtitle' => 'Internet & Study Environment',
+                'icon' => 'fa-solid fa-wifi',
+                'card_classes' => 'border-emerald-200/80 bg-emerald-50/35',
+                'icon_classes' => 'bg-emerald-100 text-emerald-700 border border-emerald-200/80',
+                'badge_classes' => 'bg-emerald-100/80 text-emerald-800 border-emerald-200',
+                'check_classes' => 'bg-emerald-100 text-emerald-700',
+            ],
+            'Materials & Accounts' => [
+                'title' => 'Materials & Accounts',
+                'subtitle' => 'Accounts, Datasets & Resources',
+                'icon' => 'fa-solid fa-folder-open',
+                'card_classes' => 'border-cyan-200/80 bg-cyan-50/35',
+                'icon_classes' => 'bg-cyan-100 text-cyan-700 border border-cyan-200/80',
+                'badge_classes' => 'bg-cyan-100/80 text-cyan-800 border-cyan-200',
+                'check_classes' => 'bg-cyan-100 text-cyan-700',
+            ],
+            default => [
+                'title' => $normalized,
+                'subtitle' => 'Additional Course Requirements',
+                'icon' => 'fa-solid fa-layer-group',
+                'card_classes' => 'border-slate-200/90 bg-slate-50/60',
+                'icon_classes' => 'bg-slate-200/80 text-slate-700 border border-slate-300/80',
+                'badge_classes' => 'bg-slate-100 text-slate-700 border-slate-200',
+                'check_classes' => 'bg-teal-100 text-teal-700',
+            ],
+        };
+    }
 }
+
+

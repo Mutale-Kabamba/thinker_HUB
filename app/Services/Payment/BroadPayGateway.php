@@ -308,7 +308,13 @@ class BroadPayGateway
     public function verifyWebhookSignature(string $rawPayload, ?string $signatureHeader): bool
     {
         if (empty($this->webhookSecret)) {
-            // When secret is not yet set in .env, allow webhook in non-production or log warning
+            if (app()->environment('production')) {
+                Log::critical('BroadPay webhook rejected: BROADPAY_WEBHOOK_SECRET is not configured in production.');
+
+                return false;
+            }
+
+            // When secret is not yet set in .env, allow webhook in non-production
             return true;
         }
 

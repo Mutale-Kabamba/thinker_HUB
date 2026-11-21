@@ -45,7 +45,7 @@ class AssignmentTaskEmbedded extends Component
         $this->validate([
             'content' => 'nullable|string',
             'link' => 'nullable|url',
-            'file' => 'nullable|file|max:20480', // 20MB max
+            'file' => 'nullable|file|max:10240', // 10MB max
         ]);
 
         $userId = Auth::id();

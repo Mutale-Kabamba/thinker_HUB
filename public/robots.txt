@@ -1,3 +1,11 @@
 User-agent: *
 Allow: /
+Disallow: /manage
+Disallow: /instructor
+Disallow: /student
+Disallow: /parent
+Disallow: /dashboard
+Disallow: /checkout
+Disallow: /profile
+Disallow: /livewire
 Sitemap: https://thinkerhub.online/sitemap.xml

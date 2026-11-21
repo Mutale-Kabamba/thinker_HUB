@@ -19,26 +19,30 @@ trait HasReviews
 
     public function updateCachedRating(): void
     {
-        $stats = $this->approvedReviews()
-            ->whereNotNull('rating')
-            ->selectRaw('AVG(rating) as avg_rating, COUNT(rating) as rating_count')
-            ->first();
+        try {
+            $stats = $this->approvedReviews()
+                ->whereNotNull('rating')
+                ->selectRaw('AVG(rating) as avg_rating, COUNT(rating) as rating_count')
+                ->first();
 
-        $totalReviewCount = $this->approvedReviews()->count();
+            $totalReviewCount = $this->approvedReviews()->count();
 
-        $avg = $stats && $stats->avg_rating !== null ? round((float) $stats->avg_rating, 2) : 0.00;
-        $count = $totalReviewCount;
+            $avg = $stats && $stats->avg_rating !== null ? round((float) $stats->avg_rating, 2) : 0.00;
+            $count = $totalReviewCount;
 
-        if ($this instanceof \App\Models\Course) {
-            $this->updateQuietly([
-                'average_rating' => $avg,
-                'review_count' => $count,
-            ]);
-        } elseif ($this instanceof \App\Models\User) {
-            $this->updateQuietly([
-                'instructor_rating' => $avg,
-                'instructor_review_count' => $count,
-            ]);
+            if ($this instanceof \App\Models\Course) {
+                $this->updateQuietly([
+                    'average_rating' => $avg,
+                    'review_count' => $count,
+                ]);
+            } elseif ($this instanceof \App\Models\User) {
+                $this->updateQuietly([
+                    'instructor_rating' => $avg,
+                    'instructor_review_count' => $count,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            report($e);
         }
     }
 }

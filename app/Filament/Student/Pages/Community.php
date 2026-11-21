@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Models\XpTransaction;
 use App\Services\GamificationService;
 use Carbon\Carbon;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -343,6 +344,23 @@ class Community extends Page
 
     // ---------------------------------------------------------------- Friends
 
+    /**
+     * Get IDs of students enrolled in Kids Courses or designated as kids.
+     * Enforces privacy: Any course marked for Kids must NOT show Kids to the friends public community.
+     *
+     * @return array<int, int>
+     */
+    public static function getExcludedKidUserIds(): array
+    {
+        return User::query()
+            ->where('is_kid', true)
+            ->orWhereHas('courses', fn ($q) => $q->where('courses.is_for_kids', true))
+            ->orWhereHas('parents')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
     public function getFriendsProperty(): Collection
     {
         $user = auth()->user();
@@ -351,7 +369,11 @@ class Community extends Page
             return collect();
         }
 
-        return $user->friends()->load(['enrollments.course', 'enrollments.intake']);
+        $excludedKidIds = $this->getExcludedKidUserIds();
+
+        return $user->friends()
+            ->reject(fn (User $friend): bool => in_array($friend->id, $excludedKidIds, true))
+            ->load(['enrollments.course', 'enrollments.intake']);
     }
 
     public function getPendingRequestsProperty(): Collection
@@ -362,9 +384,12 @@ class Community extends Page
             return collect();
         }
 
+        $excludedKidIds = $this->getExcludedKidUserIds();
+
         return Friendship::query()
             ->with(['requester.enrollments.course', 'requester.enrollments.intake'])
             ->where('friend_id', $user->id)
+            ->whereNotIn('user_id', $excludedKidIds)
             ->where('status', 'pending')
             ->latest()
             ->get();
@@ -387,6 +412,8 @@ class Community extends Page
             return ['rows' => collect(), 'total' => 0, 'shown' => 0];
         }
 
+        $excludedKidIds = $this->getExcludedKidUserIds();
+
         // Classmates: students sharing >=1 enrolled course, with course names.
         $viewerCourseIds = Enrollment::query()->where('user_id', $user->id)->pluck('course_id');
 
@@ -397,6 +424,7 @@ class Community extends Page
                 ->join('courses', 'courses.id', '=', 'enrollments.course_id')
                 ->whereIn('enrollments.course_id', $viewerCourseIds)
                 ->where('enrollments.user_id', '!=', $user->id)
+                ->whereNotIn('enrollments.user_id', $excludedKidIds)
                 ->get(['enrollments.user_id', 'courses.title'])
                 ->groupBy('user_id')
                 ->map(fn ($rows): array => [
@@ -408,6 +436,7 @@ class Community extends Page
         $students = User::query()
             ->where('role', 'student')
             ->where('id', '!=', $user->id)
+            ->whereNotIn('id', $excludedKidIds)
             ->orderBy('name')
             ->get(['id', 'name']);
 
@@ -489,6 +518,17 @@ class Community extends Page
         $target = User::query()->where('role', 'student')->find($userId);
 
         if (! $target) {
+            return;
+        }
+
+        $excludedKidIds = $this->getExcludedKidUserIds();
+        if (in_array($userId, $excludedKidIds, true) && ! $viewer->isAdmin()) {
+            Notification::make()
+                ->warning()
+                ->title('Protected Profile')
+                ->body('This student is enrolled in a Kids Course and is protected under child safety privacy.')
+                ->send();
+
             return;
         }
 
@@ -600,6 +640,17 @@ class Community extends Page
         $user = auth()->user();
 
         if (! $user || $userId === $user->id) {
+            return;
+        }
+
+        $excludedKidIds = $this->getExcludedKidUserIds();
+        if (in_array($userId, $excludedKidIds, true)) {
+            Notification::make()
+                ->warning()
+                ->title('Request Not Allowed')
+                ->body('Friend requests cannot be sent to students enrolled in Kids Courses.')
+                ->send();
+
             return;
         }
 
@@ -832,11 +883,13 @@ class Community extends Page
 
         // 4. Cohort Academic Performance Leaderboard calculation (scoped to student's class peers)
         $peerIds = $user->getClassPeerIds();
+        $excludedKidIds = $this->getExcludedKidUserIds();
 
         $allStudents = User::query()
             ->where('role', 'student')
             ->where('is_active', true)
             ->whereIn('id', $peerIds)
+            ->whereNotIn('id', $excludedKidIds)
             ->get(['id', 'name']);
 
         $studentIds = $allStudents->pluck('id')->all();

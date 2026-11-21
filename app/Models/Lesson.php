@@ -25,6 +25,7 @@ class Lesson extends Model
             'min_watch_percentage' => 'integer',
             'sort_order' => 'integer',
             'order_column' => 'integer',
+            'attachments' => 'array',
         ];
     }
 
@@ -75,40 +76,22 @@ class Lesson extends Model
      */
     public static function extractYoutubeId(?string $url): ?string
     {
-        if (! $url) {
-            return null;
-        }
-
-        // youtu.be/<id>
-        if (preg_match('~youtu\.be/([A-Za-z0-9_-]{11})~', $url, $m)) {
-            return $m[1];
-        }
-
-        // youtube.com/watch?v=<id>, /embed/<id>, /shorts/<id>, /live/<id>
-        if (preg_match('~(?:v=|/embed/|/shorts/|/live/)([A-Za-z0-9_-]{11})~', $url, $m)) {
-            return $m[1];
-        }
-
-        // Bare 11-char id
-        if (preg_match('~^[A-Za-z0-9_-]{11}$~', trim($url))) {
-            return trim($url);
-        }
-
-        return null;
+        return \App\Support\VideoEmbedParser::extractYoutubeId($url);
     }
 
     public function getYoutubeIdAttribute(): ?string
     {
-        $url = $this->video_url ?: $this->youtube_url;
-
-        return static::extractYoutubeId($url);
+        return static::extractYoutubeId($this->video_url);
     }
 
     public function getEmbedUrlAttribute(): ?string
     {
-        $id = $this->youtube_id;
+        return \App\Support\VideoEmbedParser::parse($this->video_url)['embed_url'];
+    }
 
-        return $id ? "https://www.youtube.com/embed/{$id}" : null;
+    public function getVideoPlatformAttribute(): ?string
+    {
+        return \App\Support\VideoEmbedParser::parse($this->video_url)['platform'];
     }
 
     public function getVideoUrlAttribute(): ?string

@@ -51,6 +51,23 @@ class ProfileController extends Controller
             $validatedData['whatsapp'] = $request->input('whatsapp_number');
         }
 
+        if (isset($validatedData['default_portal']) && ! $request->user()?->isAdmin()) {
+            $requestedPortal = $validatedData['default_portal'];
+            $allowedPortals = ['student'];
+            if ($targetUser->isInstructor()) {
+                $allowedPortals[] = 'instructor';
+            }
+            if ($targetUser->isContributor()) {
+                $allowedPortals[] = 'contributor';
+            }
+            if ($targetUser->isParent() || $targetUser->kids()->exists()) {
+                $allowedPortals[] = 'parent';
+            }
+            if (! in_array($requestedPortal, $allowedPortals, true)) {
+                unset($validatedData['default_portal']);
+            }
+        }
+
         $targetUser->fill($validatedData);
 
         if ($targetUser->isDirty('email')) {
@@ -80,10 +97,11 @@ class ProfileController extends Controller
     }
 
     /**
-     * Sync enrollments for a profile owner or admin.
+     * Sync enrollments for an admin only.
      */
     public function syncEnrollments(Request $request, User $user): RedirectResponse
     {
+        abort_unless($request->user()?->isAdmin(), 403);
         $this->authorize('update', $user);
 
         $data = $request->validate([

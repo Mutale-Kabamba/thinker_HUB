@@ -19,8 +19,8 @@
             @csrf
 
             <div>
-                <x-input-label for="email" class="text-slate-700 dark:text-slate-300" :value="__('Email')" />
-                <x-text-input id="email" class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" type="email" name="email" :value="old('email', $prefilledEmail ?? '')" required autofocus autocomplete="username" />
+                <x-input-label for="email" class="text-slate-700 dark:text-slate-300" :value="__('Email or Kid Login Code')" />
+                <x-text-input id="email" class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-none focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" type="text" name="email" :value="old('email', $prefilledEmail ?? '')" placeholder="you@email.com or TH-KID-XXXX" required autofocus autocomplete="username" />
                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
             </div>
 

@@ -231,7 +231,7 @@ class Assignments extends Page
         $this->refreshAssignments();
     }
 
-    public function downloadFile(int $assignmentId, ?int $fileIndex = null): ?StreamedResponse
+    public function downloadFile(int $assignmentId, ?int $fileIndex = null): mixed
     {
         $user = auth()->user();
 
@@ -256,18 +256,18 @@ class Assignments extends Page
             return null;
         }
 
-        $path = PublicDiskPath::normalize($rawPath);
+        [$resolvedDisk, $resolvedPath] = \App\Support\DocumentResponse::resolveFile($rawPath);
 
-        if (! $path || ! Storage::disk('public')->exists($path)) {
+        if (! $resolvedPath || ! $resolvedDisk) {
             Notification::make()->title('Attachment is missing from storage.')->danger()->send();
 
             return null;
         }
 
-        return Storage::disk('public')->download($path, Str::afterLast($path, '/'));
+        return \App\Support\DocumentResponse::serve($resolvedPath, Str::afterLast($resolvedPath, '/'), isDownload: true);
     }
 
-    public function downloadSubmissionFile(int $assignmentId, ?int $fileIndex = null): ?StreamedResponse
+    public function downloadSubmissionFile(int $assignmentId, ?int $fileIndex = null): mixed
     {
         $user = auth()->user();
 
@@ -295,9 +295,9 @@ class Assignments extends Page
             return null;
         }
 
-        $path = PublicDiskPath::normalize($rawPath);
+        [$resolvedDisk, $resolvedPath] = \App\Support\DocumentResponse::resolveFile($rawPath);
 
-        if (! $path || ! Storage::disk('public')->exists($path)) {
+        if (! $resolvedPath || ! $resolvedDisk) {
             Notification::make()->title('Submission attachment is missing from storage.')->danger()->send();
 
             return null;
@@ -306,11 +306,11 @@ class Assignments extends Page
         $rawFirst = explode(' ', trim((string) ($user->name ?? 'Student')))[0] ?? 'Student';
         $studentFirst = Str::slug($rawFirst, '_');
         $assignmentSlug = Str::slug((string) ($submission->assignment?->name ?? 'Assignment'), '_');
-        $ext = pathinfo($path, PATHINFO_EXTENSION) ?: 'pdf';
+        $ext = pathinfo($resolvedPath, PATHINFO_EXTENSION) ?: 'pdf';
         $suffix = $fileIndex !== null && count($paths) > 1 ? '_' . ($fileIndex + 1) : '';
         $downloadName = "{$studentFirst}_{$assignmentSlug}{$suffix}.{$ext}";
 
-        return Storage::disk('public')->download($path, $downloadName);
+        return \App\Support\DocumentResponse::serve($resolvedPath, $downloadName, isDownload: true);
     }
 
     protected function refreshAssignments(): void

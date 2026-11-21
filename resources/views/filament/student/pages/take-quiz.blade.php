@@ -74,15 +74,31 @@
                                         </div>
                                     @elseif (in_array($question['type'], ['theory', 'practical']))
                                         <div class="mt-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 text-xs sm:text-sm">
-                                            <p class="m-0 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Your Answer:</p>
-                                            <p class="m-0 mt-1 text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{{ $question['user_answer']['text'] ?? 'No answer provided' }}</p>
+                                            <div class="flex items-center justify-between mb-1">
+                                                <p class="m-0 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Your Answer:</p>
+                                                @if (isset($question['user_answer']['points_earned']))
+                                                    <span class="inline-flex items-center gap-1 font-bold text-xs {{ !empty($question['user_answer']['is_correct']) ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">
+                                                        <span>{{ $question['user_answer']['points_earned'] }} / {{ $question['points'] }} pts</span>
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <p class="m-0 text-slate-800 dark:text-slate-200 whitespace-pre-wrap font-mono text-xs bg-white dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">{{ $question['user_answer']['text'] ?? 'No answer provided' }}</p>
+
+                                            @if (!empty($question['user_answer']['feedback']))
+                                                <div class="mt-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-800/80">
+                                                    <p class="m-0 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                                                        <span>🤖 AI Feedback:</span>
+                                                    </p>
+                                                    <p class="m-0 mt-0.5 text-xs text-slate-600 dark:text-slate-300 italic">{{ $question['user_answer']['feedback'] }}</p>
+                                                </div>
+                                            @endif
                                         </div>
                                     @endif
 
                                     @if (!empty($question['explanation']))
                                         <div class="mt-3 p-3 bg-sky-50 dark:bg-sky-950/40 border-l-4 border-sky-500 rounded-r-xl text-xs sm:text-sm text-slate-700 dark:text-slate-300">
-                                            <p class="m-0 font-bold text-sky-700 dark:text-sky-300 text-xs">Explanation</p>
-                                            <p class="m-0 mt-1">{{ $question['explanation'] }}</p>
+                                            <p class="m-0 font-bold text-sky-700 dark:text-sky-300 text-xs">Reference Explanation / Solution</p>
+                                            <p class="m-0 mt-1 whitespace-pre-wrap">{{ $question['explanation'] }}</p>
                                         </div>
                                     @endif
                                 </div>

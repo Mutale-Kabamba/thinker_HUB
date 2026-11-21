@@ -45,7 +45,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
             
             {{-- Left Wide Hero Announcement Banner (~70% / 8 cols on LG) --}}
-            <div class="lg:col-span-8 flex flex-col justify-between space-y-2.5">
+            <div id="tour-student-hero" class="lg:col-span-8 flex flex-col justify-between space-y-2.5">
                 <div 
                     class="relative overflow-hidden rounded-2xl shadow-sm h-[300px] sm:h-[230px] md:h-[220px] min-h-[300px] sm:min-h-[230px] md:min-h-[220px] max-h-[300px] sm:max-h-[230px] md:max-h-[220px] grid" 
                     style="grid-template-areas: 'slide';"
@@ -166,7 +166,7 @@
             </div>
 
             {{-- Right "My ranking" Card (~30% / 4 cols on LG) --}}
-            <div class="lg:col-span-4 edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col justify-between">
+            <div id="tour-student-ranking" class="lg:col-span-4 edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col justify-between">
                 <div class="space-y-3">
                     <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">My ranking</h2>
 
@@ -215,7 +215,7 @@
             <div class="lg:col-span-8 space-y-5">
 
                 {{-- STATUS SECTION: 3 PASTEL KPI CARDS (MATERIALS, ASSIGNMENTS, ASSESSMENTS) --}}
-                <div class="space-y-3">
+                <div id="tour-student-status" class="space-y-3">
                     <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Status</h2>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -338,7 +338,7 @@
                 </div>
 
                 {{-- MY COURSES SECTION (TABLE / LIST) --}}
-                <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
+                <div id="tour-student-courses-card" class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
                         <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">My Courses</h2>
 
@@ -368,7 +368,7 @@
                     </div>
 
                     {{-- Desktop Courses Table --}}
-                    <div class="overflow-x-auto hidden md:block">
+                    <div class="overflow-x-auto hub-desktop-only">
                         <table class="w-full text-left text-xs">
                             <thead class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-[#233842]">
                                 <tr>
@@ -432,7 +432,7 @@
                     </div>
 
                     {{-- Mobile Course Cards --}}
-                    <div class="md:hidden space-y-3 pt-1">
+                    <div class="hub-mobile-only space-y-3 pt-1">
                         @forelse ($enrolledCourses as $idx => $course)
                             <div 
                                 x-show="activeTab === 'active' ? !@js($course['is_completed']) : @js($course['is_completed'])"
@@ -490,7 +490,7 @@
             <div class="lg:col-span-4 space-y-5">
                 
                 {{-- RIGHT RAIL TOP: STATUS MINI CALENDAR --}}
-                <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-3">
+                <div id="tour-student-calendar" class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-3">
                     <div class="flex items-center justify-between">
                         <div>
                             <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ $calendar['month'] ?? 'Schedule' }}</h2>
@@ -605,7 +605,7 @@
                 </div>
 
                 {{-- RIGHT RAIL BOTTOM: UPCOMING / SELECTED DAY TIMELINE --}}
-                <div class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
+                <div id="tour-student-agenda" class="edtech-card bg-white dark:bg-[#102028] rounded-2xl p-5 border border-slate-100 dark:border-[#233842] shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
                         <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">
                             @if ($selectedDate)
@@ -788,10 +788,13 @@
                     </div>
 
                     {{-- Virtual Meeting Link --}}
-                    @if ($selectedSessionDetails['meeting_link'])
+                    @if (($selectedSessionDetails['delivery_mode'] ?? 'live_virtual') === 'live_virtual' && $selectedSessionDetails['meeting_link'])
                         <div class="p-3.5 rounded-xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 flex items-center justify-between gap-3">
                             <div class="min-w-0 flex-1">
-                                <p class="text-xs font-bold text-purple-900 dark:text-purple-200">Virtual Classroom</p>
+                                <p class="text-xs font-bold text-purple-900 dark:text-purple-200 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#7C3AED]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                    <span>Virtual Classroom</span>
+                                </p>
                                 <p class="text-[11px] text-purple-700/80 dark:text-purple-300/80 truncate">{{ $selectedSessionDetails['meeting_link'] }}</p>
                             </div>
                             <a 
@@ -800,9 +803,61 @@
                                 rel="noopener"
                                 class="px-4 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
                             >
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                                 <span>Join Class</span>
                             </a>
+                        </div>
+                    @endif
+
+                    {{-- Physical Class Address --}}
+                    @if (($selectedSessionDetails['delivery_mode'] ?? '') === 'live_physical' && $selectedSessionDetails['physical_address'])
+                        <div class="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-amber-900 dark:text-amber-200">Physical Venue / Address</p>
+                                <p class="text-xs text-amber-800/90 dark:text-amber-300/90 font-medium whitespace-pre-line">{{ $selectedSessionDetails['physical_address'] }}</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Video Guide Session --}}
+                    @if (($selectedSessionDetails['delivery_mode'] ?? '') === 'video')
+                        <div class="p-3.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900 flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-indigo-900 dark:text-indigo-200">Video Guide Session</p>
+                                <p class="text-[11px] text-indigo-700/80 dark:text-indigo-300/80">
+                                    Spend at least {{ $selectedSessionDetails['required_duration_minutes'] ?? 15 }} mins watching to mark attendance.
+                                </p>
+                            </div>
+                            @if (!empty($selectedSessionDetails['viewer_url']))
+                                <a 
+                                    href="{{ $selectedSessionDetails['viewer_url'] }}" 
+                                    class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
+                                >
+                                    <span>Watch Video</span>
+                                </a>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- Reading Material Session --}}
+                    @if (($selectedSessionDetails['delivery_mode'] ?? '') === 'read')
+                        <div class="p-3.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-900 flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-teal-900 dark:text-teal-200">Reading Material Session</p>
+                                <p class="text-[11px] text-teal-700/80 dark:text-teal-300/80">
+                                    Read actively for at least {{ $selectedSessionDetails['required_duration_minutes'] ?? 15 }} mins to mark attendance.
+                                </p>
+                            </div>
+                            @if (!empty($selectedSessionDetails['viewer_url']))
+                                <a 
+                                    href="{{ $selectedSessionDetails['viewer_url'] }}" 
+                                    class="px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all no-underline inline-flex items-center gap-1.5"
+                                >
+                                    <span>Read Guide</span>
+                                </a>
+                            @endif
                         </div>
                     @endif
 

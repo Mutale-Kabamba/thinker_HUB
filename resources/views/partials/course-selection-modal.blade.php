@@ -36,49 +36,48 @@
     {{-- Modal Sheet --}}
     <div
         @click.stop
-        class="relative w-full max-w-xl bg-white rounded-3xl overflow-hidden border border-slate-200 transition-all duration-300 z-10 my-auto"
+        class="relative w-full max-w-lg bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xl transition-all duration-300 z-10 my-auto"
         x-show="isOpen"
         x-transition:enter="ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-6 scale-95"
+        x-transition:enter-start="opacity-0 translate-y-4 scale-98"
         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
         x-transition:leave="ease-in duration-200"
         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-        x-transition:leave-end="opacity-0 translate-y-6 scale-95"
+        x-transition:leave-end="opacity-0 translate-y-4 scale-98"
     >
         {{-- Top Gradient Header --}}
-        <div class="bg-[#0a2d27] px-6 py-5 text-white relative overflow-hidden">
-            <div class="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-teal-600/20 blur-xl pointer-events-none"></div>
-            <div class="flex items-start justify-between gap-4 relative z-10">
+        <div class="bg-[#0a2d27] px-5 py-3.5 text-white relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 w-28 h-28 rounded-full bg-teal-600/20 blur-xl pointer-events-none"></div>
+            <div class="flex items-center justify-between gap-3 relative z-10">
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center rounded-full bg-yellow-400/20 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-yellow-300 border border-yellow-400/30">
-                            Select Option
+                        <span class="inline-flex items-center rounded-full bg-yellow-400/20 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-yellow-300 border border-yellow-400/30">
+                            Select Plan
                         </span>
-                        <span class="text-xs font-mono text-teal-300" x-text="courseCode"></span>
+                        <span class="text-[11px] font-mono text-teal-300" x-text="courseCode"></span>
                     </div>
-                    <h3 id="course-opt-title" class="mt-1 text-lg sm:text-xl font-black text-white leading-snug truncate" x-text="courseTitle"></h3>
-                    <p class="mt-1 text-xs text-slate-300">Choose your preferred learning track and delivery mode before checkout.</p>
+                    <h3 id="course-opt-title" class="mt-1 text-base sm:text-lg font-black text-white leading-snug truncate" x-text="courseTitle"></h3>
                 </div>
                 <button
                     type="button"
                     @click="closeModal()"
-                    class="h-8 w-8 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 flex items-center justify-center transition shrink-0 cursor-pointer"
+                    class="h-7 w-7 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 flex items-center justify-center transition shrink-0 cursor-pointer"
                     aria-label="Close modal"
                 >
-                    <i class="fa-solid fa-xmark text-sm"></i>
+                    <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
         </div>
 
         {{-- Mode Filter Tabs (visible when both Group and 1:1 exist) --}}
-        <div class="px-6 pt-4 pb-2 border-b border-slate-100 flex items-center justify-between gap-2" x-show="availableModes.length > 1">
-            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Filter Delivery Mode:</p>
-            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+        <div class="px-5 py-2.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between gap-2" x-show="availableModes.length > 1">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mode:</p>
+            <div class="inline-flex rounded-lg bg-slate-200/60 p-0.5 border border-slate-200/80">
                 <button
                     type="button"
                     @click="activeFilter = 'all'"
-                    class="px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer"
-                    :class="activeFilter === 'all' ? 'bg-white text-[#0a2d27]' : 'text-slate-500 hover:text-slate-800'"
+                    class="px-2.5 py-0.5 text-[11px] font-bold rounded-md transition cursor-pointer"
+                    :class="activeFilter === 'all' ? 'bg-white text-[#0a2d27] shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
                 >
                     All (<span x-text="options.length"></span>)
                 </button>
@@ -86,8 +85,8 @@
                     <button
                         type="button"
                         @click="activeFilter = mode"
-                        class="px-3 py-1 text-xs font-bold rounded-lg transition capitalize cursor-pointer"
-                        :class="activeFilter === mode ? 'bg-white text-[#0a2d27]' : 'text-slate-500 hover:text-slate-800'"
+                        class="px-2.5 py-0.5 text-[11px] font-bold rounded-md transition capitalize cursor-pointer"
+                        :class="activeFilter === mode ? 'bg-white text-[#0a2d27] shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
                         x-text="mode === 'one_on_one' ? '1:1 Private' : (mode === 'self_paced' ? 'Self-Paced' : 'Group Class')"
                     >
                     </button>
@@ -96,62 +95,61 @@
         </div>
 
         {{-- Options Cards List --}}
-        <div class="p-6 max-h-[52vh] overflow-y-auto space-y-3">
+        <div class="p-4 sm:p-5 max-h-[50vh] overflow-y-auto space-y-2.5">
             <template x-for="(opt, idx) in filteredOptions" :key="opt.id || idx">
                 <div
                     @click="selectOption(opt)"
-                    class="group relative rounded-2xl border-2 p-4 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    class="group relative rounded-xl border p-3 sm:py-3 sm:px-3.5 transition-all duration-150 cursor-pointer flex items-center justify-between gap-3"
                     :class="selectedOption && selectedOption.id === opt.id
-                        ? 'border-teal-600 bg-teal-50/70 ring-2 ring-teal-600/20'
-                        : 'border-slate-200 bg-white hover:border-teal-300 hover:bg-slate-50/50'"
+                        ? 'border-teal-600 bg-teal-50/60 ring-1 ring-teal-600/30 shadow-2xs'
+                        : 'border-slate-200 bg-white hover:border-teal-300 hover:bg-slate-50/40'"
                 >
-                    <div class="flex items-start gap-3.5 min-w-0 flex-1">
-                        {{-- Radio / Checkbox Indicator --}}
-                        <div class="pt-0.5 shrink-0">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        {{-- Radio Indicator --}}
+                        <div class="shrink-0">
                             <div
-                                class="h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors"
+                                class="h-4 w-4 rounded-full border flex items-center justify-center transition-colors"
                                 :class="selectedOption && selectedOption.id === opt.id
                                     ? 'border-teal-600 bg-teal-600 text-white'
                                     : 'border-slate-300 bg-white group-hover:border-teal-400'"
                             >
-                                <i class="fa-solid fa-check text-[10px]" x-show="selectedOption && selectedOption.id === opt.id"></i>
+                                <i class="fa-solid fa-check text-[8px]" x-show="selectedOption && selectedOption.id === opt.id"></i>
                             </div>
                         </div>
 
                         {{-- Details --}}
                         <div class="min-w-0 flex-1">
-                            <div class="flex flex-wrap items-center gap-2 mb-1">
-                                <span class="text-sm font-black text-slate-900" x-text="opt.level + ' Level'"></span>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span class="text-xs sm:text-sm font-bold text-slate-900 truncate" x-text="opt.level"></span>
                                 <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold"
+                                    class="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-semibold"
                                     :class="opt.category === 'one_on_one'
-                                        ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                                        ? 'bg-purple-50 text-purple-700 border border-purple-200'
                                         : (opt.category === 'self_paced'
-                                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                                            : 'bg-emerald-100 text-emerald-800 border border-emerald-200')"
+                                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200')"
                                     x-text="opt.mode_label"
                                 >
                                 </span>
                                 <template x-if="opt.duration">
-                                    <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
-                                        <i class="fa-regular fa-clock text-teal-600 text-[10px]"></i>
+                                    <span class="inline-flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                                        <i class="fa-regular fa-clock text-slate-400 text-[9px]"></i>
                                         <span x-text="opt.duration"></span>
                                     </span>
                                 </template>
                             </div>
-                            <p class="text-xs text-slate-600 leading-relaxed" x-text="opt.highlight"></p>
                         </div>
                     </div>
 
-                    {{-- Price & Badge Column --}}
-                    <div class="sm:text-right shrink-0 flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
-                        <span class="text-base font-black text-[#0a2d27]" x-text="opt.formatted_amount"></span>
+                    {{-- Price Column --}}
+                    <div class="text-right shrink-0">
+                        <span class="text-sm sm:text-base font-extrabold text-[#0a2d27] block tabular-nums" x-text="opt.formatted_amount"></span>
                         <span
-                            class="text-[10px] font-bold px-2 py-0.5 rounded-full mt-1"
+                            class="text-[9px] font-semibold px-1.5 py-0.2 rounded inline-block"
                             :class="selectedOption && selectedOption.id === opt.id
-                                ? 'bg-teal-600 text-white'
-                                : 'bg-slate-100 text-slate-600'"
-                            x-text="selectedOption && selectedOption.id === opt.id ? 'Selected' : opt.mode_badge"
+                                ? 'text-teal-700 font-bold'
+                                : 'text-slate-400'"
+                            x-text="selectedOption && selectedOption.id === opt.id ? 'Selected' : (opt.mode_badge || '')"
                         >
                         </span>
                     </div>
@@ -160,14 +158,14 @@
         </div>
 
         {{-- Footer CTA --}}
-        <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div class="text-xs text-slate-600 text-center sm:text-left">
+        <div class="bg-slate-50/80 px-5 py-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs min-w-0 flex-1 w-full sm:w-auto">
                 <template x-if="selectedOption">
-                    <div>
-                        <span class="text-slate-400">Selected Plan:</span>
-                        <strong class="text-slate-800 ml-1" x-text="selectedOption.level + ' (' + selectedOption.mode_label + ')'"></strong>
-                        <span class="mx-1 text-slate-300">&bull;</span>
-                        <strong class="text-teal-700" x-text="selectedOption.formatted_amount"></strong>
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="text-slate-400 text-[11px] shrink-0">Selected:</span>
+                        <strong class="text-slate-800 text-xs truncate" :title="selectedOption.level" x-text="selectedOption.level"></strong>
+                        <span class="text-slate-300 shrink-0">&bull;</span>
+                        <strong class="text-teal-700 text-xs tabular-nums shrink-0 whitespace-nowrap" x-text="selectedOption.formatted_amount"></strong>
                     </div>
                 </template>
             </div>
@@ -176,10 +174,10 @@
                 type="button"
                 @click="proceedToCheckout()"
                 :disabled="!selectedOption"
-                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-yellow-400 px-6 py-3 text-xs font-extrabold text-[#0a2d27] transition hover:bg-yellow-300 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-full bg-yellow-400 px-5 py-2.5 text-xs font-bold text-[#0a2d27] transition hover:bg-yellow-300 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
             >
                 <span>Proceed to Checkout</span>
-                <i class="fa-solid fa-arrow-right text-xs"></i>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
             </button>
         </div>
     </div>
@@ -231,15 +229,18 @@ function courseOptionModalHandler() {
 
             // Auto-select preferred or first option
             if (this.options.length > 0) {
-                const defaultTrack = data.defaultTrack ? String(data.defaultTrack).toLowerCase() : 'beginner';
+                const defaultTrack = data.defaultTrack ? String(data.defaultTrack).toLowerCase() : null;
                 const defaultMode = data.defaultMode ? String(data.defaultMode).toLowerCase() : null;
 
                 let match = null;
-                if (defaultMode) {
+                if (defaultMode && defaultTrack) {
                     match = this.options.find(o => (o.category || o.mode) === defaultMode && String(o.level).toLowerCase() === defaultTrack);
                 }
-                if (!match) {
+                if (!match && defaultTrack) {
                     match = this.options.find(o => String(o.level).toLowerCase() === defaultTrack);
+                }
+                if (!match && defaultMode) {
+                    match = this.options.find(o => (o.category || o.mode) === defaultMode);
                 }
                 this.selectedOption = match || this.options[0];
             } else {

@@ -5,6 +5,7 @@ namespace App\Filament\Student\Pages;
 use App\Models\Quiz;
 use App\Models\QuizAnswer;
 use App\Models\QuizAttempt;
+use App\Services\QuizAutoGradingService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
@@ -187,6 +188,8 @@ class TakeQuiz extends Page
         $totalPoints = 0;
         $earnedPoints = 0;
 
+        $autoGradingService = app(QuizAutoGradingService::class);
+
         foreach ($quiz->questions as $question) {
             $totalPoints += $question->points;
             $answer = $this->answers[$question->id] ?? null;
@@ -195,6 +198,7 @@ class TakeQuiz extends Page
             $pointsEarned = 0;
             $optionId = null;
             $textAnswer = null;
+            $feedback = null;
 
             if ($question->type === 'multiple_choice') {
                 $optionId = $answer ? (int) $answer : null;
@@ -203,8 +207,14 @@ class TakeQuiz extends Page
                 $pointsEarned = $isCorrect ? $question->points : 0;
                 $earnedPoints += $pointsEarned;
             } else {
-                // Theory and practical - store text, admin will grade
+                // Theory and practical - auto-grade using Gemini AI evaluator
                 $textAnswer = is_string($answer) ? $answer : null;
+                $evaluation = $autoGradingService->grade($question, $textAnswer);
+
+                $pointsEarned = $evaluation['points_earned'];
+                $isCorrect = $evaluation['is_correct'];
+                $feedback = $evaluation['feedback'];
+                $earnedPoints += $pointsEarned;
             }
 
             QuizAnswer::query()->updateOrCreate(
@@ -217,6 +227,7 @@ class TakeQuiz extends Page
                     'text_answer' => $textAnswer,
                     'is_correct' => $isCorrect,
                     'points_earned' => $pointsEarned,
+                    'feedback' => $feedback,
                 ]
             );
         }
@@ -296,6 +307,7 @@ class TakeQuiz extends Page
                         'text' => $answer->text_answer,
                         'is_correct' => $answer->is_correct,
                         'points_earned' => $answer->points_earned,
+                        'feedback' => $answer->feedback,
                     ] : null,
                 ];
             })->toArray();

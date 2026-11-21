@@ -9,6 +9,7 @@ use App\Filament\Instructor\Resources\LearningMaterialResource\Pages\ListLearnin
 use App\Models\LearningMaterial;
 use App\Models\User;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -146,37 +147,27 @@ class LearningMaterialResource extends Resource
                 FileUpload::make('file_path')
                     ->label(fn (callable $get): string => match ($get('material_type')) {
                         'Image' => 'Upload Image',
-                        'Video' => 'Upload Video',
-                        default => 'Upload File',
+                        default => 'Upload Attachment / File (PDF, PPTX, ZIP, .py, etc.)',
                     })
                     ->disk('public')
                     ->directory('materials')
-                    ->maxSize(20480)
-                    ->acceptedFileTypes(fn (callable $get): array => match ($get('material_type')) {
-                        'Image' => ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
-                        'Video' => ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/quicktime'],
-                        default => [
-                            'application/pdf',
-                            'application/msword',
-                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                            'application/vnd.ms-powerpoint',
-                            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                            'application/vnd.ms-excel',
-                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                            'text/plain',
-                            'text/csv',
-                        ],
-                    })
-                    ->visible(fn (callable $get): bool => in_array($get('material_type'), ['Document', 'Image', 'Video']))
+                    ->storeFileNamesIn('file_name')
+                    ->openable()
+                    ->downloadable()
+                    ->maxSize(10240)
+                    ->helperText('All file types supported (PDF, PPTX, ZIP, .py, notebooks, docs, etc.) — maximum 10 MB.')
+                    ->visible(fn (callable $get): bool => in_array($get('material_type'), ['Document', 'Image']))
                     ->required(fn (callable $get, string $operation): bool => $operation === 'create' && ($get('material_type') === 'Document' || $get('material_type') === 'Image'))
-                    ->dehydrated(fn (?string $state): bool => filled($state))
                     ->columnSpanFull(),
 
                 TextInput::make('video_url')
-                    ->label('Video URL (YouTube, Vimeo, etc.)')
+                    ->label('Embedded Video URL (YouTube, Vimeo, Loom, etc.)')
                     ->url()
+                    ->placeholder('https://www.youtube.com/watch?v=... or https://vimeo.com/...')
                     ->visible(fn (callable $get): bool => $get('material_type') === 'Video')
-                    ->helperText('Provide a URL or upload a video file above, or both.'),
+                    ->required(fn (callable $get): bool => $get('material_type') === 'Video')
+                    ->helperText('Embed a video from YouTube, Vimeo, Loom, Dailymotion, Wistia, Google Drive, or any video platform.')
+                    ->columnSpanFull(),
 
                 TextInput::make('link_url')
                     ->label('Link URL')
@@ -205,7 +196,7 @@ class LearningMaterialResource extends Resource
                         'Quiz Preps' => 'warning',
                         'Answer Kits' => 'info',
                         'Project Guides' => 'indigo',
-                        'Cheat Sheets' => 'purple',
+                        'Cheat Sheets' => 'emerald',
                         'Practice Exercises' => 'teal',
                         'Past Papers' => 'amber',
                         'Rules' => 'danger',
@@ -253,7 +244,31 @@ class LearningMaterialResource extends Resource
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    Action::make('view_file')
+                        ->label('View')
+                        ->icon('heroicon-m-eye')
+                        ->color('info')
+                        ->visible(fn (LearningMaterial $record): bool => filled($record->file_path) || filled($record->link_url))
+                        ->url(fn (LearningMaterial $record): string => filled($record->file_path)
+                            ? route('file.view', ['type' => 'material', 'id' => $record->id])
+                            : $record->link_url
+                        )
+                        ->openUrlInNewTab(),
+                    Action::make('download_file')
+                        ->label('Download')
+                        ->icon('heroicon-m-arrow-down-tray')
+                        ->color('gray')
+                        ->visible(fn (LearningMaterial $record): bool => filled($record->file_path))
+                        ->url(fn (LearningMaterial $record): string => route('file.download', ['type' => 'material', 'id' => $record->id]))
+                        ->openUrlInNewTab(),
+                    EditAction::make()
+                        ->icon('heroicon-m-pencil-square'),
+                    \Filament\Actions\DeleteAction::make()
+                        ->icon('heroicon-m-trash'),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->color('gray'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

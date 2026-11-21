@@ -8,6 +8,7 @@ use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class AttendancesRelationManager extends RelationManager
 {
@@ -29,6 +30,7 @@ class AttendancesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('student', fn ($q) => $q->where('is_active', true)->withoutTestStudents()))
             ->columns([
                 TextColumn::make('student.name')
                     ->label('Student')
@@ -41,7 +43,10 @@ class AttendancesRelationManager extends RelationManager
                         Attendance::STATUS_LATE => 'Late',
                         Attendance::STATUS_APOLOGY => 'Apology',
                     ])
-                    ->selectablePlaceholder(false),
+                    ->selectablePlaceholder(false)
+                    ->afterStateUpdated(function (Attendance $record): void {
+                        $record->session?->syncAsCompleted();
+                    }),
                 TextInputColumn::make('notes')
                     ->label('Notes')
                     ->placeholder('Optional note'),
@@ -50,6 +55,35 @@ class AttendancesRelationManager extends RelationManager
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->headerActions([
+                \Filament\Actions\Action::make('mark_session_completed')
+                    ->label('Mark Session Completed')
+                    ->icon('heroicon-m-check-badge')
+                    ->color('success')
+                    ->visible(fn (): bool => $this->ownerRecord && $this->ownerRecord->status !== 'completed')
+                    ->requiresConfirmation()
+                    ->action(function (): void {
+                        $this->ownerRecord?->syncAsCompleted();
+                        \Filament\Notifications\Notification::make()
+                            ->title('Session Completed')
+                            ->body('This session has been marked as completed.')
+                            ->success()
+                            ->send();
+                    }),
+                \Filament\Actions\Action::make('open_register')
+                    ->label('Open Dedicated Register')
+                    ->icon('heroicon-m-arrow-top-right-on-square')
+                    ->color('primary')
+                    ->url(function (): string {
+                        $sessionId = $this->ownerRecord?->id;
+                        $panel = filament()->getCurrentPanel()?->getId();
+                        $routeName = $panel === 'instructor'
+                            ? 'filament.instructor.pages.attendance-register'
+                            : 'filament.admin.pages.attendance-register';
+
+                        return route($routeName, ['session_id' => $sessionId]);
+                    }),
             ])
             ->defaultSort('id');
     }

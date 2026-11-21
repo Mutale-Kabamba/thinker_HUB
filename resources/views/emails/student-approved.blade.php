@@ -13,7 +13,7 @@
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 20px;">
                     <tr>
                         <td align="center">
-                            <a href="{{ config('app.url') }}" style="display: inline-block; text-decoration: none; font-size: 24px; font-weight: 800; color: #0a2d27; letter-spacing: -0.03em;">
+                            <a href="http://thinkerhub.online" style="display: inline-block; text-decoration: none; font-size: 24px; font-weight: 800; color: #0a2d27; letter-spacing: -0.03em;">
                                 think.er <span style="color: #0f766e;">HUB</span>
                             </a>
                         </td>
@@ -148,8 +148,8 @@
 
                 <!-- Bottom Branding -->
                 <p style="margin:16px 0 0;font-size:11px;color:#94a3b8;text-align:center;line-height:1.5;">
-                    &copy; {{ date('Y') }} think.er HUB &bull; 10A Off Natwange Street, Airport, Livingstone, Zambia<br>
-                    Official learning platform by <a href="{{ config('app.url') }}" style="color:#0f766e;text-decoration:underline;">oristudiozm.com</a>
+                    &copy; {{ date('Y') }} <a href="http://thinkerhub.online" style="color:#0f766e;text-decoration:underline;font-weight:600;">think.er HUB</a> &bull; 10A Off Natwange Street, Airport, Livingstone, Zambia<br>
+                    Official learning platform &bull; <a href="http://thinkerhub.online" style="color:#0f766e;text-decoration:underline;">thinkerhub.online</a>
                 </p>
             </td>
         </tr>

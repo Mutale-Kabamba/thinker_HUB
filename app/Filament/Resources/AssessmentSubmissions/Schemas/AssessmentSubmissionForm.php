@@ -19,6 +19,7 @@ class AssessmentSubmissionForm
         return $schema
             ->components([
                 Grid::make(2)
+                    ->columnSpanFull()
                     ->schema([
                         Section::make('Submission Details')
                             ->icon(Heroicon::OutlinedInformationCircle)
@@ -105,6 +106,7 @@ class AssessmentSubmissionForm
                 Section::make('Grading')
                     ->icon(Heroicon::OutlinedAcademicCap)
                     ->description('Update the submission status, score, and provide feedback')
+                    ->columnSpanFull()
                     ->schema([
                         Grid::make(3)
                             ->schema([
