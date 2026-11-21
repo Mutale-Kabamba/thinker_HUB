@@ -235,6 +235,13 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureMailDeliverabilityHeaders();
         $this->configureMailSslPeerName();
+
+        // Automatically sync new/updated courses, intakes, articles, opportunities, and videos into Candice's knowledge base
+        \App\Models\Course::observe(\App\Observers\CandiceKnowledgeBaseObserver::class);
+        \App\Models\CourseIntake::observe(\App\Observers\CandiceKnowledgeBaseObserver::class);
+        \App\Models\HubPost::observe(\App\Observers\CandiceKnowledgeBaseObserver::class);
+        \App\Models\Opportunity::observe(\App\Observers\CandiceKnowledgeBaseObserver::class);
+        \App\Models\ResourceVideo::observe(\App\Observers\CandiceKnowledgeBaseObserver::class);
     }
 
     private function configureMailDeliverabilityHeaders(): void

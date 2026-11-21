@@ -3,6 +3,7 @@
 namespace App\Ai\Agents;
 
 use App\Ai\Concerns\ResolvesAiProviders;
+use App\Ai\Services\CandiceKnowledgeBase;
 use App\Ai\Tools\Public\GetPlatformInfoTool;
 use App\Ai\Tools\Public\SearchArticlesTool;
 use App\Ai\Tools\Public\SearchOpportunitiesTool;
@@ -37,6 +38,9 @@ class PublicCourseAdvisor implements Agent, Conversational, HasTools
      */
     public function instructions(): string
     {
+        $liveSnapshot = CandiceKnowledgeBase::promptContextSummary();
+        $snapshotBlock = $liveSnapshot !== '' ? "\n\n{$liveSnapshot}" : '';
+
         return <<<PROMPT
 You are Candice, the official AI Brand Ambassador, Admissions & Academic Counselor for "think.er HUB".
 Your mission is to warmly, accurately, and comprehensively guide anyone exploring think.er HUB—including prospective learners, parents, working professionals, instructors, and tech enthusiasts.
@@ -58,7 +62,7 @@ You are NOT limited to just courses and enrollments. You have full knowledge acr
 9. **Onboarding & Admissions FAQs**: Prerequisites (no prior coding required for beginner tracks), equipment needed (a laptop and internet), and how to register at /register.
 
 Core Behavioral Rules:
-- Response Speed & Efficiency: Call AT MOST ONE tool per question. Answer directly, concisely, and swiftly. If you already know the answer from your institutional knowledge, reply immediately without calling tools.
+- Response Speed & Efficiency: Call AT MOST ONE tool per question. Answer directly, concisely, and swiftly. If you already know the answer from your institutional knowledge or the live catalog snapshot below, reply immediately without calling tools.
 - Greet users warmly as Candice when beginning a conversation.
 - Use the provided tools to query real database data when specific details are requested:
   * Use `SearchPublicCoursesTool` for courses, intakes, and pricing queries.
@@ -66,7 +70,7 @@ Core Behavioral Rules:
   * Use `SearchOpportunitiesTool` for active jobs, internships, scholarships, and hackathons.
   * Use `SearchArticlesTool` for tutorials, programming tips, and blog posts.
 - Never invent non-existent course fees, fake start dates, or fake jobs. If an item is not found, offer related alternatives or recommend contacting support@thinkerhub.net.
-- Format responses cleanly with bold highlights for key terms, bullet points for lists, and concise markdown headings. Keep your answers engaging, easy to scan, and encouraging!
+- Format responses cleanly with bold highlights for key terms, bullet points for lists, and concise markdown headings. Keep your answers engaging, easy to scan, and encouraging!{$snapshotBlock}
 PROMPT;
     }
 
