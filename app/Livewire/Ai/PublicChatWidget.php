@@ -3,6 +3,7 @@
 namespace App\Livewire\Ai;
 
 use App\Ai\Agents\PublicCourseAdvisor;
+use App\Ai\Services\CandiceKnowledgeBase;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Component;
@@ -60,11 +61,11 @@ class PublicChatWidget extends Component
                 try {
                     $history = array_slice($this->messages, -10);
                     $agent = new PublicCourseAdvisor(history: array_slice($history, 0, -1));
-                    $response = $agent->prompt($input, timeout: 12);
+                    $response = $agent->prompt($input, timeout: 10);
 
                     $replyText = trim((string) $response);
                     if ($replyText === '') {
-                        $replyText = 'Thank you for reaching out! Please explore our course catalog or contact our admissions team at support@thinkerhub.net.';
+                        $replyText = CandiceKnowledgeBase::answer($input);
                     }
 
                     $this->messages[] = [
@@ -76,12 +77,15 @@ class PublicChatWidget extends Component
                     $this->messages = array_slice($this->messages, -12);
                     session(['public_ai_messages' => $this->messages]);
                 } catch (\Throwable $e) {
-                    Log::warning('PublicCourseAdvisor timeout or error: ' . $e->getMessage(), ['exception' => $e]);
+                    Log::warning('PublicCourseAdvisor unavailable, using Candice preloaded knowledge base: ' . $e->getMessage(), ['exception' => $e]);
                     $this->messages[] = [
                         'role' => 'assistant',
-                        'content' => "I'm experiencing a brief network delay fetching live catalog data. You can explore our [Course Catalog](/courses) directly, or feel free to ask me again in just a moment!",
+                        'content' => CandiceKnowledgeBase::answer($input),
                         'created_at' => now()->format('H:i'),
                     ];
+
+                    $this->messages = array_slice($this->messages, -12);
+                    session(['public_ai_messages' => $this->messages]);
                 }
             },
             60
