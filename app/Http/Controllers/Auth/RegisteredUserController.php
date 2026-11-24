@@ -209,6 +209,7 @@ class RegisteredUserController extends Controller
         }
 
         $user = User::create([
+            'tenant_id' => $course->tenant_id,
             'name' => $request->name,
             'email' => $request->email,
             'gender' => $request->gender ? ucfirst(strtolower($request->gender)) : null,
@@ -219,9 +220,13 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        app(\App\Services\UtmAttributionService::class)->attachToUser($user, $request);
+
         Enrollment::firstOrCreate([
             'user_id' => $user->id,
             'course_id' => $course->id,
+        ], [
+            'tenant_id' => $course->tenant_id,
         ]);
 
         $this->notifyAdminsAboutNewStudent($user, $course, false);

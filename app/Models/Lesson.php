@@ -26,6 +26,8 @@ class Lesson extends Model
             'sort_order' => 'integer',
             'order_column' => 'integer',
             'attachments' => 'array',
+            'video_quality_variants' => 'array',
+            'resource_files' => 'array',
         ];
     }
 
@@ -57,6 +59,11 @@ class Lesson extends Model
     public function content(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function scormPackage(): BelongsTo
+    {
+        return $this->belongsTo(ScormPackage::class);
     }
 
     public function progress(): HasMany
