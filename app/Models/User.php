@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use App\Notifications\QueuedVerifyEmail;
 use App\Support\PublicDiskPath;
 use App\Services\CertificateService;
@@ -27,7 +28,9 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
 class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasReviews, Notifiable, PasskeyAuthenticatable;
+    use BelongsToTenant, HasFactory, HasReviews, Notifiable, PasskeyAuthenticatable;
+
+    public const ROLE_PROGRAM_ADMIN = 'program_admin';
 
     /**
      * The attributes that are mass assignable.
@@ -35,6 +38,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
      * @var list<string>
      */
     protected $fillable = [
+        'tenant_id',
         'name',
         'email',
         'gender',
@@ -575,6 +579,18 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         return $this->role === 'admin';
     }
 
+    public function isProgramAdmin(): bool
+    {
+        return $this->role === self::ROLE_PROGRAM_ADMIN;
+    }
+
+    public function managedTenantId(): ?int
+    {
+        return $this->isProgramAdmin() && $this->tenant_id !== null
+            ? (int) $this->tenant_id
+            : null;
+    }
+
     public function isInstructor(): bool
     {
         return $this->role === 'instructor'
@@ -1031,7 +1047,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         }
 
         return match ($panel->getId()) {
-            'admin' => $this->isAdmin(),
+            'admin' => $this->isAdmin() || $this->isProgramAdmin(),
             'instructor' => $this->isInstructor() || $this->isAdmin(),
             'contributor' => $this->isContributor() || $this->isAdmin(),
             'student' => $this->isStudent() || $this->isAdmin(),

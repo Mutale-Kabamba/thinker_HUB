@@ -1,9 +1,12 @@
-const CACHE_NAME = 'thinkerhub-v3';
+const CACHE_NAME = 'thinkerhub-v4';
+const COURSE_CACHE_NAME = 'thinkerhub-offline-courses-v1';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_ASSETS = [
   '/',
   '/learn',
+  '/learn/offline',
+  '/js/thinker-offline.js',
   '/manifest.json',
   OFFLINE_URL,
   '/images/logos/green.png',
@@ -15,7 +18,7 @@ const PRECACHE_ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(PRECACHE_ASSETS);
+      return Promise.allSettled(PRECACHE_ASSETS.map(url => cache.add(url)));
     })
   );
   self.skipWaiting();
@@ -25,7 +28,9 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => {
       return Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+        keys
+          .filter(k => k !== CACHE_NAME && k !== COURSE_CACHE_NAME)
+          .map(k => caches.delete(k))
       );
     })
   );
@@ -37,7 +42,28 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(event.request.url);
 
-  // HTML navigation requests: Network-First with Offline Fallback
+  // Saved offline course assets (videos, PDFs, SCORM files): check offline course cache first
+  if (
+    url.pathname.startsWith('/storage/') ||
+    url.pathname.includes('/scorm/') ||
+    url.pathname.endsWith('.mp4') ||
+    url.pathname.endsWith('.webm') ||
+    url.pathname.endsWith('.pdf')
+  ) {
+    event.respondWith(
+      caches.open(COURSE_CACHE_NAME).then(courseCache => {
+        return courseCache.match(event.request, { ignoreSearch: false }).then(cached => {
+          if (cached) {
+            return cached;
+          }
+          return fetch(event.request).catch(() => caches.match(event.request));
+        });
+      })
+    );
+    return;
+  }
+
+  // HTML navigation requests: Network-First with Offline Library / Offline Fallback
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -50,7 +76,11 @@ self.addEventListener('fetch', event => {
         })
         .catch(() => {
           return caches.match(event.request).then(cached => {
-            return cached || caches.match(OFFLINE_URL);
+            if (cached) return cached;
+            if (url.pathname.startsWith('/learn/offline')) {
+              return caches.match('/learn/offline');
+            }
+            return caches.match(OFFLINE_URL);
           });
         })
     );
@@ -60,6 +90,7 @@ self.addEventListener('fetch', event => {
   // Static Assets (Images, Icons, Fonts, CSS, JS): Stale-While-Revalidate / Cache-First
   if (
     url.pathname.startsWith('/images/') ||
+    url.pathname.startsWith('/js/') ||
     url.pathname.endsWith('.png') ||
     url.pathname.endsWith('.jpg') ||
     url.pathname.endsWith('.svg') ||
@@ -90,4 +121,3 @@ self.addEventListener('fetch', event => {
     fetch(event.request).catch(() => caches.match(event.request))
   );
 });
-
