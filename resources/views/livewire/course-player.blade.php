@@ -1,38 +1,49 @@
-<div class="flex h-screen w-full flex-col bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden">
+<div
+    x-data="{ curriculumOpen: false }"
+    class="flex min-h-dvh lg:h-screen w-full flex-col bg-slate-950 text-slate-100 font-sans antialiased lg:overflow-hidden"
+>
     <!-- Top Navigation Header -->
-    <header class="h-16 border-b border-slate-800 bg-slate-900 px-6 flex items-center justify-between z-10 shrink-0">
-        <div class="flex items-center space-x-4 truncate">
-            <a href="{{ Route::has('portal.dashboard') ? route('portal.dashboard') : route('filament.student.pages.overview') }}" class="text-slate-400 hover:text-white transition p-1.5 rounded-lg hover:bg-slate-800" title="Back to Dashboard">
+    <header class="sticky top-0 h-14 sm:h-16 border-b border-slate-800/90 bg-slate-900/95 backdrop-blur px-3 sm:px-6 flex items-center justify-between gap-2 z-30 shrink-0">
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+            <a href="{{ Route::has('portal.dashboard') ? route('portal.dashboard') : route('filament.student.pages.overview') }}" class="text-slate-400 hover:text-white transition p-2 rounded-xl hover:bg-slate-800 shrink-0" title="Back to Dashboard">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             </a>
-            <h1 class="font-semibold text-slate-100 truncate text-base lg:text-lg">{{ $course->title }}</h1>
+            <h1 class="font-semibold text-slate-100 truncate text-sm sm:text-base lg:text-lg">{{ $course->title }}</h1>
         </div>
 
-        <!-- Overall Course Progress Gauge -->
-        <div class="flex items-center space-x-4">
-            <div class="hidden sm:flex flex-col items-end">
-                <span class="text-xs text-slate-400">Your Progress</span>
-                <span class="text-sm font-semibold text-emerald-400">{{ $overallProgress }}%</span>
+        <!-- Overall Course Progress Gauge + Mobile Curriculum Trigger -->
+        <div class="flex items-center gap-2.5 sm:gap-4 shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-emerald-400">{{ $overallProgress }}%</span>
+                <div class="hidden sm:block w-28 bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div class="bg-emerald-500 h-full transition-all duration-300" style="width: {{ $overallProgress }}%"></div>
+                </div>
             </div>
-            <div class="w-32 bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div class="bg-emerald-500 h-full transition-all duration-300" style="width: {{ $overallProgress }}%"></div>
-            </div>
+
+            <button
+                type="button"
+                @click="curriculumOpen = true"
+                class="lg:hidden inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/90 px-3 py-1.5 text-xs font-semibold text-slate-100 hover:bg-slate-700 active:scale-95 transition"
+            >
+                <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h10"/></svg>
+                <span>Lessons</span>
+            </button>
         </div>
     </header>
 
     <!-- Main Learning Layout Grid -->
-    <div class="flex flex-1 overflow-hidden">
+    <div class="relative flex flex-1 lg:overflow-hidden">
         
         <!-- Left Content Area -->
-        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-900/50 p-6 lg:p-10 justify-between">
-            <div class="max-w-4xl w-full mx-auto space-y-6">
+        <main class="flex-1 flex flex-col lg:overflow-y-auto bg-slate-900/40 p-4 sm:p-6 lg:p-10 justify-between">
+            <div class="max-w-4xl w-full mx-auto space-y-5">
                 @if($activeLesson)
                     <!-- Title & Type Meta -->
-                    <div class="border-b border-slate-800 pb-4">
-                        <span class="inline-block px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider rounded bg-indigo-900/50 text-indigo-400 mb-2">
+                    <div class="border-b border-slate-800/80 pb-3.5">
+                        <span class="inline-block px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded-md bg-teal-950/80 text-teal-300 border border-teal-800/50 mb-2">
                             {{ strtoupper($activeLesson->type) }}
                         </span>
-                        <h2 class="text-2xl font-bold text-white">{{ $activeLesson->title }}</h2>
+                        <h2 class="text-lg sm:text-2xl font-bold text-white leading-snug">{{ $activeLesson->title }}</h2>
                     </div>
 
                     <!-- DYNAMIC CONTENT DISPATCHER -->
@@ -300,13 +311,35 @@
             @endif
         </main>
 
-        <!-- Right Curriculum Sidebar (Udemy Style) -->
-        <aside class="w-80 lg:w-96 border-l border-slate-800 bg-slate-900 flex flex-col h-full overflow-hidden shrink-0">
+        <!-- Mobile Backdrop for Curriculum Drawer -->
+        <div
+            x-show="curriculumOpen"
+            x-transition.opacity
+            @click="curriculumOpen = false"
+            class="fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-xs lg:hidden"
+            style="display: none;"
+        ></div>
+
+        <!-- Right Curriculum Sidebar (Slide-over drawer on mobile, fixed sidebar on lg+) -->
+        <aside
+            :class="curriculumOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'"
+            class="fixed inset-y-0 right-0 z-50 w-[86vw] max-w-sm lg:static lg:z-auto lg:w-88 xl:w-96 border-l border-slate-800 bg-slate-900 flex flex-col h-full overflow-hidden shrink-0 transform transition-transform duration-200 ease-out"
+        >
             <div class="p-4 border-b border-slate-800 bg-slate-900 font-semibold text-sm text-slate-200 flex items-center justify-between">
-                <span>Course Content</span>
-                <span class="text-xs text-slate-500 font-normal">
-                    {{ $course->lessons->count() }} lessons
-                </span>
+                <div class="flex items-center gap-2">
+                    <span>Course Content</span>
+                    <span class="text-xs text-slate-500 font-normal">
+                        ({{ $course->lessons->count() }})
+                    </span>
+                </div>
+                <button
+                    type="button"
+                    @click="curriculumOpen = false"
+                    class="lg:hidden rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                    aria-label="Close lessons"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
 
             <div class="flex-1 overflow-y-auto divide-y divide-slate-800">
@@ -332,8 +365,9 @@
 
                                     <div 
                                         wire:click="selectLesson({{ $lesson->id }})"
+                                        @click="curriculumOpen = false"
                                         class="flex items-center px-4 py-3 space-x-3 transition cursor-pointer 
-                                        {{ $isActive ? 'bg-indigo-950/40 border-l-4 border-indigo-500' : 'hover:bg-slate-800/30' }}
+                                        {{ $isActive ? 'bg-teal-950/50 border-l-4 border-teal-500' : 'hover:bg-slate-800/30' }}
                                         {{ !$isUnlocked ? 'opacity-45 cursor-not-allowed' : '' }}"
                                     >
                                         <!-- Status Icon Indicator -->
@@ -374,8 +408,9 @@
 
                             <div 
                                 wire:click="selectLesson({{ $lesson->id }})"
+                                @click="curriculumOpen = false"
                                 class="flex items-center px-4 py-3 space-x-3 transition cursor-pointer 
-                                {{ $isActive ? 'bg-indigo-950/40 border-l-4 border-indigo-500' : 'hover:bg-slate-800/30' }}
+                                {{ $isActive ? 'bg-teal-950/50 border-l-4 border-teal-500' : 'hover:bg-slate-800/30' }}
                                 {{ !$isUnlocked ? 'opacity-45 cursor-not-allowed' : '' }}"
                             >
                                 <div class="shrink-0">

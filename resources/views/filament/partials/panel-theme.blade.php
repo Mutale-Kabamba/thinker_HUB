@@ -5761,3 +5761,128 @@
     })();
 </script>
 
+<style>
+    /* =========================================================================
+       MINIMALIST MODERN UI & MOBILE-FIRST UX POLISH (ALL 5 PORTALS)
+       ========================================================================= */
+    html, body {
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .fi-btn,
+    .fi-ta-action,
+    .fi-sidebar-item-btn,
+    .fi-tabs-item,
+    .fi-dropdown-list-item {
+        transition: background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                    color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                    transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
+                    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+
+    .fi-btn:active {
+        transform: scale(0.985);
+    }
+
+    /* Cleaner, lighter card elevation & hairline borders */
+    .fi-ta-ctn,
+    .fi-wi-stats-overview-stat,
+    .fi-section {
+        border-radius: 16px !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+    }
+
+    /* Smooth horizontal table scrolling */
+    .fi-ta-content {
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    /* Mobile-first refinements */
+    @media (max-width: 767px) {
+        html, body, .fi-layout, .fi-main {
+            overflow-x: clip !important;
+            max-width: 100vw !important;
+        }
+
+        .fi-main {
+            padding-inline: 0.75rem !important;
+            padding-bottom: max(4.5rem, env(safe-area-inset-bottom, 1rem)) !important;
+        }
+
+        .fi-page-header-main-ctn,
+        .fi-header {
+            gap: 0.75rem !important;
+            margin-bottom: 0.85rem !important;
+        }
+
+        .fi-header-heading {
+            font-size: 1.25rem !important;
+            line-height: 1.25 !important;
+            letter-spacing: -0.02em !important;
+        }
+
+        .fi-header-actions {
+            width: 100%;
+            gap: 0.5rem !important;
+        }
+
+        .fi-header-actions .fi-btn {
+            min-height: 42px;
+            font-size: 0.8125rem !important;
+            padding-inline: 0.9rem !important;
+            border-radius: 12px !important;
+        }
+
+        /* Prevent iOS Safari auto-zoom on form controls & improve touch comfort */
+        .fi-input,
+        .fi-select-input,
+        textarea.fi-input,
+        input[type="text"],
+        input[type="email"],
+        input[type="search"],
+        input[type="date"],
+        input[type="number"],
+        select {
+            font-size: 16px !important;
+            min-height: 42px;
+        }
+
+        /* Compact table cell density on small screens */
+        .fi-ta-cell,
+        .fi-ta-header-cell {
+            padding-inline: 0.65rem !important;
+            padding-block: 0.65rem !important;
+        }
+
+        /* Crisp bottom-sheet style modals on phones */
+        .fi-modal-window {
+            border-radius: 20px 20px 14px 14px !important;
+            margin-inline: 0.5rem !important;
+            max-height: calc(100dvh - 1.5rem) !important;
+        }
+
+        .fi-modal-header {
+            padding: 1rem 1.1rem 0.75rem !important;
+        }
+
+        .fi-modal-content {
+            padding: 0.85rem 1.1rem !important;
+        }
+
+        .fi-modal-footer {
+            padding: 0.75rem 1.1rem max(0.85rem, env(safe-area-inset-bottom, 0.85rem)) !important;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+</style>
+
