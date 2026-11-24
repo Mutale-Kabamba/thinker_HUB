@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    <livewire:student.continue-learning-widget />
     <div
         x-data="{
             activeTab: 'active',

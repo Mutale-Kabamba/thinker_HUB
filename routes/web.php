@@ -1322,7 +1322,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/learn/{course:slug}/{lessonId?}', \App\Livewire\CoursePlayer::class)
         ->name('course.player')
-        ->where('course', '^(?!courses|assessments|assignments|certificates|claim-hub|community|learning-resources|login|logout|materials|opportunities|overview|quizzes|reviews|schedule|search|settings|take-quiz).*$');
+        ->where('course', '^(?!courses|assessments|assignments|certificates|claim-hub|community|learning-resources|login|logout|materials|offline|opportunities|overview|quizzes|reviews|schedule|search|settings|take-quiz).*$');
 
     Route::get('/classroom/{course:slug}/{lessonId?}', \App\Livewire\CoursePlayer::class)
         ->name('course.classroom');
@@ -1332,6 +1332,22 @@ Route::middleware(['auth'])->group(function () {
         ->name('portal-tour.complete');
     Route::post('/portal-tour/reset', [\App\Http\Controllers\PortalTourController::class, 'reset'])
         ->name('portal-tour.reset');
+
+    // SCORM 1.2 / 2004 & xAPI Runtime API + Tracked Resource Downloads
+    Route::post('/scorm/attempts/{attempt}/commit', [\App\Http\Controllers\ScormRuntimeController::class, 'commit'])
+        ->name('scorm.commit');
+    Route::post('/scorm/attempts/{attempt}/xapi', [\App\Http\Controllers\ScormRuntimeController::class, 'xapi'])
+        ->name('scorm.xapi');
+    Route::get('/lessons/{lesson}/resources/{index}/download', [\App\Http\Controllers\ScormRuntimeController::class, 'downloadLessonResource'])
+        ->name('lessons.resource.download');
+
+    // Offline Learning Mode (Course Bundles, Sync Queue, and Standalone Offline Library)
+    Route::get('/learn/offline', [\App\Http\Controllers\OfflineLearningController::class, 'library'])
+        ->name('offline.library');
+    Route::get('/offline/courses/{course}/bundle', [\App\Http\Controllers\OfflineLearningController::class, 'courseBundle'])
+        ->name('offline.course.bundle');
+    Route::post('/offline/sync', [\App\Http\Controllers\OfflineLearningController::class, 'sync'])
+        ->name('offline.sync');
 });
 
 require __DIR__.'/auth.php';

@@ -88,6 +88,23 @@
                                     player: null,
                                     lastSaved: 0,
                                     hasTriggered: false,
+                                    lowBandwidth: false,
+                                    hdSrc: @js($videoUrl ?: ''),
+                                    sdSrc: @js($activeLesson->low_bandwidth_video_url ?: ''),
+                                    toggleBandwidth() {
+                                        if (!this.sdSrc) return;
+                                        const video = this.$refs.videoElement;
+                                        const pos = video ? video.currentTime : 0;
+                                        this.lowBandwidth = !this.lowBandwidth;
+                                        this.$nextTick(() => {
+                                            if (video) {
+                                                video.src = this.lowBandwidth ? this.sdSrc : this.hdSrc;
+                                                video.currentTime = pos;
+                                                const p = video.play();
+                                                if (p !== undefined) p.catch(() => {});
+                                            }
+                                        });
+                                    },
                                     init() {
                                         const video = this.$refs.videoElement;
                                         if (!video) return;
@@ -123,17 +140,31 @@
                                         });
                                     }
                                 }" 
-                                class="relative aspect-video rounded-xl overflow-hidden bg-black shadow-2xl border border-slate-800"
+                                class="space-y-2"
                             >
-                                <video 
-                                    x-ref="videoElement" 
-                                    controls 
-                                    autoplay
-                                    playsinline
-                                    controlsList="nodownload" 
-                                    class="w-full h-full object-contain"
-                                    src="{{ $videoUrl ?: '' }}"
-                                ></video>
+                                @if(!empty($activeLesson->low_bandwidth_video_url))
+                                    <div class="flex items-center justify-end">
+                                        <button
+                                            type="button"
+                                            x-on:click="toggleBandwidth()"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1 text-xs font-medium text-slate-200 hover:bg-slate-800 transition"
+                                        >
+                                            <span x-text="lowBandwidth ? 'Low-Bandwidth Mode: ON (Data Saver)' : 'Switch to Low-Bandwidth Mode'"></span>
+                                        </button>
+                                    </div>
+                                @endif
+                                <div class="relative aspect-video rounded-xl overflow-hidden bg-black shadow-2xl border border-slate-800">
+                                    <video 
+                                        x-ref="videoElement" 
+                                        controls 
+                                        autoplay
+                                        playsinline
+                                        preload="metadata"
+                                        controlsList="nodownload" 
+                                        class="w-full h-full object-contain"
+                                        src="{{ $videoUrl ?: '' }}"
+                                    ></video>
+                                </div>
                             </div>
                         @endif
 
@@ -177,6 +208,55 @@
                                     </button>
                                 </div>
                             @endif
+                        </div>
+
+                    @elseif($activeLesson->type === 'scorm')
+                        <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 shadow space-y-4">
+                            @if($activeLesson->scormPackage)
+                                @livewire('scorm-player', ['package' => $activeLesson->scormPackage, 'lessonId' => $activeLesson->id], key('scorm-'.$activeLesson->id))
+                            @else
+                                <div class="text-center py-8">
+                                    <p class="text-slate-400">No SCORM / xAPI package is attached to this lesson yet.</p>
+                                </div>
+                            @endif
+                        </div>
+
+                    @elseif($activeLesson->type === 'resource')
+                        @php
+                            $packetFiles = is_array($activeLesson->resource_files) && ! empty($activeLesson->resource_files)
+                                ? array_values($activeLesson->resource_files)
+                                : (is_array($activeLesson->attachments) ? array_values($activeLesson->attachments) : []);
+                        @endphp
+                        <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow space-y-4">
+                            @if($activeLesson->reading_body)
+                                <div class="prose prose-invert max-w-none text-sm">
+                                    {!! $activeLesson->reading_body !!}
+                                </div>
+                            @endif
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                @forelse($packetFiles as $rIdx => $rItem)
+                                    @php
+                                        $rName = is_array($rItem) ? ($rItem['name'] ?? basename((string) ($rItem['path'] ?? 'Resource'))) : basename((string) $rItem);
+                                    @endphp
+                                    <a
+                                        href="{{ route('lessons.resource.download', ['lesson' => $activeLesson->id, 'index' => $rIdx]) }}"
+                                        class="flex items-center justify-between p-3.5 rounded-lg bg-slate-950/80 hover:bg-slate-800 border border-slate-800 transition text-sm text-slate-100"
+                                    >
+                                        <span class="truncate font-medium">{{ $rName }}</span>
+                                        <span class="ml-3 px-2.5 py-1 rounded bg-teal-600/25 text-teal-300 text-xs font-semibold shrink-0">Download</span>
+                                    </a>
+                                @empty
+                                    <p class="text-slate-400 text-sm">No downloadable packets attached yet.</p>
+                                @endforelse
+                            </div>
+                            <div class="flex justify-end pt-2">
+                                <button
+                                    wire:click="handleVideoCompletion"
+                                    class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 font-medium rounded-lg text-white text-xs sm:text-sm transition"
+                                >
+                                    Mark Resource Complete & Continue
+                                </button>
+                            </div>
                         </div>
                     @endif
 

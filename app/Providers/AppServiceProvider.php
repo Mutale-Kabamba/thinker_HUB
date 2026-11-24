@@ -242,6 +242,9 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\HubPost::observe(\App\Observers\CandiceKnowledgeBaseObserver::class);
         \App\Models\Opportunity::observe(\App\Observers\CandiceKnowledgeBaseObserver::class);
         \App\Models\ResourceVideo::observe(\App\Observers\CandiceKnowledgeBaseObserver::class);
+
+        // Passively attach UTM campaign attribution on new enrollments
+        \App\Models\Enrollment::observe(\App\Observers\EnrollmentUtmObserver::class);
     }
 
     private function configureMailDeliverabilityHeaders(): void

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use App\Traits\HasReviews;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,7 @@ use Illuminate\Support\Collection;
 
 class Course extends Model
 {
+    use BelongsToTenant;
     use HasFactory;
     use HasReviews;
 
@@ -20,6 +22,7 @@ class Course extends Model
     ];
 
     protected $fillable = [
+        'tenant_id',
         'title',
         'slug',
         'code',

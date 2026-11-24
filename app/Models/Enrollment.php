@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Enrollment extends Model
 {
+    use BelongsToTenant;
     use HasFactory;
 
     public const STATUS_PAID = 'paid';
@@ -20,6 +22,7 @@ class Enrollment extends Model
     public const CHANNEL_INSTRUCTOR_MANUAL = 'instructor_manual';
 
     protected $fillable = [
+        'tenant_id',
         'user_id',
         'course_id',
         'course_intake_id',
