@@ -3,89 +3,168 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Offline · think.er HUB</title>
+    <title>Offline Workspace · think.er HUB</title>
     <meta name="theme-color" content="#07191e">
     <link rel="icon" type="image/png" href="/images/logos/icon_green.png">
     <style>
+        :root {
+            --bg: #07191e;
+            --surface: rgba(15, 34, 41, 0.82);
+            --surface-solid: #0d232a;
+            --border: rgba(148, 163, 184, 0.14);
+            --border-strong: rgba(20, 184, 166, 0.35);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --accent: #14b8a6;
+            --accent-soft: rgba(20, 184, 166, 0.14);
+            --amber: #f59e0b;
+            --emerald: #10b981;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Segoe UI", Inter, Roboto, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: #07191e;
-            color: #f1f5f9;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        .wrap {
-            max-width: 320px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logo {
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
-            opacity: 0.9;
-        }
-
-        .status {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #94a3b8;
-            letter-spacing: 0.02em;
-        }
-
-        .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #f87171;
-        }
-
-        h1 {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: #ffffff;
-            letter-spacing: -0.01em;
-        }
-
-        p {
-            font-size: 0.825rem;
-            color: #64748b;
+            background:
+                radial-gradient(circle at 15% 0%, rgba(13, 148, 136, 0.18), transparent 45%),
+                radial-gradient(circle at 85% 100%, rgba(14, 165, 233, 0.1), transparent 45%),
+                var(--bg);
+            color: var(--text);
+            min-height: 100dvh;
+            padding: env(safe-area-inset-top, 12px) 16px max(24px, env(safe-area-inset-bottom, 24px));
             line-height: 1.5;
         }
 
+        .shell {
+            max-width: 760px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 10px;
+            z-index: 20;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .brand img {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .brand-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            white-space: nowrap;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 11px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: rgba(245, 158, 11, 0.14);
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.28);
+            white-space: nowrap;
+        }
+
+        .status-pill.is-online {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .hero-card {
+            padding: 20px;
+            border-radius: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .hero-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hero-card h1 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-card p {
+            font-size: 0.83rem;
+            color: var(--muted);
+            margin-top: 4px;
+            max-width: 52ch;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
         .btn {
-            margin-top: 0.25rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.6rem 1.35rem;
-            border-radius: 999px;
-            font-size: 0.8125rem;
+            gap: 6px;
+            min-height: 40px;
+            padding: 0 16px;
+            border-radius: 12px;
+            font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            text-decoration: none;
+            border: 1px solid var(--border);
             background: rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
-            transition: background 0.15s ease, border-color 0.15s ease;
+            color: var(--text);
+            transition: transform 140ms ease, background-color 160ms ease, border-color 160ms ease;
         }
 
         .btn:hover {
@@ -96,40 +175,574 @@
         .btn:active {
             transform: scale(0.98);
         }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            border-color: rgba(45, 212, 191, 0.35);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+        }
+
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        @media (min-width: 600px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .card {
+            padding: 15px;
+            border-radius: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+            transition: border-color 160ms ease, transform 160ms ease;
+        }
+
+        .card:hover {
+            border-color: var(--border-strong);
+        }
+
+        .course-code {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: #5eead4;
+            background: var(--accent-soft);
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+
+        .course-title {
+            font-size: 0.94rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .meta {
+            font-size: 0.76rem;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 5px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.16);
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #14b8a6, #34d399);
+            transition: width 220ms ease;
+        }
+
+        .empty-box {
+            padding: 22px 16px;
+            border-radius: 16px;
+            border: 1px dashed var(--border);
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 13px;
+            border-radius: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: #e2e8f0;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: border-color 160ms ease, background-color 160ms ease;
+        }
+
+        .chip:hover {
+            border-color: var(--border-strong);
+            background: rgba(20, 184, 166, 0.1);
+        }
+
+        /* Reader View */
+        .hidden { display: none !important; }
+
+        .reader-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .lesson-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .lesson-item {
+            width: 100%;
+            text-align: left;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.03);
+            color: #e2e8f0;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .lesson-item.is-active {
+            border-color: var(--border-strong);
+            background: var(--accent-soft);
+            color: #ffffff;
+        }
+
+        .badge-done {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #6ee7b7;
+            background: rgba(16, 185, 129, 0.16);
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        .reader-body {
+            padding: 18px;
+            border-radius: 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .reader-prose {
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            line-height: 1.65;
+        }
+
+        .reader-prose p { margin-bottom: 10px; }
+        .reader-prose h1, .reader-prose h2, .reader-prose h3 { margin: 12px 0 6px; color: #fff; }
+        .reader-prose ul, .reader-prose ol { margin-left: 20px; margin-bottom: 10px; }
+
+        .video-frame {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid var(--border);
+        }
+
+        .video-frame video, .video-frame iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            object-fit: contain;
+        }
+
+        .toast {
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(20, 184, 166, 0.15);
+            border: 1px solid rgba(45, 212, 191, 0.35);
+            color: #99f6e4;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
-    <main class="wrap">
-        <img src="/images/logos/icon_green.png" alt="think.er HUB" class="logo">
+    <div class="shell">
+        <header class="topbar">
+            <div class="brand">
+                <img src="/images/logos/icon_green.png" alt="think.er HUB">
+                <span class="brand-title">think.er HUB</span>
+            </div>
+            <div class="status-pill" id="status-pill">
+                <span class="dot"></span>
+                <span id="status-label">Offline Mode</span>
+            </div>
+        </header>
 
-        <div class="status" id="network-status">
-            <span class="dot" id="network-dot"></span>
-            <span id="network-label">Offline</span>
-        </div>
+        <div id="toast-box" class="toast hidden"></div>
 
-        <div>
-            <h1>No internet connection</h1>
-            <p style="margin-top: 0.35rem;">Check your network connection. We'll reconnect automatically when you're back online.</p>
-        </div>
+        <!-- Home / Saved Library View -->
+        <main id="home-view" class="shell" style="padding:0;">
+            <section class="hero-card">
+                <div class="hero-top">
+                    <div>
+                        <h1 id="hero-title">You're studying offline</h1>
+                        <p id="hero-desc">Open your saved courses or recently cached pages below. Any lessons you complete will sync automatically the moment your connection returns.</p>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="button" class="btn btn-primary" onclick="window.location.reload()">Reconnect</button>
+                    <a href="/learn/overview" class="btn">Open Dashboard</a>
+                    <span id="outbox-badge" class="btn hidden" style="cursor:default;color:#fcd34d;border-color:rgba(245,158,11,0.3);"></span>
+                </div>
+            </section>
 
-        <button type="button" class="btn" onclick="window.location.reload();">
-            Try again
-        </button>
-    </main>
+            <section>
+                <div class="section-head">
+                    <span class="section-title">Saved Offline Courses</span>
+                    <span class="meta" id="saved-count">0 saved</span>
+                </div>
+                <div id="courses-grid" class="grid"></div>
+                <div id="courses-empty" class="empty-box hidden">
+                    No courses saved for offline study yet. When you're back online, tap <strong>Save Offline</strong> on any enrolled course card in your Student Dashboard.
+                </div>
+            </section>
+
+            <section id="cached-pages-section" class="hidden">
+                <div class="section-head">
+                    <span class="section-title">Available Cached Pages</span>
+                </div>
+                <div id="cached-pages-list" class="chip-list"></div>
+            </section>
+        </main>
+
+        <!-- Embedded Offline Course Reader -->
+        <section id="reader-view" class="shell hidden" style="padding:0;">
+            <div class="reader-header">
+                <button type="button" class="btn" id="back-to-home">&larr; Saved Courses</button>
+                <button type="button" class="btn btn-primary" id="complete-lesson-btn">Mark Complete</button>
+            </div>
+
+            <div class="reader-body">
+                <div>
+                    <span class="course-code" id="reader-lesson-type">LESSON</span>
+                    <h2 class="course-title" id="reader-lesson-title" style="font-size:1.1rem;"></h2>
+                </div>
+                <div id="reader-video-wrap" class="video-frame hidden"></div>
+                <div id="reader-body-html" class="reader-prose hidden"></div>
+                <div id="reader-resources" class="chip-list hidden"></div>
+            </div>
+
+            <div>
+                <div class="section-head">
+                    <span class="section-title" id="reader-course-title">Course Lessons</span>
+                </div>
+                <div id="reader-lesson-list" class="lesson-list"></div>
+            </div>
+        </section>
+    </div>
 
     <script>
-        window.addEventListener('online', function () {
-            var dot = document.getElementById('network-dot');
-            var label = document.getElementById('network-label');
-            if (dot) dot.style.background = '#22c55e';
-            if (label) {
-                label.textContent = 'Reconnecting…';
-                label.style.color = '#86efac';
+        (function () {
+            const DB_NAME = 'thinker_hub_offline_v1';
+            const DB_VERSION = 1;
+            let savedCourses = [];
+            let activeCourse = null;
+            let activeLesson = null;
+
+            function openDb() {
+                return new Promise((resolve, reject) => {
+                    if (!('indexedDB' in window)) return reject(new Error('No IndexedDB'));
+                    const req = indexedDB.open(DB_NAME, DB_VERSION);
+                    req.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('courses')) db.createObjectStore('courses', { keyPath: 'id' });
+                        if (!db.objectStoreNames.contains('outbox')) db.createObjectStore('outbox', { keyPath: 'id' });
+                    };
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
             }
-            setTimeout(function () {
-                window.location.reload();
-            }, 400);
-        });
+
+            async function getAll(store) {
+                try {
+                    const db = await openDb();
+                    return await new Promise((resolve, reject) => {
+                        const tx = db.transaction(store, 'readonly');
+                        const r = tx.objectStore(store).getAll();
+                        r.onsuccess = () => resolve(r.result || []);
+                        r.onerror = () => reject(r.error);
+                    });
+                } catch (_) {
+                    return [];
+                }
+            }
+
+            async function put(store, value) {
+                const db = await openDb();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(store, 'readwrite');
+                    tx.objectStore(store).put(value);
+                    tx.oncomplete = () => resolve(value);
+                    tx.onerror = () => reject(tx.error);
+                });
+            }
+
+            function showToast(msg) {
+                const el = document.getElementById('toast-box');
+                el.textContent = msg;
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.add('hidden'), 3500);
+            }
+
+            function renderCourses() {
+                const grid = document.getElementById('courses-grid');
+                const empty = document.getElementById('courses-empty');
+                const count = document.getElementById('saved-count');
+                count.textContent = savedCourses.length + ' saved';
+                grid.innerHTML = '';
+
+                if (!savedCourses.length) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+                empty.classList.add('hidden');
+
+                savedCourses.forEach(course => {
+                    const lessons = Array.isArray(course.lessons) ? course.lessons : [];
+                    const done = lessons.filter(l => l.is_completed).length;
+                    const pct = lessons.length ? Math.round((done / lessons.length) * 100) : 0;
+
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <div>
+                            <span class="course-code">${course.code || 'COURSE'}</span>
+                            <div class="course-title"></div>
+                            <div class="meta">${done} of ${lessons.length} lessons completed (${pct}%)</div>
+                            <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+                        </div>
+                        <button type="button" class="btn btn-primary" style="width:100%;">Open Offline</button>
+                    `;
+                    card.querySelector('.course-title').textContent = course.title || 'Saved Course';
+                    card.querySelector('button').addEventListener('click', () => openCourse(course));
+                    grid.appendChild(card);
+                });
+            }
+
+            function openCourse(course) {
+                activeCourse = course;
+                const lessons = Array.isArray(course.lessons) ? course.lessons : [];
+                activeLesson = lessons.find(l => !l.is_completed) || lessons[0] || null;
+                document.getElementById('home-view').classList.add('hidden');
+                document.getElementById('reader-view').classList.remove('hidden');
+                document.getElementById('reader-course-title').textContent = course.title || 'Lessons';
+                renderReader();
+            }
+
+            function renderReader() {
+                if (!activeCourse) return;
+                const lessons = Array.isArray(activeCourse.lessons) ? activeCourse.lessons : [];
+                const listEl = document.getElementById('reader-lesson-list');
+                listEl.innerHTML = '';
+
+                lessons.forEach(lesson => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'lesson-item' + (activeLesson && activeLesson.id === lesson.id ? ' is-active' : '');
+                    const label = document.createElement('span');
+                    label.textContent = lesson.title || 'Lesson';
+                    btn.appendChild(label);
+                    if (lesson.is_completed) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge-done';
+                        badge.textContent = 'Done';
+                        btn.appendChild(badge);
+                    }
+                    btn.addEventListener('click', () => {
+                        activeLesson = lesson;
+                        renderReader();
+                    });
+                    listEl.appendChild(btn);
+                });
+
+                if (!activeLesson) return;
+                document.getElementById('reader-lesson-type').textContent = (activeLesson.type || 'lesson').toUpperCase();
+                document.getElementById('reader-lesson-title').textContent = activeLesson.title || '';
+
+                const completeBtn = document.getElementById('complete-lesson-btn');
+                completeBtn.textContent = activeLesson.is_completed ? 'Completed' : 'Mark Complete';
+
+                const videoWrap = document.getElementById('reader-video-wrap');
+                videoWrap.innerHTML = '';
+                if (activeLesson.video_url) {
+                    const vid = document.createElement('video');
+                    vid.controls = true;
+                    vid.playsInline = true;
+                    vid.src = activeLesson.video_url;
+                    videoWrap.appendChild(vid);
+                    videoWrap.classList.remove('hidden');
+                } else if (activeLesson.scorm_launch_url) {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = activeLesson.scorm_launch_url;
+                    videoWrap.appendChild(iframe);
+                    videoWrap.classList.remove('hidden');
+                } else {
+                    videoWrap.classList.add('hidden');
+                }
+
+                const bodyEl = document.getElementById('reader-body-html');
+                if (activeLesson.reading_body) {
+                    bodyEl.innerHTML = activeLesson.reading_body;
+                    bodyEl.classList.remove('hidden');
+                } else {
+                    bodyEl.classList.add('hidden');
+                }
+
+                const resEl = document.getElementById('reader-resources');
+                resEl.innerHTML = '';
+                const resources = Array.isArray(activeLesson.resources) ? activeLesson.resources : [];
+                if (resources.length) {
+                    resources.forEach(res => {
+                        const a = document.createElement('a');
+                        a.className = 'chip';
+                        a.href = res.url;
+                        a.target = '_blank';
+                        a.textContent = res.name || 'Resource';
+                        resEl.appendChild(a);
+                    });
+                    resEl.classList.remove('hidden');
+                } else {
+                    resEl.classList.add('hidden');
+                }
+            }
+
+            async function loadCachedPages() {
+                if (!('caches' in window)) return;
+                const niceNames = {
+                    '/learn/overview': 'Student Dashboard',
+                    '/learn/courses': 'My Courses',
+                    '/learn/materials': 'Materials',
+                    '/learn/schedule': 'Schedule',
+                    '/learn/offline': 'Offline Library',
+                    '/courses': 'Course Catalog',
+                    '/': 'Home'
+                };
+                try {
+                    const cacheNames = await caches.keys();
+                    const found = new Set();
+                    for (const name of cacheNames) {
+                        const cache = await caches.open(name);
+                        const keys = await cache.keys();
+                        for (const req of keys) {
+                            const path = new URL(req.url).pathname;
+                            if (niceNames[path]) found.add(path);
+                        }
+                    }
+                    if (found.size > 0) {
+                        const list = document.getElementById('cached-pages-list');
+                        found.forEach(path => {
+                            const a = document.createElement('a');
+                            a.className = 'chip';
+                            a.href = path;
+                            a.textContent = niceNames[path];
+                            list.appendChild(a);
+                        });
+                        document.getElementById('cached-pages-section').classList.remove('hidden');
+                    }
+                } catch (_) {}
+            }
+
+            async function refreshOutboxBadge() {
+                const outbox = await getAll('outbox');
+                const badge = document.getElementById('outbox-badge');
+                if (outbox.length > 0) {
+                    badge.textContent = outbox.length + ' waiting to sync';
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            document.getElementById('back-to-home').addEventListener('click', () => {
+                document.getElementById('reader-view').classList.add('hidden');
+                document.getElementById('home-view').classList.remove('hidden');
+                renderCourses();
+            });
+
+            document.getElementById('complete-lesson-btn').addEventListener('click', async () => {
+                if (!activeCourse || !activeLesson) return;
+                activeLesson.is_completed = true;
+                await put('courses', activeCourse);
+                await put('outbox', {
+                    id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+                    type: 'lesson_complete',
+                    payload: { lesson_id: activeLesson.id },
+                    queued_at: new Date().toISOString()
+                });
+                renderReader();
+                refreshOutboxBadge();
+                showToast('Saved offline — will sync automatically when back online.');
+            });
+
+            function updateOnlineUi() {
+                const pill = document.getElementById('status-pill');
+                const label = document.getElementById('status-label');
+                if (navigator.onLine) {
+                    pill.classList.add('is-online');
+                    label.textContent = 'Back Online';
+                    document.getElementById('hero-title').textContent = 'Connection restored';
+                    setTimeout(() => window.location.reload(), 900);
+                } else {
+                    pill.classList.remove('is-online');
+                    label.textContent = 'Offline Mode';
+                }
+            }
+
+            window.addEventListener('online', updateOnlineUi);
+            window.addEventListener('offline', updateOnlineUi);
+
+            (async function boot() {
+                savedCourses = await getAll('courses');
+                renderCourses();
+                await refreshOutboxBadge();
+                await loadCachedPages();
+            })();
+        })();
     </script>
 </body>
 </html>

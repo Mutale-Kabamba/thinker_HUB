@@ -1,10 +1,9 @@
-const CACHE_NAME = 'thinkerhub-v4';
+const CACHE_NAME = 'thinkerhub-v5';
 const COURSE_CACHE_NAME = 'thinkerhub-offline-courses-v1';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_ASSETS = [
   '/',
-  '/learn',
   '/learn/offline',
   '/js/thinker-offline.js',
   '/manifest.json',
@@ -42,7 +41,7 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(event.request.url);
 
-  // Saved offline course assets (videos, PDFs, SCORM files): check offline course cache first
+  // Saved offline course assets (videos, PDFs, SCORM files): Offline Course Cache first
   if (
     url.pathname.startsWith('/storage/') ||
     url.pathname.includes('/scorm/') ||
@@ -63,32 +62,50 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // HTML navigation requests: Network-First with Offline Library / Offline Fallback
+  // HTML navigation requests: Network-First, caching both original URL and final redirected URL
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          if (response.status === 200) {
+          if (response && response.ok) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+            const redirectedUrl = response.redirected && response.url ? response.url : null;
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, copy.clone());
+              if (redirectedUrl) {
+                cache.put(redirectedUrl, copy);
+              }
+            });
           }
           return response;
         })
-        .catch(() => {
-          return caches.match(event.request).then(cached => {
-            if (cached) return cached;
-            if (url.pathname.startsWith('/learn/offline')) {
-              return caches.match('/learn/offline');
-            }
-            return caches.match(OFFLINE_URL);
-          });
+        .catch(async () => {
+          const exact = await caches.match(event.request);
+          if (exact) return exact;
+
+          const noQuery = await caches.match(event.request, { ignoreSearch: true });
+          if (noQuery) return noQuery;
+
+          // When launching PWA start_url (/learn) offline, try cached Student Dashboard first
+          if (url.pathname === '/learn' || url.pathname === '/learn/') {
+            const overview = await caches.match('/learn/overview');
+            if (overview) return overview;
+          }
+
+          if (url.pathname.startsWith('/learn/offline')) {
+            const lib = await caches.match('/learn/offline');
+            if (lib) return lib;
+          }
+
+          return caches.match(OFFLINE_URL);
         })
     );
     return;
   }
 
-  // Static Assets (Images, Icons, Fonts, CSS, JS): Stale-While-Revalidate / Cache-First
+  // Static & Vite-built assets (CSS, JS, Images, Fonts): Cache-First + background refresh
   if (
+    url.pathname.startsWith('/build/') ||
     url.pathname.startsWith('/images/') ||
     url.pathname.startsWith('/js/') ||
     url.pathname.endsWith('.png') ||
@@ -102,7 +119,7 @@ self.addEventListener('fetch', event => {
       caches.match(event.request).then(cached => {
         const fetchPromise = fetch(event.request)
           .then(networkResponse => {
-            if (networkResponse.status === 200) {
+            if (networkResponse && networkResponse.ok) {
               const copy = networkResponse.clone();
               caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
             }
