@@ -2,17 +2,20 @@
     @if(!empty($courseCards) || !empty($recentScores) || $certificates->isNotEmpty())
         <div class="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
             {{-- Resume Learning & Real-Time Course Progress --}}
-            <div class="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div class="mb-3 flex items-center justify-between gap-2">
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Continue Learning</h3>
-                    <div class="flex items-center gap-3">
-                        <a href="{{ route('offline.library') }}" class="text-[11px] font-semibold text-slate-600 hover:text-teal-600 dark:text-slate-300 dark:hover:text-teal-400 underline">
-                            Offline Library
-                        </a>
-                        <span class="text-[11px] font-semibold text-teal-600 dark:text-teal-400">Real-Time Progress</span>
+            <div class="lg:col-span-2 rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+                <div class="mb-3.5 flex items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-sm font-bold tracking-tight text-slate-900 dark:text-white">Continue Learning</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Pick up right where you left off</p>
                     </div>
+                    <a
+                        href="{{ route('offline.library') }}"
+                        class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-700 hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 transition"
+                    >
+                        <span>Offline Library</span>
+                    </a>
                 </div>
-                <div class="space-y-3">
+                <div class="space-y-2.5">
                     @foreach($courseCards as $card)
                         <div
                             x-data="{
@@ -31,34 +34,34 @@
                                     }
                                 }
                             }"
-                            class="flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50/80 p-3 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-950/60"
+                            class="flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 sm:flex-row sm:items-center sm:justify-between hover:border-slate-200 dark:border-slate-800/90 dark:bg-slate-950/50 dark:hover:border-slate-700 transition"
                         >
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center justify-between gap-2">
-                                    <p class="truncate text-xs font-bold text-slate-900 dark:text-white">{{ $card['title'] }}</p>
-                                    <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400">{{ $card['progress'] }}%</span>
+                                    <p class="truncate text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">{{ $card['title'] }}</p>
+                                    <span class="shrink-0 text-xs font-bold text-teal-600 dark:text-teal-400">{{ $card['progress'] }}%</span>
                                 </div>
-                                <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-                                    <div class="h-full rounded-full bg-teal-600 transition-all" style="width: {{ min(100, $card['progress']) }}%"></div>
+                                <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800">
+                                    <div class="h-full rounded-full bg-teal-600 transition-all duration-300" style="width: {{ min(100, $card['progress']) }}%"></div>
                                 </div>
                                 @if($card['resume_lesson_title'])
-                                    <p class="mt-1 truncate text-[11px] text-slate-500">Next: {{ $card['resume_lesson_title'] }}</p>
+                                    <p class="mt-1.5 truncate text-[11px] text-slate-500 dark:text-slate-400">Next: {{ $card['resume_lesson_title'] }}</p>
                                 @endif
                             </div>
-                            <div class="flex shrink-0 items-center gap-1.5">
+                            <div class="grid grid-cols-2 sm:flex shrink-0 items-center gap-2">
                                 <button
                                     type="button"
                                     x-on:click="saveOffline()"
                                     :disabled="saving"
-                                    class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 transition"
-                                    x-text="saving ? 'Saving...' : (saved ? 'Saved Offline' : 'Save Offline')"
+                                    class="inline-flex min-h-[36px] items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 active:scale-[0.98] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 transition"
+                                    x-text="saving ? 'Saving...' : (saved ? 'Saved' : 'Save Offline')"
                                 ></button>
                                 @if($card['resume_url'])
                                     <a
                                         href="{{ $card['resume_url'] }}"
-                                        class="inline-flex shrink-0 items-center justify-center rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-500 transition"
+                                        class="inline-flex min-h-[36px] shrink-0 items-center justify-center rounded-lg bg-teal-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-teal-500 active:scale-[0.98] transition"
                                     >
-                                        {{ $card['is_completed'] ? 'Review Course' : 'Resume' }}
+                                        {{ $card['is_completed'] ? 'Review' : 'Resume' }}
                                     </a>
                                 @endif
                             </div>
@@ -68,16 +71,16 @@
             </div>
 
             {{-- Recent Scores & Certificates --}}
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4">
+            <div class="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 space-y-4">
                 <div>
-                    <h3 class="mb-2 text-sm font-bold text-slate-900 dark:text-white">Recent Scores</h3>
+                    <h3 class="mb-2.5 text-sm font-bold tracking-tight text-slate-900 dark:text-white">Recent Scores</h3>
                     @forelse($recentScores as $item)
-                        <div class="flex items-center justify-between py-1.5 text-xs border-b border-slate-100 last:border-0 dark:border-slate-800">
+                        <div class="flex items-center justify-between py-2 text-xs border-b border-slate-100 last:border-0 dark:border-slate-800">
                             <div class="min-w-0 pr-2">
                                 <p class="truncate font-semibold text-slate-800 dark:text-slate-100">{{ $item['title'] }}</p>
                                 <span class="text-[10px] uppercase tracking-wider text-slate-400">{{ $item['type'] }}</span>
                             </div>
-                            <span class="rounded-md px-2 py-0.5 font-bold {{ $item['passed'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' }}">
+                            <span class="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $item['passed'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' }}">
                                 {{ $item['score'] }}
                             </span>
                         </div>
@@ -87,13 +90,13 @@
                 </div>
 
                 @if($certificates->isNotEmpty())
-                    <div class="border-t border-slate-100 pt-3 dark:border-slate-800">
-                        <h3 class="mb-2 text-sm font-bold text-slate-900 dark:text-white">Your Certificates</h3>
+                    <div class="border-t border-slate-100 pt-3.5 dark:border-slate-800">
+                        <h3 class="mb-2 text-sm font-bold tracking-tight text-slate-900 dark:text-white">Certificates</h3>
                         <div class="space-y-1.5">
                             @foreach($certificates as $cert)
                                 <a
                                     href="{{ route('filament.student.pages.certificates') }}"
-                                    class="flex items-center justify-between rounded-lg bg-emerald-50/70 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300"
+                                    class="flex items-center justify-between rounded-xl bg-emerald-50/70 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 transition"
                                 >
                                     <span class="truncate">{{ $cert->course?->title ?? 'Certificate' }}</span>
                                     <span class="ml-2 shrink-0 underline">Download</span>

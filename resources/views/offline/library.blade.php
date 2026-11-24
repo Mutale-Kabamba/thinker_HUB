@@ -86,7 +86,7 @@
         class="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-6"
     >
         {{-- Top Bar --}}
-        <header class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900 px-5 py-4">
+        <header class="sticky top-2 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800/90 bg-slate-900/95 backdrop-blur px-4 sm:px-5 py-3.5 shadow-sm">
             <div class="flex items-center gap-3">
                 <a href="/learn/overview" class="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700">
                     &larr; Dashboard
