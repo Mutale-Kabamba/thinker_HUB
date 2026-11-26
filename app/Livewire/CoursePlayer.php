@@ -51,7 +51,7 @@ class CoursePlayer extends Component
             }
         }
 
-        $this->course = $course->load(['sections.lessons', 'lessons.scormPackage']);
+        $this->course = $course->load(['sections.lessons', 'lessons.scormPackage'])->loadCount(['enrollments', 'ratings']);
         $user = Auth::user();
 
         if ($user) {
@@ -97,6 +97,27 @@ class CoursePlayer extends Component
         }
 
         $this->activeLesson = $target;
+    }
+
+    public function goToAdjacentLesson(string $direction, ?ProgressionService $progressionService = null): void
+    {
+        if (! $this->activeLesson) {
+            return;
+        }
+
+        $ordered = $this->course->lessons->sortBy('order_column')->values();
+        $currentIndex = $ordered->search(fn (Lesson $l): bool => $l->id === $this->activeLesson->id);
+
+        if ($currentIndex === false) {
+            return;
+        }
+
+        $targetIndex = $direction === 'prev' ? $currentIndex - 1 : $currentIndex + 1;
+        $target = $ordered->get($targetIndex);
+
+        if ($target) {
+            $this->selectLesson($target->id, $progressionService);
+        }
     }
 
     public function markReadingComplete(?ProgressionService $progressionService = null)
