@@ -220,17 +220,16 @@ class AppServiceProvider extends ServiceProvider
             ], false));
 
             $rawName = trim((string) ($notifiable->name ?? ''));
-            $firstName = $rawName !== '' ? (explode(' ', $rawName)[0] ?? $rawName) : '';
-            $greeting = $firstName !== '' ? "Hello {$firstName}!" : "Hello!";
+            $firstName = $rawName !== '' ? (explode(' ', $rawName)[0] ?? $rawName) : 'there';
+            $expiresMinutes = (int) config('auth.passwords.'.config('auth.defaults.passwords').'.expire', 60);
 
             return (new \Illuminate\Notifications\Messages\MailMessage)
-                ->subject('Thinker HUB: Reset Password')
-                ->greeting($greeting)
-                ->line('You are receiving this email because we received a password reset request for your account.')
-                ->action('Reset Password', $resetUrl)
-                ->line('This password reset link will expire in ' . config('auth.passwords.'.config('auth.defaults.passwords').'.expire') . ' minutes.')
-                ->line('If you did not request a password reset, no further action is required.')
-                ->salutation("Regards,\n" . config('app.name', 'Thinker HUB'));
+                ->subject('Reset Your Password — think.er HUB')
+                ->view('emails.password-reset', [
+                    'resetUrl' => $resetUrl,
+                    'firstName' => $firstName,
+                    'expiresMinutes' => $expiresMinutes,
+                ]);
         });
 
         $this->configureMailDeliverabilityHeaders();

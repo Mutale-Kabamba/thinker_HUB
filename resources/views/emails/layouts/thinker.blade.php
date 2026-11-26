@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>{{ $title ?? 'think.er HUB' }}</title>
+
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:AllowPNG/>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <style type="text/css">
+    body, table, td, a { font-family: Arial, Helvetica, sans-serif !important; }
+  </style>
+  <![endif]-->
+
+  <style type="text/css">
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+    table { border-collapse: collapse !important; }
+    body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #F2F4F3; }
+    .cta-btn:hover { background-color: #EAB308 !important; }
+    @media only screen and (max-width: 620px) {
+      .email-container { width: 100% !important; max-width: 100% !important; }
+      .hero-pad { padding: 30px 24px !important; }
+      .body-pad { padding: 30px 24px !important; }
+      .hero-title { font-size: 25px !important; line-height: 31px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F2F4F3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #475569;">
+
+  @if (! empty($preheader))
+    <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
+      {{ $preheader }}
+      &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847;
+    </div>
+  @endif
+
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F2F4F3;">
+    <tr>
+      <td align="center" style="padding: 28px 12px 44px 12px;">
+        <!--[if mso]>
+        <table role="presentation" align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+        <tr>
+        <td align="center" valign="top" width="600">
+        <![endif]-->
+
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="email-container" style="max-width: 600px; margin: 0 auto;">
+
+          <!-- Top Logo -->
+          <tr>
+            <td align="center" style="padding: 4px 20px 24px 20px;">
+              <a href="{{ config('app.url', 'https://thinkerhub.online') }}" target="_blank" style="text-decoration: none; display: inline-block;">
+                <img src="https://thinkerhub.online/images/logos/green.png" alt="think.er HUB" width="150" style="display: block; width: 150px; max-width: 100%; height: auto; font-size: 22px; font-weight: 800; color: #0A2D27;">
+              </a>
+            </td>
+          </tr>
+
+          <!-- Hero Banner -->
+          <tr>
+            <td class="hero-pad" style="background-color: #0A2D27; padding: 36px 44px;">
+              @if (! empty($eyebrow))
+                <p style="margin: 0 0 10px 0; font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: {{ $eyebrowColor ?? '#5EEAD4' }};">
+                  {{ $eyebrow }}
+                </p>
+              @endif
+              <h1 class="hero-title" style="margin: 0{{ ! empty($subtitle) ? ' 0 10px 0' : '' }}; font-size: 28px; line-height: 35px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;">
+                {{ $heading }}
+              </h1>
+              @if (! empty($subtitle))
+                <p style="margin: 0; font-size: 15px; line-height: 23px; color: #CBD5E1;">
+                  {{ $subtitle }}
+                </p>
+              @endif
+            </td>
+          </tr>
+
+          <!-- Main White Body -->
+          <tr>
+            <td class="body-pad" style="background-color: #FFFFFF; padding: 40px 44px 44px 44px;">
+              @yield('content')
+
+              @if (! empty($ctaUrl) && ! empty($ctaLabel))
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 28px auto 0 auto;">
+                  <tr>
+                    <td align="center" bgcolor="#F59E0B" style="border-radius: 4px;">
+                      <!--[if mso]>
+                      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ $ctaUrl }}" style="height:44px;v-text-anchor:middle;width:236px;" arcsize="10%" stroke="f" fillcolor="#F59E0B">
+                        <w:anchorlock/>
+                        <center style="color:#0A2D27;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;letter-spacing:0.6px;">{{ strtoupper($ctaLabel) }}</center>
+                      </v:roundrect>
+                      <![endif]-->
+                      <!--[if !mso]><!-->
+                      <a href="{{ $ctaUrl }}" target="_blank" class="cta-btn" style="display: inline-block; background-color: #F59E0B; color: #0A2D27; font-size: 13px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; text-decoration: none; padding: 14px 28px; border-radius: 4px; line-height: 16px;">
+                        {{ strtoupper($ctaLabel) }}
+                      </a>
+                      <!--<![endif]-->
+                    </td>
+                  </tr>
+                </table>
+              @endif
+
+              @yield('after_cta')
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 28px 20px 10px 20px;">
+              <p style="margin: 0 0 14px 0; font-size: 12px; line-height: 18px; color: #64748B;">
+                <a href="https://thinkerhub.online/courses" target="_blank" style="color: #006A67; text-decoration: none; font-weight: 600;">Courses</a>
+                &nbsp;&middot;&nbsp;
+                <a href="https://thinkerhub.online/hub" target="_blank" style="color: #006A67; text-decoration: none; font-weight: 600;">Community Hub</a>
+                &nbsp;&middot;&nbsp;
+                <a href="https://thinkerhub.online/learn" target="_blank" style="color: #006A67; text-decoration: none; font-weight: 600;">Student Portal</a>
+                &nbsp;&middot;&nbsp;
+                <a href="https://thinkerhub.online/contact" target="_blank" style="color: #006A67; text-decoration: none; font-weight: 600;">Support</a>
+              </p>
+              <p style="margin: 0 0 14px 0; font-size: 12px; line-height: 18px; color: #64748B;">
+                <strong style="color: #334155;">think.er HUB</strong> &middot; Lusaka &amp; Livingstone, Zambia &middot; Global Online &amp; Hybrid<br>
+                <a href="mailto:{{ config('mail.contact_to', 'thinkerhub@oristudiozm.com') }}" style="color: #64748B; text-decoration: none;">{{ config('mail.contact_to', 'thinkerhub@oristudiozm.com') }}</a>
+              </p>
+              @if (! empty($footerNote))
+                <p style="margin: 0; font-size: 11px; line-height: 17px; color: #94A3B8;">
+                  {{ $footerNote }}
+                </p>
+              @endif
+            </td>
+          </tr>
+
+        </table>
+
+        <!--[if mso]>
+        </td>
+        </tr>
+        </table>
+        <![endif]-->
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
