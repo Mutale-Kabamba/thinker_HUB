@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Lesson;
 use App\Models\ResourceDownload;
 use App\Models\ScormAttempt;
+use App\Models\ScormPackage;
 use App\Services\ScormPackageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,54 @@ class ScormRuntimeController extends Controller
 {
     public function __construct(private readonly ScormPackageService $scormService)
     {
+    }
+
+    /**
+     * Serve extracted SCORM / xAPI package files same-origin so window.parent.API
+     * and window.parent.API_1484_11 work seamlessly even when files live on S3 / Cloudflare R2.
+     */
+    public function content(Request $request, ScormPackage $package, string $path = ''): Response
+    {
+        $cleanPath = ltrim(str_replace('\\', '/', $path ?: $package->entry_point), '/');
+        if ($cleanPath === '' || str_contains($cleanPath, '..')) {
+            abort(403, 'Invalid SCORM asset path.');
+        }
+
+        $disk = Storage::disk($package->storage_disk ?: 'public');
+        $fullPath = trim($package->storage_path, '/') . '/' . $cleanPath;
+
+        if (! $disk->exists($fullPath)) {
+            abort(404, 'SCORM asset not found.');
+        }
+
+        $ext = strtolower(pathinfo($cleanPath, PATHINFO_EXTENSION));
+        $mime = match ($ext) {
+            'html', 'htm' => 'text/html; charset=UTF-8',
+            'js', 'mjs' => 'application/javascript; charset=UTF-8',
+            'css' => 'text/css; charset=UTF-8',
+            'json' => 'application/json; charset=UTF-8',
+            'xml' => 'application/xml; charset=UTF-8',
+            'svg' => 'image/svg+xml',
+            'png' => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            'mp4' => 'video/mp4',
+            'webm' => 'video/webm',
+            'mp3' => 'audio/mpeg',
+            'woff2' => 'font/woff2',
+            'woff' => 'font/woff',
+            'pdf' => 'application/pdf',
+            default => $disk->mimeType($fullPath) ?: 'application/octet-stream',
+        };
+
+        $contents = $disk->get($fullPath);
+
+        return response($contents, 200, [
+            'Content-Type' => $mime,
+            'Cache-Control' => 'private, max-age=3600',
+            'X-Frame-Options' => 'SAMEORIGIN',
+        ]);
     }
 
     /**

@@ -9,6 +9,8 @@
         csrfToken: @js(csrf_token()),
         cmiStore: {},
         saving: false,
+        ready: false,
+        launchUrl: @js($launchUrl),
         init() {
             this.cmiStore = {
                 'cmi.core.lesson_status': this.status,
@@ -112,6 +114,8 @@
                     });
                 },
             };
+
+            this.ready = true;
         }
     }"
     class="space-y-3"
@@ -134,7 +138,7 @@
 
     <div class="relative aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-white shadow-2xl">
         <iframe
-            src="{{ $launchUrl }}"
+            :src="ready ? launchUrl : 'about:blank'"
             title="{{ $package->title }}"
             class="h-full w-full border-0"
             allow="autoplay; fullscreen"

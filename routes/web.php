@@ -1333,7 +1333,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/portal-tour/reset', [\App\Http\Controllers\PortalTourController::class, 'reset'])
         ->name('portal-tour.reset');
 
-    // SCORM 1.2 / 2004 & xAPI Runtime API + Tracked Resource Downloads
+    // SCORM 1.2 / 2004 & xAPI Runtime API + Same-Origin Content Proxy + Tracked Resource Downloads
+    Route::get('/scorm/packages/{package}/content/{path?}', [\App\Http\Controllers\ScormRuntimeController::class, 'content'])
+        ->where('path', '.*')
+        ->name('scorm.content');
     Route::post('/scorm/attempts/{attempt}/commit', [\App\Http\Controllers\ScormRuntimeController::class, 'commit'])
         ->name('scorm.commit');
     Route::post('/scorm/attempts/{attempt}/xapi', [\App\Http\Controllers\ScormRuntimeController::class, 'xapi'])
