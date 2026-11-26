@@ -151,6 +151,12 @@ class CoursePlayer extends Component
         }
     }
 
+    #[On('scormCompleted')]
+    public function handleScormCompleted(): void
+    {
+        $this->refreshProgressData();
+    }
+
     protected function advance(ProgressionService $progressionService)
     {
         $user = Auth::user();
