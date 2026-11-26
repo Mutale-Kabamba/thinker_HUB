@@ -58,8 +58,9 @@ class ScormPackage extends Model
 
     public function getLaunchUrlAttribute(): string
     {
-        $relative = trim($this->storage_path, '/') . '/' . ltrim($this->entry_point, '/');
-
-        return Storage::disk($this->storage_disk ?: 'public')->url($relative);
+        return route('scorm.content', [
+            'package' => $this->id,
+            'path' => ltrim($this->entry_point, '/'),
+        ]);
     }
 }
