@@ -1,4 +1,4 @@
-const CACHE_NAME = 'thinkerhub-v5';
+const CACHE_NAME = 'thinkerhub-v6';
 const COURSE_CACHE_NAME = 'thinkerhub-offline-courses-v1';
 const OFFLINE_URL = '/offline.html';
 

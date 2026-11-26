@@ -1,0 +1,44 @@
+[
+  {
+    "title": "Modern Cloud & AI Productivity Lab (Test Course)",
+    "code": "TEST-101",
+    "course_by": "think.er HUB",
+    "offering_mode": "ongoing",
+    "description": "Hands-on test course covering cloud workflows, AI productivity tools, and collaborative project delivery.",
+    "overview": "A practical, project-driven course designed for testing course imports, enrollments, sequential lessons, quizzes, and offline study in think.er HUB.",
+    "timeline": "4 Weeks (approx. 4-6 hours per week)",
+    "fees": [
+      {
+        "category": "Group",
+        "level": "Beginner",
+        "amount": "K250",
+        "duration": "4 Weeks"
+      },
+      {
+        "category": "One-On-One",
+        "level": "Intermediate",
+        "amount": "K500",
+        "duration": "4 Weeks"
+      }
+    ],
+    "requirements": [
+      "A laptop or desktop computer with a modern web browser",
+      "Basic familiarity with browsing the web and managing files",
+      "No prior coding or cloud experience required"
+    ],
+    "level_progression": [
+      {
+        "level": "Beginner",
+        "details": "Workspace setup, cloud file organization, effective AI prompting, and core digital collaboration tools."
+      },
+      {
+        "level": "Intermediate",
+        "details": "Workflow automation, structured research assistants, data summaries, and capstone project presentation."
+      }
+    ],
+    "key_outcome": "Deliver a complete, documented cloud and AI workflow capstone project ready for portfolio or workplace use.",
+    "is_open_enrollment": true,
+    "is_for_kids": false,
+    "is_active": true
+  }
+]

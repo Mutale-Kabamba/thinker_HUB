@@ -247,6 +247,7 @@ class CoursesTable
                                 ->success()
                                 ->send();
                         }),
+                    \App\Filament\Actions\EnrollStudentAction::forCourse(isInstructor: false),
                 ])
                 ->icon('heroicon-m-ellipsis-vertical')
                 ->color('gray'),

@@ -101,6 +101,7 @@ class CourseResource extends Resource
             ])
             ->recordActions([
                 \Filament\Actions\ActionGroup::make([
+                    \App\Filament\Actions\EnrollStudentAction::forCourse(isInstructor: true),
                     EditAction::make()
                         ->icon('heroicon-m-pencil-square'),
                     \Filament\Actions\Action::make('view_public')
