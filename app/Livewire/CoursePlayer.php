@@ -27,7 +27,31 @@ class CoursePlayer extends Component
     public function mount(Course $course, ?int $lessonId = null, ?ProgressionService $progressionService = null)
     {
         $progressionService = $progressionService ?? app(ProgressionService::class);
-        $this->course = $course->load(['sections.lessons', 'lessons']);
+
+        // Auto-sync any SCORM/xAPI packages attached to this course that don't yet have a lesson row
+        if (\Illuminate\Support\Facades\Schema::hasTable('scorm_packages')) {
+            $orphanPackages = \App\Models\ScormPackage::query()
+                ->where('course_id', $course->id)
+                ->where('is_active', true)
+                ->whereNull('lesson_id')
+                ->get();
+
+            foreach ($orphanPackages as $pkg) {
+                $nextOrder = ((int) Lesson::where('course_id', $course->id)->max('order_column')) + 1;
+                $newLesson = Lesson::create([
+                    'course_id' => $course->id,
+                    'title' => $pkg->title,
+                    'type' => 'scorm',
+                    'scorm_package_id' => $pkg->id,
+                    'order_column' => $nextOrder,
+                    'sort_order' => $nextOrder,
+                    'is_published' => true,
+                ]);
+                $pkg->update(['lesson_id' => $newLesson->id]);
+            }
+        }
+
+        $this->course = $course->load(['sections.lessons', 'lessons.scormPackage']);
         $user = Auth::user();
 
         if ($user) {

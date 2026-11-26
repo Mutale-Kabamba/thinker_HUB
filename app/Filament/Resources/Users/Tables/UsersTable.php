@@ -82,6 +82,7 @@ class UsersTable
             ])
             ->recordActions([
                 ActionGroup::make([
+                    \App\Filament\Actions\EnrollStudentAction::forStudent(isInstructor: false),
                     \Filament\Actions\Action::make('approve_contributor')
                         ->label('Approve Account')
                         ->icon('heroicon-m-check-badge')

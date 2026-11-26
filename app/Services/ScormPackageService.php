@@ -91,7 +91,7 @@ class ScormPackageService
 
         $entryPoint = ltrim($manifestPrefix . ltrim($manifestInfo['entry_point'], '/'), '/');
 
-        return ScormPackage::create([
+        $package = ScormPackage::create([
             'tenant_id' => $attributes['tenant_id'] ?? null,
             'course_id' => $attributes['course_id'] ?? null,
             'lesson_id' => $attributes['lesson_id'] ?? null,
@@ -105,6 +105,23 @@ class ScormPackageService
             'manifest_meta' => $manifestInfo['meta'],
             'is_active' => true,
         ]);
+
+        // Auto-provision a published SCORM lesson in the course so it appears immediately in the classroom
+        if ($package->course_id && ! $package->lesson_id) {
+            $nextOrder = ((int) Lesson::where('course_id', $package->course_id)->max('order_column')) + 1;
+            $lesson = Lesson::create([
+                'course_id' => $package->course_id,
+                'title' => $package->title,
+                'type' => 'scorm',
+                'scorm_package_id' => $package->id,
+                'order_column' => $nextOrder,
+                'sort_order' => $nextOrder,
+                'is_published' => true,
+            ]);
+            $package->update(['lesson_id' => $lesson->id]);
+        }
+
+        return $package->fresh();
     }
 
     /**

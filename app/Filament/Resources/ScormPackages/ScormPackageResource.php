@@ -81,6 +81,16 @@ class ScormPackageResource extends Resource
             ])
             ->defaultSort('created_at', 'desc')
             ->recordActions([
+                \Filament\Actions\Action::make('openClassroom')
+                    ->label('Open in Classroom')
+                    ->icon('heroicon-m-play')
+                    ->color('success')
+                    ->visible(fn (ScormPackage $record): bool => (bool) ($record->course?->slug))
+                    ->url(fn (ScormPackage $record): string => route('course.classroom', [
+                        'course' => $record->course->slug,
+                        'lessonId' => $record->lesson_id,
+                    ]))
+                    ->openUrlInNewTab(),
                 DeleteAction::make(),
             ]);
     }
