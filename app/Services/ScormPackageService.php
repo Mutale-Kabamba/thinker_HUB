@@ -174,16 +174,36 @@ class ScormPackageService
                 'recorded_at' => now(),
             ]);
 
+            $trimmed = trim($stringValue);
+
             match ($elementKey) {
-                'cmi.core.lesson_status', 'cmi.completion_status', 'cmi.success_status' => $updates['lesson_status'] = strtolower(trim($stringValue)),
-                'cmi.core.score.raw', 'cmi.score.raw' => $updates['score_raw'] = is_numeric($stringValue) ? (float) $stringValue : null,
-                'cmi.core.score.min', 'cmi.score.min' => $updates['score_min'] = is_numeric($stringValue) ? (float) $stringValue : null,
-                'cmi.core.score.max', 'cmi.score.max' => $updates['score_max'] = is_numeric($stringValue) ? (float) $stringValue : null,
-                'cmi.score.scaled' => $updates['score_scaled'] = is_numeric($stringValue) ? (float) $stringValue : null,
-                'cmi.core.lesson_location', 'cmi.location' => $updates['lesson_location'] = mb_substr($stringValue, 0, 255),
-                'cmi.suspend_data' => $updates['suspend_data'] = $stringValue,
-                'cmi.core.session_time', 'cmi.session_time' => $updates['session_time'] = mb_substr($stringValue, 0, 64),
-                'cmi.core.total_time', 'cmi.total_time' => $updates['total_time'] = mb_substr($stringValue, 0, 64),
+                'cmi.core.lesson_status', 'cmi.completion_status', 'cmi.success_status' => $trimmed !== ''
+                    ? ($updates['lesson_status'] = strtolower($trimmed))
+                    : null,
+                'cmi.core.score.raw', 'cmi.score.raw' => is_numeric($trimmed)
+                    ? ($updates['score_raw'] = (float) $trimmed)
+                    : null,
+                'cmi.core.score.min', 'cmi.score.min' => is_numeric($trimmed)
+                    ? ($updates['score_min'] = (float) $trimmed)
+                    : null,
+                'cmi.core.score.max', 'cmi.score.max' => is_numeric($trimmed)
+                    ? ($updates['score_max'] = (float) $trimmed)
+                    : null,
+                'cmi.score.scaled' => is_numeric($trimmed)
+                    ? ($updates['score_scaled'] = (float) $trimmed)
+                    : null,
+                'cmi.core.lesson_location', 'cmi.location' => $trimmed !== ''
+                    ? ($updates['lesson_location'] = mb_substr($trimmed, 0, 255))
+                    : null,
+                'cmi.suspend_data' => $trimmed !== ''
+                    ? ($updates['suspend_data'] = $stringValue)
+                    : null,
+                'cmi.core.session_time', 'cmi.session_time' => $trimmed !== ''
+                    ? ($updates['session_time'] = mb_substr($trimmed, 0, 64))
+                    : null,
+                'cmi.core.total_time', 'cmi.total_time' => $trimmed !== ''
+                    ? ($updates['total_time'] = mb_substr($trimmed, 0, 64))
+                    : null,
                 default => null,
             };
         }
