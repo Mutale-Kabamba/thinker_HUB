@@ -39,8 +39,23 @@ class CoursePlayer extends Component
     {
         $progressionService = $progressionService ?? app(ProgressionService::class);
 
-        // Auto-sync any SCORM/xAPI packages attached to this course that don't yet have a lesson row
+        // Auto-sync SCORM/xAPI packages: remove orphaned SCORM lessons whose package was deleted,
+        // and provision lessons for any active packages not yet linked to a lesson
         if (\Illuminate\Support\Facades\Schema::hasTable('scorm_packages')) {
+            $orphanedLessonIds = Lesson::query()
+                ->where('course_id', $course->id)
+                ->where('type', 'scorm')
+                ->where(function ($q): void {
+                    $q->whereNull('scorm_package_id')
+                        ->orWhereDoesntHave('scormPackage');
+                })
+                ->pluck('id');
+
+            if ($orphanedLessonIds->isNotEmpty()) {
+                LessonProgress::query()->whereIn('lesson_id', $orphanedLessonIds)->delete();
+                Lesson::query()->whereIn('id', $orphanedLessonIds)->delete();
+            }
+
             $orphanPackages = \App\Models\ScormPackage::query()
                 ->where('course_id', $course->id)
                 ->where('is_active', true)
