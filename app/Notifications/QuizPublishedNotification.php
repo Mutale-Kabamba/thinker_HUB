@@ -39,7 +39,7 @@ class QuizPublishedNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('New Quiz Published: '.$this->quiz->title)
-            ->markdown('emails.quiz-published', [
+            ->view('emails.quiz-published', [
                 'quiz' => $this->quiz,
                 'courseName' => $this->courseName,
                 'notifiable' => $notifiable,

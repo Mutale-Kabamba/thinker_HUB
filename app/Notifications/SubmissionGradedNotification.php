@@ -35,7 +35,7 @@ class SubmissionGradedNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Submission Reviewed: '.$this->itemTitle)
-            ->markdown('emails.submission-graded', [
+            ->view('emails.submission-graded', [
                 'submissionType' => $this->submissionType,
                 'itemTitle' => $this->itemTitle,
                 'scoreOrGrade' => $this->scoreOrGrade,

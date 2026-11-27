@@ -38,7 +38,7 @@ class RescheduleRequestNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Reschedule Request from '.$this->studentName)
-            ->markdown('emails.reschedule-request', [
+            ->view('emails.reschedule-request', [
                 'session' => $this->session,
                 'studentName' => $this->studentName,
                 'reason' => $this->reason,
