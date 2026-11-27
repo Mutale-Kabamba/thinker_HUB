@@ -41,6 +41,18 @@ class ScormPackage extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (ScormPackage $package): void {
+            if ($package->lesson_id) {
+                Lesson::query()
+                    ->where('id', $package->lesson_id)
+                    ->where('type', 'scorm')
+                    ->delete();
+            }
+        });
+    }
+
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
