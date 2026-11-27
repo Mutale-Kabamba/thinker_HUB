@@ -2,16 +2,27 @@
 
 namespace Tests\Feature;
 
+use App\Mail\ContactMessageMail;
+use App\Mail\NewStudentRegistrationAlertMail;
 use App\Mail\StudentApprovedMail;
 use App\Mail\SystemUpdateMail;
+use App\Models\Assessment;
 use App\Models\Assignment;
 use App\Models\Certificate;
 use App\Models\Course;
+use App\Models\LearningMaterial;
+use App\Models\Quiz;
 use App\Models\User;
+use App\Notifications\AssessmentAssignedNotification;
 use App\Notifications\AssignmentAssignedNotification;
 use App\Notifications\CertificateIssuedNotification;
 use App\Notifications\CourseEnrolledNotification;
+use App\Notifications\MaterialPublishedNotification;
 use App\Notifications\QueuedVerifyEmail;
+use App\Notifications\QuizPublishedNotification;
+use App\Notifications\RescheduleRequestDeclinedNotification;
+use App\Notifications\StudentSubmissionNotification;
+use App\Notifications\SubmissionGradedNotification;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -107,5 +118,71 @@ class ResendAutomatedEmailsTest extends TestCase
         ))->render();
         $this->assertStringContainsString('Offline Learning Mode Is Live', $updateHtml);
         $this->assertStringContainsString('Offline Sync', $updateHtml);
+
+        // 8. Contact Form Submission
+        $contactHtml = (new ContactMessageMail(
+            name: 'Kelvin Mwansa',
+            email: 'kelvin@example.com',
+            contactSubject: 'Corporate Training Inquiry',
+            bodyText: "Hello team,\nWe would like to enroll 15 staff members.",
+        ))->render();
+        $this->assertStringContainsString('Corporate Training Inquiry', $contactHtml);
+        $this->assertStringContainsString('Kelvin Mwansa', $contactHtml);
+        $this->assertStringContainsString('REPLY TO KELVIN MWANSA', $contactHtml);
+
+        // 9. Assessment Assigned
+        $assessment = Assessment::create([
+            'course_id' => $course->id,
+            'user_id' => $student->id,
+            'name' => 'Capstone Practical Exam',
+            'description' => 'Complete the practical lab.',
+            'due_date' => now()->addDays(4),
+        ]);
+        $assessmentHtml = (string) (new AssessmentAssignedNotification($assessment, $course->title))->toMail($student)->render();
+        $this->assertStringContainsString('Capstone Practical Exam', $assessmentHtml);
+        $this->assertStringContainsString('thinkerhub.online/images/logos/green.png', $assessmentHtml);
+
+        // 10. Learning Material Published
+        $material = LearningMaterial::create([
+            'course_id' => $course->id,
+            'title' => 'Week 4 Architecture Deck',
+            'category' => 'Slides',
+            'scope' => 'cohort',
+        ]);
+        $materialHtml = (string) (new MaterialPublishedNotification($material, $course->title))->toMail($student)->render();
+        $this->assertStringContainsString('Week 4 Architecture Deck', $materialHtml);
+
+        // 11. Quiz Published
+        $quiz = Quiz::create([
+            'course_id' => $course->id,
+            'title' => 'Cloud Fundamentals Quiz',
+            'time_limit_minutes' => 15,
+            'pass_percentage' => 70,
+            'is_active' => true,
+        ]);
+        $quizHtml = (string) (new QuizPublishedNotification($quiz, $course->title))->toMail($student)->render();
+        $this->assertStringContainsString('Cloud Fundamentals Quiz', $quizHtml);
+
+        // 12. Student Submission & Submission Graded
+        $subHtml = (string) (new StudentSubmissionNotification('Chanda Banda', 'assignment', 'Build an AI Study Helper', 1))->toMail($student)->render();
+        $this->assertStringContainsString('New Assignment Submission', $subHtml);
+
+        $gradedHtml = (string) (new SubmissionGradedNotification('assignment', 'Build an AI Study Helper', 95, 'Excellent work!'))->toMail($student)->render();
+        $this->assertStringContainsString('95', $gradedHtml);
+        $this->assertStringContainsString('Excellent work!', $gradedHtml);
+
+        // 13. Reschedule Request Declined & New Student Registration Alert
+        $session = new \App\Models\CourseSession([
+            'course_id' => $course->id,
+            'session_date' => now()->addDays(2),
+            'start_time' => '10:00:00',
+        ]);
+        $session->setRelation('course', $course);
+        $declinedHtml = (string) (new RescheduleRequestDeclinedNotification($session, 'Instructor unavailable on requested slot.'))->toMail($student)->render();
+        $this->assertStringContainsString('Reschedule Request Update', $declinedHtml);
+
+        $regAlertHtml = (new NewStudentRegistrationAlertMail($student, $course, false))->render();
+        $this->assertStringContainsString('New Student Registration', $regAlertHtml);
+        $this->assertStringContainsString('Chanda Banda', $regAlertHtml);
     }
 }

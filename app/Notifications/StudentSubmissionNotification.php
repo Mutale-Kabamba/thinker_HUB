@@ -47,7 +47,7 @@ class StudentSubmissionNotification extends Notification
     {
         return (new MailMessage)
             ->subject('New Submission from '.$this->studentName)
-            ->markdown('emails.student-submission', [
+            ->view('emails.student-submission', [
                 'studentName' => $this->studentName,
                 'itemTitle' => $this->itemTitle,
                 'courseName' => $this->courseName ?? 'Course',

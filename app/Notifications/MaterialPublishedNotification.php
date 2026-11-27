@@ -32,7 +32,7 @@ class MaterialPublishedNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('New Material: '.$this->material->title)
-            ->markdown('emails.material-published', [
+            ->view('emails.material-published', [
                 'material' => $this->material,
                 'notifiable' => $notifiable,
                 'recipientName' => $this->resolveRecipientName($notifiable),

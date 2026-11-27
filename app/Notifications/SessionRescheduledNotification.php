@@ -34,7 +34,7 @@ class SessionRescheduledNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Session Moved: '.$this->courseName)
-            ->markdown('emails.session-rescheduled', [
+            ->view('emails.session-rescheduled', [
                 'session' => $this->session,
                 'courseName' => $this->courseName,
                 'notifiable' => $notifiable,

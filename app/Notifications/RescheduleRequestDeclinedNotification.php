@@ -35,7 +35,7 @@ class RescheduleRequestDeclinedNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Reschedule Request Declined: '.$this->courseName)
-            ->markdown('emails.reschedule-request-declined', [
+            ->view('emails.reschedule-request-declined', [
                 'session' => $this->session,
                 'courseName' => $this->courseName,
                 'reason' => $this->reason,
