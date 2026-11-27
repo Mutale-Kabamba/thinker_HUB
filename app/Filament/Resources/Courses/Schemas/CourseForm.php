@@ -68,6 +68,17 @@ class CourseForm
                                             ->default('once_off')
                                             ->helperText('Ongoing courses feature scheduled Intakes/Classes with start/end dates.')
                                             ->required(),
+
+                                        Select::make('delivery_mode')
+                                            ->label('Learning Mode')
+                                            ->options([
+                                                \App\Models\Course::DELIVERY_COHORT => 'Live Cohort (Standard LMS — Sessions, Materials & Assignments)',
+                                                \App\Models\Course::DELIVERY_SELF_PACED => 'Self-Paced Classroom (Interactive Lessons & SCORM/xAPI)',
+                                                \App\Models\Course::DELIVERY_HYBRID => 'Hybrid (Live Cohort + Self-Paced / SCORM Classroom)',
+                                            ])
+                                            ->default(\App\Models\Course::DELIVERY_COHORT)
+                                            ->helperText('Controls whether this course appears in SCORM/Classroom views or the standard Cohort portal.')
+                                            ->required(),
                                     ])
                                     ->columns(['default' => 1, 'sm' => 2, 'lg' => 3]),
 

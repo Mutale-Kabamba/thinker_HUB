@@ -17,9 +17,20 @@ class CourseRatingObserver
         $this->handle($rating);
     }
 
+    public function deleted(CourseRating $rating): void
+    {
+        try {
+            $rating->course?->updateCachedRating();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
     private function handle(CourseRating $rating): void
     {
         try {
+            $rating->course?->updateCachedRating();
+
             if ($rating->user) {
                 app(GamificationService::class)->awardCourseRating($rating->user, $rating);
             }

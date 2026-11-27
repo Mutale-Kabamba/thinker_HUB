@@ -50,10 +50,17 @@ class ContinueLearningWidget extends Component
                     ->first()
                 : null;
 
-            $resumeLesson = $nextProgress?->lesson ?? $course->lessons->sortBy('order_column')->first();
-            $resumeUrl = $course->slug
-                ? route('course.classroom', ['course' => $course->slug, 'lessonId' => $resumeLesson?->id])
+            $usesClassroom = $course->usesClassroomPlayer();
+            $deliveryMode = $course->resolvedDeliveryMode();
+            $deliveryLabel = $course->deliveryModeLabel();
+
+            $resumeLesson = $usesClassroom
+                ? ($nextProgress?->lesson ?? $course->lessons->sortBy('order_column')->first())
                 : null;
+
+            $resumeUrl = $usesClassroom && $course->slug
+                ? route('course.classroom', ['course' => $course->slug, 'lessonId' => $resumeLesson?->id])
+                : url('/learn/courses');
 
             $courseCards[] = [
                 'id' => $course->id,
@@ -61,7 +68,10 @@ class ContinueLearningWidget extends Component
                 'progress' => (int) ($enrollment->progress_percentage ?? 0),
                 'resume_lesson_title' => $resumeLesson?->title,
                 'resume_url' => $resumeUrl,
-                'bundle_url' => route('offline.course.bundle', $course),
+                'bundle_url' => $usesClassroom ? route('offline.course.bundle', $course) : null,
+                'uses_classroom' => $usesClassroom,
+                'delivery_mode' => $deliveryMode,
+                'delivery_label' => $deliveryLabel,
                 'is_completed' => $enrollment->completed_at !== null || (int) ($enrollment->progress_percentage ?? 0) >= 100,
             ];
         }

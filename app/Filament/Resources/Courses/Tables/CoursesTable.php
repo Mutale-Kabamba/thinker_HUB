@@ -43,6 +43,16 @@ class CoursesTable
                     ->formatStateUsing(fn (?string $state): string => ($state ?? 'once_off') === 'ongoing' ? 'Ongoing (Intakes)' : 'Once-off')
                     ->color(fn (?string $state): string => ($state ?? 'once_off') === 'ongoing' ? 'info' : 'gray')
                     ->visibleFrom('md'),
+                TextColumn::make('delivery_mode')
+                    ->label('Mode')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state, Course $record): string => $record->deliveryModeLabel())
+                    ->color(fn (?string $state, Course $record): string => match ($record->resolvedDeliveryMode()) {
+                        Course::DELIVERY_SELF_PACED => 'warning',
+                        Course::DELIVERY_HYBRID => 'success',
+                        default => 'gray',
+                    })
+                    ->visibleFrom('md'),
                 TextColumn::make('instructors.name')
                     ->label('Instructor(s)')
                     ->badge()

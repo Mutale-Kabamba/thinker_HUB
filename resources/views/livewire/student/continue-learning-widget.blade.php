@@ -38,30 +38,47 @@
                         >
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center justify-between gap-2">
-                                    <p class="truncate text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">{{ $card['title'] }}</p>
-                                    <span class="shrink-0 text-xs font-bold text-teal-600 dark:text-teal-400">{{ $card['progress'] }}%</span>
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <p class="truncate text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">{{ $card['title'] }}</p>
+                                        <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide {{ $card['delivery_mode'] === 'cohort' ? 'bg-slate-200/80 text-slate-700 dark:bg-slate-800 dark:text-slate-300' : ($card['delivery_mode'] === 'hybrid' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300') }}">
+                                            {{ $card['delivery_label'] }}
+                                        </span>
+                                    </div>
+                                    @if($card['uses_classroom'] || $card['progress'] > 0)
+                                        <span class="shrink-0 text-xs font-bold text-teal-600 dark:text-teal-400">{{ $card['progress'] }}%</span>
+                                    @endif
                                 </div>
-                                <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800">
-                                    <div class="h-full rounded-full bg-teal-600 transition-all duration-300" style="width: {{ min(100, $card['progress']) }}%"></div>
-                                </div>
-                                @if($card['resume_lesson_title'])
+                                @if($card['uses_classroom'] || $card['progress'] > 0)
+                                    <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800">
+                                        <div class="h-full rounded-full bg-teal-600 transition-all duration-300" style="width: {{ min(100, $card['progress']) }}%"></div>
+                                    </div>
+                                @endif
+                                @if($card['uses_classroom'] && $card['resume_lesson_title'])
                                     <p class="mt-1.5 truncate text-[11px] text-slate-500 dark:text-slate-400">Next: {{ $card['resume_lesson_title'] }}</p>
+                                @elseif(!$card['uses_classroom'])
+                                    <p class="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">Instructor-led sessions, materials, assignments &amp; quizzes</p>
                                 @endif
                             </div>
-                            <div class="grid grid-cols-2 sm:flex shrink-0 items-center gap-2">
-                                <button
-                                    type="button"
-                                    x-on:click="saveOffline()"
-                                    :disabled="saving"
-                                    class="inline-flex min-h-[36px] items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 active:scale-[0.98] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 transition"
-                                    x-text="saving ? 'Saving...' : (saved ? 'Saved' : 'Save Offline')"
-                                ></button>
+                            <div class="flex shrink-0 items-center gap-2">
+                                @if($card['uses_classroom'] && $card['bundle_url'])
+                                    <button
+                                        type="button"
+                                        x-on:click="saveOffline()"
+                                        :disabled="saving"
+                                        class="inline-flex min-h-[36px] items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 active:scale-[0.98] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 transition"
+                                        x-text="saving ? 'Saving...' : (saved ? 'Saved' : 'Save Offline')"
+                                    ></button>
+                                @endif
                                 @if($card['resume_url'])
                                     <a
                                         href="{{ $card['resume_url'] }}"
                                         class="inline-flex min-h-[36px] shrink-0 items-center justify-center rounded-lg bg-teal-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-teal-500 active:scale-[0.98] transition"
                                     >
-                                        {{ $card['is_completed'] ? 'Review' : 'Resume' }}
+                                        @if($card['uses_classroom'])
+                                            {{ $card['is_completed'] ? 'Review' : 'Resume' }}
+                                        @else
+                                            Open Course Hub
+                                        @endif
                                     </a>
                                 @endif
                             </div>
