@@ -101,6 +101,18 @@ class CoursePlayer extends Component
 
             $this->activeLesson = $nextPending ?? $this->course->lessons()->orderBy('order_column', 'asc')->first();
         }
+
+        // If the selected SCORM lesson lost its package (e.g. deleted package), jump to the first valid unlocked lesson
+        if ($this->activeLesson && $this->activeLesson->type === 'scorm' && ! $this->activeLesson->scormPackage) {
+            $validFallback = $this->course->lessons
+                ->sortBy('order_column')
+                ->first(fn (Lesson $l): bool => ($l->type !== 'scorm' || $l->scormPackage !== null)
+                    && (! $user || $progressionService->isLessonUnlocked($user, $l)));
+
+            if ($validFallback) {
+                $this->activeLesson = $validFallback;
+            }
+        }
     }
 
     public function selectLesson(int $lessonId, ?ProgressionService $progressionService = null)
