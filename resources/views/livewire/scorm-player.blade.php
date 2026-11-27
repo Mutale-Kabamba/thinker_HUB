@@ -152,31 +152,50 @@
             };
 
             this.ready = true;
+        },
+        toggleFullscreen() {
+            const el = this.$refs.scormStage;
+            if (!el) return;
+            if (!document.fullscreenElement) {
+                el.requestFullscreen?.().catch(() => {});
+            } else {
+                document.exitFullscreen?.().catch(() => {});
+            }
         }
     }"
-    class="space-y-3"
+    x-ref="scormStage"
+    class="flex w-full flex-col bg-[#0b1c22]"
 >
-    <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-4 py-2.5 text-xs text-slate-300">
-        <div class="flex items-center gap-2">
-            <span class="rounded-md bg-teal-900/60 px-2 py-0.5 font-semibold uppercase tracking-wider text-teal-300">
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 bg-[#0b1c22] px-4 py-2 text-xs text-slate-300">
+        <div class="flex items-center gap-2 min-w-0">
+            <span class="rounded bg-teal-900/70 px-2 py-0.5 font-semibold uppercase tracking-wider text-teal-300 shrink-0">
                 {{ strtoupper(str_replace('_', ' ', $package->standard)) }}
             </span>
-            <span class="font-medium text-white">{{ $package->title }}</span>
+            <span class="font-medium text-white truncate">{{ $package->title }}</span>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 shrink-0">
             <span>Status: <strong class="text-emerald-400" x-text="status"></strong></span>
             <template x-if="scoreRaw !== null && scoreRaw !== ''">
                 <span>Score: <strong class="text-amber-300" x-text="scoreRaw"></strong></span>
             </template>
             <span x-show="saving" class="text-slate-400">Syncing...</span>
+            <button
+                type="button"
+                @click="toggleFullscreen()"
+                title="Toggle Fullscreen"
+                class="inline-flex items-center gap-1 rounded border border-slate-700 bg-slate-800/80 px-2 py-1 text-[11px] font-medium text-slate-200 hover:bg-slate-700 hover:text-white transition"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                <span class="hidden sm:inline">Fullscreen</span>
+            </button>
         </div>
     </div>
 
-    <div class="relative aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-white shadow-2xl">
+    <div class="relative w-full h-[calc(100dvh-9.5rem)] min-h-[540px] bg-[#0f172a]">
         <iframe
             :src="ready ? launchUrl : 'about:blank'"
             title="{{ $package->title }}"
-            class="h-full w-full border-0"
+            class="h-full w-full border-0 block"
             allow="autoplay; fullscreen"
             allowfullscreen
         ></iframe>
