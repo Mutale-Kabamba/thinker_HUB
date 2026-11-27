@@ -118,4 +118,46 @@ class HybridCourseModeSeparationTest extends TestCase
             ->assertDontSee('Orphaned Old SCORM');
         $this->assertDatabaseMissing('lessons', ['id' => $orphanLesson->id]);
     }
+
+    public function test_multi_sco_scorm_package_populates_course_content_sections_auto_advances_and_deletes_cleanly(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $student = User::factory()->create(['role' => 'student', 'is_active' => true]);
+        $course = Course::create([
+            'title' => 'MSO-101 Mastery',
+            'code' => 'MSO-101',
+            'slug' => 'mso-101-mastery',
+            'delivery_mode' => Course::DELIVERY_SELF_PACED,
+            'is_active' => true,
+        ]);
+        Enrollment::create(['user_id' => $student->id, 'course_id' => $course->id]);
+
+        $zipPath = public_path('samples/imports/MSO-101_Cohort_One_SCORM_1.2.zip');
+        $this->assertFileExists($zipPath);
+
+        $package = app(\App\Services\ScormPackageService::class)->importZip($zipPath, [
+            'course_id' => $course->id,
+        ]);
+
+        // 7 module sections & 17 progressive lessons populated natively in Course Content
+        $this->assertSame(7, \App\Models\CourseSection::where('course_id', $course->id)->count());
+        $lessons = Lesson::where('course_id', $course->id)->orderBy('order_column')->get();
+        $this->assertCount(17, $lessons);
+        $this->assertSame('Overview, Syllabus & 15-Session Calendar', $lessons[0]->title);
+        $this->assertSame('Lessons & Hands-On Labs (1A–1C)', $lessons[1]->title);
+
+        // CoursePlayer starts on Lesson 1 and auto-advances to Lesson 2 on scormCompleted
+        $this->actingAs($student);
+        Livewire::test(CoursePlayer::class, ['course' => $course])
+            ->assertSet('activeLesson.id', $lessons[0]->id)
+            ->assertSee('Module 1: Word Essentials')
+            ->dispatch('scormCompleted')
+            ->assertSet('activeLesson.id', $lessons[1]->id);
+
+        // Deleting the package cleans up all 17 lessons and all 7 auto-created sections
+        $package->delete();
+        $this->assertSame(0, Lesson::where('course_id', $course->id)->count());
+        $this->assertSame(0, \App\Models\CourseSection::where('course_id', $course->id)->count());
+    }
 }

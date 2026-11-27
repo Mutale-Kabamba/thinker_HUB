@@ -106,19 +106,76 @@ class ScormPackageService
             'is_active' => true,
         ]);
 
-        // Auto-provision a published SCORM lesson in the course so it appears immediately in the classroom
+        // Auto-provision published SCORM lesson(s) in the course so they appear immediately in Course Content
         if ($package->course_id && ! $package->lesson_id) {
-            $nextOrder = ((int) Lesson::where('course_id', $package->course_id)->max('order_column')) + 1;
-            $lesson = Lesson::create([
-                'course_id' => $package->course_id,
-                'title' => $package->title,
-                'type' => 'scorm',
-                'scorm_package_id' => $package->id,
-                'order_column' => $nextOrder,
-                'sort_order' => $nextOrder,
-                'is_published' => true,
-            ]);
-            $package->update(['lesson_id' => $lesson->id]);
+            $manifestItems = $manifestInfo['meta']['items'] ?? [];
+
+            if (is_array($manifestItems) && count($manifestItems) > 1) {
+                $nextOrder = ((int) Lesson::where('course_id', $package->course_id)->max('order_column')) + 1;
+                $nextSectionOrder = ((int) \App\Models\CourseSection::where('course_id', $package->course_id)->max('sort_order')) + 1;
+                $sectionCache = [];
+                $createdSectionIds = [];
+                $lessonEntries = [];
+                $firstLessonId = null;
+
+                foreach ($manifestItems as $item) {
+                    $sectionTitle = trim((string) ($item['section'] ?? ''));
+                    $sectionId = null;
+
+                    if ($sectionTitle !== '') {
+                        if (! isset($sectionCache[$sectionTitle])) {
+                            $section = \App\Models\CourseSection::create([
+                                'course_id' => $package->course_id,
+                                'title' => $sectionTitle,
+                                'sort_order' => $nextSectionOrder++,
+                            ]);
+                            $sectionCache[$sectionTitle] = $section->id;
+                            $createdSectionIds[] = $section->id;
+                        }
+                        $sectionId = $sectionCache[$sectionTitle];
+                    }
+
+                    $lesson = Lesson::create([
+                        'course_id' => $package->course_id,
+                        'course_section_id' => $sectionId,
+                        'title' => trim((string) ($item['title'] ?? $package->title)),
+                        'type' => 'scorm',
+                        'scorm_package_id' => $package->id,
+                        'order_column' => $nextOrder,
+                        'sort_order' => $nextOrder,
+                        'is_published' => true,
+                    ]);
+                    $nextOrder++;
+
+                    if ($firstLessonId === null) {
+                        $firstLessonId = $lesson->id;
+                    }
+
+                    $itemHref = ltrim($manifestPrefix . ltrim((string) ($item['href'] ?? $manifestInfo['entry_point']), '/'), '/');
+                    $lessonEntries[(string) $lesson->id] = $itemHref;
+                }
+
+                $meta = is_array($package->manifest_meta) ? $package->manifest_meta : [];
+                $meta['lesson_entries'] = $lessonEntries;
+                $meta['section_ids'] = $createdSectionIds;
+
+                $package->update([
+                    'lesson_id' => $firstLessonId,
+                    'manifest_meta' => $meta,
+                ]);
+            } else {
+                $nextOrder = ((int) Lesson::where('course_id', $package->course_id)->max('order_column')) + 1;
+                $lesson = Lesson::create([
+                    'course_id' => $package->course_id,
+                    'title' => $package->title,
+                    'type' => 'scorm',
+                    'scorm_package_id' => $package->id,
+                    'order_column' => $nextOrder,
+                    'sort_order' => $nextOrder,
+                    'is_published' => true,
+                ]);
+                $package->update(['lesson_id' => $lesson->id]);
+            }
         }
 
         return $package->fresh();
@@ -129,11 +186,17 @@ class ScormPackageService
      */
     public function startOrResumeAttempt(ScormPackage $package, User $user, ?Lesson $lesson = null): ScormAttempt
     {
-        $existing = ScormAttempt::query()
+        $resolvedLessonId = $lesson?->id ?? $package->lesson_id;
+
+        $query = ScormAttempt::query()
             ->where('scorm_package_id', $package->id)
-            ->where('user_id', $user->id)
-            ->latest('attempt_number')
-            ->first();
+            ->where('user_id', $user->id);
+
+        if ($resolvedLessonId) {
+            $query->where('lesson_id', $resolvedLessonId);
+        }
+
+        $existing = $query->latest('attempt_number')->first();
 
         if ($existing) {
             return $existing;
@@ -142,7 +205,7 @@ class ScormPackageService
         return ScormAttempt::create([
             'scorm_package_id' => $package->id,
             'user_id' => $user->id,
-            'lesson_id' => $lesson?->id ?? $package->lesson_id,
+            'lesson_id' => $resolvedLessonId,
             'tenant_id' => $package->tenant_id ?? $user->tenant_id,
             'attempt_number' => 1,
             'lesson_status' => 'not attempted',
@@ -311,7 +374,54 @@ class ScormPackageService
         $title = ! empty($titleNodes) ? trim((string) $titleNodes[0]) : 'SCORM Module';
 
         $resourceNodes = $xml->xpath('//*[local-name()="resources"]/*[local-name()="resource"][@href]') ?: [];
+        $resourceMap = [];
+        foreach ($resourceNodes as $res) {
+            $resId = trim((string) ($res['identifier'] ?? ''));
+            $resHref = trim((string) ($res['href'] ?? ''));
+            if ($resId !== '' && $resHref !== '') {
+                $resourceMap[$resId] = $resHref;
+            }
+        }
+
         $entryPoint = ! empty($resourceNodes) ? trim((string) $resourceNodes[0]['href']) : 'index.html';
+
+        // Parse multi-SCO organization hierarchy (top-level items = sections or standalone SCOs)
+        $parsedItems = [];
+        $orgNodes = $xml->xpath('//*[local-name()="organizations"]/*[local-name()="organization"]') ?: [];
+        if (! empty($orgNodes)) {
+            $topItems = $orgNodes[0]->xpath('./*[local-name()="item"]') ?: [];
+            foreach ($topItems as $topItem) {
+                $topTitleNodes = $topItem->xpath('./*[local-name()="title"]') ?: [];
+                $topTitle = ! empty($topTitleNodes) ? trim((string) $topTitleNodes[0]) : '';
+                $topRef = trim((string) ($topItem['identifierref'] ?? ''));
+                $childItems = $topItem->xpath('./*[local-name()="item"]') ?: [];
+
+                if (! empty($childItems)) {
+                    foreach ($childItems as $child) {
+                        $childTitleNodes = $child->xpath('./*[local-name()="title"]') ?: [];
+                        $childTitle = ! empty($childTitleNodes) ? trim((string) $childTitleNodes[0]) : '';
+                        $childRef = trim((string) ($child['identifierref'] ?? ''));
+                        if ($childRef !== '' && isset($resourceMap[$childRef])) {
+                            $parsedItems[] = [
+                                'section' => $topTitle,
+                                'title' => $childTitle ?: $topTitle,
+                                'href' => $resourceMap[$childRef],
+                            ];
+                        }
+                    }
+                } elseif ($topRef !== '' && isset($resourceMap[$topRef])) {
+                    $parsedItems[] = [
+                        'section' => '',
+                        'title' => $topTitle ?: $title,
+                        'href' => $resourceMap[$topRef],
+                    ];
+                }
+            }
+        }
+
+        if (! empty($parsedItems)) {
+            $entryPoint = $parsedItems[0]['href'];
+        }
 
         return [
             'standard' => $standard,
@@ -321,6 +431,7 @@ class ScormPackageService
             'identifier' => $identifier !== '' ? $identifier : null,
             'meta' => [
                 'manifest_file' => 'imsmanifest.xml',
+                'items' => $parsedItems,
             ],
         ];
     }

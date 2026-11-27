@@ -59,6 +59,16 @@ class ScormPackage extends Model
                 Lesson::query()->whereIn('id', $lessonIds)->delete();
             }
 
+            $sectionIds = is_array($package->manifest_meta['section_ids'] ?? null)
+                ? $package->manifest_meta['section_ids']
+                : [];
+            if (! empty($sectionIds)) {
+                CourseSection::query()
+                    ->whereIn('id', $sectionIds)
+                    ->whereDoesntHave('lessons')
+                    ->delete();
+            }
+
             if (filled($package->storage_path)) {
                 try {
                     Storage::disk($package->storage_disk ?: 'public')->deleteDirectory($package->storage_path);

@@ -200,8 +200,13 @@ class CoursePlayer extends Component
     }
 
     #[On('scormCompleted')]
-    public function handleScormCompleted(): void
+    public function handleScormCompleted(?ProgressionService $progressionService = null): void
     {
+        if ($this->activeLesson && $this->activeLesson->type === 'scorm') {
+            $this->advance($progressionService ?? app(ProgressionService::class));
+            return;
+        }
+
         $this->refreshProgressData();
     }
 
