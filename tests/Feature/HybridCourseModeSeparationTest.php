@@ -79,5 +79,43 @@ class HybridCourseModeSeparationTest extends TestCase
         $selfPacedCourse->refresh();
         $this->assertEquals(5.00, (float) $selfPacedCourse->average_rating);
         $this->assertSame(1, (int) $selfPacedCourse->review_count);
+
+        // 5. Deleting a SCORM package removes its course lesson and auto-cleans orphaned SCORM lessons
+        $pkg = \App\Models\ScormPackage::create([
+            'course_id' => $selfPacedCourse->id,
+            'title' => 'Temp SCORM Module',
+            'standard' => \App\Models\ScormPackage::STANDARD_SCORM_12,
+            'storage_disk' => 'local',
+            'storage_path' => 'scorm-test-temp',
+            'entry_point' => 'index.html',
+            'is_active' => true,
+        ]);
+        $scormLesson = Lesson::create([
+            'course_id' => $selfPacedCourse->id,
+            'title' => 'Temp SCORM Module',
+            'type' => 'scorm',
+            'scorm_package_id' => $pkg->id,
+            'order_column' => 2,
+            'sort_order' => 2,
+            'is_published' => true,
+        ]);
+        $pkg->update(['lesson_id' => $scormLesson->id]);
+
+        $pkg->delete();
+        $this->assertDatabaseMissing('lessons', ['id' => $scormLesson->id]);
+
+        // Legacy orphaned SCORM lesson (scorm_package_id = null) is purged automatically when CoursePlayer opens
+        $orphanLesson = Lesson::create([
+            'course_id' => $selfPacedCourse->id,
+            'title' => 'Orphaned Old SCORM',
+            'type' => 'scorm',
+            'scorm_package_id' => null,
+            'order_column' => 3,
+            'sort_order' => 3,
+            'is_published' => true,
+        ]);
+        Livewire::test(CoursePlayer::class, ['course' => $selfPacedCourse])
+            ->assertDontSee('Orphaned Old SCORM');
+        $this->assertDatabaseMissing('lessons', ['id' => $orphanLesson->id]);
     }
 }

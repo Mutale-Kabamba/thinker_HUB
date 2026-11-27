@@ -44,11 +44,27 @@ class ScormPackage extends Model
     protected static function booted(): void
     {
         static::deleting(function (ScormPackage $package): void {
-            if ($package->lesson_id) {
-                Lesson::query()
-                    ->where('id', $package->lesson_id)
-                    ->where('type', 'scorm')
-                    ->delete();
+            $lessonIds = Lesson::query()
+                ->where('type', 'scorm')
+                ->where(function ($q) use ($package): void {
+                    $q->where('scorm_package_id', $package->id);
+                    if ($package->lesson_id) {
+                        $q->orWhere('id', $package->lesson_id);
+                    }
+                })
+                ->pluck('id');
+
+            if ($lessonIds->isNotEmpty()) {
+                LessonProgress::query()->whereIn('lesson_id', $lessonIds)->delete();
+                Lesson::query()->whereIn('id', $lessonIds)->delete();
+            }
+
+            if (filled($package->storage_path)) {
+                try {
+                    Storage::disk($package->storage_disk ?: 'public')->deleteDirectory($package->storage_path);
+                } catch (\Throwable) {
+                    // Best-effort storage cleanup
+                }
             }
         });
     }
