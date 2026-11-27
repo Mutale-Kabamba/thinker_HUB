@@ -30,11 +30,13 @@ class ListScormPackages extends ListRecords
                         ->label('Module Title (optional — auto-detected from manifest)')
                         ->maxLength(255),
                     Select::make('course_id')
-                        ->label('Attach to Course (optional)')
+                        ->label('Attach to Course (Self-Paced / Hybrid)')
                         ->options(fn () => Course::query()
                             ->visibleToAdministrator(auth()->user(), includeGlobal: true)
+                            ->classroomCapable()
                             ->orderBy('title')
                             ->pluck('title', 'id'))
+                        ->helperText('Only Self-Paced and Hybrid courses are shown here. Set a course\'s Learning Mode to Self-Paced or Hybrid to attach SCORM/xAPI modules.')
                         ->searchable(),
                     Select::make('tenant_id')
                         ->label('Program / Tenant (optional)')

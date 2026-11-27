@@ -17,6 +17,10 @@ class Course extends Model
     use HasFactory;
     use HasReviews;
 
+    public const DELIVERY_COHORT = 'cohort';
+    public const DELIVERY_SELF_PACED = 'self_paced';
+    public const DELIVERY_HYBRID = 'hybrid';
+
     protected $attributes = [
         'offering_mode' => 'once_off',
     ];
@@ -27,6 +31,7 @@ class Course extends Model
         'slug',
         'code',
         'offering_mode',
+        'delivery_mode',
         'course_by',
         'image_path',
         'description',
@@ -74,6 +79,60 @@ class Course extends Model
         return $query->where(function ($q): void {
             $q->where('is_for_kids', false)->orWhereNull('is_for_kids');
         });
+    }
+
+    public function scopeClassroomCapable($query)
+    {
+        return $query->whereIn('delivery_mode', [self::DELIVERY_SELF_PACED, self::DELIVERY_HYBRID]);
+    }
+
+    public function resolvedDeliveryMode(): string
+    {
+        if (in_array($this->delivery_mode, [self::DELIVERY_COHORT, self::DELIVERY_SELF_PACED, self::DELIVERY_HYBRID], true)) {
+            return (string) $this->delivery_mode;
+        }
+
+        $hasLessons = $this->relationLoaded('lessons')
+            ? $this->lessons->isNotEmpty()
+            : $this->lessons()->exists();
+
+        $hasScorm = \Illuminate\Support\Facades\Schema::hasTable('scorm_packages')
+            && ScormPackage::query()->where('course_id', $this->id)->where('is_active', true)->exists();
+
+        if ($hasLessons || $hasScorm) {
+            return $this->sessions()->exists() ? self::DELIVERY_HYBRID : self::DELIVERY_SELF_PACED;
+        }
+
+        return self::DELIVERY_COHORT;
+    }
+
+    public function hasClassroomContent(): bool
+    {
+        $hasLessons = $this->relationLoaded('lessons')
+            ? $this->lessons->isNotEmpty()
+            : $this->lessons()->exists();
+
+        if ($hasLessons) {
+            return true;
+        }
+
+        return \Illuminate\Support\Facades\Schema::hasTable('scorm_packages')
+            && ScormPackage::query()->where('course_id', $this->id)->where('is_active', true)->exists();
+    }
+
+    public function usesClassroomPlayer(): bool
+    {
+        return in_array($this->resolvedDeliveryMode(), [self::DELIVERY_SELF_PACED, self::DELIVERY_HYBRID], true)
+            && $this->hasClassroomContent();
+    }
+
+    public function deliveryModeLabel(): string
+    {
+        return match ($this->resolvedDeliveryMode()) {
+            self::DELIVERY_SELF_PACED => 'Self-Paced',
+            self::DELIVERY_HYBRID => 'Hybrid',
+            default => 'Live Cohort',
+        };
     }
 
     public function getTimelineAttribute($value): ?string

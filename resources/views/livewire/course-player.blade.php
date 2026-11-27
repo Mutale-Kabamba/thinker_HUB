@@ -340,9 +340,20 @@
                         </div>
                     @endif
                 @else
-                    <div class="max-w-2xl mx-auto py-20 px-6 text-center">
-                        <h3 class="text-lg font-bold text-slate-300">No lessons available in this course yet.</h3>
-                        <p class="text-sm text-slate-500 mt-1">Please check back soon once course content is published.</p>
+                    <div class="max-w-2xl mx-auto py-16 px-6 text-center space-y-4">
+                        <span class="inline-block rounded-full bg-teal-900/60 border border-teal-700/60 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-300">
+                            {{ $course->deliveryModeLabel() }} Course
+                        </span>
+                        <h3 class="text-xl font-bold text-white">{{ $course->title }}</h3>
+                        <p class="text-sm text-slate-300 max-w-lg mx-auto">
+                            This course is delivered through your Student Portal &mdash; access your live schedule, downloadable materials, assignments, and quizzes below.
+                        </p>
+                        <div class="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+                            <a href="{{ url('/learn/courses') }}" class="rounded-lg bg-teal-600 hover:bg-teal-500 px-4 py-2 text-xs font-bold text-white transition">Course Materials</a>
+                            <a href="{{ url('/learn/schedule') }}" class="rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 px-4 py-2 text-xs font-bold text-slate-200 transition">Live Schedule</a>
+                            <a href="{{ url('/learn/assignments') }}" class="rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 px-4 py-2 text-xs font-bold text-slate-200 transition">Assignments</a>
+                            <a href="{{ url('/learn/quizzes') }}" class="rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 px-4 py-2 text-xs font-bold text-slate-200 transition">Quizzes</a>
+                        </div>
                     </div>
                 @endif
             </div>
