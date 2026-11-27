@@ -30,8 +30,23 @@ class ScormPlayer extends Component
 
     public function render()
     {
+        $lessonEntries = is_array($this->package->manifest_meta['lesson_entries'] ?? null)
+            ? $this->package->manifest_meta['lesson_entries']
+            : [];
+
+        $lessonEntryPath = $this->lessonId
+            ? ($lessonEntries[(string) $this->lessonId] ?? $lessonEntries[$this->lessonId] ?? null)
+            : null;
+
+        $launchUrl = $lessonEntryPath
+            ? route('scorm.content', [
+                'package' => $this->package->id,
+                'path' => ltrim((string) $lessonEntryPath, '/'),
+            ])
+            : $this->package->launch_url;
+
         return view('livewire.scorm-player', [
-            'launchUrl' => $this->package->launch_url,
+            'launchUrl' => $launchUrl,
             'commitUrl' => $this->attempt ? route('scorm.commit', $this->attempt) : null,
             'xapiUrl' => $this->attempt ? route('scorm.xapi', $this->attempt) : null,
         ]);
