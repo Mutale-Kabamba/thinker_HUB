@@ -67,6 +67,15 @@ class ListScormPackages extends ListRecords
                             ->body("{$package->title} ({$package->standard}) is ready for learners.")
                             ->success()
                             ->send();
+                    } catch (\Throwable $e) {
+                        report($e);
+
+                        Notification::make()
+                            ->title('SCORM Import Failed')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->persistent()
+                            ->send();
                     } finally {
                         Storage::disk('local')->delete((string) $data['archive']);
                     }
