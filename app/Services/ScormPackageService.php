@@ -112,7 +112,10 @@ class ScormPackageService
 
             if (is_array($manifestItems) && count($manifestItems) > 1) {
                 $nextOrder = ((int) Lesson::where('course_id', $package->course_id)->max('order_column')) + 1;
-                $nextSectionOrder = ((int) \App\Models\CourseSection::where('course_id', $package->course_id)->max('sort_order')) + 1;
+                $sectionOrderCol = \Illuminate\Support\Facades\Schema::hasColumn('course_sections', 'order_column')
+                    ? 'order_column'
+                    : 'sort_order';
+                $nextSectionOrder = ((int) \App\Models\CourseSection::where('course_id', $package->course_id)->max($sectionOrderCol)) + 1;
                 $sectionCache = [];
                 $createdSectionIds = [];
                 $lessonEntries = [];
@@ -127,7 +130,7 @@ class ScormPackageService
                             $section = \App\Models\CourseSection::create([
                                 'course_id' => $package->course_id,
                                 'title' => $sectionTitle,
-                                'sort_order' => $nextSectionOrder++,
+                                $sectionOrderCol => $nextSectionOrder++,
                             ]);
                             $sectionCache[$sectionTitle] = $section->id;
                             $createdSectionIds[] = $section->id;

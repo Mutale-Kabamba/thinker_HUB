@@ -83,6 +83,10 @@ class Course extends Model
 
     public function scopeClassroomCapable($query)
     {
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('courses', 'delivery_mode')) {
+            return $query;
+        }
+
         return $query->whereIn('delivery_mode', [self::DELIVERY_SELF_PACED, self::DELIVERY_HYBRID]);
     }
 
