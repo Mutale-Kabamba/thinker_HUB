@@ -194,8 +194,16 @@ class ImportSessionsAction
         $rawStatus = static::pickString($row, ['status']);
         $status = static::normalizeStatus($rawStatus);
 
+        // --- Delivery Mode ---
+        $rawDeliveryMode = static::pickString($row, ['delivery_mode', 'deliveryMode', 'delivery', 'mode']);
+        $deliveryMode = static::normalizeDeliveryMode($rawDeliveryMode);
+
         // --- Intake / Class ---
         $intakeId = static::resolveIntake($row, $course);
+
+        // --- Duration ---
+        $rawDuration = Arr::get($row, 'required_duration_minutes', Arr::get($row, 'duration_minutes', Arr::get($row, 'duration')));
+        $durationMinutes = is_numeric($rawDuration) ? max(1, (int) $rawDuration) : null;
 
         // --- Build payload ---
         $payload = [
@@ -203,6 +211,12 @@ class ImportSessionsAction
             'course_intake_id' => $intakeId,
             'instructor_id' => $instructorId,
             'type' => $type,
+            'delivery_mode' => $deliveryMode,
+            'meeting_link' => static::nullableString(Arr::get($row, 'meeting_link', Arr::get($row, 'link'))),
+            'physical_address' => static::nullableString(Arr::get($row, 'physical_address', Arr::get($row, 'location', Arr::get($row, 'address')))),
+            'video_url' => static::nullableString(Arr::get($row, 'video_url', Arr::get($row, 'video'))),
+            'reading_content' => static::nullableString(Arr::get($row, 'reading_content', Arr::get($row, 'reading'))),
+            'required_duration_minutes' => $durationMinutes,
             'student_id' => $studentId,
             'title' => static::nullableString(Arr::get($row, 'title')),
             'session_date' => $sessionDate,
@@ -346,6 +360,16 @@ class ImportSessionsAction
             'rescheduled' => 'rescheduled',
             'cancelled', 'canceled' => 'cancelled',
             default => 'scheduled',
+        };
+    }
+
+    private static function normalizeDeliveryMode(string $mode): string
+    {
+        return match (mb_strtolower(str_replace(['-', ' '], '_', $mode))) {
+            'live_physical', 'physical', 'in_person', 'inperson', 'offline', 'classroom' => CourseSession::DELIVERY_LIVE_PHYSICAL,
+            'video', 'video_guide', 'stream', 'recording', 'async_video' => CourseSession::DELIVERY_VIDEO,
+            'read', 'reading', 'material', 'document', 'pdf', 'notes' => CourseSession::DELIVERY_READ,
+            default => CourseSession::DELIVERY_LIVE_VIRTUAL,
         };
     }
 

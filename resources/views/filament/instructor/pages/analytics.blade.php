@@ -4,7 +4,7 @@
         <div class="edtech-card bg-white dark:bg-[#102028] p-6 rounded-2xl border border-slate-100 dark:border-[#233842] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-[#7C3AED] dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800">
                         Performance Insights
                     </span>
                 </div>
@@ -18,7 +18,7 @@
             <div class="flex items-center gap-2">
                 <a 
                     href="{{ route('filament.instructor.pages.student-results') }}" 
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold text-[#7C3AED] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 transition shadow-2xs"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 transition shadow-2xs border border-teal-200/60 dark:border-teal-800/60"
                 >
                     <x-filament::icon icon="heroicon-o-academic-cap" class="w-4 h-4" />
                     <span>Gradebook & Roster</span>
@@ -94,19 +94,19 @@
                     </div>
                 </div>
 
-                {{-- Card 3: Assignment Turnaround (Purple Pastel) --}}
-                <div class="bg-[#F5F3FF] dark:bg-[#181126] border border-[#EDE9FE] dark:border-[#311f4a] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group">
+                {{-- Card 3: Assignment Turnaround (Teal Pastel) --}}
+                <div class="bg-[#F0FDFA] dark:bg-[#0c1f24] border border-[#CCFBF1] dark:border-[#134e48] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group">
                     <div class="flex items-start justify-between">
-                        <div class="w-9 h-9 rounded-full bg-[#DDD6FE] text-[#7C3AED] dark:bg-purple-900/60 dark:text-purple-300 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
+                        <div class="w-9 h-9 rounded-full bg-[#99F6E4] text-[#0D9488] dark:bg-teal-900/60 dark:text-teal-300 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
                             <x-heroicon-o-document-text class="w-4 h-4" />
                         </div>
 
                         <div class="relative w-11 h-11 flex items-center justify-center">
                             <svg class="w-11 h-11 transform -rotate-90" viewBox="0 0 36 36">
-                                <path class="text-[#DDD6FE]/50 dark:text-purple-900/40" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path class="text-[#7C3AED]" stroke-dasharray="100, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="text-[#99F6E4]/50 dark:text-teal-900/40" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="text-[#0D9488]" stroke-dasharray="100, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                             </svg>
-                            <span class="absolute text-[10px] font-extrabold text-[#7C3AED] dark:text-purple-300">
+                            <span class="absolute text-[10px] font-extrabold text-[#0D9488] dark:text-teal-300">
                                 {{ $turnaround['assignments']['count'] ?? 0 }}
                             </span>
                         </div>
@@ -116,7 +116,7 @@
                         <div class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                             {{ $turnaround['assignments']['label'] ?? '—' }}
                         </div>
-                        <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 group-hover:text-[#7C3AED] dark:group-hover:text-purple-300 transition-colors">
+                        <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 group-hover:text-[#0D9488] dark:group-hover:text-teal-300 transition-colors">
                             Assignment Turnaround &rarr;
                         </div>
                         <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
@@ -195,10 +195,10 @@
                                             </span>
                                         </div>
                                         <div class="flex items-center gap-2">
-                                            <span class="text-xs font-black text-[#7C3AED] dark:text-purple-400">
+                                            <span class="text-xs font-black text-teal-600 dark:text-teal-400">
                                                 {{ $row['completed_sessions'] }}/{{ $row['total_sessions'] }} Sessions
                                             </span>
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-50 text-[#7C3AED] dark:bg-purple-950/60 dark:text-purple-300">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200/50 dark:border-teal-800/50">
                                                 {{ $row['percentage'] }}%
                                             </span>
                                         </div>
@@ -206,7 +206,7 @@
 
                                     <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                         <div 
-                                            class="h-full bg-gradient-to-r from-[#7C3AED] to-indigo-600 rounded-full transition-all duration-500" 
+                                            class="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full transition-all duration-500" 
                                             style="width: {{ $row['percentage'] }}%;"
                                         ></div>
                                     </div>
@@ -332,7 +332,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 text-center space-y-1">
                             <span class="block text-[10px] font-bold text-slate-400 uppercase">Assessments</span>
-                            <span class="text-base font-black text-[#7C3AED] dark:text-purple-400 block">
+                            <span class="text-base font-black text-teal-600 dark:text-teal-400 block">
                                 {{ $turnaround['assessments']['label'] ?? '—' }}
                             </span>
                             <span class="text-[10px] text-slate-400 block">

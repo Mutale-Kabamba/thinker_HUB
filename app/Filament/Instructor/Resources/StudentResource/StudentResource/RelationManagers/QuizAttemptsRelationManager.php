@@ -49,40 +49,44 @@ class QuizAttemptsRelationManager extends RelationManager
                     ->placeholder('In progress'),
             ])
             ->recordActions([
-                \Filament\Actions\Action::make('viewAnswers')
-                    ->label('View Answers')
-                    ->icon('heroicon-o-eye')
-                    ->color('info')
-                    ->visible(fn ($record) => $record->completed_at !== null)
-                    ->modalHeading(fn ($record) => 'Quiz Breakdown & Answers: ' . ($record->quiz?->title ?? 'Quiz Attempt'))
-                    ->modalWidth('4xl')
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Close')
-                    ->modalContent(fn ($record) => view('filament.instructor.modals.quiz-attempt-answers', [
-                        'attempt' => $record->loadMissing(['quiz.questions.options', 'quiz.course', 'answers.option', 'answers.question', 'user']),
-                    ])),
-                \Filament\Actions\Action::make('grantRetake')
-                    ->label('Grant 2nd Try')
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('success')
-                    ->visible(fn ($record) => ! $record->retake_allowed && $record->completed_at !== null)
-                    ->requiresConfirmation()
-                    ->modalHeading('Grant Second Chance')
-                    ->modalDescription('Allow this student to retake the quiz. On their second attempt, the recorded mark will be capped at the passing mark.')
-                    ->action(function ($record) {
-                        $record->grantRetake(auth()->user());
-                        \Filament\Notifications\Notification::make()->title('Second chance granted.')->success()->send();
-                    }),
-                \Filament\Actions\Action::make('revokeRetake')
-                    ->label('Revoke 2nd Try')
-                    ->icon('heroicon-o-x-mark')
-                    ->color('danger')
-                    ->visible(fn ($record) => (bool) $record->retake_allowed)
-                    ->requiresConfirmation()
-                    ->action(function ($record) {
-                        $record->revokeRetake();
-                        \Filament\Notifications\Notification::make()->title('Second chance revoked.')->info()->send();
-                    }),
+                \Filament\Actions\ActionGroup::make([
+                    \Filament\Actions\Action::make('viewAnswers')
+                        ->label('View Answers')
+                        ->icon('heroicon-o-eye')
+                        ->color('info')
+                        ->visible(fn ($record) => $record->completed_at !== null)
+                        ->modalHeading(fn ($record) => 'Quiz Breakdown & Answers: ' . ($record->quiz?->title ?? 'Quiz Attempt'))
+                        ->modalWidth('4xl')
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Close')
+                        ->modalContent(fn ($record) => view('filament.instructor.modals.quiz-attempt-answers', [
+                            'attempt' => $record->loadMissing(['quiz.questions.options', 'quiz.course', 'answers.option', 'answers.question', 'user']),
+                        ])),
+                    \Filament\Actions\Action::make('grantRetake')
+                        ->label('Grant 2nd Try')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('success')
+                        ->visible(fn ($record) => ! $record->retake_allowed && $record->completed_at !== null)
+                        ->requiresConfirmation()
+                        ->modalHeading('Grant Second Chance')
+                        ->modalDescription('Allow this student to retake the quiz. On their second attempt, the recorded mark will be capped at the passing mark.')
+                        ->action(function ($record) {
+                            $record->grantRetake(auth()->user());
+                            \Filament\Notifications\Notification::make()->title('Second chance granted.')->success()->send();
+                        }),
+                    \Filament\Actions\Action::make('revokeRetake')
+                        ->label('Revoke 2nd Try')
+                        ->icon('heroicon-o-x-mark')
+                        ->color('danger')
+                        ->visible(fn ($record) => (bool) $record->retake_allowed)
+                        ->requiresConfirmation()
+                        ->action(function ($record) {
+                            $record->revokeRetake();
+                            \Filament\Notifications\Notification::make()->title('Second chance revoked.')->info()->send();
+                        }),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->tooltip('Actions'),
             ])
             ->modifyQueryUsing(
                 fn (Builder $query) => $query->whereHas(

@@ -16,16 +16,26 @@ class ProgressionService
     public function initializeCourseProgress(User $user, Course $course): void
     {
         $lessons = $course->lessons()->orderBy('order_column', 'asc')->get();
+        $previousCompleted = true;
 
         foreach ($lessons as $index => $lesson) {
-            LessonProgress::firstOrCreate(
+            $shouldBeUnlocked = $index === 0 || $previousCompleted;
+
+            $progress = LessonProgress::firstOrCreate(
                 ['user_id' => $user->id, 'lesson_id' => $lesson->id],
                 [
                     'course_id' => $course->id,
-                    'is_unlocked' => $index === 0, // First item unlocked by default
+                    'is_unlocked' => $shouldBeUnlocked,
                     'is_completed' => false,
                 ]
             );
+
+            // Unlock newly added lessons if the preceding lesson was already completed
+            if ($shouldBeUnlocked && ! $progress->is_unlocked) {
+                $progress->update(['is_unlocked' => true]);
+            }
+
+            $previousCompleted = (bool) $progress->is_completed;
         }
     }
 
@@ -110,6 +120,16 @@ class ProgressionService
 
             if ($percentage >= 100 && ! $wasAlreadyCompleted) {
                 event(new CourseCompleted($user, $course));
+
+                // Automatically issue completion certificate
+                try {
+                    $certificate = app(\App\Services\CertificateService::class)->issue($user, $course, force: true);
+                    if ($certificate && $certificate->wasRecentlyCreated) {
+                        $user->notify(new \App\Notifications\CertificateIssuedNotification($certificate));
+                    }
+                } catch (\Throwable $e) {
+                    report($e);
+                }
 
                 // If gamification service exists, award course completion XP if configured
                 try {

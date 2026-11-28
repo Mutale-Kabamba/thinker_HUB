@@ -241,6 +241,13 @@ class AssessmentSubmissionResource extends Resource
             ->recordActions([
                 \Filament\Actions\ActionGroup::make([
                     EditAction::make()->icon('heroicon-m-pencil-square'),
+                    \Filament\Actions\Action::make('view_file')
+                        ->label('View')
+                        ->icon('heroicon-m-eye')
+                        ->color('info')
+                        ->visible(fn ($record): bool => ! empty($record->all_file_paths))
+                        ->url(fn ($record): string => route('file.view', ['type' => 'assessment-submission', 'id' => $record->id]))
+                        ->openUrlInNewTab(),
                     \Filament\Actions\Action::make('download')
                         ->label('Download')
                         ->icon('heroicon-m-arrow-down-tray')

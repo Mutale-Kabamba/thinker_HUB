@@ -2,11 +2,16 @@
 
 namespace App\Livewire;
 
+use App\Models\Broadcast;
+use App\Models\ChatMessage;
+use App\Models\ChatRoom;
 use App\Models\Course;
+use App\Models\CourseRating;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Services\ProgressionService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -17,6 +22,12 @@ class CoursePlayer extends Component
     public ?Lesson $activeLesson = null;
     public array $progressMap = [];
     public int $overallProgress = 0;
+    public int $userRating = 0;
+    public string $userReview = '';
+    public bool $ratingSaved = false;
+    public string $newQuestionTitle = '';
+    public string $newQuestionBody = '';
+    public bool $questionPosted = false;
 
     protected $listeners = [
         'videoEnded' => 'handleVideoCompletion',
@@ -27,13 +38,62 @@ class CoursePlayer extends Component
     public function mount(Course $course, ?int $lessonId = null, ?ProgressionService $progressionService = null)
     {
         $progressionService = $progressionService ?? app(ProgressionService::class);
-        $this->course = $course->load(['sections.lessons', 'lessons']);
+
+        // Auto-sync SCORM/xAPI packages: remove orphaned SCORM lessons whose package was deleted,
+        // and provision lessons for any active packages not yet linked to a lesson
+        if (\Illuminate\Support\Facades\Schema::hasTable('scorm_packages')) {
+            $orphanedLessonIds = Lesson::query()
+                ->where('course_id', $course->id)
+                ->where('type', 'scorm')
+                ->where(function ($q): void {
+                    $q->whereNull('scorm_package_id')
+                        ->orWhereDoesntHave('scormPackage');
+                })
+                ->pluck('id');
+
+            if ($orphanedLessonIds->isNotEmpty()) {
+                LessonProgress::query()->whereIn('lesson_id', $orphanedLessonIds)->delete();
+                Lesson::query()->whereIn('id', $orphanedLessonIds)->delete();
+            }
+
+            $orphanPackages = \App\Models\ScormPackage::query()
+                ->where('course_id', $course->id)
+                ->where('is_active', true)
+                ->whereNull('lesson_id')
+                ->get();
+
+            foreach ($orphanPackages as $pkg) {
+                $nextOrder = ((int) Lesson::where('course_id', $course->id)->max('order_column')) + 1;
+                $newLesson = Lesson::create([
+                    'course_id' => $course->id,
+                    'title' => $pkg->title,
+                    'type' => 'scorm',
+                    'scorm_package_id' => $pkg->id,
+                    'order_column' => $nextOrder,
+                    'sort_order' => $nextOrder,
+                    'is_published' => true,
+                ]);
+                $pkg->update(['lesson_id' => $newLesson->id]);
+            }
+        }
+
+        $this->course = $course->load(['sections.lessons', 'lessons.scormPackage'])->loadCount(['enrollments', 'ratings']);
         $user = Auth::user();
 
         if ($user) {
             // Ensure user has initial progression records
             $progressionService->initializeCourseProgress($user, $this->course);
             $this->refreshProgressData();
+
+            $existingRating = CourseRating::query()
+                ->where('course_id', $this->course->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if ($existingRating) {
+                $this->userRating = (int) $existingRating->rating;
+                $this->userReview = (string) ($existingRating->review ?? '');
+            }
         }
 
         // Determine target active lesson
@@ -56,6 +116,18 @@ class CoursePlayer extends Component
 
             $this->activeLesson = $nextPending ?? $this->course->lessons()->orderBy('order_column', 'asc')->first();
         }
+
+        // If the selected SCORM lesson lost its package (e.g. deleted package), jump to the first valid unlocked lesson
+        if ($this->activeLesson && $this->activeLesson->type === 'scorm' && ! $this->activeLesson->scormPackage) {
+            $validFallback = $this->course->lessons
+                ->sortBy('order_column')
+                ->first(fn (Lesson $l): bool => ($l->type !== 'scorm' || $l->scormPackage !== null)
+                    && (! $user || $progressionService->isLessonUnlocked($user, $l)));
+
+            if ($validFallback) {
+                $this->activeLesson = $validFallback;
+            }
+        }
     }
 
     public function selectLesson(int $lessonId, ?ProgressionService $progressionService = null)
@@ -73,6 +145,27 @@ class CoursePlayer extends Component
         }
 
         $this->activeLesson = $target;
+    }
+
+    public function goToAdjacentLesson(string $direction, ?ProgressionService $progressionService = null): void
+    {
+        if (! $this->activeLesson) {
+            return;
+        }
+
+        $ordered = $this->course->lessons->sortBy('order_column')->values();
+        $currentIndex = $ordered->search(fn (Lesson $l): bool => $l->id === $this->activeLesson->id);
+
+        if ($currentIndex === false) {
+            return;
+        }
+
+        $targetIndex = $direction === 'prev' ? $currentIndex - 1 : $currentIndex + 1;
+        $target = $ordered->get($targetIndex);
+
+        if ($target) {
+            $this->selectLesson($target->id, $progressionService);
+        }
     }
 
     public function markReadingComplete(?ProgressionService $progressionService = null)
@@ -106,6 +199,17 @@ class CoursePlayer extends Component
         }
     }
 
+    #[On('scormCompleted')]
+    public function handleScormCompleted(?ProgressionService $progressionService = null): void
+    {
+        if ($this->activeLesson && $this->activeLesson->type === 'scorm') {
+            $this->advance($progressionService ?? app(ProgressionService::class));
+            return;
+        }
+
+        $this->refreshProgressData();
+    }
+
     protected function advance(ProgressionService $progressionService)
     {
         $user = Auth::user();
@@ -129,6 +233,71 @@ class CoursePlayer extends Component
                 'message' => 'Course completed! Congratulations!',
             ]);
         }
+    }
+
+    public function submitRating(int $rating, ?string $review = null): void
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return;
+        }
+
+        $rating = max(1, min(5, $rating));
+        $cleanReview = trim((string) ($review ?? $this->userReview));
+
+        CourseRating::updateOrCreate(
+            [
+                'course_id' => $this->course->id,
+                'user_id' => $user->id,
+            ],
+            [
+                'rating' => $rating,
+                'review' => $cleanReview !== '' ? $cleanReview : null,
+            ]
+        );
+
+        $this->userRating = $rating;
+        $this->userReview = $cleanReview;
+        $this->ratingSaved = true;
+        $this->course->loadCount(['enrollments', 'ratings']);
+
+        $this->dispatch('rating-saved');
+    }
+
+    public function postQuestion(): void
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return;
+        }
+
+        $title = trim($this->newQuestionTitle);
+        $body = trim($this->newQuestionBody);
+
+        if ($title === '' && $body === '') {
+            return;
+        }
+
+        $room = ChatRoom::firstOrCreate(
+            ['course_id' => $this->course->id, 'type' => 'course'],
+            ['name' => $this->course->title . ' — Q&A', 'created_by' => $user->id]
+        );
+
+        $room->members()->syncWithoutDetaching([$user->id]);
+
+        $formatted = $title !== '' && $body !== ''
+            ? $title . "\n" . $body
+            : ($title !== '' ? $title : $body);
+
+        ChatMessage::create([
+            'chat_room_id' => $room->id,
+            'user_id' => $user->id,
+            'body' => $formatted,
+        ]);
+
+        $this->newQuestionTitle = '';
+        $this->newQuestionBody = '';
+        $this->questionPosted = true;
     }
 
     public function syncVideoTime(int $second)
@@ -162,6 +331,63 @@ class CoursePlayer extends Component
     #[Layout('layouts.player')]
     public function render()
     {
-        return view('livewire.course-player')->layout('layouts.player');
+        $announcements = Schema::hasTable('broadcasts')
+            ? Broadcast::query()
+                ->where('course_id', $this->course->id)
+                ->with('sender')
+                ->orderByDesc('sent_at')
+                ->orderByDesc('created_at')
+                ->limit(25)
+                ->get()
+            : collect();
+
+        $reviews = Schema::hasTable('course_ratings')
+            ? CourseRating::query()
+                ->where('course_id', $this->course->id)
+                ->with('user')
+                ->latest()
+                ->get()
+            : collect();
+
+        $totalReviews = $reviews->count();
+        $averageRating = $totalReviews > 0
+            ? round((float) $reviews->avg('rating'), 1)
+            : ($this->course->average_rating ? round((float) $this->course->average_rating, 1) : 5.0);
+
+        $ratingBreakdown = [];
+        for ($star = 5; $star >= 1; $star--) {
+            $count = $reviews->where('rating', $star)->count();
+            $ratingBreakdown[$star] = [
+                'count' => $count,
+                'percent' => $totalReviews > 0 ? (int) round(($count / $totalReviews) * 100) : 0,
+            ];
+        }
+
+        $questions = collect();
+        if (Schema::hasTable('chat_rooms') && Schema::hasTable('chat_messages')) {
+            $roomIds = ChatRoom::query()
+                ->where('course_id', $this->course->id)
+                ->where('type', 'course')
+                ->pluck('id');
+
+            if ($roomIds->isNotEmpty()) {
+                $questions = ChatMessage::query()
+                    ->whereIn('chat_room_id', $roomIds)
+                    ->whereNotNull('body')
+                    ->with('user')
+                    ->latest()
+                    ->limit(30)
+                    ->get();
+            }
+        }
+
+        return view('livewire.course-player', [
+            'announcements' => $announcements,
+            'reviews' => $reviews,
+            'totalReviews' => $totalReviews,
+            'averageRating' => $averageRating,
+            'ratingBreakdown' => $ratingBreakdown,
+            'questions' => $questions,
+        ])->layout('layouts.player');
     }
 }

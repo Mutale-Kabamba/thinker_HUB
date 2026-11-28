@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,9 +11,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Quiz extends Model
 {
+    use BelongsToTenant;
     use HasFactory;
 
     protected $fillable = [
+        'tenant_id',
         'course_id',
         'course_intake_id',
         'title',
@@ -161,7 +164,16 @@ class Quiz extends Model
 
                 $earnedPoints += $points;
             } else {
-                // Theory/practical answers keep their manually assigned points
+                // If answer was not scored yet and Gemini is available, evaluate it
+                if ($answer->points_earned === 0 && empty($answer->feedback) && ! empty($answer->text_answer)) {
+                    $evaluation = app(\App\Services\QuizAutoGradingService::class)->grade($question, $answer->text_answer);
+                    $answer->update([
+                        'is_correct' => $evaluation['is_correct'],
+                        'points_earned' => $evaluation['points_earned'],
+                        'feedback' => $evaluation['feedback'],
+                    ]);
+                }
+
                 $earnedPoints += (int) $answer->points_earned;
             }
         }

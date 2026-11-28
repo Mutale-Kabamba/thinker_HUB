@@ -7,9 +7,13 @@
 
     @include('partials.seo-meta', [
         'title' => ($title ?? 'Knowledge & Opportunities Hub').' | think.er HUB',
-        'description' => 'Explore tips & tricks, short blogs, career opportunities, and educational YouTube videos.',
-        'keywords' => 'knowledge hub, career opportunities, programming tips, tutorials, thinker hub',
-        'type' => 'website',
+        'description' => $description ?? 'Explore tips & tricks, short blogs, career opportunities, and educational YouTube videos on think.er HUB.',
+        'keywords' => $keywords ?? 'knowledge hub, career opportunities, programming tips, tutorials, thinker hub',
+        'image' => $image ?? null,
+        'url' => $url ?? url()->current(),
+        'type' => $type ?? 'website',
+        'breadcrumbs' => $breadcrumbs ?? null,
+        'schema' => $schema ?? null,
     ])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -19,6 +23,7 @@
 <body class="public-layout hub-public bg-[#f8fcf9] text-slate-900 font-sans antialiased min-h-dvh" x-data="{ mobileMenu: false }">
     @include('partials.app-preloader')
     {{ $slot }}
+    <livewire:ai.public-chat-widget />
     @livewireScripts
 </body>
 </html>

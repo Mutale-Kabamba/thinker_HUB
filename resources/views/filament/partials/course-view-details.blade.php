@@ -40,7 +40,7 @@
 
     <section class="rounded-xl border border-gray-200 bg-gray-50 p-4">
         <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Key Outcome</h3>
-        <p class="mt-2 leading-relaxed text-gray-700">{{ $record->key_outcome ?: 'No key outcome added yet.' }}</p>
+        <p class="mt-2 leading-relaxed text-gray-700 text-justify">{{ $record->key_outcome ?: 'No key outcome added yet.' }}</p>
     </section>
 
     <section class="space-y-3">
@@ -57,10 +57,10 @@
 
                 <div class="mt-3 space-y-2">
                     @foreach ($section['rows'] as $row)
-                        <div class="hub-fee-row flex items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-white px-3 py-2">
-                            <span class="text-xs font-medium text-gray-800">{{ $row['level'] !== '' ? $row['level'] : '-' }}</span>
-                            <span class="text-xs font-semibold text-indigo-700">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</span>
-                            <span class="text-xs text-gray-600">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</span>
+                        <div class="hub-fee-row grid grid-cols-[1fr_100px_80px] items-center gap-3 rounded-lg border border-indigo-100 bg-white px-3 py-2">
+                            <span class="text-xs font-medium text-gray-800 text-left">{{ $row['level'] !== '' ? $row['level'] : '-' }}</span>
+                            <span class="text-xs font-semibold text-indigo-700 text-right tabular-nums">{{ $row['amount'] !== '' ? $row['amount'] : '-' }}</span>
+                            <span class="text-xs text-gray-600 text-right tabular-nums">{{ $row['duration'] !== '' ? $row['duration'] : '-' }}</span>
                         </div>
                     @endforeach
                 </div>

@@ -36,6 +36,10 @@ class EditCourse extends BaseEditRecord
         $this->selectedParticipantIds = array_values(array_map('intval', $data['selected_participant_ids'] ?? []));
         unset($data['selected_participant_ids']);
 
+        if (! auth()->user()?->isAdmin()) {
+            $data['is_active'] = (bool) $this->record->is_active;
+        }
+
         return CourseForm::prepareDataForSave($data);
     }
 

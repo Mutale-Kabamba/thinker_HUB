@@ -39,7 +39,7 @@ class AssignmentAssignedNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('New Assignment: '.$this->assignment->name)
-            ->markdown('emails.assignment-assigned', [
+            ->view('emails.assignment-assigned', [
                 'assignment' => $this->assignment,
                 'courseName' => $this->courseName,
                 'notifiable' => $notifiable,

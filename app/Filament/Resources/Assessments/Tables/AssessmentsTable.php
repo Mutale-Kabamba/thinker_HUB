@@ -78,6 +78,20 @@ class AssessmentsTable
             ->recordActions([
                 ActionGroup::make([
                     EditAction::make()->icon('heroicon-m-pencil-square'),
+                    \Filament\Actions\Action::make('view_assessment_document')
+                        ->label('View Document')
+                        ->icon('heroicon-m-eye')
+                        ->color('info')
+                        ->visible(fn ($record) => ! empty($record->all_file_paths))
+                        ->url(fn ($record): string => route('file.view', ['type' => 'assessment', 'id' => $record->id]))
+                        ->openUrlInNewTab(),
+                    \Filament\Actions\Action::make('download_assessment_document')
+                        ->label('Download Document')
+                        ->icon('heroicon-m-arrow-down-tray')
+                        ->color('gray')
+                        ->visible(fn ($record) => ! empty($record->all_file_paths))
+                        ->url(fn ($record): string => route('file.download', ['type' => 'assessment', 'id' => $record->id]))
+                        ->openUrlInNewTab(),
                     \Filament\Actions\Action::make('downloadSubmissionsZip')
                         ->label('Download Submissions (ZIP)')
                         ->icon('heroicon-m-arrow-down-tray')

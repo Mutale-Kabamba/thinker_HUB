@@ -4,12 +4,14 @@ namespace App\Filament\Instructor\Pages;
 
 use App\Filament\Instructor\Resources\AssessmentSubmissionResource\AssessmentSubmissionResource;
 use App\Filament\Instructor\Resources\AssignmentSubmissionResource\AssignmentSubmissionResource;
+use App\Filament\Instructor\Resources\CourseResource\CourseResource;
 use App\Models\Assessment;
 use App\Models\AssessmentSubmission;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\Course;
 use App\Models\CourseSession;
+use App\Models\InstructorApplication;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -63,6 +65,10 @@ class InstructorOverview extends Page
     public array $recentSubmissions = [];
 
     public array $stats = [];
+
+    public array $remindersSummary = [];
+
+    public array $courseCreationPrompt = [];
 
     public ?string $selectedDate = null;
 
@@ -125,7 +131,7 @@ class InstructorOverview extends Page
             'student_photo' => $sub->user?->profile_photo_url ?? null,
             'initials' => Str::upper(substr($sub->user?->name ?? 'ST', 0, 2)),
             'submitted_at' => $sub->submitted_at ? $sub->submitted_at->diffForHumans() : 'Recently',
-            'url' => AssignmentSubmissionResource::getUrl('edit', ['record' => $sub->id]),
+            'url' => AssignmentSubmissionResource::getUrl('edit', ['record' => $sub->id], panel: 'instructor'),
             'badge_color' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300',
         ]);
 
@@ -138,8 +144,8 @@ class InstructorOverview extends Page
             'student_photo' => $sub->user?->profile_photo_url ?? null,
             'initials' => Str::upper(substr($sub->user?->name ?? 'ST', 0, 2)),
             'submitted_at' => $sub->submitted_at ? $sub->submitted_at->diffForHumans() : 'Recently',
-            'url' => AssessmentSubmissionResource::getUrl('edit', ['record' => $sub->id]),
-            'badge_color' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300',
+            'url' => AssessmentSubmissionResource::getUrl('edit', ['record' => $sub->id], panel: 'instructor'),
+            'badge_color' => 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300',
         ]);
 
         $this->recentSubmissions = $recentAssignSubmissions->concat($recentAssessSubmissions)->take(5)->values()->all();
@@ -149,12 +155,17 @@ class InstructorOverview extends Page
         $gradedSubmissions = max(0, $totalSubmissions - $this->pendingSubmissionsCount);
         $gradingPercent = $totalSubmissions > 0 ? (int) round(($gradedSubmissions / $totalSubmissions) * 100) : 100;
 
+        $reminderService = app(\App\Services\InstructorReminderService::class);
+        $this->remindersSummary = $reminderService->getRemindersData($user);
+        $unmarkedRegistersCount = (int) ($this->remindersSummary['unmarked_count'] ?? 0);
+
         $this->stats = [
             'classes_total' => count($this->courses),
             'students_total' => $this->totalStudents,
             'assignments_total' => $this->totalAssignments,
             'assessments_total' => $this->totalAssessments,
             'pending_reviews' => $this->pendingSubmissionsCount,
+            'unmarked_registers' => $unmarkedRegistersCount,
             'grading_percent' => $gradingPercent,
             'upcoming_sessions' => $this->upcomingSessionCount,
         ];
@@ -192,10 +203,10 @@ class InstructorOverview extends Page
                 'badge' => $this->pendingSubmissionsCount > 0 ? 'Pending Reviews' : 'All Clear',
                 'badge_color' => $this->pendingSubmissionsCount > 0 ? 'bg-amber-500/20 text-amber-300 border-amber-400/30' : 'bg-teal-500/20 text-teal-300 border-teal-400/30',
                 'cta_label' => 'Review Submissions',
-                'cta_url' => AssignmentSubmissionResource::getUrl(),
+                'cta_url' => AssignmentSubmissionResource::getUrl(panel: 'instructor'),
                 'metric_label' => 'Submissions Queue',
                 'metric_value' => (string) $this->pendingSubmissionsCount,
-                'css_gradient' => 'linear-gradient(135deg, #1e1b4b 0%, #312e81 45%, #0f172a 100%)',
+                'css_gradient' => 'linear-gradient(135deg, #0f172a 0%, #115e59 50%, #042f2e 100%)',
                 'avatar' => $userPhoto,
             ],
             [
@@ -204,7 +215,7 @@ class InstructorOverview extends Page
                     : 'Schedule Your Next Live Class',
                 'description' => 'Coordinate interactive workshops, 1-on-1 office hours, and group webinars seamlessly on your calendar.',
                 'badge' => 'Live Classes',
-                'badge_color' => 'bg-indigo-500/20 text-indigo-300 border-indigo-400/30',
+                'badge_color' => 'bg-sky-500/20 text-sky-300 border-sky-400/30',
                 'cta_label' => 'Open Schedule',
                 'cta_url' => route('filament.instructor.pages.schedule'),
                 'metric_label' => 'Upcoming Sessions',
@@ -214,44 +225,105 @@ class InstructorOverview extends Page
             ],
         ];
 
+        if ($unmarkedRegistersCount > 0) {
+            $this->heroBanners[] = [
+                'title' => "{$unmarkedRegistersCount} Attendance Register" . ($unmarkedRegistersCount === 1 ? '' : 's') . " Awaiting Marking",
+                'description' => "Stay on top of cohort engagement! Mark attendance registers for recently held class sessions.",
+                'badge' => 'Register Marking Required',
+                'badge_color' => 'bg-rose-500/20 text-rose-300 border-rose-400/30',
+                'cta_label' => 'Mark Register Now',
+                'cta_url' => route('filament.instructor.pages.attendance-register'),
+                'metric_label' => 'Unmarked Registers',
+                'metric_value' => (string) $unmarkedRegistersCount,
+                'css_gradient' => 'linear-gradient(135deg, #881337 0%, #be123c 45%, #4c0519 100%)',
+                'avatar' => $userPhoto,
+            ];
+        }
+
+        // Check if instructor was prompted to build a new course with the guide
+        $promptApp = InstructorApplication::query()
+            ->where('user_id', $user->id)
+            ->where('prompt_course_creation', true)
+            ->latest('prompted_at')
+            ->first();
+
+        if ($promptApp) {
+            $this->courseCreationPrompt = [
+                'has_prompt' => true,
+                'guidance' => $promptApp->course_creation_guidance,
+                'prompted_at' => $promptApp->prompted_at ? $promptApp->prompted_at->diffForHumans() : 'Recently',
+                'create_url' => CourseResource::getUrl('create', panel: 'instructor'),
+            ];
+
+            array_unshift($this->heroBanners, [
+                'title' => 'Course Creation Invited',
+                'description' => 'Thinker Hub Admin invited you to design your new course. Follow our Course Build Structure Guide to draft and submit your curriculum.',
+                'badge' => 'Course Build Request',
+                'badge_color' => 'bg-amber-500/20 text-amber-300 border-amber-400/30',
+                'cta_label' => 'Create Course Now',
+                'cta_url' => CourseResource::getUrl('create', panel: 'instructor'),
+                'metric_label' => 'Status',
+                'metric_value' => 'Guide Ready',
+                'css_gradient' => 'linear-gradient(135deg, #1e1b4b 0%, #312e81 45%, #0f172a 100%)',
+                'avatar' => $userPhoto,
+            ]);
+        }
+
         // Quick Actions Shortcuts
         $this->quickActions = [
+            [
+                'label' => 'Mark Register',
+                'icon' => 'heroicon-o-clipboard-document-check',
+                'url' => route('filament.instructor.pages.attendance-register'),
+                'badge' => $unmarkedRegistersCount > 0 ? (string) $unmarkedRegistersCount : null,
+                'color' => $unmarkedRegistersCount > 0 ? 'bg-rose-600 text-white' : 'bg-teal-600 text-white',
+            ],
             [
                 'label' => 'Review Submissions',
                 'icon' => 'heroicon-o-clipboard-document-check',
                 'url' => AssignmentSubmissionResource::getUrl(),
                 'badge' => $this->pendingSubmissionsCount > 0 ? (string) $this->pendingSubmissionsCount : null,
-                'color' => 'bg-teal-500 text-white',
+                'color' => 'bg-teal-600 text-white',
             ],
             [
                 'label' => 'Schedule Class',
                 'icon' => 'heroicon-o-calendar-days',
                 'url' => route('filament.instructor.pages.schedule'),
                 'badge' => null,
-                'color' => 'bg-indigo-500 text-white',
+                'color' => 'bg-emerald-600 text-white',
             ],
             [
                 'label' => 'Student Results',
                 'icon' => 'heroicon-o-chart-bar-square',
                 'url' => route('filament.instructor.pages.student-results'),
                 'badge' => null,
-                'color' => 'bg-emerald-500 text-white',
+                'color' => 'bg-teal-700 text-white',
             ],
             [
                 'label' => 'Send Broadcast',
                 'icon' => 'heroicon-o-megaphone',
                 'url' => route('filament.instructor.pages.broadcasts'),
                 'badge' => null,
-                'color' => 'bg-purple-500 text-white',
+                'color' => 'bg-cyan-600 text-white',
             ],
             [
                 'label' => 'Analytics',
                 'icon' => 'heroicon-o-presentation-chart-line',
                 'url' => route('filament.instructor.pages.analytics'),
                 'badge' => null,
-                'color' => 'bg-sky-500 text-white',
+                'color' => 'bg-slate-700 text-white',
             ],
         ];
+
+        if (! empty($this->courseCreationPrompt['has_prompt'])) {
+            array_unshift($this->quickActions, [
+                'label' => 'Create Course',
+                'icon' => 'heroicon-o-plus-circle',
+                'url' => CourseResource::getUrl('create', panel: 'instructor'),
+                'badge' => 'Invited',
+                'color' => 'bg-amber-600 text-white',
+            ]);
+        }
     }
 
     public function selectDate(?string $date): void
@@ -366,4 +438,33 @@ class InstructorOverview extends Page
             $current->addDay();
         }
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getViewData(): array
+    {
+        return [
+            'courses' => $this->courses,
+            'classrooms' => $this->classrooms,
+            'totalStudents' => $this->totalStudents,
+            'totalAssessments' => $this->totalAssessments,
+            'totalAssignments' => $this->totalAssignments,
+            'pendingSubmissionsCount' => $this->pendingSubmissionsCount,
+            'calendarWeeks' => $this->calendarWeeks,
+            'calendarEvents' => $this->calendarEvents,
+            'calendarMonth' => $this->calendarMonth,
+            'calendarYear' => $this->calendarYear,
+            'calendarMonthName' => $this->calendarMonthName,
+            'upcomingSessionCount' => $this->upcomingSessionCount,
+            'upcomingSessions' => $this->upcomingSessions,
+            'todaySchedule' => $this->todaySchedule,
+            'heroBanners' => $this->heroBanners,
+            'quickActions' => $this->quickActions,
+            'recentSubmissions' => $this->recentSubmissions,
+            'stats' => $this->stats,
+            'selectedDate' => $this->selectedDate,
+        ];
+    }
 }
+

@@ -113,16 +113,15 @@ class Materials extends Page
             return null;
         }
 
-        $path = PublicDiskPath::normalize($material->file_path);
-        $disk = Storage::disk('public');
+        [$resolvedDisk, $resolvedPath] = \App\Support\DocumentResponse::resolveFile($material->file_path);
 
-        if (! $path || ! $disk->exists($path)) {
+        if (! $resolvedPath || ! $resolvedDisk) {
             Notification::make()->title('File not found.')->danger()->send();
 
             return null;
         }
 
-        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        $extension = pathinfo($resolvedPath, PATHINFO_EXTENSION);
         $downloadName = Str::slug($material->title).'.'.$extension;
 
         try {
@@ -131,7 +130,7 @@ class Materials extends Page
             report($e);
         }
 
-        return $disk->download($path, $downloadName);
+        return \App\Support\DocumentResponse::serve($resolvedPath, $downloadName, isDownload: true);
     }
 
     public function recordView(int $materialId): void

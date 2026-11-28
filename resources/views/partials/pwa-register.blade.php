@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('images/logos/icon_green.png') }}">
 <link rel="apple-touch-icon" sizes="512x512" href="{{ asset('images/logos/icon_green.png') }}">
 
+<script src="{{ asset('js/thinker-offline.js') }}" defer></script>
 <script>
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {

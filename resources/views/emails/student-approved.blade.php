@@ -1,158 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Your Account is Active - Thinker HUB</title>
-</head>
-<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f172a;-webkit-font-smoothing:antialiased;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f1f5f9;padding:32px 12px;">
-        <tr>
-            <td align="center">
-                <!-- Top Logo -->
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 20px;">
-                    <tr>
-                        <td align="center">
-                            <a href="{{ config('app.url') }}" style="display: inline-block; text-decoration: none; font-size: 24px; font-weight: 800; color: #0a2d27; letter-spacing: -0.03em;">
-                                think.er <span style="color: #0f766e;">HUB</span>
-                            </a>
-                        </td>
-                    </tr>
-                </table>
+@php
+    $rawStudentName = trim((string) ($student->name ?? ''));
+    $studentFirstName = $rawStudentName !== '' ? (explode(' ', $rawStudentName)[0] ?? $rawStudentName) : 'Learner';
+@endphp
 
-                <!-- Card Container -->
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:620px;background-color:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 10px 25px -5px rgba(15,23,42,0.06),0 8px 10px -6px rgba(15,23,42,0.04);">
-                    
-                    <!-- Header Banner -->
-                    <tr>
-                        <td style="padding:32px 32px 28px;background:linear-gradient(135deg,#0a2d27 0%,#115e59 100%);color:#ffffff;">
-                            <div style="display:inline-block;padding:4px 12px;background:rgba(255,255,255,0.12);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#99f6e4;">
-                                think.er HUB &bull; Student Account
-                            </div>
-                            <h1 style="margin:14px 0 6px;font-size:24px;line-height:1.25;color:#ffffff;font-weight:800;letter-spacing:-0.02em;">
-                                Welcome to think.er HUB
-                            </h1>
-                            <p style="margin:0;font-size:14px;line-height:1.5;color:#ccfbf1;">
-                                Your course enrollment has been verified and your portal is ready.
-                            </p>
-                        </td>
-                    </tr>
+@extends('emails.layouts.thinker', [
+    'title' => 'Your Account is Active — think.er HUB',
+    'preheader' => 'Welcome to think.er HUB! Your student account is active and ready.',
+    'eyebrow' => 'Student Account Active',
+    'heading' => 'Welcome to think.er HUB, ' . $studentFirstName . '!',
+    'subtitle' => 'Your enrollment has been verified and your Student Portal is ready.',
+    'ctaUrl' => $actionUrl,
+    'ctaLabel' => $actionLabel,
+    'footerNote' => 'You received this email because your student account was activated on think.er HUB.',
+])
 
-                    <!-- Personalized Greeting -->
-                    <tr>
-                        <td style="padding:28px 32px 12px;">
-                            @php
-                                $rawStudentName = trim((string) ($student->name ?? ''));
-                                $studentFirstName = $rawStudentName !== '' ? (explode(' ', $rawStudentName)[0] ?? $rawStudentName) : 'Learner';
-                            @endphp
-                            <p style="margin:0;font-size:16px;line-height:1.5;color:#0f172a;font-weight:700;">
-                                Hello {{ $studentFirstName }}!
-                            </p>
-                            <p style="margin:8px 0 0;font-size:14px;line-height:1.65;color:#475569;">
-                                We're thrilled to have you! You now have full access to your student dashboard, coursework, learning materials, and live schedule.
-                            </p>
-                        </td>
-                    </tr>
+@section('content')
+  <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 24px; color: #475569;">
+    We&rsquo;re thrilled to have you! You now have full access to your student dashboard, coursework, learning materials, AI Study Buddy, and live schedule.
+  </p>
 
-                    <!-- Account Details Summary -->
-                    <tr>
-                        <td style="padding:12px 32px;">
-                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;border-collapse:separate;">
-                                <tr>
-                                    <td style="padding:14px 20px;border-bottom:1px solid #edf2f7;width:120px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">
-                                        Student Name
-                                    </td>
-                                    <td style="padding:14px 20px;border-bottom:1px solid #edf2f7;font-size:14px;font-weight:700;color:#0f172a;">
-                                        {{ $student->name }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding:14px 20px;border-bottom:1px solid #edf2f7;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">
-                                        Email Login
-                                    </td>
-                                    <td style="padding:14px 20px;border-bottom:1px solid #edf2f7;font-size:14px;color:#0f172a;font-weight:600;">
-                                        {{ $student->email }}
-                                    </td>
-                                </tr>
-                                @if ($course)
-                                    <tr>
-                                        <td style="padding:14px 20px;border-bottom:1px solid #edf2f7;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">
-                                            Enrolled Course
-                                        </td>
-                                        <td style="padding:14px 20px;border-bottom:1px solid #edf2f7;font-size:14px;color:#0f766e;font-weight:700;">
-                                            {{ $course->code }} &bull; {{ $course->title }}
-                                        </td>
-                                    </tr>
-                                @endif
-                                <tr>
-                                    <td style="padding:14px 20px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">
-                                        Status
-                                    </td>
-                                    <td style="padding:14px 20px;font-size:13px;font-weight:700;">
-                                        <span style="display:inline-block;padding:3px 10px;background:#dcfce7;color:#15803d;border-radius:999px;">
-                                            Active & Verified
-                                        </span>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; margin: 0 0 20px 0;">
+    <tr>
+      <td style="padding: 18px 22px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+          <tr>
+            <td width="35%" style="padding: 6px 0; font-size: 13px; color: #64748B; font-weight: 600;">Student Name</td>
+            <td style="padding: 6px 0; font-size: 14px; color: #0F172A; font-weight: 700;">{{ $student->name }}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; font-size: 13px; color: #64748B; font-weight: 600; border-top: 1px solid #E2E8F0;">Email Login</td>
+            <td style="padding: 6px 0; font-size: 14px; color: #334155; font-weight: 600; border-top: 1px solid #E2E8F0;">{{ $student->email }}</td>
+          </tr>
+          @if ($course)
+            <tr>
+              <td style="padding: 6px 0; font-size: 13px; color: #64748B; font-weight: 600; border-top: 1px solid #E2E8F0;">Enrolled Course</td>
+              <td style="padding: 6px 0; font-size: 14px; color: #006A67; font-weight: 700; border-top: 1px solid #E2E8F0;">{{ $course->code }} &bull; {{ $course->title }}</td>
+            </tr>
+          @endif
+          <tr>
+            <td style="padding: 6px 0; font-size: 13px; color: #64748B; font-weight: 600; border-top: 1px solid #E2E8F0;">Status</td>
+            <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #15803D; border-top: 1px solid #E2E8F0;">Active &amp; Verified</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 
-                    <!-- Instructions Card -->
-                    <tr>
-                        <td style="padding:12px 32px 16px;">
-                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;">
-                                <tr>
-                                    <td style="padding:16px 20px;">
-                                        <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:4px;">
-                                            How to Sign In:
-                                        </div>
-                                        <div style="font-size:13px;line-height:1.55;color:#14532d;">
-                                            @if (! empty($student->firebase_uid))
-                                                Click the button below to open the login page, then continue using your <strong>Google Account</strong>.
-                                            @else
-                                                Click the button below to sign in with your email address and password.
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-
-                    <!-- Primary Action Button -->
-                    <tr>
-                        <td style="padding:12px 32px 28px;text-align:center;">
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;">
-                                <tr>
-                                    <td style="border-radius:999px;background:#0a2d27;">
-                                        <a href="{{ $actionUrl }}" style="display:inline-block;background-color:#0a2d27;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:14px 32px;border-radius:999px;letter-spacing:0.02em;box-shadow:0 4px 6px -1px rgba(10,45,39,0.25);">
-                                            {{ $actionLabel }} &rarr;
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-
-                    <!-- Support Info Footer -->
-                    <tr>
-                        <td style="padding:20px 32px 24px;background-color:#f8fafc;border-top:1px solid #e2e8f0;">
-                            <p style="margin:0;font-size:12px;line-height:1.6;color:#64748b;">
-                                Need help getting started? Simply reply to this email or reach us at <a href="mailto:{{ config('mail.contact_to', 'thinkerhub@oristudiozm.com') }}" style="color:#0f766e;text-decoration:underline;">{{ config('mail.contact_to', 'thinkerhub@oristudiozm.com') }}</a>.
-                            </p>
-                        </td>
-                    </tr>
-
-                </table>
-
-                <!-- Bottom Branding -->
-                <p style="margin:16px 0 0;font-size:11px;color:#94a3b8;text-align:center;line-height:1.5;">
-                    &copy; {{ date('Y') }} think.er HUB &bull; 10A Off Natwange Street, Airport, Livingstone, Zambia<br>
-                    Official learning platform by <a href="{{ config('app.url') }}" style="color:#0f766e;text-decoration:underline;">oristudiozm.com</a>
-                </p>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 6px;">
+    <tr>
+      <td style="padding: 14px 18px; font-size: 13px; line-height: 20px; color: #14532D;">
+        <strong>How to sign in:</strong>
+        @if (! empty($student->firebase_uid))
+          Click the button below to open the login page, then continue using your <strong>Google Account</strong>.
+        @else
+          Click the button below to sign in with your email address and password.
+        @endif
+      </td>
+    </tr>
+  </table>
+@endsection

@@ -58,6 +58,18 @@
       ]
     },
     {
+      "name": "Offline Library",
+      "short_name": "Offline",
+      "description": "Study saved courses and materials without internet",
+      "url": "/learn/offline",
+      "icons": [
+        {
+          "src": "/images/logos/icon_green.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
       "name": "Claim Hub & Rewards",
       "short_name": "Rewards",
       "description": "Redeem Thinker Coins for airtime, data and course perks",

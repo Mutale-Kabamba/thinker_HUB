@@ -144,6 +144,8 @@ return [
 
     'admin_to' => env('MAIL_ADMIN_TO', env('MAIL_CONTACT_TO', env('MAIL_FROM_ADDRESS', 'hello@example.com'))),
 
+    'admin_alert_to' => env('MAIL_ADMIN_ALERT_TO', env('MAIL_ADMIN_TO', env('MAIL_CONTACT_TO', env('MAIL_FROM_ADDRESS', 'hello@example.com')))),
+
     'deliverability' => [
         'message_id_domain' => env('MAIL_MESSAGE_ID_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         'list_unsubscribe' => env('MAIL_LIST_UNSUBSCRIBE'),
